@@ -965,7 +965,7 @@ async function handleOpenDigioKyc() {
                         await loadKycStatus();
                         return;
                     } catch (err) {
-                        showKycMessage("Digio KYC error: " + (res.message || "Failed to complete DigiLocker authentication"), "error");
+                        showKycMessage(showApiError(err, "Failed to complete DigiLocker authentication"), "error");
                         if (openBtn) {
                             openBtn.disabled = false;
                             openBtn.textContent = "Open DigiLocker ›";

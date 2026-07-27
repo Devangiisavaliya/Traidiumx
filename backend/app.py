@@ -1,6 +1,5 @@
 import os
-
-from flask import Flask, redirect, send_from_directory
+from flask import Flask, redirect, send_from_directory, request
 from flask_cors import CORS
 
 from api.auth_api import auth_api
@@ -289,6 +288,14 @@ def create_app():
             },
             status_code=500
         )
+
+    @app.after_request
+    def add_header(response):
+        if request.path.startswith("/src/") or request.path.startswith("/admin/static/") or request.path.endswith(".js") or request.path.endswith(".css") or request.path.endswith(".html"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
 
     # Pending orders, TP/SL and liquidations continue even when every browser
     # tab is closed. The service internally prevents duplicate worker threads.
