@@ -1,12 +1,12 @@
 const API_BASE_URL = (() => {
-    const { protocol, hostname, port, origin } = window.location;
+    const { protocol, hostname } = window.location;
     const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
 
-    if (isLocalHost && port && port !== "5000") {
+    if (isLocalHost) {
         return `${protocol}//${hostname}:5000/api`;
     }
 
-    return `${origin}/api`;
+    return "https://traidiumx.onrender.com/api";
 })();
 
 const TOKEN_KEY = "traidiumx_auth_token";
