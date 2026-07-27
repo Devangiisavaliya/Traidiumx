@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Admin Register | TraidiumX</title>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div class="login-orb left-10 top-20 h-56 w-56 bg-cyan-400/35"></div>
+    <div class="login-orb bottom-10 right-10 h-72 w-72 bg-blue-500/30" style="animation-delay:1.2s"></div>
+    <div class="login-orb right-1/3 top-1/3 h-48 w-48 bg-purple-500/25" style="animation-delay:2.4s"></div>
+
+    <main class="relative z-10 grid min-h-screen place-items-center px-4 py-10">
+        <section class="grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-2xl lg:grid-cols-[1fr_1fr]">
+            <div class="relative hidden min-h-[720px] overflow-hidden bg-slate-950/60 p-10 lg:block">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,.18),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,.18),transparent_32%)]"></div>
+                <div class="relative z-10 flex h-full flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <div class="admin-brand-logo">TX</div>
+                            <div>
+                                <h1 class="text-2xl font-black text-white">TraidiumX</h1>
+                                <p class="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Admin Control</p>
+                            </div>
+                        </div>
+                        <h2 class="mt-16 max-w-xl text-5xl font-black leading-tight tracking-tight text-white">Create a secure admin account.</h2>
+                        <p class="mt-5 max-w-lg text-base leading-8 text-slate-300">Use this page for first admin setup or authorized admin team registration.</p>
+                    </div>
+                    <div class="admin-card p-6">
+                        <p class="text-xs font-black uppercase tracking-[.18em] text-cyan-300">Email Verification</p>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">Admin signup uses a secure email verification code. The code is sent only to the admin email and remains valid for 120 seconds.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 sm:p-10 lg:p-12">
+                <div class="mb-10 lg:hidden">
+                    <div class="flex items-center gap-3"><div class="admin-brand-logo">TX</div><div><h1 class="text-2xl font-black text-white">TraidiumX</h1><p class="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Admin Control</p></div></div>
+                </div>
+                <div class="tx-fade-up">
+                    <p class="text-sm font-black uppercase tracking-[.22em] text-cyan-300">Admin Register</p>
+                    <h2 class="mt-3 text-4xl font-black tracking-tight text-white">Create admin access.</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-400">Create a TraidiumX admin login. Existing project work is not changed.</p>
+                </div>
+                <div id="registerMessage" class="mt-9 hidden rounded-2xl border p-3 text-sm font-bold tx-fade-up tx-delay-2"></div>
+                <form id="adminRegisterForm" class="mt-5 space-y-5 tx-fade-up tx-delay-2" autocomplete="off">
+                    <div>
+                        <label class="mb-2 block text-sm font-bold text-slate-300">Full Name</label>
+                        <input id="registerName" type="text" class="admin-input" placeholder="Super Admin" autocomplete="name" />
+                    </div>
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-300">Admin Email</label>
+                            <input id="registerEmail" type="email" class="admin-input" placeholder="admin@traidiumx.com" autocomplete="email" />
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-300">Mobile Number</label>
+                            <input id="registerMobile" type="tel" class="admin-input" placeholder="9876543210" inputmode="numeric" maxlength="10" pattern="\d{10}" autocomplete="tel" />
+                        </div>
+                    </div>
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-300">Password</label>
+                            <input id="registerPassword" type="password" class="admin-input" placeholder="Admin@12345" autocomplete="new-password" />
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-slate-300">Confirm Password</label>
+                            <input id="registerConfirmPassword" type="password" class="admin-input" placeholder="Confirm password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <button id="sendRegisterCodeBtn" class="admin-btn admin-btn-primary w-full py-4 text-base" type="submit">Send Verification Code →</button>
+                </form>
+                <form id="adminRegisterVerifyForm" class="mt-7 hidden space-y-5 rounded-[1.5rem] border border-cyan-400/15 bg-cyan-400/[0.06] p-5 tx-fade-up tx-delay-2" autocomplete="off">
+                    <div>
+                        <p class="text-sm font-black uppercase tracking-[.18em] text-cyan-300">Email Verification</p>
+                        <p id="registerCodeHelp" class="mt-2 text-sm leading-6 text-slate-400">Enter the 6 digit code sent to your admin email.</p>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                                <p class="text-xs font-black uppercase tracking-[.16em] text-slate-400">Code valid for</p>
+                                <p id="registerCodeTimer" class="mt-2 text-2xl font-black text-cyan-200">02:00</p>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                                <p class="text-xs font-black uppercase tracking-[.16em] text-slate-400">Resend Status</p>
+                                <p id="registerResendStatus" class="mt-2 text-sm font-black text-slate-200">3 sends available</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-bold text-slate-300">Verification Code</label>
+                        <input id="registerVerificationCode" type="text" class="admin-input text-center tracking-[.35em]" placeholder="000000" inputmode="numeric" maxlength="6" autocomplete="one-time-code" />
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                        <button id="verifyRegisterCodeBtn" class="admin-btn admin-btn-primary py-4 text-base" type="submit">Verify & Create Admin →</button>
+                        <button id="resendRegisterCodeBtn" class="admin-btn admin-btn-soft py-4 text-base" type="button">Resend Code</button>
+                    </div>
+                </form>
+                <div class="mt-7 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
+                    <a href="/admin/login" class="font-bold text-cyan-300 hover:text-cyan-200">Already have admin access? Login</a>
+                    <a href="/admin/forgot-password" class="font-bold text-slate-400 hover:text-slate-200">Forgot password?</a>
+                </div>
+                <p class="mt-8 text-center text-xs font-semibold text-slate-500">© <span class="tx-auto-year"></span> TraidiumX. Secure admin panel.</p>
+            </div>
+        </section>
+    </main>
+    <script src="/admin/static/js/admin-config.js"></script>
+    <script src="/admin/static/js/admin-api.js"></script>
+    <script src="/admin/static/js/admin-auth.js"></script>
+    <script>document.querySelectorAll('.tx-auto-year').forEach(el => el.textContent = new Date().getFullYear())</script>
+</body>
+</html>

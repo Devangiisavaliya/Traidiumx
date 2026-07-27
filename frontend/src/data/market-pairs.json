@@ -1,0 +1,189 @@
+[
+    {
+        "symbol": "BTC",
+        "pair": "BTC-USDT",
+        "name": "Bitcoin",
+        "category": "USDT Futures",
+        "leverage": "150x",
+        "ltp": "104,230.00 USDT",
+        "change": 2.45,
+        "volume": "95,918.008",
+        "trend": true
+    },
+    {
+        "symbol": "ETH",
+        "pair": "ETH-USDT",
+        "name": "Ethereum",
+        "category": "USDT Futures",
+        "leverage": "150x",
+        "ltp": "3,420.11 USDT",
+        "change": 1.68,
+        "volume": "27,04,872.15",
+        "trend": true
+    },
+    {
+        "symbol": "SOL",
+        "pair": "SOL-USDT",
+        "name": "Solana",
+        "category": "USDT Futures",
+        "leverage": "100x",
+        "ltp": "148.90 USDT",
+        "change": 4.97,
+        "volume": "2,34,92,333.48",
+        "trend": true
+    },
+    {
+        "symbol": "XRP",
+        "pair": "XRP-USDT",
+        "name": "Ripple",
+        "category": "USDT Futures",
+        "leverage": "100x",
+        "ltp": "2.140 USDT",
+        "change": 1.18,
+        "volume": "24,80,38,086.6",
+        "trend": false
+    },
+    {
+        "symbol": "DOGE",
+        "pair": "DOGE-USDT",
+        "name": "Dogecoin",
+        "category": "USDT Futures",
+        "leverage": "100x",
+        "ltp": "0.08360 USDT",
+        "change": 0.16,
+        "volume": "2,19,10,45,457",
+        "trend": false
+    },
+    {
+        "symbol": "1000PEPE",
+        "pair": "1000PEPE-USDT",
+        "name": "Pepe",
+        "category": "USDT Futures",
+        "leverage": "35x",
+        "ltp": "0.0028338 USDT",
+        "change": 0.23,
+        "volume": "36,80,01,79,151",
+        "trend": true
+    },
+    {
+        "symbol": "1000SHIB",
+        "pair": "1000SHIB-USDT",
+        "name": "Shiba Inu",
+        "category": "USDT Futures",
+        "leverage": "50x",
+        "ltp": "0.004736 USDT",
+        "change": -0.23,
+        "volume": "2,92,76,10,271",
+        "trend": false
+    },
+    {
+        "symbol": "ORCA",
+        "pair": "ORCA-USDT",
+        "name": "Orca",
+        "category": "USDT Futures",
+        "leverage": "10x",
+        "ltp": "1.234 USDT",
+        "change": 2.06,
+        "volume": "56,39,237.8",
+        "trend": false
+    },
+    {
+        "symbol": "MANTA",
+        "pair": "MANTA-USDT",
+        "name": "Manta Network",
+        "category": "USDT Futures",
+        "leverage": "20x",
+        "ltp": "0.08127 USDT",
+        "change": -1.50,
+        "volume": "2,83,74,708.7",
+        "trend": false
+    },
+    {
+        "symbol": "FIL",
+        "pair": "FIL-USDT",
+        "name": "Filecoin",
+        "category": "USDT Futures",
+        "leverage": "50x",
+        "ltp": "0.788 USDT",
+        "change": -0.63,
+        "volume": "5,25,72,112",
+        "trend": false
+    },
+    {
+        "symbol": "SAND",
+        "pair": "SAND-USDT",
+        "name": "The Sandbox",
+        "category": "USDT Futures",
+        "leverage": "20x",
+        "ltp": "0.06001 USDT",
+        "change": 17.89,
+        "volume": "1,26,65,48,756",
+        "trend": true
+    },
+    {
+        "symbol": "APT",
+        "pair": "APT-USDT",
+        "name": "Aptos",
+        "category": "USDT Futures",
+        "leverage": "20x",
+        "ltp": "0.6447 USDT",
+        "change": 1.81,
+        "volume": "3,47,39,629.8",
+        "trend": false
+    },
+    {
+        "symbol": "BTC",
+        "pair": "BTC-INR",
+        "name": "Bitcoin INR",
+        "category": "INR Futures",
+        "leverage": "100x",
+        "ltp": "₹86,52,400.00",
+        "change": 1.92,
+        "volume": "₹18.42 Cr",
+        "trend": true
+    },
+    {
+        "symbol": "ETH",
+        "pair": "ETH-INR",
+        "name": "Ethereum INR",
+        "category": "INR Futures",
+        "leverage": "100x",
+        "ltp": "₹2,84,120.00",
+        "change": 1.21,
+        "volume": "₹9.18 Cr",
+        "trend": false
+    },
+    {
+        "symbol": "SOL",
+        "pair": "SOL-INR",
+        "name": "Solana INR",
+        "category": "INR Futures",
+        "leverage": "75x",
+        "ltp": "₹12,430.00",
+        "change": -0.82,
+        "volume": "₹5.72 Cr",
+        "trend": false
+    },
+    {
+        "symbol": "BTC",
+        "pair": "BTC Options",
+        "name": "Bitcoin Options",
+        "category": "Options",
+        "leverage": "Options",
+        "ltp": "104,200 Strike",
+        "change": 3.12,
+        "volume": "12,420 Contracts",
+        "trend": true
+    },
+    {
+        "symbol": "ETH",
+        "pair": "ETH Options",
+        "name": "Ethereum Options",
+        "category": "Options",
+        "leverage": "Options",
+        "ltp": "3,400 Strike",
+        "change": -1.08,
+        "volume": "8,940 Contracts",
+        "trend": false
+    }
+]

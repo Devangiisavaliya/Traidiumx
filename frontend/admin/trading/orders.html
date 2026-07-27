@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<style>
+/* Clean company-level Orders page. No live price, no horizontal scrollbar. */
+body[data-admin-page="orders"] .admin-content,
+body[data-admin-page="orders"] .table-wrap { overflow-x: hidden !important; }
+body[data-admin-page="orders"] .orders-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+}
+body[data-admin-page="orders"] .orders-table th,
+body[data-admin-page="orders"] .orders-table td {
+    padding: 14px 10px;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    font-size: 12px;
+}
+body[data-admin-page="orders"] .orders-nowrap,
+body[data-admin-page="orders"] .orders-money,
+body[data-admin-page="orders"] .orders-time,
+body[data-admin-page="orders"] .orders-id,
+body[data-admin-page="orders"] .orders-badge { white-space: nowrap !important; word-break: keep-all !important; }
+body[data-admin-page="orders"] .orders-clip { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap !important; }
+body[data-admin-page="orders"] .orders-muted { color:rgb(100 116 139); font-size:11px; line-height:1.2; }
+body[data-admin-page="orders"] .orders-actions { display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
+body[data-admin-page="orders"] .orders-actions .admin-btn { min-width:68px; justify-content:center; padding:7px 10px !important; font-size:12px; }
+body[data-admin-page="orders"] .orders-summary-card h3 { letter-spacing:-.03em; }
+@media (max-width: 1280px) {
+    body[data-admin-page="orders"] .orders-table th,
+    body[data-admin-page="orders"] .orders-table td { padding-left:8px; padding-right:8px; font-size:11.5px; }
+    body[data-admin-page="orders"] .orders-actions .admin-btn { min-width:62px; padding-left:8px !important; padding-right:8px !important; }
+}
+
+body[data-admin-page="orders"] .orders-table th:nth-child(1),
+body[data-admin-page="orders"] .orders-table td:nth-child(1) { width: 12%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(2),
+body[data-admin-page="orders"] .orders-table td:nth-child(2) { width: 8%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(3),
+body[data-admin-page="orders"] .orders-table td:nth-child(3) { width: 9%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(4),
+body[data-admin-page="orders"] .orders-table td:nth-child(4) { width: 9%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(5),
+body[data-admin-page="orders"] .orders-table td:nth-child(5) { width: 7%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(6),
+body[data-admin-page="orders"] .orders-table td:nth-child(6) { width: 7%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(7),
+body[data-admin-page="orders"] .orders-table td:nth-child(7) { width: 11%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(8),
+body[data-admin-page="orders"] .orders-table td:nth-child(8) { width: 8%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(9),
+body[data-admin-page="orders"] .orders-table td:nth-child(9) { width: 9%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(10),
+body[data-admin-page="orders"] .orders-table td:nth-child(10) { width: 7%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(11),
+body[data-admin-page="orders"] .orders-table td:nth-child(11) { width: 8%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(12),
+body[data-admin-page="orders"] .orders-table td:nth-child(12) { width: 9%; }
+body[data-admin-page="orders"] .orders-table th:nth-child(13),
+body[data-admin-page="orders"] .orders-table td:nth-child(13) { width: 6%; }
+body[data-admin-page="orders"] .orders-market-badge {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 10px;
+    font-weight: 950;
+    letter-spacing: .04em;
+}
+body[data-admin-page="orders"] .orders-market-futures {
+    color: #166534 !important;
+    background: linear-gradient(135deg, rgba(34, 197, 94, .16), rgba(16, 185, 129, .08)) !important;
+    border-color: rgba(34, 197, 94, .34) !important;
+}
+body[data-admin-page="orders"] .orders-market-options {
+    color: #5b21b6 !important;
+    background: linear-gradient(135deg, rgba(139, 92, 246, .18), rgba(59, 130, 246, .08)) !important;
+    border-color: rgba(139, 92, 246, .36) !important;
+}
+body:not(.tx-admin-light) body[data-admin-page="orders"] .orders-market-futures,
+body[data-admin-page="orders"] .orders-market-futures {
+    text-shadow: none;
+}
+body[data-admin-theme="dark"] body[data-admin-page="orders"] .orders-market-futures { color: #86efac !important; }
+body[data-admin-theme="dark"] body[data-admin-page="orders"] .orders-market-options { color: #c4b5fd !important; }
+body[data-admin-page="orders"] .orders-mini-label { color: rgb(100 116 139); font-size: 10px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; line-height: 1.1; }
+</style>
+<link rel="icon" href="data:," />
+<title>Orders | TraidiumX Admin</title>
+</head>
+<body data-admin-page="orders" data-page-title="Orders" data-page-subtitle="Clean order lifecycle view with one row per trade.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+<section class="space-y-6">
+    <div class="admin-card p-6 tx-fade-up">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[.22em] text-cyan-300">Trading Control</p>
+                <h2 class="mt-2 text-2xl font-black text-white">Orders</h2>
+                <p class="mt-1 max-w-3xl text-sm font-semibold text-slate-400">One trade stays in one row: Active while open, Filled after close. Live market price is not shown here; live P&amp;L belongs to Positions.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="ordersRefreshBtn" type="button" class="admin-btn admin-btn-primary">↻ Refresh</button>
+                <button id="ordersExportBtn" type="button" class="admin-btn">⬇ Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="admin-card admin-card-hover orders-summary-card p-5 tx-fade-up"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Total Orders</p><h3 id="ordersTotal" class="mt-3 text-3xl font-black text-white">0</h3></div>
+        <div class="admin-card admin-card-hover orders-summary-card p-5 tx-fade-up tx-delay-1"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Active</p><h3 id="ordersOpen" class="mt-3 text-3xl font-black text-cyan-300">0</h3></div>
+        <div class="admin-card admin-card-hover orders-summary-card p-5 tx-fade-up tx-delay-2"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Filled</p><h3 id="ordersFilled" class="mt-3 text-3xl font-black text-emerald-300">0</h3></div>
+        <div class="admin-card admin-card-hover orders-summary-card p-5 tx-fade-up tx-delay-3"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Cancelled</p><h3 id="ordersCancelled" class="mt-3 text-3xl font-black text-rose-300">0</h3></div>
+        <div class="admin-card admin-card-hover orders-summary-card p-5 tx-fade-up tx-delay-1"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Order Value</p><h3 id="ordersNotional" class="mt-3 text-2xl font-black text-white">$0</h3><p class="mt-1 text-[11px] font-bold text-slate-500">Full trade value</p></div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <form id="ordersFilterForm" class="grid gap-3 md:grid-cols-2 xl:grid-cols-9">
+            <div class="xl:col-span-2">
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Search</label>
+                <input id="ordersSearch" class="admin-input" placeholder="Order ID, user, email, symbol" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Market</label>
+                <select id="ordersMarket" class="admin-input">
+                    <option value="all">All</option>
+                    <option value="futures">Futures</option>
+                    <option value="options">Options</option>
+                </select>
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Symbol</label>
+                <input id="ordersSymbol" class="admin-input" placeholder="BTCUSDT" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Status</label>
+                <select id="ordersStatus" class="admin-input">
+                    <option value="all">All</option>
+                    <option value="active">Active</option>
+                    <option value="filled">Filled</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Side</label>
+                <select id="ordersSide" class="admin-input">
+                    <option value="all">All</option>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">Type</label>
+                <select id="ordersType" class="admin-input">
+                    <option value="all">All</option>
+                    <option value="market">Market</option>
+                    <option value="limit">Limit</option>
+                    <option value="stop">Stop</option>
+                    <option value="stop_limit">Stop Limit</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-2 xl:col-span-2">
+                <button type="submit" class="admin-btn admin-btn-primary w-full">Apply</button>
+                <button id="ordersResetBtn" type="button" class="admin-btn w-full">Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="admin-card p-0 tx-fade-up tx-delay-2 overflow-hidden">
+        <div class="flex flex-col gap-3 border-b border-white/10 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <h3 class="text-lg font-black text-white">Order Records</h3>
+                <p id="ordersMeta" class="mt-1 text-sm font-bold text-slate-400">Loading orders...</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-black uppercase tracking-wide text-slate-400">Rows</span>
+                <select id="ordersLimit" class="admin-input w-24 py-2">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="admin-table orders-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Market</th>
+                        <th>Symbol</th>
+                        <th>Entry / Exit</th>
+                        <th>Type</th>
+                        <th>Qty / Lev</th>
+                        <th>Entry / Exit Price</th>
+                        <th>Margin Used</th>
+                        <th>Order Value</th>
+                        <th>P&amp;L</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th class="text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody"></tbody>
+            </table>
+        </div>
+        <div class="admin-pagination border-t border-white/10 p-4">
+            <div>
+                <p id="ordersPageLabel" class="text-sm font-black text-white">Page 1 / 1</p>
+                <p id="ordersShowingLabel" class="mt-1 text-xs font-bold text-slate-500">Showing 0 orders</p>
+            </div>
+            <div id="ordersPageNumbers" class="pagination-pages"></div>
+            <div class="flex items-center gap-2">
+                <button id="ordersPrevBtn" type="button" class="admin-btn py-2">‹ Prev</button>
+                <button id="ordersNextBtn" type="button" class="admin-btn py-2">Next ›</button>
+            </div>
+        </div>
+    </div>
+</section>
+            </main>
+        </section>
+    </div>
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-trading.js?v=60"></script>
+</body>
+</html>

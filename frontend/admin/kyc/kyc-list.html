@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+
+    <title>KYC Review | TraidiumX Admin</title>
+</head>
+<body data-admin-page="kyc" data-page-title="KYC Review" data-page-subtitle="View auto-approved/rejected Aadhaar Offline e-KYC submissions.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <div class="grid gap-4 md:grid-cols-4">
+        <div class="admin-card p-5 tx-fade-up">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Total KYC</p>
+            <h2 id="kycTotalCount" class="mt-2 text-3xl font-black text-white">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">All submissions</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Pending</p>
+            <h2 id="kycPendingCount" class="mt-2 text-3xl font-black text-orange-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Auto checks / legacy</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-2">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Approved</p>
+            <h2 id="kycApprovedCount" class="mt-2 text-3xl font-black text-emerald-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Wallet + trading enabled</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-3">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Rejected</p>
+            <h2 id="kycRejectedCount" class="mt-2 text-3xl font-black text-rose-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Needs resubmission</p>
+        </div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-black text-white">KYC Submissions</h2>
+                <p class="mt-1 text-sm text-slate-400">Aadhaar Offline e-KYC auto-approved/rejected records. View ZIP/XML and share code for audit.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="kycStatusFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <input id="kycSearchInput" type="search" placeholder="Search name, Aadhaar reference, user ID" class="w-64 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+                <button id="kycRefreshBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="overflow-hidden rounded-3xl border border-white/10">
+            <table class="admin-table w-full table-fixed">
+                <thead>
+                    <tr>
+                        <th class="w-[18%]">User</th>
+                        <th class="w-[12%]">Name</th>
+                        <th class="w-[13%]">Document</th>
+                        <th class="w-[18%]">Details</th>
+                        <th class="w-[10%]">Status</th>
+                        <th class="w-[7%]">Score</th>
+                        <th class="w-[11%]">Submitted</th>
+                        <th class="w-[21%] text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="kycTableBody"></tbody>
+            </table>
+        </div>
+        <div id="kycPagination" class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-slate-500"></div>
+    </div>
+</section>
+
+<div id="kycPreviewModal" class="admin-modal">
+    <div class="admin-modal-panel p-6" style="width: min(880px, 100%); max-width: min(880px, 100%);">
+        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+            <h3 class="text-lg font-black text-slate-800 dark:text-white" id="kycPreviewTitle">Document Preview</h3>
+            <button id="kycPreviewClose" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition">&times;</button>
+        </div>
+        <div class="mt-4 max-h-[70vh] overflow-y-auto" id="kycPreviewContent"></div>
+    </div>
+</div>
+
+<div id="kycDetailsModal" class="admin-modal">
+    <div class="admin-modal-panel p-6" style="width: min(500px, 100%); max-width: min(500px, 100%);">
+        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+            <h3 class="text-lg font-black text-slate-800 dark:text-white">Aadhaar Profile Details</h3>
+            <button id="kycDetailsClose" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition text-xl font-bold">&times;</button>
+        </div>
+        <div class="mt-4 space-y-4" id="kycDetailsContent"></div>
+    </div>
+</div>
+
+            </main>
+        </section>
+    </div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+
+    <script src="/admin/static/js/admin-kyc.js"></script>
+</body>
+</html>

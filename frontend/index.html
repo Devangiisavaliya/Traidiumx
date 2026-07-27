@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>TraidiumX | Crypto Futures & Options Trading</title>
+
+    <!-- Enable scroll reveal progressively; content stays visible if JavaScript is unavailable. -->
+    <script>document.documentElement.classList.add("tx-motion-ready");</script>
+
+    <!-- Tailwind Output CSS -->
+    <link rel="stylesheet" href="./dist/output.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./src/css/custom.css" />
+    <link rel="stylesheet" href="./src/css/animations.css" />
+    <link rel="stylesheet" href="./src/css/responsive.css" />
+
+    <!-- Index page visual refinements -->
+    <style>
+        :root {
+            --tx-cyan: #22d3ee;
+            --tx-cyan-soft: rgba(34, 211, 238, 0.14);
+            --tx-panel: rgba(15, 23, 42, 0.82);
+            --tx-panel-strong: rgba(2, 6, 23, 0.88);
+            --tx-border: rgba(148, 163, 184, 0.16);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-weight: 400;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        /* The existing design used 900 weight almost everywhere.
+           Keep headings strong, but make the page visually lighter. */
+        .font-black {
+            font-weight: 700 !important;
+        }
+
+        .tx-live-terminal {
+            isolation: isolate;
+            overflow: hidden;
+            border-color: rgba(103, 232, 249, 0.22) !important;
+            background:
+                radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.16), transparent 42%),
+                linear-gradient(145deg, rgba(30, 64, 92, 0.80), rgba(15, 23, 42, 0.86));
+            box-shadow:
+                0 28px 70px rgba(2, 6, 23, 0.46),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .tx-live-terminal::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: linear-gradient(115deg, rgba(255, 255, 255, 0.04), transparent 32%);
+        }
+
+        .tx-terminal-heading {
+            letter-spacing: -0.02em;
+        }
+
+        .tx-live-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            border: 1px solid rgba(52, 211, 153, 0.18);
+            box-shadow: inset 0 0 18px rgba(52, 211, 153, 0.05);
+        }
+
+        .tx-live-dot {
+            width: 0.45rem;
+            height: 0.45rem;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: #34d399;
+            box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+            animation: tx-live-pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes tx-live-pulse {
+            0%, 100% { opacity: 0.65; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.08); }
+        }
+
+        .tx-price-panel {
+            border: 1px solid rgba(103, 232, 249, 0.13);
+            background:
+                linear-gradient(160deg, rgba(3, 16, 34, 0.94), rgba(2, 10, 25, 0.88));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.035),
+                0 18px 38px rgba(2, 6, 23, 0.30);
+        }
+
+        .tx-chart-panel {
+            box-shadow:
+                inset 0 0 32px rgba(34, 211, 238, 0.025),
+                0 12px 28px rgba(2, 6, 23, 0.20);
+        }
+
+        .tx-trade-action {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            font-weight: 650 !important;
+            transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+        }
+
+        .tx-trade-action::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.22), transparent 70%);
+            transform: translateX(-120%);
+            transition: transform 450ms ease;
+        }
+
+        .tx-trade-action:hover {
+            transform: translateY(-2px);
+            filter: saturate(1.06);
+        }
+
+        .tx-trade-action:hover::after {
+            transform: translateX(120%);
+        }
+
+        .tx-long-action:hover {
+            box-shadow: 0 12px 26px rgba(52, 211, 153, 0.18);
+        }
+
+        .tx-short-action:hover {
+            box-shadow: 0 12px 26px rgba(248, 113, 113, 0.16);
+        }
+
+        .tx-mini-market-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.11);
+            background: linear-gradient(145deg, rgba(15, 30, 50, 0.92), rgba(15, 23, 42, 0.82)) !important;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .tx-mini-market-card::after {
+            content: "";
+            position: absolute;
+            right: -1.4rem;
+            bottom: -1.8rem;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.055);
+            filter: blur(2px);
+        }
+
+        .tx-mini-market-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(34, 211, 238, 0.26);
+        }
+
+        .tx-step-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 19.5rem;
+            display: flex;
+            flex-direction: column;
+            border-color: var(--tx-border) !important;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.08), transparent 36%),
+                linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(9, 15, 31, 0.92)) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .tx-step-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 1.5rem;
+            right: 1.5rem;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.75), transparent);
+            opacity: 0.42;
+        }
+
+        .tx-step-number {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 24px rgba(34, 211, 238, 0.16);
+            font-weight: 700 !important;
+        }
+
+        .tx-step-icon {
+            width: 3.25rem;
+            height: 3.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(2, 6, 23, 0.52);
+            font-size: 1.65rem !important;
+        }
+
+        .tx-step-link {
+            margin-top: auto !important;
+            padding-top: 1.25rem;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 0.38rem;
+            font-weight: 600 !important;
+        }
+
+        .tx-step-link .tx-link-arrow {
+            transition: transform 180ms ease;
+        }
+
+        .tx-step-link:hover .tx-link-arrow {
+            transform: translateX(4px);
+        }
+
+        .tx-step-link.disabled, .tx-step-link[disabled] {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
+            color: #64748b !important;
+        }
+        .tx-step-link.disabled .tx-link-arrow, .tx-step-link[disabled] .tx-link-arrow {
+            color: #64748b !important;
+        }
+        .tx-step-link.disabled:hover .tx-link-arrow, .tx-step-link[disabled]:hover .tx-link-arrow {
+            transform: none !important;
+        }
+
+        .tx-faq-item {
+            overflow: hidden;
+            padding: 0 !important;
+            border-color: rgba(148, 163, 184, 0.17) !important;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(12, 18, 35, 0.86)) !important;
+            transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        }
+
+        .tx-faq-item:hover {
+            border-color: rgba(34, 211, 238, 0.27) !important;
+            transform: translateY(-1px);
+        }
+
+        .tx-faq-item[open] {
+            border-color: rgba(34, 211, 238, 0.42) !important;
+            box-shadow: 0 16px 34px rgba(2, 6, 23, 0.28);
+        }
+
+        .tx-faq-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 4.75rem;
+            padding: 1.15rem 1.25rem;
+            cursor: pointer;
+            list-style: none;
+            font-size: 1rem;
+            line-height: 1.45;
+            font-weight: 650;
+            color: #f8fafc;
+            user-select: none;
+        }
+
+        .tx-faq-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .tx-faq-summary::marker {
+            content: "";
+        }
+
+        .tx-faq-arrow {
+            width: 2.15rem;
+            height: 2.15rem;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.19);
+            background: rgba(34, 211, 238, 0.075);
+            color: #67e8f9;
+            transition: transform 220ms ease, background 180ms ease, border-color 180ms ease;
+        }
+
+        .tx-faq-arrow svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .tx-faq-item[open] .tx-faq-arrow {
+            transform: rotate(180deg);
+            border-color: rgba(34, 211, 238, 0.42);
+            background: rgba(34, 211, 238, 0.14);
+        }
+
+        .tx-faq-answer {
+            margin: 0 !important;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.10);
+            padding-top: 1rem;
+            font-size: 0.94rem;
+            font-weight: 400;
+        }
+
+        @media (max-width: 639px) {
+            .tx-live-terminal {
+                border-radius: 1.65rem !important;
+                padding: 1rem !important;
+            }
+
+            .tx-price-panel {
+                border-radius: 1.25rem !important;
+                padding: 0.95rem !important;
+            }
+
+            .tx-chart-panel {
+                height: 9.5rem !important;
+            }
+
+            .tx-step-card {
+                min-height: auto;
+                border-radius: 1.4rem !important;
+                padding: 1.15rem !important;
+            }
+
+            .tx-faq-summary {
+                min-height: 4.25rem;
+                padding: 1rem;
+                font-size: 0.95rem;
+            }
+
+            .tx-faq-answer {
+                padding: 0.9rem 1rem 1rem;
+                font-size: 0.88rem;
+                line-height: 1.65;
+            }
+
+            .tx-faq-arrow {
+                width: 2rem;
+                height: 2rem;
+            }
+        }
+
+
+        /* ================= LANDING INTRO ANIMATION ================= */
+        .tx-landing-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            padding:
+                max(1.25rem, env(safe-area-inset-top))
+                max(1.25rem, env(safe-area-inset-right))
+                max(1.25rem, env(safe-area-inset-bottom))
+                max(1.25rem, env(safe-area-inset-left));
+            background:
+                radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.13), transparent 30%),
+                radial-gradient(circle at 15% 85%, rgba(14, 165, 233, 0.10), transparent 32%),
+                linear-gradient(145deg, #020617 0%, #061124 54%, #020617 100%);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 560ms ease, visibility 560ms ease;
+        }
+
+        .tx-landing-intro::before,
+        .tx-landing-intro::after {
+            content: "";
+            position: absolute;
+            width: min(74vw, 48rem);
+            aspect-ratio: 1;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.10);
+            pointer-events: none;
+        }
+
+        .tx-landing-intro::before {
+            animation: tx-intro-ring 2.4s ease-out infinite;
+        }
+
+        .tx-landing-intro::after {
+            width: min(52vw, 34rem);
+            border-color: rgba(56, 189, 248, 0.13);
+            animation: tx-intro-ring 2.4s 0.45s ease-out infinite;
+        }
+
+        .tx-landing-intro.is-leaving {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .tx-landing-intro.is-leaving .tx-landing-stage {
+            transform: translateY(-10px) scale(1.025);
+            opacity: 0;
+        }
+
+        .tx-landing-stage {
+            position: relative;
+            z-index: 2;
+            width: min(92vw, 34rem);
+            text-align: center;
+            transition: transform 520ms ease, opacity 420ms ease;
+        }
+
+        .tx-landing-mark {
+            position: relative;
+            width: 5.5rem;
+            height: 5.5rem;
+            margin: 0 auto 1.4rem;
+            display: grid;
+            place-items: center;
+        }
+
+        .tx-landing-mark::before,
+        .tx-landing-mark::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 1.65rem;
+            border: 1px solid rgba(103, 232, 249, 0.28);
+            background: linear-gradient(145deg, rgba(34, 211, 238, 0.13), rgba(14, 165, 233, 0.025));
+            box-shadow: 0 0 42px rgba(34, 211, 238, 0.12);
+            animation: tx-mark-float 1.8s ease-in-out infinite;
+        }
+
+        .tx-landing-mark::after {
+            inset: 0.62rem;
+            border-radius: 1.15rem;
+            transform: rotate(45deg);
+            border-color: rgba(34, 211, 238, 0.36);
+            background: rgba(34, 211, 238, 0.06);
+            animation: tx-mark-spin 4.2s linear infinite;
+        }
+
+        .tx-landing-mark-core {
+            position: relative;
+            z-index: 3;
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: 700;
+            color: #67e8f9;
+            text-shadow: 0 0 24px rgba(34, 211, 238, 0.42);
+            animation: tx-core-pulse 1.4s ease-in-out infinite;
+        }
+
+        .tx-landing-brand {
+            margin: 0;
+            font-size: clamp(2rem, 7vw, 4rem);
+            line-height: 1;
+            font-weight: 700;
+            letter-spacing: -0.045em;
+            color: #f8fafc;
+            animation: tx-brand-enter 700ms cubic-bezier(.22,.8,.2,1) both;
+        }
+
+        .tx-landing-brand span {
+            color: #22d3ee;
+        }
+
+        .tx-landing-kicker {
+            margin-top: 0.8rem;
+            font-size: clamp(0.68rem, 2.6vw, 0.82rem);
+            font-weight: 600;
+            letter-spacing: 0.32em;
+            color: #7dd3fc;
+            animation: tx-brand-enter 700ms 100ms cubic-bezier(.22,.8,.2,1) both;
+        }
+
+        .tx-landing-market-line {
+            position: relative;
+            width: min(82vw, 22rem);
+            height: 3.25rem;
+            margin: 1.55rem auto 0;
+            overflow: hidden;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.12);
+            background:
+                linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+                rgba(2, 6, 23, 0.42);
+            background-size: 18px 18px;
+            box-shadow: inset 0 0 26px rgba(34, 211, 238, 0.025);
+            animation: tx-brand-enter 700ms 180ms cubic-bezier(.22,.8,.2,1) both;
+        }
+
+        .tx-landing-market-line::before {
+            content: "";
+            position: absolute;
+            inset: 0.55rem 0.75rem;
+            background: linear-gradient(90deg, #22d3ee, #38bdf8 62%, #34d399);
+            clip-path: polygon(
+                0% 66%, 8% 58%, 14% 68%, 22% 42%, 30% 48%, 39% 26%,
+                48% 44%, 57% 35%, 66% 52%, 75% 30%, 84% 38%, 92% 20%,
+                100% 28%, 100% 37%, 92% 30%, 84% 48%, 75% 40%, 66% 62%,
+                57% 45%, 48% 54%, 39% 36%, 30% 58%, 22% 52%, 14% 78%,
+                8% 68%, 0% 76%
+            );
+            filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.7));
+            transform-origin: left center;
+            animation: tx-line-draw 1.15s 180ms cubic-bezier(.2,.7,.2,1) both;
+        }
+
+        .tx-landing-scan {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.16), transparent);
+            transform: translateX(-120%);
+            animation: tx-intro-scan 1.15s 350ms ease-in-out both;
+        }
+
+        body.tx-intro-active {
+            overflow: hidden;
+        }
+
+        body.tx-intro-complete main {
+            animation: tx-page-reveal 620ms cubic-bezier(.22,.8,.2,1) both;
+        }
+
+        /* Neutral market placeholders: no visible "Loading" or "syncing" copy. */
+        .tx-market-placeholder {
+            color: #f8fafc;
+            letter-spacing: -0.025em;
+        }
+
+        #homeHeroChartContainer:empty::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px);
+            background-size: 38px 38px;
+        }
+
+        #homeHeroChartContainer:empty::after {
+            content: "";
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            top: 18%;
+            bottom: 16%;
+            background: linear-gradient(90deg, rgba(34, 211, 238, 0.72), rgba(56, 189, 248, 0.86), rgba(52, 211, 153, 0.72));
+            clip-path: polygon(
+                0 67%, 7% 60%, 13% 68%, 21% 45%, 30% 51%, 38% 33%,
+                47% 44%, 56% 28%, 65% 49%, 74% 39%, 83% 55%, 92% 29%,
+                100% 36%, 100% 39%, 92% 32%, 83% 58%, 74% 42%, 65% 52%,
+                56% 31%, 47% 47%, 38% 36%, 30% 54%, 21% 48%, 13% 71%,
+                7% 63%, 0 70%
+            );
+            opacity: 0.30;
+            filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.32));
+            animation: tx-chart-breathe 2.4s ease-in-out infinite;
+        }
+
+        @keyframes tx-intro-ring {
+            0% { transform: scale(0.72); opacity: 0; }
+            35% { opacity: 0.68; }
+            100% { transform: scale(1.18); opacity: 0; }
+        }
+
+        @keyframes tx-mark-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes tx-mark-spin {
+            to { transform: rotate(405deg); }
+        }
+
+        @keyframes tx-core-pulse {
+            0%, 100% { opacity: 0.76; transform: scale(0.94); }
+            50% { opacity: 1; transform: scale(1.04); }
+        }
+
+        @keyframes tx-brand-enter {
+            from { opacity: 0; transform: translateY(14px); filter: blur(5px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        @keyframes tx-line-draw {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+
+        @keyframes tx-intro-scan {
+            to { transform: translateX(120%); }
+        }
+
+        @keyframes tx-page-reveal {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes tx-chart-breathe {
+            0%, 100% { opacity: 0.20; transform: scaleY(0.96); }
+            50% { opacity: 0.38; transform: scaleY(1.02); }
+        }
+
+        @media (max-width: 639px) {
+            .tx-landing-mark {
+                width: 4.7rem;
+                height: 4.7rem;
+                margin-bottom: 1.1rem;
+            }
+
+            .tx-landing-mark-core {
+                font-size: 1.7rem;
+            }
+
+            .tx-landing-kicker {
+                letter-spacing: 0.22em;
+            }
+
+            .tx-landing-market-line {
+                height: 2.9rem;
+                margin-top: 1.25rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tx-live-dot,
+            .tx-trade-action,
+            .tx-mini-market-card,
+            .tx-step-link .tx-link-arrow,
+            .tx-faq-arrow,
+            .tx-faq-item,
+            .tx-landing-intro::before,
+            .tx-landing-intro::after,
+            .tx-landing-mark::before,
+            .tx-landing-mark::after,
+            .tx-landing-mark-core,
+            .tx-landing-brand,
+            .tx-landing-kicker,
+            .tx-landing-market-line,
+            .tx-landing-market-line::before,
+            .tx-landing-scan,
+            #homeHeroChartContainer:empty::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+
+        /* =========================================================
+           Hover zoom + scroll-up reveal for phone and 4-step cards
+           ========================================================= */
+        .tx-scroll-reveal {
+            --tx-reveal-delay: 0ms;
+        }
+
+        .tx-motion-ready .tx-scroll-reveal {
+            opacity: 0;
+            transform: translate3d(0, 46px, 0) scale(0.985);
+            transition:
+                opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 820ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 220ms ease,
+                box-shadow 220ms ease;
+            transition-delay: var(--tx-reveal-delay);
+            will-change: opacity, transform;
+        }
+
+        .tx-motion-ready .tx-scroll-reveal.is-visible {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .tx-phone-card {
+            transform-origin: center center;
+        }
+
+        .tx-phone-card > div:last-child {
+            transition: border-color 220ms ease, box-shadow 260ms ease;
+        }
+
+        .tx-step-card.tx-scroll-reveal {
+            transform-origin: center center;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .tx-motion-ready .tx-phone-card.tx-scroll-reveal.is-visible:hover {
+                transform: translate3d(0, -9px, 0) scale(1.035);
+            }
+
+            .tx-phone-card:hover > div:last-child {
+                border-color: rgba(34, 211, 238, 0.30) !important;
+                box-shadow:
+                    0 30px 70px rgba(2, 6, 23, 0.52),
+                    0 0 34px rgba(34, 211, 238, 0.10);
+            }
+
+            .tx-motion-ready .tx-step-card.tx-scroll-reveal.is-visible:hover {
+                transform: translate3d(0, -8px, 0) scale(1.03);
+                border-color: rgba(34, 211, 238, 0.34) !important;
+                box-shadow:
+                    0 22px 46px rgba(2, 6, 23, 0.38),
+                    0 0 28px rgba(34, 211, 238, 0.075),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+            }
+        }
+
+        @media (max-width: 639px) {
+            .tx-motion-ready .tx-scroll-reveal {
+                transform: translate3d(0, 32px, 0) scale(0.99);
+            }
+
+            .tx-motion-ready .tx-scroll-reveal.is-visible {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tx-motion-ready .tx-scroll-reveal,
+            .tx-motion-ready .tx-scroll-reveal.is-visible,
+            .tx-motion-ready .tx-phone-card.tx-scroll-reveal.is-visible:hover,
+            .tx-motion-ready .tx-step-card.tx-scroll-reveal.is-visible:hover {
+                opacity: 1 !important;
+                transform: none !important;
+                transition: none !important;
+            }
+        }
+
+
+        /* =========================================================
+           Tools + referral section motion and visual polish
+           ========================================================= */
+        .tx-motion-ready .tx-scroll-reveal.tx-reveal-left {
+            transform: translate3d(-48px, 18px, 0) scale(0.985);
+        }
+
+        .tx-motion-ready .tx-scroll-reveal.tx-reveal-right {
+            transform: translate3d(48px, 18px, 0) scale(0.985);
+        }
+
+        .tx-motion-ready .tx-scroll-reveal.tx-reveal-left.is-visible,
+        .tx-motion-ready .tx-scroll-reveal.tx-reveal-right.is-visible {
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .tx-feature-card {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 13.25rem;
+            display: flex;
+            flex-direction: column;
+            border-color: rgba(148, 163, 184, 0.16) !important;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.09), transparent 38%),
+                linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(8, 15, 31, 0.95)) !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.035),
+                0 16px 34px rgba(2, 6, 23, 0.18);
+            transform-origin: center center;
+        }
+
+        .tx-feature-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 1.5rem;
+            right: 1.5rem;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.72), transparent);
+            opacity: 0.38;
+            transition: opacity 220ms ease;
+        }
+
+        .tx-feature-card::after {
+            content: "";
+            position: absolute;
+            right: -3rem;
+            bottom: -3.25rem;
+            z-index: -1;
+            width: 9rem;
+            height: 9rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.055);
+            filter: blur(3px);
+            transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+        }
+
+        .tx-feature-icon {
+            width: 3.25rem;
+            height: 3.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            border: 1px solid rgba(103, 232, 249, 0.14);
+            background: rgba(2, 6, 23, 0.55);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            font-size: 1.55rem;
+            transform-origin: center;
+            transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease, background 220ms ease;
+        }
+
+        .tx-feature-card h3 {
+            font-weight: 650 !important;
+            letter-spacing: -0.015em;
+        }
+
+        .tx-feature-card p {
+            font-weight: 400;
+        }
+
+        .tx-refer-shell {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 27rem;
+            border: 1px solid rgba(103, 232, 249, 0.24);
+            background: #071126;
+            box-shadow:
+                0 30px 70px rgba(2, 6, 23, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .tx-refer-bg {
+            position: absolute;
+            inset: -3%;
+            z-index: -3;
+            width: 106%;
+            height: 106%;
+            object-fit: cover;
+            object-position: center;
+            opacity: 0.92;
+            transform: scale(1.03);
+            animation: tx-refer-image-drift 13s ease-in-out infinite alternate;
+            will-change: transform;
+        }
+
+        .tx-refer-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background:
+                linear-gradient(90deg, rgba(2, 6, 23, 0.97) 0%, rgba(2, 6, 23, 0.87) 30%, rgba(2, 6, 23, 0.48) 56%, rgba(2, 6, 23, 0.70) 100%),
+                linear-gradient(0deg, rgba(2, 6, 23, 0.52), transparent 42%);
+        }
+
+        .tx-refer-shell::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 55% 52%, rgba(245, 158, 11, 0.14), transparent 24%),
+                radial-gradient(circle at 88% 8%, rgba(34, 211, 238, 0.13), transparent 28%);
+        }
+
+        .tx-refer-copy {
+            align-self: center;
+            max-width: 34rem;
+        }
+
+        .tx-refer-copy h2 {
+            font-weight: 680 !important;
+            letter-spacing: -0.025em;
+            text-wrap: balance;
+        }
+
+        .tx-refer-copy p {
+            font-weight: 400 !important;
+        }
+
+        .tx-refer-button {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(103, 232, 249, 0.2);
+            background: rgba(2, 6, 23, 0.88) !important;
+            box-shadow: 0 14px 30px rgba(2, 6, 23, 0.30);
+            font-weight: 650 !important;
+            transition: transform 190ms ease, border-color 190ms ease, color 190ms ease, background 190ms ease;
+        }
+
+        .tx-refer-button::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.16), transparent 70%);
+            transform: translateX(-130%);
+            transition: transform 520ms ease;
+        }
+
+        .tx-referral-list {
+            display: grid;
+            align-content: center;
+            gap: 1rem;
+        }
+
+        .tx-referral-step {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.15) !important;
+            background: linear-gradient(135deg, rgba(15, 30, 53, 0.92), rgba(15, 23, 42, 0.86)) !important;
+            box-shadow:
+                0 18px 34px rgba(2, 6, 23, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(16px);
+            transform-origin: center right;
+        }
+
+        .tx-referral-step::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #22d3ee, rgba(34, 211, 238, 0.08));
+            opacity: 0.6;
+        }
+
+        .tx-referral-step h3 {
+            font-weight: 650 !important;
+            letter-spacing: -0.012em;
+        }
+
+        .tx-referral-step p {
+            font-weight: 400 !important;
+        }
+
+        @keyframes tx-refer-image-drift {
+            0% { transform: scale(1.03) translate3d(-0.5%, 0, 0); }
+            100% { transform: scale(1.09) translate3d(0.8%, -0.7%, 0); }
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .tx-motion-ready .tx-feature-card.tx-scroll-reveal.is-visible:hover {
+                transform: translate3d(0, -9px, 0) scale(1.035);
+                border-color: rgba(34, 211, 238, 0.36) !important;
+                box-shadow:
+                    0 24px 48px rgba(2, 6, 23, 0.40),
+                    0 0 30px rgba(34, 211, 238, 0.07),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+            }
+
+            .tx-feature-card:hover::before { opacity: 0.82; }
+            .tx-feature-card:hover::after { transform: scale(1.28); opacity: 1; }
+            .tx-feature-card:hover .tx-feature-icon {
+                transform: translateY(-3px) scale(1.08) rotate(-3deg);
+                border-color: rgba(103, 232, 249, 0.34);
+                background: rgba(8, 47, 73, 0.46);
+            }
+
+            .tx-refer-button:hover {
+                transform: translateY(-2px) scale(1.015);
+                border-color: rgba(103, 232, 249, 0.48);
+                color: #67e8f9;
+            }
+
+            .tx-refer-button:hover::after { transform: translateX(130%); }
+
+            .tx-motion-ready .tx-referral-step.tx-scroll-reveal.is-visible:hover {
+                transform: translate3d(-7px, -3px, 0) scale(1.025);
+                border-color: rgba(103, 232, 249, 0.34) !important;
+                box-shadow:
+                    0 24px 44px rgba(2, 6, 23, 0.38),
+                    0 0 25px rgba(34, 211, 238, 0.07),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .tx-refer-shell {
+                min-height: auto;
+            }
+
+            .tx-refer-overlay {
+                background:
+                    linear-gradient(180deg, rgba(2, 6, 23, 0.94) 0%, rgba(2, 6, 23, 0.72) 48%, rgba(2, 6, 23, 0.90) 100%);
+            }
+
+            .tx-refer-bg {
+                object-position: 55% center;
+                opacity: 0.72;
+            }
+        }
+
+        @media (max-width: 639px) {
+            .tx-feature-card {
+                min-height: auto;
+                border-radius: 1.45rem !important;
+                padding: 1.15rem !important;
+            }
+
+            .tx-feature-icon {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 0.9rem;
+            }
+
+            .tx-refer-shell {
+                border-radius: 1.7rem !important;
+                padding: 1.25rem !important;
+            }
+
+            .tx-refer-bg {
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-position: 56% center;
+                animation-duration: 16s;
+            }
+
+            .tx-refer-copy h2 {
+                font-size: 2rem !important;
+                line-height: 1.12;
+            }
+
+            .tx-referral-step {
+                border-radius: 1.25rem !important;
+                padding: 1rem !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tx-refer-bg,
+            .tx-feature-icon,
+            .tx-feature-card,
+            .tx-referral-step,
+            .tx-refer-button,
+            .tx-refer-button::after {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .tx-motion-ready .tx-scroll-reveal.tx-reveal-left,
+            .tx-motion-ready .tx-scroll-reveal.tx-reveal-right,
+            .tx-motion-ready .tx-scroll-reveal.tx-reveal-left.is-visible,
+            .tx-motion-ready .tx-scroll-reveal.tx-reveal-right.is-visible,
+            .tx-motion-ready .tx-feature-card.tx-scroll-reveal.is-visible:hover,
+            .tx-motion-ready .tx-referral-step.tx-scroll-reveal.is-visible:hover {
+                opacity: 1 !important;
+                transform: none !important;
+        }
+    </style>
+
+</head>
+
+<body class="tx-intro-active bg-[#020617] text-white" data-page="home">
+
+    <!-- Premium landing intro: shown briefly while the home screen becomes ready -->
+    <div id="txLandingIntro" class="tx-landing-intro" aria-hidden="true">
+        <div class="tx-landing-stage">
+            <div class="tx-landing-mark">
+                <span class="tx-landing-mark-core">TX</span>
+            </div>
+
+            <h1 class="tx-landing-brand">TRAIDIUM<span>X</span></h1>
+            <p class="tx-landing-kicker">CRYPTO FUTURES &amp; OPTIONS</p>
+
+            <div class="tx-landing-market-line">
+                <span class="tx-landing-scan"></span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Reusable Navbar Component -->
+    <div data-component="navbar"></div>
+
+    <!-- ================= MAIN START ================= -->
+    <main class="overflow-hidden pt-32">
+
+        <!-- ================= HERO START ================= -->
+        <section class="relative">
+            <div class="absolute inset-0 -z-10">
+                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
+                <div class="absolute right-0 top-32 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+                <div class="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/10 blur-[130px]"></div>
+            </div>
+
+            <div class="mx-auto grid min-h-[88vh] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8">
+
+                <!-- Hero Left -->
+                <div class="tx-fade-up">
+                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                        Crypto F&O trading made simple
+                    </div>
+
+                    <h1 class="max-w-2xl text-4xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+                        Trade crypto futures and options in minutes.
+                    </h1>
+
+                    <p class="mt-6 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">
+                        TraidiumX gives traders a clean, responsive and premium crypto derivatives interface
+                        for markets, futures, options and a USDT ledger wallet powered by Flask + MongoDB.
+                    </p>
+
+                    <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+                        <a href="./src/pages/register.html" class="rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
+                            Start Trading Now
+                        </a>
+
+                        <a href="./src/pages/markets.html" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-400">
+                            Explore Markets
+                        </a>
+                    </div>
+
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <div class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
+                            ⚡ Fast onboarding
+                        </div>
+
+                        <div class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
+                            ₮ USDT wallet flow
+                        </div>
+
+                        <div class="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
+                            📱 Fully responsive
+                        </div>
+                    </div>
+
+                    <div class="mt-10 grid grid-cols-3 gap-4 border-t border-white/10 pt-8">
+                        <div>
+                            <h3 class="text-2xl font-black text-white">0.018%</h3>
+                            <p class="mt-1 text-xs font-medium text-slate-400 sm:text-sm">Maker Fee</p>
+                        </div>
+
+                        <div>
+                            <h3 id="homeMaxLeverage" class="text-2xl font-black text-white">50x</h3>
+                            <p class="mt-1 text-xs font-medium text-slate-400 sm:text-sm">Max Leverage</p>
+                        </div>
+
+                        <div>
+                            <h3 id="homeLiveContracts" class="text-2xl font-black text-white">--</h3>
+                            <p class="mt-1 text-xs font-medium text-slate-400 sm:text-sm">Live Contracts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Right -->
+                <div class="relative tx-fade-up">
+                    <div class="absolute -inset-8 rounded-[3rem] bg-cyan-400/20 blur-3xl"></div>
+
+                    <div class="tx-live-terminal relative tx-floating rounded-[2.5rem] border border-white/10 bg-white/[0.06] p-4 shadow-2xl backdrop-blur-xl sm:p-6">
+
+                        <!-- Terminal Header -->
+                        <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm font-bold text-cyan-300">Live Trading Interface</p>
+                                <h2 id="homeHeroPair" class="tx-terminal-heading text-xl font-black">BTC-USDT Perpetual</h2>
+                            </div>
+
+                            <span id="homeHeroStatus" class="tx-live-status w-fit rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">
+                                <span class="tx-live-dot" aria-hidden="true"></span>
+                                <span>BACKEND LIVE</span>
+                            </span>
+                        </div>
+
+                        <!-- Price Card -->
+                        <div class="tx-price-panel rounded-3xl bg-slate-950/80 p-4">
+                            <div class="mb-4 flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-sm text-slate-400">Last Traded Price</p>
+                                    <div id="homeHeroPrice" class="tx-market-placeholder mt-1 text-3xl font-black" aria-live="polite">
+                                        -- USDT
+                                    </div>
+                                    <p id="homeHeroVolume" class="mt-1 text-xs text-slate-500">24h market activity</p>
+                                </div>
+
+                                <p id="homeHeroChange" class="rounded-full bg-emerald-400/10 px-3 py-1 text-sm font-black text-emerald-400">
+                                    --
+                                </p>
+                            </div>
+
+                            <!-- Backend Chart -->
+                            <div id="homeHeroChartContainer" class="tx-chart-panel mt-6 h-44 rounded-2xl border border-cyan-400/20 bg-slate-950 p-2 relative overflow-hidden">
+                                <!-- Dynamic sparkline chart rendered via JS -->
+                            </div>
+
+                            <!-- Buy Sell -->
+                            <div class="mt-5 grid grid-cols-2 gap-3">
+                                <a id="homeHeroLongLink" href="./src/pages/futures.html?symbol=BTCUSDT" class="tx-trade-action tx-long-action rounded-2xl bg-emerald-400 px-4 py-3 text-center text-sm font-black text-slate-950 hover:bg-emerald-300">
+                                    Long
+                                </a>
+
+                                <a id="homeHeroShortLink" href="./src/pages/futures.html?symbol=BTCUSDT" class="tx-trade-action tx-short-action rounded-2xl bg-red-400 px-4 py-3 text-center text-sm font-black text-slate-950 hover:bg-red-300">
+                                    Short
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Market Mini Cards -->
+                        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                            <div data-home-mini-market="0" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-4">
+                                <p data-mini-symbol class="text-xs text-slate-400">ETH</p>
+                                <p data-mini-price class="font-black">--</p>
+                                <p data-mini-change class="text-xs font-bold text-slate-400">--</p>
+                            </div>
+
+                            <div data-home-mini-market="1" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-4">
+                                <p data-mini-symbol class="text-xs text-slate-400">SOL</p>
+                                <p data-mini-price class="font-black">--</p>
+                                <p data-mini-change class="text-xs font-bold text-slate-400">--</p>
+                            </div>
+
+                            <div data-home-mini-market="2" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-4">
+                                <p data-mini-symbol class="text-xs text-slate-400">XRP</p>
+                                <p data-mini-price class="font-black">--</p>
+                                <p data-mini-change class="text-xs font-bold text-slate-400">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= HERO END ================= -->
+
+
+        <!-- ================= TRUST METRICS START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center">
+
+                <div class="mb-6 flex justify-center">
+                    <div class="tx-section-pill">
+                        <span class="tx-section-pill-dot"></span>
+                        <span>Transparent Platform Metrics</span>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-black sm:text-5xl">
+                    Don’t just trade. Track everything.
+                </h2>
+
+                <p class="mx-auto mt-4 max-w-2xl text-slate-400">
+                    Track live contracts, backend market sync and transparent trading fees through a clean,
+                    professional user-side layout.
+                </p>
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-2">
+
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
+                    <div class="mb-6 flex items-center justify-between">
+                        <p class="text-sm font-black uppercase text-slate-400">Market Sync</p>
+                        <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">
+                            Live
+                        </span>
+                    </div>
+
+                    <h3 id="homeLiveCoverage" class="text-5xl font-black sm:text-6xl">--</h3>
+
+                    <p class="mt-3 text-slate-400">
+                        Supported contracts synced from the backend market board and Binance Futures feed.
+                    </p>
+
+                    <div class="mt-6 h-3 overflow-hidden rounded-full bg-slate-800">
+                        <div id="homeLiveCoverageBar" class="h-full w-[0%] rounded-full bg-cyan-400"></div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-3 gap-3 text-sm">
+                        <div class="rounded-2xl bg-slate-900/80 p-3">
+                            <p id="homeFuturesCount" class="font-black text-white">--</p>
+                            <p class="text-slate-500">Futures</p>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-900/80 p-3">
+                            <p id="homeOptionsCount" class="font-black text-white">--</p>
+                            <p class="text-slate-500">Options</p>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-900/80 p-3">
+                            <p id="homeCommodityCount" class="font-black text-white">--</p>
+                            <p class="text-slate-500">Gold</p>
+                        </div>
+                    </div>
+
+                    <a href="./src/pages/markets.html" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-cyan-400/30 px-5 py-3 text-sm font-black text-cyan-300 hover:bg-cyan-400 hover:text-slate-950">
+                        View Live Markets
+                    </a>
+                </div>
+
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
+                    <div class="mb-6 flex items-center justify-between">
+                        <p class="text-sm font-black uppercase text-slate-400">Trading Fees</p>
+                        <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
+                            Backend
+                        </span>
+                    </div>
+
+                    <h3 id="homeMarketVolume" class="text-5xl font-black sm:text-6xl">--</h3>
+
+                    <p class="mt-3 text-slate-400">
+                        Live 24h quote volume calculated from backend market data.
+                    </p>
+
+                    <div class="mt-6 grid grid-cols-2 gap-4">
+                        <div class="rounded-2xl bg-slate-900/80 p-5">
+                            <p class="text-3xl font-black">0.018%</p>
+                            <p class="mt-1 text-sm text-slate-400">Maker Fee</p>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-900/80 p-5">
+                            <p class="text-3xl font-black">0.045%</p>
+                            <p class="mt-1 text-sm text-slate-400">Taker Fee</p>
+                        </div>
+                    </div>
+
+                    <p class="mt-5 text-xs leading-6 text-slate-500">
+                        Fee values are displayed from the approved frontend fee configuration. Company policy can be updated later without changing the trading terminals.
+                    </p>
+
+                    <a href="./src/pages/fee-structure.html" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300">
+                        View Fee Structure
+                    </a>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= TRUST METRICS END ================= -->
+
+
+        <!-- ================= APP SECTION START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="grid items-center gap-10 rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-cyan-400/10 to-blue-500/10 p-6 sm:p-10 lg:grid-cols-2">
+
+                <div>
+                    <p class="text-sm font-black uppercase tracking-[0.25em] text-cyan-400">
+                        Anytime. Anywhere.
+                    </p>
+
+                    <h2 class="mt-4 text-4xl font-black sm:text-5xl">
+                        Open TraidiumX on Any Device.
+                    </h2>
+
+                    <p class="mt-5 max-w-xl leading-8 text-slate-300">
+                        Give users a mobile-first web trading experience with secure onboarding,
+                        live markets, USDT wallet flow and responsive order management.
+                    </p>
+
+                    <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+                        <a href="./src/pages/markets.html" class="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950 px-6 py-4 text-left hover:border-cyan-400">
+                            <span class="text-2xl">▶</span>
+                            <span>
+                                <span class="block text-xs text-slate-400">Open</span>
+                                <span class="block font-black text-white">Markets</span>
+                            </span>
+                        </a>
+
+                        <a href="./src/pages/futures.html" class="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950 px-6 py-4 text-left hover:border-cyan-400">
+                            <span class="text-2xl"></span>
+                            <span>
+                                <span class="block text-xs text-slate-400">Open</span>
+                                <span class="block font-black text-white">Futures</span>
+                            </span>
+                        </a>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-2xl font-black">100%</p>
+                            <p class="text-sm text-slate-400">Responsive</p>
+                        </div>
+
+                        <div>
+                            <p class="text-2xl font-black">USDT</p>
+                            <p class="text-sm text-slate-400">Wallet</p>
+                        </div>
+
+                        <div>
+                            <p class="text-2xl font-black">Fast</p>
+                            <p class="text-sm text-slate-400">Execution</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tx-phone-card tx-scroll-reveal relative mx-auto w-full max-w-sm" data-reveal-delay="120">
+                    <div class="absolute inset-0 rounded-[3rem] bg-cyan-400/20 blur-3xl"></div>
+
+                    <div class="relative rounded-[3rem] border border-white/10 bg-slate-950 p-4 shadow-2xl">
+                        <div class="rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-5">
+                            <div class="mx-auto mb-5 h-1.5 w-20 rounded-full bg-slate-700"></div>
+
+                            <div class="rounded-3xl bg-cyan-400 p-5 text-slate-950">
+                                <p class="text-sm font-black">Portfolio Value</p>
+                                <h3 class="mt-2 text-4xl font-black">USDT Ledger</h3>
+                                <p class="mt-1 text-sm font-bold">Crypto wallet + margin tracking</p>
+                            </div>
+
+                            <div class="mt-5 space-y-3">
+                                <div class="flex items-center justify-between rounded-2xl bg-slate-900 p-4">
+                                    <div>
+                                        <p class="font-black">BTC-USDT</p>
+                                        <p class="text-sm text-slate-500">Long Position</p>
+                                    </div>
+                                    <p class="font-black text-emerald-400">Backend</p>
+                                </div>
+
+                                <div class="flex items-center justify-between rounded-2xl bg-slate-900 p-4">
+                                    <div>
+                                        <p class="font-black">ETH-USDT</p>
+                                        <p class="text-sm text-slate-500">Options</p>
+                                    </div>
+                                    <p class="font-black text-red-400">Risk View</p>
+                                </div>
+
+                                <div class="flex items-center justify-between rounded-2xl bg-slate-900 p-4">
+                                    <div>
+                                        <p class="font-black">SOL-USDT</p>
+                                        <p class="text-sm text-slate-500">Perpetual</p>
+                                    </div>
+                                    <p class="font-black text-emerald-400">Live UI</p>
+                                </div>
+                            </div>
+
+                            <a href="./src/pages/futures.html" class="mt-5 block w-full rounded-2xl bg-cyan-400 px-5 py-4 text-center font-black text-slate-950">
+                                Open Terminal
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= APP SECTION END ================= -->
+
+
+        <!-- ================= STEPS START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="tx-scroll-reveal mb-12 text-center" data-reveal-delay="0">
+                <h2 class="text-3xl font-black sm:text-5xl">
+                    Start Trading Crypto F&O in 4 Easy Steps
+                </h2>
+
+                <p class="mx-auto mt-4 max-w-2xl text-slate-400">
+                    A simple onboarding flow that helps users register, verify, fund and start trading.
+                </p>
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="80">
+                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
+                        1
+                    </div>
+
+                    <div class="tx-step-icon mb-4 text-4xl">👤</div>
+
+                    <h3 class="text-xl font-black">Create Account</h3>
+
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Sign up using email or mobile and create a secure trading account.
+                    </p>
+
+                    <a id="registerNowStepLink" href="./src/pages/register.html" class="tx-step-link mt-5 inline-block text-sm font-black text-cyan-400 hover:text-cyan-300">
+                        Register Now <span class="tx-link-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="160">
+                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
+                        2
+                    </div>
+
+                    <div class="tx-step-icon mb-4 text-4xl">🛡️</div>
+
+                    <h3 class="text-xl font-black">Complete KYC</h3>
+
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Verify identity with a clean and secure KYC-ready frontend flow.
+                    </p>
+
+                    <a href="./src/pages/kyc-aml-policy.html" class="tx-step-link mt-5 inline-block text-sm font-black text-cyan-400 hover:text-cyan-300">
+                        View KYC Policy <span class="tx-link-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="240">
+                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
+                        3
+                    </div>
+
+                    <div class="tx-step-icon mb-4 text-4xl">💳</div>
+
+                    <h3 class="text-xl font-black">Add Funds</h3>
+
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Use the crypto-only USDT wallet for deposit, withdrawal and margin flow.
+                    </p>
+
+                    <a href="./src/pages/wallet.html" class="tx-step-link mt-5 inline-block text-sm font-black text-cyan-400 hover:text-cyan-300">
+                        Open Wallet <span class="tx-link-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="320">
+                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
+                        4
+                    </div>
+
+                    <div class="tx-step-icon mb-4 text-4xl">📈</div>
+
+                    <h3 class="text-xl font-black">Trade Now</h3>
+
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Open futures/options terminal and manage positions from responsive UI.
+                    </p>
+
+                    <a href="./src/pages/futures.html" class="tx-step-link mt-5 inline-block text-sm font-black text-cyan-400 hover:text-cyan-300">
+                        Start Trading <span class="tx-link-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= STEPS END ================= -->
+
+
+        <!-- ================= FEATURES START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="tx-scroll-reveal mb-12" data-reveal-delay="40">
+                <p class="text-sm font-black uppercase tracking-[0.25em] text-cyan-400">
+                    Crypto Made Clear
+                </p>
+
+                <h2 class="mt-3 text-3xl font-black sm:text-5xl">
+                    Tools for beginners and active traders.
+                </h2>
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+                <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="80">
+                    <div class="tx-feature-icon mb-5">💸</div>
+                    <h3 class="text-xl font-black">Low Fees</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        A transparent fee structure designed for frequent trading.
+                    </p>
+                </div>
+
+                <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="150">
+                    <div class="tx-feature-icon mb-5">⚡</div>
+                    <h3 class="text-xl font-black">Leverage Options</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Flexible leverage UI for futures and options trading pages.
+                    </p>
+                </div>
+
+                <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="220">
+                    <div class="tx-feature-icon mb-5">₮</div>
+                    <h3 class="text-xl font-black">USDT Ledger Wallet</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Crypto-only deposit, withdrawal and margin flow without UPI or bank rails.
+                    </p>
+                </div>
+
+                <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="290">
+                    <div class="tx-feature-icon mb-5">🛡️</div>
+                    <h3 class="text-xl font-black">Secure Flow</h3>
+                    <p class="mt-3 text-sm leading-7 text-slate-400">
+                        Security-first layouts for login, KYC, wallet and trading actions.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= FEATURES END ================= -->
+
+
+        <!-- ================= FAQ START ================= -->
+        <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-black sm:text-5xl">
+                    Frequently Asked Questions
+                </h2>
+
+                <p class="mt-4 text-slate-400">
+                    Simple answers for new and active users.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+
+                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="tx-faq-summary">
+                        <span>What is TraidiumX?</span>
+                        <span class="tx-faq-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                    </summary>
+
+                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                        TraidiumX is a frontend prototype for a crypto derivatives platform interface
+                        with markets, futures, options and crypto wallet pages.
+                    </p>
+                </details>
+
+                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="tx-faq-summary">
+                        <span>Is this a real exchange?</span>
+                        <span class="tx-faq-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                    </summary>
+
+                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                        No. This is frontend-only right now. Real exchange, FIU, compliance,
+                        legal and audit claims should be added only after company verification.
+                    </p>
+                </details>
+
+                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="tx-faq-summary">
+                        <span>Is the backend connected?</span>
+                        <span class="tx-faq-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                    </summary>
+
+                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                        Yes. The main trading flow uses Flask APIs, MongoDB collections, authentication,
+                        KYC, wallet ledger, markets, futures and options services.
+                    </p>
+                </details>
+
+                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="tx-faq-summary">
+                        <span>Is the design responsive?</span>
+                        <span class="tx-faq-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 20 20" fill="none">
+                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </span>
+                    </summary>
+
+                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                        Yes. The layout is built with Tailwind CSS and supports mobile, tablet,
+                        laptop and desktop screens.
+                    </p>
+                </details>
+
+            </div>
+        </section>
+        <!-- ================= FAQ END ================= -->
+
+
+        <!-- ================= REFER START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="tx-refer-shell tx-scroll-reveal grid items-center gap-10 rounded-[2.5rem] p-6 text-white sm:p-10 lg:grid-cols-2" data-reveal-delay="50">
+                <img
+                    src="./assets/traidiumx_referral_network.svg"
+                    alt="Bitcoin referral network connecting traders"
+                    class="tx-refer-bg"
+                    loading="lazy"
+                    decoding="async"
+                />
+                <div class="tx-refer-overlay" aria-hidden="true"></div>
+
+                <div class="tx-refer-copy tx-scroll-reveal tx-reveal-left" data-reveal-delay="120">
+                    <p class="text-sm font-black uppercase tracking-[0.20em] text-cyan-400">
+                        Refer Friends. Earn More.
+                    </p>
+
+                    <h2 class="mt-4 text-4xl font-black sm:text-5xl">
+                        Invite traders and grow with rewards.
+                    </h2>
+
+                    <p class="mt-5 max-w-xl leading-8 text-slate-300">
+                        Build a referral section where users can share a link, friends get benefits
+                        and referrers earn commissions.
+                    </p>
+
+                    <a href="./src/pages/refer-earn.html" class="tx-refer-button mt-8 inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm font-black text-white">
+                        Refer &amp; Earn Now <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <div class="tx-referral-list">
+                    <div class="tx-referral-step tx-scroll-reveal tx-reveal-right rounded-3xl p-5" data-reveal-delay="170">
+                        <h3 class="text-xl font-black text-white">1. Share Referral Link</h3>
+                        <p class="mt-2 text-slate-400">
+                            Invite friends through your unique referral code.
+                        </p>
+                    </div>
+
+                    <div class="tx-referral-step tx-scroll-reveal tx-reveal-right rounded-3xl p-5" data-reveal-delay="250">
+                        <h3 class="text-xl font-black text-white">2. Friends Save Fees</h3>
+                        <p class="mt-2 text-slate-400">
+                            New users get a discount-ready onboarding flow.
+                        </p>
+                    </div>
+
+                    <div class="tx-referral-step tx-scroll-reveal tx-reveal-right rounded-3xl p-5" data-reveal-delay="330">
+                        <h3 class="text-xl font-black text-white">3. Earn Commission</h3>
+                        <p class="mt-2 text-slate-400">
+                            Track rewards and commission history through the referral page flow.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= REFER END ================= -->
+
+
+        <!-- ================= AFFILIATE CTA START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-6 text-center sm:p-10">
+                <p class="text-sm font-black uppercase tracking-[0.25em] text-cyan-400">
+                    Affiliate Program
+                </p>
+
+                <h2 class="mx-auto mt-4 max-w-3xl text-3xl font-black sm:text-5xl">
+                    Become a TraidiumX partner and grow your network.
+                </h2>
+
+                <p class="mx-auto mt-5 max-w-2xl leading-8 text-slate-400">
+                    Create a professional affiliate program page for influencers,
+                    educators and trading communities.
+                </p>
+
+                <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
+                    <a href="./src/pages/contact.html" class="rounded-full bg-cyan-400 px-8 py-4 text-sm font-black text-slate-950 hover:bg-cyan-300">
+                        Join Now
+                    </a>
+
+                    <a href="./src/pages/about.html" class="rounded-full border border-white/10 px-8 py-4 text-sm font-black hover:border-cyan-400 hover:text-cyan-400">
+                        Know More
+                    </a>
+                </div>
+            </div>
+        </section>
+        <!-- ================= AFFILIATE CTA END ================= -->
+
+    </main>
+    <!-- ================= MAIN END ================= -->
+
+    <!-- Reusable Footer Component -->
+    <div data-component="footer"></div>
+
+    <!-- JavaScript -->
+    <script src="./src/js/components-loader.js"></script>
+    <script src="./src/js/api-config.js"></script>
+    <script src="./src/js/auth-state.js"></script>
+    <script src="./src/js/main.js"></script>
+    <script src="./src/js/responsive.js"></script>
+
+    <script>
+        (function () {
+            const intro = document.getElementById("txLandingIntro");
+            const body = document.body;
+            const introStartedAt = performance.now();
+            const minimumIntroTime = 1100;
+            const maximumIntroWait = 12000;
+            const stableReadyTime = 160;
+
+            let introClosed = false;
+            let readyStartedAt = 0;
+            let readinessTimer = null;
+            let safetyTimer = null;
+            let marketObserver = null;
+
+            function containsLiveNumber(node) {
+                if (!node) return false;
+
+                const value = String(node.textContent || "").trim();
+
+                if (!value || value === "--" || value.includes("--")) {
+                    return false;
+                }
+
+                return /\d/.test(value);
+            }
+
+            function isHeroMarketDataReady() {
+                const heroPrice = document.getElementById("homeHeroPrice");
+                const heroChange = document.getElementById("homeHeroChange");
+                const heroVolume = document.getElementById("homeHeroVolume");
+                const liveContracts = document.getElementById("homeLiveContracts");
+                const chart = document.getElementById("homeHeroChartContainer");
+                const miniPrices = Array.from(document.querySelectorAll("[data-mini-price]"));
+                const miniChanges = Array.from(document.querySelectorAll("[data-mini-change]"));
+
+                const chartReady = Boolean(
+                    chart &&
+                    (
+                        chart.querySelector("svg, canvas") ||
+                        chart.children.length > 0
+                    )
+                );
+
+                return (
+                    containsLiveNumber(heroPrice) &&
+                    containsLiveNumber(heroChange) &&
+                    containsLiveNumber(heroVolume) &&
+                    containsLiveNumber(liveContracts) &&
+                    chartReady &&
+                    miniPrices.length >= 3 &&
+                    miniPrices.every(containsLiveNumber) &&
+                    miniChanges.length >= 3 &&
+                    miniChanges.every(containsLiveNumber)
+                );
+            }
+
+            function stopReadinessWatch() {
+                if (marketObserver) {
+                    marketObserver.disconnect();
+                    marketObserver = null;
+                }
+
+                if (readinessTimer) {
+                    window.clearInterval(readinessTimer);
+                    readinessTimer = null;
+                }
+
+                if (safetyTimer) {
+                    window.clearTimeout(safetyTimer);
+                    safetyTimer = null;
+                }
+            }
+
+            function closeLandingIntro() {
+                if (!intro || introClosed) return;
+                introClosed = true;
+                stopReadinessWatch();
+
+                const elapsed = performance.now() - introStartedAt;
+                const waitTime = Math.max(0, minimumIntroTime - elapsed);
+
+                window.setTimeout(function () {
+                    intro.classList.add("is-leaving");
+                    body.classList.remove("tx-intro-active");
+                    body.classList.add("tx-intro-complete");
+
+                    window.setTimeout(function () {
+                        intro.remove();
+                    }, 600);
+                }, waitTime);
+            }
+
+            function checkMarketReadiness() {
+                if (introClosed) return;
+
+                if (!isHeroMarketDataReady()) {
+                    readyStartedAt = 0;
+                    return;
+                }
+
+                if (!readyStartedAt) {
+                    readyStartedAt = performance.now();
+                    return;
+                }
+
+                if (performance.now() - readyStartedAt >= stableReadyTime) {
+                    closeLandingIntro();
+                }
+            }
+
+            marketObserver = new MutationObserver(checkMarketReadiness);
+            marketObserver.observe(document.documentElement, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+
+            readinessTimer = window.setInterval(checkMarketReadiness, 80);
+
+            if (document.readyState === "complete") {
+                checkMarketReadiness();
+            } else {
+                window.addEventListener("load", checkMarketReadiness, { once: true });
+            }
+
+            window.addEventListener("tx-home-market-ready", closeLandingIntro, { once: true });
+
+            /* Safety fallback only if a market API is unavailable for an unusually long time. */
+            safetyTimer = window.setTimeout(closeLandingIntro, maximumIntroWait);
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.14,
+                    rootMargin: "0px 0px -7% 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+
+            const faqItems = Array.from(document.querySelectorAll(".tx-faq-item"));
+
+            faqItems.forEach(function (item) {
+                item.addEventListener("toggle", function () {
+                    if (!item.open) return;
+
+                    faqItems.forEach(function (otherItem) {
+                        if (otherItem !== item) {
+                            otherItem.open = false;
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

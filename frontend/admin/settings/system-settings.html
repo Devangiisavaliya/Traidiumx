@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Settings | TraidiumX Admin</title>
+</head>
+
+<body data-admin-page="settings" data-page-title="Settings" data-page-subtitle="Manage platform, trading, KYC, withdrawal and security configuration.">
+<div class="admin-shell">
+    <aside id="adminSidebar" class="admin-sidebar"></aside>
+    <div id="adminBackdrop" class="admin-backdrop"></div>
+
+    <section class="admin-main">
+        <header id="adminTopbar" class="admin-topbar"></header>
+
+        <main class="admin-content">
+            <section class="space-y-6">
+
+                <div class="admin-card p-6 tx-fade-up">
+                    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-[.22em] text-cyan-300">Control Center</p>
+                            <h2 class="mt-2 text-2xl font-black text-white">System Settings</h2>
+                            <p class="mt-1 max-w-3xl text-sm font-semibold text-slate-400">
+                                Configure global platform status, trading limits, withdrawal rules, KYC review and security controls.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button id="settingsRefreshBtn" type="button" class="admin-btn">↻ Refresh</button>
+                            <button id="settingsSaveTopBtn" type="button" class="admin-btn admin-btn-primary">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="admin-card admin-card-hover p-5">
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-400">Platform</p>
+                        <h3 id="settingsPlatformStatus" class="mt-3 text-2xl font-black text-emerald-300">Loading</h3>
+                    </div>
+
+                    <div class="admin-card admin-card-hover p-5">
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-400">Max Leverage</p>
+                        <h3 id="settingsMaxLeverage" class="mt-3 text-2xl font-black text-cyan-300">0x</h3>
+                    </div>
+
+                    <div class="admin-card admin-card-hover p-5">
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-400">Withdrawal Review</p>
+                        <h3 id="settingsWithdrawalLimit" class="mt-3 text-2xl font-black text-amber-300">$0</h3>
+                    </div>
+
+                    <div class="admin-card admin-card-hover p-5">
+                        <p class="text-xs font-black uppercase tracking-wide text-slate-400">KYC Score</p>
+                        <h3 id="settingsKycScore" class="mt-3 text-2xl font-black text-purple-300">0</h3>
+                    </div>
+                </div>
+
+                <form id="settingsForm" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                        <!-- Left Navigation Sidebar -->
+                        <div class="lg:col-span-1 flex flex-col gap-2 bg-white/[0.02] border border-white/5 p-4 rounded-3xl backdrop-blur-xl">
+                            <button type="button" class="tx-settings-tab-btn active text-left px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20" data-target="tabPlatform">
+                                Platform & Security
+                            </button>
+                            <button type="button" class="tx-settings-tab-btn text-left px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all text-slate-400 hover:bg-white/5 hover:text-white" data-target="tabTrading">
+                                Trading & KYC
+                            </button>
+                            <button type="button" class="tx-settings-tab-btn text-left px-4 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all text-slate-400 hover:bg-white/5 hover:text-white" data-target="tabFees">
+                                Fees & Wallet
+                            </button>
+                        </div>
+
+                        <!-- Right Settings Panel -->
+                        <div class="lg:col-span-3 space-y-6">
+
+                            <!-- TAB 1: Platform & Security -->
+                            <div id="tabPlatform" class="tx-settings-panel space-y-6">
+                                <!-- General Platform -->
+                                <div class="admin-card p-6">
+                                    <h3 class="text-xl font-black text-white">General Platform</h3>
+                                    <p class="mt-1 text-sm text-slate-400">Main system availability controls.</p>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-2">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Platform Status</span>
+                                            <select id="platformStatus" class="admin-input">
+                                                <option value="trading_enabled">Trading Enabled</option>
+                                                <option value="withdrawals_paused">Withdrawals Paused</option>
+                                                <option value="trading_paused">Trading Paused</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Maintenance Message</span>
+                                            <input id="maintenanceMessage" class="admin-input" placeholder="System maintenance in progress..." />
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="allowNewRegistrations" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Allow New Registrations</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="requireEmailVerification" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Require Email Verification</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Security Settings -->
+                                <div class="admin-card p-6">
+                                    <h3 class="text-xl font-black text-white">Security Settings</h3>
+                                    <p class="mt-1 text-sm text-slate-400">Admin session and security rules.</p>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Admin Session Timeout (minutes)</span>
+                                            <input id="adminSessionTimeout" type="number" min="5" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Max Failed Login Attempts</span>
+                                            <input id="maxFailedLoginAttempts" type="number" min="1" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">IP Allowlist</span>
+                                            <input id="adminIpAllowlist" class="admin-input" placeholder="Comma separated IPs" />
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="requireAdmin2fa" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Require Admin 2FA</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enableAuditLogging" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Enable Audit Logging</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: Trading & KYC -->
+                            <div id="tabTrading" class="tx-settings-panel space-y-6 hidden">
+                                <!-- Trading Platforms & Account Plans -->
+                                <div class="admin-card p-6">
+                                    <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+                                        <div>
+                                            <h3 class="text-xl font-black text-white">Trading Platforms & Account Plans</h3>
+                                            <p class="mt-1 max-w-4xl text-sm leading-6 text-slate-400">Configure first-login platform selection, Basic/Standard/Advanced spreads and minimum settled trading balances. Users are automatically downgraded or restored according to balance.</p>
+                                        </div>
+                                        <span class="inline-flex w-fit rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-300">KYC only for withdrawal</span>
+                                    </div>
+
+                                    <div class="mt-6 grid gap-4 lg:grid-cols-4">
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="platformSelectionEnabled" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">First Login Platform Popup</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="traidiumxPlatformEnabled" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Enable TraidiumX</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="mt5PlatformEnabled" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Enable MetaTrader 5</span>
+                                        </label>
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="autoRestorePreferredPlan" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Auto Restore Preferred Plan</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="mt-5 grid gap-4 xl:grid-cols-3">
+                                        <section class="rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.05] p-5">
+                                            <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Basic</h4><span class="rounded-full bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-300">Fallback</span></div>
+                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
+                                                    <select id="basicPlanSpreadType" class="admin-input">
+                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="percentage">Percentage (%)</option>
+                                                    </select>
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Value</span>
+                                                    <input id="basicPlanSpreadValue" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Balance (USDT)</span>
+                                                    <input id="basicPlanMinimumBalance" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                            </div>
+                                        </section>
+                                        <section class="rounded-3xl border border-violet-400/20 bg-violet-400/[0.05] p-5">
+                                            <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Standard</h4><span class="rounded-full bg-violet-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-300">Balanced</span></div>
+                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
+                                                    <select id="standardPlanSpreadType" class="admin-input">
+                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="percentage">Percentage (%)</option>
+                                                    </select>
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Value</span>
+                                                    <input id="standardPlanSpreadValue" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Balance (USDT)</span>
+                                                    <input id="standardPlanMinimumBalance" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                            </div>
+                                        </section>
+                                        <section class="rounded-3xl border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
+                                            <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Advanced</h4><span class="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Lowest Spread</span></div>
+                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
+                                                    <select id="advancedPlanSpreadType" class="admin-input">
+                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="percentage">Percentage (%)</option>
+                                                    </select>
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Value</span>
+                                                    <input id="advancedPlanSpreadValue" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Balance (USDT)</span>
+                                                    <input id="advancedPlanMinimumBalance" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] p-4 text-sm font-semibold leading-6 text-amber-100">
+                                        MetaTrader 5 automatic Login ID and server creation requires your broker/white-label provisioning API. METAAPI_TOKEN is used for connecting an existing MT5 account; it cannot create a new broker login by itself.
+                                    </div>
+                                </div>
+
+                                <!-- Trading Settings -->
+                                <div class="admin-card p-6">
+                                    <h3 class="text-xl font-black text-white">Trading Settings</h3>
+                                    <p class="mt-1 text-sm text-slate-400">Control leverage, order size and risk behavior.</p>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Default Max Leverage</span>
+                                            <input id="defaultMaxLeverage" type="number" min="1" max="125" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Min Order Notional</span>
+                                            <input id="minOrderNotional" type="number" min="0" step="0.01" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Max Order Notional</span>
+                                            <input id="maxOrderNotional" type="number" min="0" step="0.01" class="admin-input" />
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enableFuturesTrading" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Enable Futures Trading</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enableOptionsTrading" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Enable Options Trading</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enableAutoLiquidation" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Enable Auto Liquidation</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Withdrawal & KYC -->
+                                <div class="admin-card p-6">
+                                    <h3 class="text-xl font-black text-white">Withdrawal & KYC</h3>
+                                    <p class="mt-1 text-sm text-slate-400">Review limits and identity verification rules.</p>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Withdrawal Review Limit</span>
+                                            <input id="withdrawalReviewLimit" type="number" min="0" step="0.01" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Daily Withdrawal Limit</span>
+                                            <input id="dailyWithdrawalLimit" type="number" min="0" step="0.01" class="admin-input" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">KYC Manual Review Score</span>
+                                            <input id="kycManualReviewScore" type="number" min="0" max="100" class="admin-input" />
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="requireKycForWithdrawals" type="checkbox" checked disabled />
+                                            <span class="font-bold text-slate-300">KYC Mandatory For Withdrawals</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="autoApproveLowRiskKyc" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Auto Approve Low Risk KYC</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="pauseWithdrawals" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Pause Withdrawals</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB 3: Fees & Wallet -->
+                            <div id="tabFees" class="tx-settings-panel space-y-6 hidden">
+                                <!-- Fees & Charges -->
+                                <div class="admin-card p-6">
+                                    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <h3 class="text-xl font-black text-white">Fees & Charges</h3>
+                                            <p class="mt-1 text-sm text-slate-400">Company trading fees, platform usage fee and crypto withdrawal charges. Set value 0 or turn OFF to keep existing flow unchanged.</p>
+                                        </div>
+                                        <span class="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-cyan-300">USDT</span>
+                                    </div>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enablePlatformCharge" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Enable Trading Fee</span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Trading Fee Type</span>
+                                            <select id="platformChargeType" class="admin-input">
+                                                <option value="percentage">Percentage (%)</option>
+                                                <option value="fixed">Fixed USDT</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Trading Fee Value</span>
+                                            <input id="platformChargeValue" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 0.04" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Trading Min Fee</span>
+                                            <input id="platformChargeMin" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no minimum" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Trading Max Fee</span>
+                                            <input id="platformChargeMax" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no maximum" />
+                                        </label>
+
+                                        <div class="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <label class="flex items-center gap-3">
+                                                <input id="platformChargeApplyFutures" type="checkbox" checked />
+                                                <span class="font-bold text-slate-300">Apply to Futures</span>
+                                            </label>
+                                            <label class="flex items-center gap-3">
+                                                <input id="platformChargeApplyOptions" type="checkbox" checked />
+                                                <span class="font-bold text-slate-300">Apply to Options</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 rounded-3xl border border-cyan-400/15 bg-cyan-400/[0.04] p-5">
+                                        <div class="mb-4 flex flex-col gap-1">
+                                            <h4 class="text-lg font-black text-white">Platform Fee</h4>
+                                            <p class="text-xs font-semibold leading-6 text-slate-400">Separate account/platform usage charge. This is not Trading Fee and not Withdrawal Fee. Real flow: fixed USDT charge once per selected cycle. If balance is insufficient, wallet never goes negative; fee stays pending until the user has enough available balance.</p>
+                                        </div>
+
+                                        <div class="grid gap-5 lg:grid-cols-3">
+                                            <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                                <input id="enableAccountPlatformFee" type="checkbox" />
+                                                <span class="font-bold text-slate-300">Enable Platform Fee</span>
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-bold text-slate-300">Platform Fee Type</span>
+                                                <select id="accountPlatformFeeType" class="admin-input">
+                                                    <option value="fixed">Fixed USDT</option>
+                                                </select>
+                                                <span class="mt-2 block text-[11px] font-semibold text-slate-500">Real-company mode: platform fee is fixed, not percentage of wallet balance.</span>
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-bold text-slate-300">Platform Fee Value</span>
+                                                <input id="accountPlatformFeeValue" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 5 USDT" />
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-bold text-slate-300">Platform Min Fee</span>
+                                                <input id="accountPlatformFeeMin" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no minimum" />
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-bold text-slate-300">Platform Max Fee</span>
+                                                <input id="accountPlatformFeeMax" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no maximum" />
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-bold text-slate-300">Platform Fee Cycle</span>
+                                                <select id="accountPlatformFeeCycle" class="admin-input">
+                                                    <option value="one_time">One-time per user</option>
+                                                    <option value="daily">Daily</option>
+                                                    <option value="monthly">Monthly</option>
+                                                </select>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                                            <input id="enableWithdrawalFee" type="checkbox" />
+                                            <span class="font-bold text-slate-300">Enable Withdrawal Fee</span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Withdrawal Fee Type</span>
+                                            <select id="withdrawalFeeType" class="admin-input">
+                                                <option value="fixed">Fixed USDT</option>
+                                                <option value="percentage">Percentage (%)</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Withdrawal Fee Value</span>
+                                            <input id="withdrawalFeeValue" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 2" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Withdrawal Min Fee</span>
+                                            <input id="withdrawalFeeMin" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no minimum" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Withdrawal Max Fee</span>
+                                            <input id="withdrawalFeeMax" type="number" min="0" step="0.000001" class="admin-input" placeholder="0 = no maximum" />
+                                        </label>
+
+                                        <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-xs leading-6 text-slate-300 hidden">
+                                            Network fee below is added separately from company withdrawal fee. Keep 0 to use backend .env default network fee.
+                                        </div>
+
+                                        <label class="block hidden">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">TRC20 Network Fee</span>
+                                            <input id="withdrawalFeeTrc20" type="number" min="0" step="0.000001" class="admin-input" placeholder="0" />
+                                        </label>
+
+                                        <label class="block hidden">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">BEP20 Network Fee</span>
+                                            <input id="withdrawalFeeBep20" type="number" min="0" step="0.000001" class="admin-input" placeholder="0" />
+                                        </label>
+
+                                        <label class="block hidden">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">ERC20 Network Fee</span>
+                                            <input id="withdrawalFeeErc20" type="number" min="0" step="0.000001" class="admin-input" placeholder="0" />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Company Deposit Wallet -->
+                                <div class="admin-card p-6">
+                                    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <h3 class="text-xl font-black text-white">Company Deposit Wallet</h3>
+                                            <p class="mt-1 text-sm text-slate-400">Set company-controlled USDT deposit addresses and minimum deposit amount. User-side Deposit popup will load these values instantly after saving.</p>
+                                        </div>
+                                        <span class="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-emerald-300">Company Wallet</span>
+                                    </div>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-3">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">TRC20 USDT Address</span>
+                                            <input id="cryptoDepositTrc20Address" class="admin-input font-mono" placeholder="TRC20 address starts with T" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositTrc20AddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">ERC20 USDT Address</span>
+                                            <input id="cryptoDepositErc20Address" class="admin-input font-mono" placeholder="ERC20 address starts with 0x" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositErc20AddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">BEP20 USDT Address</span>
+                                            <input id="cryptoDepositBep20Address" class="admin-input font-mono" placeholder="BEP20 address starts with 0x" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositBep20AddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Deposit Amount</span>
+                                            <input id="cryptoDepositMinUsdt" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 10" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Maximum Deposit Amount</span>
+                                            <input id="cryptoDepositMaxUsdt" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 1000000" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Min Main Wallet Balance</span>
+                                            <input id="minMainWalletBalance" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 1000" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-cyan-300">USDT Market Rate (INR / ₹)</span>
+                                            <input id="usdtInrRate" type="number" min="0.01" step="0.01" class="admin-input font-black text-cyan-300" placeholder="Example: 88.50" />
+                                            <span class="mt-1.5 block text-[11px] font-semibold text-slate-400">1 USDT value in INR for user deposit, withdraw & wallet transfer conversion.</span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Company UPI ID</span>
+                                            <input id="inrDepositUpiId" class="admin-input font-mono" placeholder="traidiumx@upi" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Account Holder Name</span>
+                                            <input id="inrDepositAccountName" class="admin-input" placeholder="TraidiumX Trading Services Ltd" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Bank Name</span>
+                                            <input id="inrDepositBankName" class="admin-input" placeholder="HDFC Bank" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Bank Account Number</span>
+                                            <input id="inrDepositAccountNumber" class="admin-input font-mono" placeholder="50100498765432" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Bank IFSC Code</span>
+                                            <input id="inrDepositIfscCode" class="admin-input font-mono uppercase" placeholder="HDFC0000128" />
+                                        </label>
+
+                                        <div class="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.04] p-4 text-xs font-semibold leading-6 text-slate-300 lg:col-span-3">
+                                            Deposit address = company wallet address. Minimum Main Wallet balance is enforced on withdrawals and transfers to Trading Wallet.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Permanent Save/Reset Bar -->
+                            <div class="flex flex-wrap justify-end gap-3 pt-4">
+                                <button id="settingsResetBtn" type="button" class="admin-btn">Reset</button>
+                                <button id="settingsSaveBtn" type="submit" class="admin-btn admin-btn-primary">Save Settings</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+
+            </section>
+        </main>
+    </section>
+</div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-settings.js?v=2"></script>
+<script>
+    // Tab switching logic
+    document.querySelectorAll(".tx-settings-tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            // Remove active style classes from all tab buttons
+            document.querySelectorAll(".tx-settings-tab-btn").forEach((b) => {
+                b.classList.remove("bg-cyan-400", "text-slate-950", "shadow-lg", "shadow-cyan-500/20", "active");
+                b.classList.add("text-slate-400", "hover:bg-white/5", "hover:text-white");
+            });
+
+            // Add active style classes to clicked tab button
+            btn.classList.add("bg-cyan-400", "text-slate-950", "shadow-lg", "shadow-cyan-500/20", "active");
+            btn.classList.remove("text-slate-400", "hover:bg-white/5", "hover:text-white");
+
+            // Hide all tab panels
+            document.querySelectorAll(".tx-settings-panel").forEach((panel) => {
+                panel.classList.add("hidden");
+            });
+
+            // Show clicked tab panel
+            const targetId = btn.getAttribute("data-target");
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.classList.remove("hidden");
+            }
+        });
+    });
+</script>
+</body>
+</html>

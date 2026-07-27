@@ -1,0 +1,36 @@
+# Python virtual environment
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+ENV/
+env/
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local configuration files (secrets)
+backend/.env
+.env
+backend/config/local_settings.py
+
+# System and logs
+*.log
+.DS_Store
+Thumbs.db
+backend/logs/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

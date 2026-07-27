@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Maintenance | TraidiumX Admin</title>
+</head>
+
+<body data-admin-page="maintenance" data-page-title="Maintenance" data-page-subtitle="Control user-side maintenance popup without stopping admin operations.">
+<div class="admin-shell">
+    <aside id="adminSidebar" class="admin-sidebar"></aside>
+    <div id="adminBackdrop" class="admin-backdrop"></div>
+
+    <section class="admin-main">
+        <header id="adminTopbar" class="admin-topbar"></header>
+
+        <main class="admin-content">
+            <section class="space-y-6">
+                <div class="admin-card p-6 tx-fade-up">
+                    <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-[.22em] text-cyan-300">User Side Control</p>
+                            <h2 class="mt-2 text-2xl font-black text-white">Maintenance Mode</h2>
+                            <p class="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">
+                                When maintenance mode is ON, user-side actions and page access show a professional popup with your message. Admin panel remains usable.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <button id="maintenanceRefreshBtn" type="button" class="admin-btn admin-btn-ghost">Refresh</button>
+                            <button id="maintenanceSaveBtn" type="button" class="admin-btn admin-btn-primary">Save Maintenance</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                    <div class="admin-card p-6 tx-fade-up tx-delay-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-[.18em] text-slate-400">Current Status</p>
+                                <h3 id="maintenanceStatusText" class="mt-3 text-3xl font-black text-emerald-300">Loading...</h3>
+                            </div>
+                            <span id="maintenanceStatusPill" class="status-pill status-pending">Checking</span>
+                        </div>
+
+                        <div class="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+                            <label class="flex cursor-pointer items-center justify-between gap-4">
+                                <span>
+                                    <span class="block text-base font-black text-white">Maintenance Mode</span>
+                                    <span class="mt-1 block text-sm font-semibold text-slate-400">Turn ON to block user actions with popup notice.</span>
+                                </span>
+                                <input id="maintenanceToggle" type="checkbox" class="h-6 w-6 accent-cyan-400" />
+                            </label>
+                        </div>
+
+                        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                            <button id="maintenanceOnBtn" type="button" class="admin-btn admin-btn-primary w-full justify-center">Turn ON</button>
+                            <button id="maintenanceOffBtn" type="button" class="admin-btn admin-btn-ghost w-full justify-center">Turn OFF</button>
+                        </div>
+
+                        <div class="mt-5 rounded-3xl border border-amber-300/20 bg-amber-300/10 p-4 text-sm font-semibold leading-6 text-amber-100">
+                            User can close the popup with cross sign. After closing, the next user click/action will show the same popup again.
+                        </div>
+                    </div>
+
+                    <div class="admin-card p-6 tx-fade-up tx-delay-2">
+                        <label class="block">
+                            <span class="mb-2 block text-sm font-black text-slate-300">Maintenance Popup Message</span>
+                            <textarea id="maintenanceMessage" rows="7" class="admin-input min-h-[170px] resize-y" placeholder="TraidiumX is under maintenance. Please try again later."></textarea>
+                        </label>
+
+                        <div class="mt-5 rounded-[1.75rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5">
+                            <p class="text-xs font-black uppercase tracking-[.18em] text-cyan-300">User Popup Preview</p>
+                            <h3 class="mt-3 text-xl font-black text-white">TraidiumX Maintenance</h3>
+                            <p id="maintenancePreviewText" class="mt-2 text-sm font-semibold leading-6 text-slate-300">
+                                TraidiumX is under maintenance. Please try again later.
+                            </p>
+                            <button id="maintenancePreviewBtn" type="button" class="admin-btn admin-btn-ghost mt-5">Preview Popup</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </section>
+</div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-maintenance.js"></script>
+</body>
+</html>

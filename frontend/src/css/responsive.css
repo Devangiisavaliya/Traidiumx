@@ -1,0 +1,802 @@
+/* ==========================================================================
+   TraidiumX Responsive Stylesheet
+   Ensures seamless UI/UX from small mobile (320px) to projector (1920px+)
+   ========================================================================== */
+
+/* ==========================================
+   1. GLOBAL MOBILE & SMALL TABLET STYLES (max-width: 767px)
+   ========================================== */
+@media (max-width: 767px) {
+    /* Prevent body overflow and clipping */
+    body {
+        overflow-x: hidden !important;
+    }
+
+    main {
+        padding-top: 100px !important; /* Move content slightly higher for mobile */
+    }
+
+    /* Force grids to single columns where appropriate */
+    .grid {
+        gap: 12px !important;
+    }
+
+    /* General page horizontal padding breathing room */
+    .rt-page, 
+    .os-page {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    /* Futures & Options top pair information bar stacking */
+    .rt-pair-bar.rt-pair-bar-with-funds {
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        gap: 14px !important;
+        border-radius: 20px !important;
+    }
+
+    .rt-pair-bar-with-funds .rt-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+        width: 100% !important;
+    }
+
+    .rt-metric {
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+        background: rgba(2, 6, 23, 0.45) !important;
+    }
+
+    .rt-metric span {
+        font-size: 8px !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    .rt-metric strong {
+        font-size: 11px !important;
+        margin-top: 2px !important;
+    }
+
+    /* Wallet Card & Actions quick bar inside top info panel */
+    .rt-pair-funds-card {
+        min-width: 0 !important;
+        width: 100% !important;
+        padding: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .rt-pair-funds-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+    }
+
+    .rt-pair-funds-item {
+        padding: 8px 6px !important;
+        border-radius: 10px !important;
+    }
+
+    .rt-pair-funds-item span {
+        font-size: 8px !important;
+    }
+
+    .rt-pair-funds-item strong {
+        font-size: 11px !important;
+    }
+
+    .rt-pair-funds-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        margin-top: 8px !important;
+    }
+
+    .rt-pair-funds-btn {
+        padding: 8px 4px !important;
+        font-size: 10px !important;
+        border-radius: 10px !important;
+        text-align: center;
+    }
+
+    /* Trading wallet card quick action modal on options page */
+    .rt-pair-funds-card.options-version {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Subtle custom scrollbar for horizontal scrolling of data tables on mobile devices */
+    .rt-table-wrap,
+    .tx-history-table-wrap,
+    .os-chain-scroll,
+    .os-table-scroll,
+    .os-terminal-table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(34, 211, 238, 0.4) transparent !important;
+    }
+
+    .rt-table-wrap::-webkit-scrollbar,
+    .tx-history-table-wrap::-webkit-scrollbar,
+    .os-chain-scroll::-webkit-scrollbar,
+    .os-table-scroll::-webkit-scrollbar,
+    .os-terminal-table::-webkit-scrollbar {
+        display: block !important;
+        height: 6px !important;
+        width: 6px !important;
+    }
+
+    .rt-table-wrap::-webkit-scrollbar-thumb,
+    .tx-history-table-wrap::-webkit-scrollbar-thumb,
+    .os-chain-scroll::-webkit-scrollbar-thumb,
+    .os-table-scroll::-webkit-scrollbar-thumb,
+    .os-terminal-table::-webkit-scrollbar-thumb {
+        display: block !important;
+        background: rgba(34, 211, 238, 0.35) !important;
+        border-radius: 99px !important;
+    }
+
+    .rt-table-wrap::-webkit-scrollbar-track,
+    .tx-history-table-wrap::-webkit-scrollbar-track,
+    .os-chain-scroll::-webkit-scrollbar-track,
+    .os-table-scroll::-webkit-scrollbar-track,
+    .os-terminal-table::-webkit-scrollbar-track {
+        display: block !important;
+        background: transparent !important;
+    }
+
+    /* Forms and elements wrapping */
+    .auth-form-card {
+        padding: 20px !important;
+        border-radius: 24px !important;
+    }
+
+    /* Referral step cards timeline adjustments */
+    .referral-timeline {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Header navbar mobile alignment adjustments */
+    header {
+        padding-top: 8px !important;
+    }
+
+    .tx-pill-navbar {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+
+    /* -------------------------------------------------------------
+       FUTURES TERMINAL MOBILE OVERRIDES: Fix Squeezed Position Tables
+       Using high-specificity selector to override internal style blocks
+       ------------------------------------------------------------- */
+    html body[data-page="options"] .os-chain-table,
+    html body[data-page="options"] .os-chain-table tr,
+    html body[data-page="options"] .os-chain-table td,
+    html body[data-page="options"] .os-underlying-line-row td {
+        overflow: visible !important;
+    }
+
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table {
+        width: auto !important;
+        min-width: 780px !important; /* Force minimum width to prevent text squishing */
+        table-layout: auto !important; /* Allow columns to fit content */
+    }
+
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table th,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table td {
+        white-space: nowrap !important;
+        padding: 10px 8px !important;
+    }
+}
+
+/* ==========================================
+   2. TABLET & LAPTOP VIEWPORTS (768px to 1180px / 1280px)
+   ========================================== */
+@media (min-width: 768px) and (max-width: 1180px) {
+    .rt-pair-bar.rt-pair-bar-with-funds {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .rt-pair-bar-with-funds .rt-metrics-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    .rt-pair-funds-card {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rt-terminal-3col {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   OPTIONS PAGE OVERRIDES: Force Option Chain horizontal scroll
+   Using high-specificity selectors to override internal style blocks
+   ------------------------------------------------------------- */
+@media (max-width: 1280px) {
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-scroll,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-scroll {
+        overflow-x: auto !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(34, 211, 238, 0.4) transparent !important;
+    }
+
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-scroll::-webkit-scrollbar,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-scroll::-webkit-scrollbar {
+        display: block !important;
+        height: 6px !important;
+    }
+
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-scroll::-webkit-scrollbar-thumb,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-scroll::-webkit-scrollbar-thumb {
+        display: block !important;
+        background: rgba(34, 211, 238, 0.35) !important;
+        border-radius: 99px !important;
+    }
+
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-table,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-table {
+        width: auto !important;
+        min-width: 1000px !important; /* Prevent 13 columns from squeezing into mobile layout */
+        table-layout: auto !important;
+    }
+
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-table th,
+    html body[data-page="options"] .os-options-clean-grid .os-chain-card .os-chain-table td,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-table th,
+    html body[data-page="options"] .os-terminal-grid .os-chain-card .os-chain-table td {
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   GLOBAL OVERRIDES: Override overflow-x hidden for Futures tables
+   ------------------------------------------------------------- */
+html body[data-page="futures"] .rt-card .rt-table-wrap {
+    overflow-x: auto !important;
+}
+
+/* -------------------------------------------------------------
+   SHARED PAGINATION STYLING
+   ------------------------------------------------------------- */
+.tx-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+}
+
+.tx-pagination button {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.72);
+    color: #cbd5e1;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tx-pagination button:hover:not(:disabled) {
+    background: rgba(34, 211, 238, 0.15);
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.3);
+}
+
+.tx-pagination button.active {
+    background: #22d3ee;
+    color: #020617;
+    border-color: #22d3ee;
+}
+
+.tx-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.tx-pagination span {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 800;
+    margin-right: 8px;
+}
+
+/* -------------------------------------------------------------
+   ACTIVE MINI MARKET HIGHLIGHT
+   ------------------------------------------------------------- */
+.active-mini-market {
+    border: 1px solid rgba(34, 211, 238, 0.50) !important;
+    background: rgba(34, 211, 238, 0.12) !important;
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.18), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* -------------------------------------------------------------
+   OPTIONS TERMINAL TABLE PAGINATION FLOW FIX
+   ------------------------------------------------------------- */
+body[data-page="options"] .os-terminal-table {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+}
+
+body[data-page="options"] .os-terminal-table > p,
+body[data-page="options"] .os-terminal-table > .os-empty-table {
+    margin: auto !important;
+    padding: 40px 0;
+}
+
+/* -------------------------------------------------------------
+   SPOT PRICE LINE ACROSS OPTION CHAIN
+   ------------------------------------------------------------- */
+.os-underlying-line-row {
+    height: 4px !important;
+    background: transparent !important;
+}
+.os-underlying-line-row td {
+    padding: 0 !important;
+    height: 4px !important;
+    position: relative;
+    border: none !important;
+}
+.os-underlying-line-container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+.os-underlying-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #f59e0b !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+.os-underlying-pill {
+    background: #f59e0b !important;
+    color: #020617 !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    padding: 3px 10px !important;
+    border-radius: 99px !important;
+    border: 2px solid #020617 !important;
+    z-index: 11;
+    pointer-events: auto;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
+/* -------------------------------------------------------------
+   SPECIFICITY OVERRIDES FOR OPTION CHAIN COLUMN COLORS
+   ------------------------------------------------------------- */
+body[data-page="options"] .os-chain-table td.text-emerald-400 {
+    color: #34d399 !important;
+}
+body[data-page="options"] .os-chain-table td.text-red-400 {
+    color: #f43f5e !important; /* Premium rose red */
+}
+body[data-page="options"] .os-chain-table td.text-slate-100 {
+    color: #f1f5f9 !important;
+}
+body[data-page="options"] .os-chain-table td.text-slate-400 {
+    color: #94a3b8 !}
+
+/* -------------------------------------------------------------
+   MOBILE RESPONSIVE TABLE STYLING
+   ------------------------------------------------------------- */
+.os-table-scroll table th {
+    color: #34d399 !important;
+    font-weight: 900 !important;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 10px 8px !important;
+}
+
+.os-table-scroll table td {
+    padding: 12px 8px !important;
+    vertical-align: middle;
+}
+
+/* -------------------------------------------------------------
+   OPTIONS TERMINAL SCROLLABLE TABLES: Fix Squeezed Bottom Tables on Mobile
+   ------------------------------------------------------------- */
+@media (max-width: 1280px) {
+    html body[data-page="options"] .os-terminal-table .os-table-scroll {
+        width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    html body[data-page="options"] .os-terminal-table .os-table-scroll .os-demo-table {
+        width: auto !important;
+        min-width: 880px !important;
+        table-layout: auto !important;
+    }
+
+    html body[data-page="options"] .os-terminal-table .os-table-scroll .os-demo-table th,
+    html body[data-page="options"] .os-terminal-table .os-table-scroll .os-demo-table td {
+        white-space: nowrap !important;
+        padding: 10px 12px !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   HIDE SCROLLBAR FOR TOPMARKET CARDS HORIZONTAL SLIDER
+   ------------------------------------------------------------- */
+#topMarketSlider::-webkit-scrollbar {
+    display: none !important;
+}
+#topMarketSlider {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+/* -------------------------------------------------------------
+   FUTURES TERMINAL BOTTOM TABS HORIZONTAL SCROLL OVERRIDE
+   ------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    html body .rt-bottom-tabs {
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        scrollbar-width: none !important;
+        display: flex !important;
+    }
+    
+    html body .rt-bottom-tabs::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    html body .rt-bottom-tabs button {
+        flex-shrink: 0 !important;
+    }
+}
+
+/* ==========================================
+   3. LARGE DESKTOP & PROJECTOR SCREENS (1920px+)
+   ========================================== */
+@media (min-width: 1920px) {
+    /* Set dataset specific scaling variables */
+    html[data-tx-viewport="projector"] body {
+        background:
+            radial-gradient(circle at 12% 12%, rgba(34, 211, 238, 0.22), transparent 48%),
+            radial-gradient(circle at 88% 12%, rgba(59, 130, 246, 0.18), transparent 44%),
+            #020617 !important;
+    }
+
+    /* Expand the layout bounds gracefully for high definition projector viewing */
+    .max-w-7xl {
+        max-width: 1600px !important;
+        transition: max-width 0.35s ease;
+    }
+
+    .max-w-\[1800px\] {
+        max-w: 2000px !important;
+        transition: max-width 0.35s ease;
+    }
+
+    /* Slightly increase typography scale to remain readable on wide projectors */
+    html[data-tx-viewport="projector"] h1 {
+        letter-spacing: -0.02em;
+    }
+
+    html[data-tx-viewport="projector"] p {
+        font-size: 1.05rem !important;
+        line-height: 1.8 !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   MOBILE RESPONSIVE POSITIONS CARD VIEW (<= 1024px)
+   ------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    /* Stacking Layout Ordering: Chart first, Buy/Sell Panel second, Tables third */
+    html body[data-page="futures"] .rt-terminal-focused {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal {
+        display: contents !important;
+    }
+    
+    /* Chart Card (nth-child(1) inside left-terminal) goes to the top (order: 1) */
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal > .rt-card:nth-child(1) {
+        order: 1 !important;
+        display: block !important;
+        height: 580px !important;
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* Ensure internal chart elements have explicit heights and displays */
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal > .rt-card:nth-child(1) .rt-chart-layout,
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal > .rt-card:nth-child(1) .rt-chart-area,
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal > .rt-card:nth-child(1) .rt-chart-container {
+        height: 560px !important;
+        min-height: 560px !important;
+        display: block !important;
+    }
+    
+    /* Put Order Book Panel (order: 2) */
+    html body[data-page="futures"] .rt-terminal-focused .rt-middle-orderbook {
+        order: 2 !important;
+        position: static !important;
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* Put Order Form Panel (right-panel) (order: 3) */
+    html body[data-page="futures"] .rt-terminal-focused .rt-right-panel {
+        order: 3 !important;
+        position: static !important;
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* History table wrapper card (nth-child(2) inside left-terminal) goes to the bottom (order: 4) */
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal > .rt-card:nth-child(2) {
+        order: 4 !important;
+        display: block !important;
+        width: 100% !important;
+    }
+
+    /* Wrap and resize the bottom tab buttons to avoid horizontal cutting */
+    html body .rt-bottom-tabs {
+        flex-wrap: wrap !important;
+        overflow-x: visible !important;
+        white-space: normal !important;
+        gap: 6px 12px !important;
+        padding: 10px 10px 8px !important;
+    }
+    
+    html body .rt-bottom-tabs button {
+        flex-shrink: 0 !important;
+        padding-bottom: 6px !important;
+        font-size: 11px !important;
+    }
+
+    /* Hide the standard table header and make rows block elements for all 5 tables */
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history {
+        min-width: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions thead,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders thead,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history thead,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history thead,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history thead {
+        display: none !important;
+    }
+    
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions tbody,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders tbody,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history tbody,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history tbody,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+        background: transparent !important;
+    }
+    
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions tr,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders tr,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history tr,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history tr,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history tr {
+        display: block !important;
+        width: 100% !important;
+        background: #090f1d !important;
+        border: 1px solid rgba(148, 163, 184, 0.12) !important;
+        border-radius: 16px !important;
+        padding: 12px 14px !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Desktop table cells must be completely hidden on mobile */
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions tr td.rt-desktop-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders tr td.rt-desktop-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history tr td.rt-desktop-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history tr td.rt-desktop-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history tr td.rt-desktop-only {
+        display: none !important;
+    }
+    
+    /* Mobile-only cell displays block */
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-positions tr td.rt-mobile-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-open-orders tr td.rt-mobile-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-order-history tr td.rt-mobile-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-trade-history tr td.rt-mobile-only,
+    html body[data-page="futures"] .rt-table-wrap #terminalTable .rt-table.rt-mobile-transaction-history tr td.rt-mobile-only {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    
+    /* Mobile card specific elements styling */
+    .rt-mobile-position-card {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .rt-mobile-close-btn {
+        width: 100% !important;
+        background: rgba(239, 68, 68, 0.16) !important;
+        border: 1px solid rgba(248, 113, 113, 0.32) !important;
+        border-radius: 12px !important;
+        color: #fecaca !important;
+        padding: 10px 14px !important;
+        font-size: 12px !important;
+        font-weight: 900 !important;
+        cursor: pointer;
+        text-align: center !important;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    
+    .rt-mobile-close-btn:hover {
+        background: rgba(239, 68, 68, 0.24) !important;
+        border-color: rgba(248, 113, 113, 0.50) !important;
+    }
+}
+
+/* Hide mobile cells and force clean side-by-side grid on desktop/laptop screen views */
+@media (min-width: 1025px) {
+    .rt-mobile-only {
+        display: none !important;
+    }
+    
+    html body[data-page="futures"] .rt-terminal-focused {
+        display: grid !important;
+        grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
+        gap: 12px !important;
+        align-items: start !important;
+    }
+    
+    html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal {
+        grid-column: auto !important;
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    html body[data-page="futures"] .rt-terminal-focused .rt-right-panel {
+        grid-column: auto !important;
+        display: block !important;
+        position: sticky !important;
+        top: 110px !important;
+        width: 100% !important;
+    }
+}
+
+/* ==============================================================
+   GENERAL UTILITY CLASSES & OPTIONS RESPONSIVE OVERRIDES
+   ============================================================== */
+@media (max-width: 1024px) {
+    .rt-desktop-only {
+        display: none !important;
+    }
+    
+    /* Options Page Market Info Bar */
+    body[data-page="options"] .os-market-bar {
+        flex-direction: column !important;
+        padding: 12px !important;
+        gap: 14px !important;
+        border-radius: 20px !important;
+        align-items: stretch !important;
+    }
+    body[data-page="options"] .os-market-bar .os-metrics-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        margin-top: 4px !important;
+        width: 100% !important;
+    }
+    body[data-page="options"] .os-market-bar .os-metric {
+        border-left: none !important;
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+        background: rgba(2, 6, 23, 0.45) !important;
+        text-align: center;
+    }
+    
+    /* Options Chain Header */
+    body[data-page="options"] .os-chain-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    
+    /* Options Page Bottom Cards Mobile Responsiveness */
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills {
+        min-width: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions thead,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders thead,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills thead {
+        display: none !important;
+    }
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions tbody,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders tbody,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+        background: transparent !important;
+    }
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions tr,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders tr,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills tr {
+        display: block !important;
+        width: 100% !important;
+        background: #090f1d !important;
+        border: 1px solid rgba(148, 163, 184, 0.12) !important;
+        border-radius: 16px !important;
+        padding: 12px 14px !important;
+        margin-bottom: 0 !important;
+        box-sizing: border-box !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions tr td.rt-mobile-only,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders tr td.rt-mobile-only,
+    body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills tr td.rt-mobile-only {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+}
+
+@media (max-width: 767px) {
+    body[data-page="options"] .os-market-bar .os-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (min-width: 1025px) {
+    .rt-mobile-only {
+        display: none !important;
+    }
+}
+

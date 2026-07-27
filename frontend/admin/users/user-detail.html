@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+
+<style>
+    .user-detail-page .table-wrap {
+        overflow-x: hidden !important;
+    }
+
+    .user-detail-page .admin-table {
+        width: 100%;
+        min-width: 0 !important;
+        table-layout: fixed;
+    }
+
+    .user-detail-page .admin-table th,
+    .user-detail-page .admin-table td {
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .user-detail-page .admin-table th:nth-child(1),
+    .user-detail-page .admin-table td:nth-child(1) { width: 23%; }
+
+    .user-detail-page .admin-table th:nth-child(2),
+    .user-detail-page .admin-table td:nth-child(2) { width: 16%; }
+
+    .user-detail-page .admin-table th:nth-child(3),
+    .user-detail-page .admin-table td:nth-child(3) { width: 20%; }
+
+    .user-detail-page .admin-table th:nth-child(4),
+    .user-detail-page .admin-table td:nth-child(4) { width: 20%; }
+
+    .user-detail-page .admin-table th:nth-child(5),
+    .user-detail-page .admin-table td:nth-child(5) { width: 21%; text-align: right; }
+
+    .user-detail-page .admin-card {
+        overflow: hidden;
+    }
+
+    .user-detail-page .table-wrap {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .user-detail-page .table-wrap::-webkit-scrollbar {
+        display: none;
+    }
+
+    .user-detail-page .admin-detail-status {
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-detail-page .admin-detail-status[title="pending_admin_approval"],
+    .user-detail-page .admin-detail-status[title="PENDING_ADMIN_APPROVAL"] {
+        min-width: 132px;
+        justify-content: center;
+    }
+
+    .user-detail-page .admin-detail-finance-table th:nth-child(1),
+    .user-detail-page .admin-detail-finance-table td:nth-child(1) { width: 18%; }
+    .user-detail-page .admin-detail-finance-table th:nth-child(2),
+    .user-detail-page .admin-detail-finance-table td:nth-child(2) { width: 18%; }
+    .user-detail-page .admin-detail-finance-table th:nth-child(3),
+    .user-detail-page .admin-detail-finance-table td:nth-child(3) { width: 24%; }
+    .user-detail-page .admin-detail-finance-table th:nth-child(4),
+    .user-detail-page .admin-detail-finance-table td:nth-child(4) { width: 22%; }
+    .user-detail-page .admin-detail-finance-table th:nth-child(5),
+    .user-detail-page .admin-detail-finance-table td:nth-child(5) { width: 18%; text-align: right; }
+
+    .user-detail-page .admin-detail-finance-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+
+    .user-detail-page .admin-detail-finance-actions .admin-btn {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.72rem;
+        border-radius: 999px;
+    }
+
+    .user-detail-page .admin-detail-ledger-table th:nth-child(1),
+    .user-detail-page .admin-detail-ledger-table td:nth-child(1) { width: 28%; }
+    .user-detail-page .admin-detail-ledger-table th:nth-child(2),
+    .user-detail-page .admin-detail-ledger-table td:nth-child(2) { width: 22%; }
+    .user-detail-page .admin-detail-ledger-table th:nth-child(3),
+    .user-detail-page .admin-detail-ledger-table td:nth-child(3) { width: 24%; }
+    .user-detail-page .admin-detail-ledger-table th:nth-child(4),
+    .user-detail-page .admin-detail-ledger-table td:nth-child(4) { width: 26%; text-align: right; }
+
+
+
+    .user-detail-page .admin-detail-export-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        margin-left: 0.15rem;
+    }
+
+    .user-detail-page .admin-detail-export-btn {
+        min-width: 86px;
+        border-radius: 16px;
+        padding: 0.68rem 1rem;
+        font-size: 0.76rem;
+        letter-spacing: 0.01em;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+    }
+
+    .user-detail-page .admin-detail-export-excel {
+        color: #03101a;
+        border-color: rgba(34, 211, 238, 0.35);
+        background: linear-gradient(135deg, #22d3ee, #60a5fa);
+    }
+
+    .user-detail-page .admin-detail-export-pdf {
+        color: #fff7ed;
+        border-color: rgba(249, 115, 22, 0.28);
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.88), rgba(251, 191, 36, 0.82));
+    }
+
+    .user-detail-page .admin-detail-export-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+    }
+
+    body.admin-light-mode .user-detail-page .admin-detail-export-excel {
+        color: #03101a !important;
+        background: linear-gradient(135deg, #22d3ee, #60a5fa) !important;
+        border-color: rgba(14, 165, 233, 0.35) !important;
+    }
+
+    body.admin-light-mode .user-detail-page .admin-detail-export-pdf {
+        color: #3b1600 !important;
+        background: linear-gradient(135deg, #fb923c, #facc15) !important;
+        border-color: rgba(234, 88, 12, 0.25) !important;
+    }
+
+    @media (max-width: 900px) {
+        .user-detail-page .table-wrap {
+            overflow-x: auto !important;
+        }
+
+        .user-detail-page .admin-table {
+            min-width: 680px !important;
+            table-layout: auto;
+        }
+    }
+</style>
+
+    <title>User Detail | TraidiumX Admin</title>
+</head>
+<body data-admin-page="users" data-page-title="User Detail" data-page-subtitle="User profile, wallet, trading, finance and security activity.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="user-detail-page space-y-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <a href="/admin/users" class="admin-btn">← Back to Users</a>
+        <div class="flex flex-wrap gap-2" id="userDetailTopActions"></div>
+    </div>
+
+    <div id="userDetailCard" class="admin-card p-6 tx-fade-up"></div>
+
+    <div class="grid gap-5 xl:grid-cols-4">
+        <div class="admin-card p-5 tx-fade-up"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Wallet Total</p><h3 id="detailWalletTotal" class="mt-3 text-2xl font-black text-white">$0</h3></div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-1"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Total Deposit</p><h3 id="detailTotalDeposit" class="mt-3 text-2xl font-black text-emerald-300">$0</h3></div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-2"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Total Withdrawal</p><h3 id="detailTotalWithdrawal" class="mt-3 text-2xl font-black text-amber-300">$0</h3></div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-3"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Futures P&L</p><h3 id="detailFuturesPnl" class="mt-3 text-2xl font-black text-white">$0</h3></div>
+    </div>
+
+    <div class="grid gap-5 xl:grid-cols-2">
+        <div id="detailWalletCard" class="admin-card p-6 tx-fade-up tx-delay-1"></div>
+        <div id="detailSecurityCard" class="admin-card p-6 tx-fade-up tx-delay-2"></div>
+    </div>
+
+    <!-- MetaTrader 5 Credentials Section -->
+    <div id="detailMt5CredentialsCard" class="admin-card p-6 tx-fade-up mt-5 hidden"></div>
+
+
+    <div class="grid gap-5 xl:grid-cols-2">
+        <div class="admin-card p-6 tx-fade-up"><div class="mb-4 flex items-center justify-between"><h3 class="text-xl font-black text-white">Recent Orders</h3><a class="admin-btn py-2" href="/admin/trading/orders">Open Orders</a></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Symbol</th><th>Side</th><th>Status</th><th>Amount</th><th>Date</th></tr></thead><tbody id="detailOrdersBody"></tbody></table></div></div>
+        <div class="admin-card p-6 tx-fade-up tx-delay-1"><div class="mb-4 flex items-center justify-between"><h3 class="text-xl font-black text-white">Recent Positions</h3><a class="admin-btn py-2" href="/admin/trading/positions">Open Positions</a></div><div class="table-wrap"><table class="admin-table"><thead><tr><th>Symbol</th><th>Side</th><th>P&L</th><th>Status</th><th>Date</th></tr></thead><tbody id="detailPositionsBody"></tbody></table></div></div>
+    </div>
+
+    <div class="grid gap-5 xl:grid-cols-2">
+        <div class="admin-card p-6 tx-fade-up"><h3 class="mb-4 text-xl font-black text-white">Deposits & Withdrawals</h3><div class="table-wrap"><table class="admin-table admin-detail-finance-table"><thead><tr><th>Type</th><th>Amount</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="detailFinanceBody"></tbody></table></div></div>
+        <div class="admin-card p-6 tx-fade-up tx-delay-1"><h3 class="mb-4 text-xl font-black text-white">Wallet Ledger</h3><div class="table-wrap"><table class="admin-table admin-detail-ledger-table"><thead><tr><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="detailLedgerBody"></tbody></table></div></div>
+    </div>
+
+    <!-- User Sub Accounts -->
+    <div id="detailSubAccountsCard" class="admin-card p-6 tx-fade-up mt-5 hidden">
+        <h3 class="mb-4 text-xl font-black text-white">User Sub Accounts</h3>
+        <p class="text-xs text-slate-400 mb-3">Double-click on any sub-account to load its individual wallet and trading details.</p>
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Sub-Account Name</th>
+                        <th>Client ID</th>
+                        <th>Available Balance</th>
+                        <th>Locked Balance</th>
+                        <th>Total Balance</th>
+                    </tr>
+                </thead>
+                <tbody id="detailSubAccountsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-card p-6 tx-fade-up tx-delay-2">
+        <h3 class="mb-4 text-xl font-black text-white">Admin Audit Timeline</h3>
+        <div id="detailAuditList" class="space-y-3"></div>
+    </div>
+</section>
+
+<div id="userActionModal" class="admin-modal">
+    <div class="admin-modal-panel p-6">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div><h3 id="userActionTitle" class="text-xl font-black text-white">User Action</h3><p id="userActionSubtitle" class="mt-1 text-sm text-slate-400">This action will be logged in audit logs.</p></div>
+            <button class="admin-btn" data-modal-close>×</button>
+        </div>
+        <textarea id="userActionReason" class="admin-textarea min-h-[120px]" placeholder="Reason required for audit log..."></textarea>
+        <div class="mt-5 flex justify-end gap-3"><button class="admin-btn" data-modal-close>Cancel</button><button id="confirmUserActionBtn" class="admin-btn admin-btn-primary">Confirm</button></div>
+    </div>
+</div>
+
+            </main>
+        </section>
+    </div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-users.js?v=detail-export-layout-2"></script>
+</body>
+</html>

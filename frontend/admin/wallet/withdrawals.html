@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Withdrawals | TraidiumX Admin</title>
+<style>
+    /* Light mode compatibility for Admin Wallet Modal */
+    body.admin-light-mode #adminWalletModal .bg-slate-900 {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-white {
+        color: #0f172a !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-slate-300 {
+        color: #334155 !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-slate-400 {
+        color: #475569 !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-slate-500 {
+        color: #64748b !important;
+    }
+    body.admin-light-mode #adminWalletModal #adminAvailableBalance {
+        color: #15803d !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-emerald-400 {
+        color: #166534 !important;
+    }
+    body.admin-light-mode #adminWalletModal .text-emerald-300 {
+        color: #15803d !important;
+    }
+    body.admin-light-mode #adminWalletModal .border-white\/5,
+    body.admin-light-mode #adminWalletModal .border-white\/10 {
+        border-color: #e2e8f0 !important;
+    }
+    body.admin-light-mode #adminWalletModal .bg-white\/\[0\.02\] {
+        background-color: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    body.admin-light-mode #adminWalletModal .bg-emerald-500\/\[0\.03\] {
+        background-color: #f0fdf4 !important;
+        border: 1px solid #bbf7d0 !important;
+    }
+    body.admin-light-mode #adminWalletModal .admin-input {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+    }
+    body.admin-light-mode #adminWalletModal .admin-input::placeholder {
+        color: #94a3b8 !important;
+    }
+    body.admin-light-mode #adminWalletModal tbody tr {
+        border-color: #f1f5f9 !important;
+        color: #334155 !important;
+    }
+    body.admin-light-mode #adminWalletModal tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+    body.admin-light-mode #adminWalletModal #btnAdminWithdrawMax {
+        color: #0891b2 !important;
+    }
+    body.admin-light-mode #adminWalletModal #closeAdminWalletModal {
+        color: #64748b !important;
+    }
+    body.admin-light-mode #adminWalletModal #closeAdminWalletModal:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+    }
+</style>
+</head>
+<body data-admin-page="withdrawals" data-page-title="Withdrawals" data-page-subtitle="Review pending requests and keep approved/rejected withdrawal history visible.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+<section class="space-y-5">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="admin-card admin-card-hover p-5 tx-fade-up"><p class="text-sm font-bold text-slate-400">Pending Requests</p><h3 id="walletPendingCount" class="mt-2 text-3xl font-black text-amber-300">0</h3><p id="walletPendingAmount" class="mt-2 text-xs font-bold text-slate-500">$0 locked</p></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-1"><p class="text-sm font-bold text-slate-400">Approved Today</p><h3 id="walletApprovedToday" class="mt-2 text-3xl font-black text-emerald-300">0</h3><p class="mt-2 text-xs font-bold text-slate-500">Final locked debit</p></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-2"><p class="text-sm font-bold text-slate-400">Rejected Today</p><h3 id="walletRejectedToday" class="mt-2 text-3xl font-black text-rose-300">0</h3><p class="mt-2 text-xs font-bold text-slate-500">Released back to available</p></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-3"><p class="text-sm font-bold text-slate-400">Total Wallet Balance</p><h3 id="walletTotalBalance" class="mt-2 text-3xl font-black text-white">$0</h3><p id="walletSplitBalance" class="mt-2 text-xs font-bold text-slate-500">Available $0 • Locked $0</p></div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div id="btnAdminWalletToday" class="admin-card admin-card-hover cursor-pointer p-5 tx-fade-up hover:border-emerald-400/40 hover:bg-emerald-400/[0.02]">
+            <p class="text-sm font-bold text-slate-400 flex items-center justify-between">
+                <span>Revenue Today</span>
+                <span class="text-[10px] bg-emerald-400/10 text-emerald-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">Wallet</span>
+            </p>
+            <h3 id="feeProfitToday" class="mt-2 text-3xl font-black text-emerald-300">$0</h3>
+            <p id="feeProfitTodaySplit" class="mt-2 text-xs font-bold text-slate-500">Trading $0 • Platform $0 • Withdraw $0</p>
+        </div>
+        <div id="btnAdminWalletTotal" class="admin-card admin-card-hover cursor-pointer p-5 tx-fade-up tx-delay-1 hover:border-cyan-400/40 hover:bg-cyan-400/[0.02]">
+            <p class="text-sm font-bold text-slate-400 flex items-center justify-between">
+                <span>Total Revenue</span>
+                <span class="text-[10px] bg-cyan-400/10 text-cyan-300 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">Wallet</span>
+            </p>
+            <div class="mt-2.5 grid grid-cols-2 gap-4 border-b border-white/5 pb-2">
+                <div>
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">USDT Wallet</span>
+                    <h3 id="feeProfitTotalUsdt" class="text-xl font-black text-cyan-300">$0.00</h3>
+                </div>
+                <div class="border-l border-white/5 pl-4">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">INR Wallet</span>
+                    <h3 id="feeProfitTotalInr" class="text-xl font-black text-emerald-400">₹0.00</h3>
+                </div>
+            </div>
+            <p id="feeProfitTotalSplit" class="mt-2 text-xs font-bold text-slate-500">USDT $0.00 • INR ₹0.00</p>
+            <h3 id="feeProfitTotal" class="hidden">0</h3>
+        </div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-2 hidden"><p class="text-sm font-bold text-slate-400">Network Fee Recovered</p><h3 id="networkFeeRecovered" class="mt-2 text-3xl font-black text-sky-300">$0</h3><p id="networkFeeRecoveredToday" class="mt-2 text-xs font-bold text-slate-500">Today $0 recovered</p></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-3"><p class="text-sm font-bold text-slate-400">Approved Debit Today</p><h3 id="approvedDebitToday" class="mt-2 text-3xl font-black text-white">$0</h3><p id="approvedDebitTodaySplit" class="mt-2 text-xs font-bold text-slate-500">Payout $0 • Fees $0</p></div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-black text-white">Withdrawal Queue & History</h2>
+                <p class="mt-1 text-sm text-slate-400">Pending, approved and rejected withdrawal records stay visible for admin history.</p>
+            </div>
+        </div>
+
+        <div class="grid gap-3 md:grid-cols-[minmax(240px,0.9fr)_minmax(140px,0.5fr)_minmax(140px,0.5fr)_auto_auto]">
+            <input id="withdrawalSearch" class="admin-input" placeholder="Search ID, user, address, tx hash..." />
+            <select id="withdrawalCurrencyFilter" class="admin-input">
+                <option value="all" selected>All currencies</option>
+                <option value="INR">INR (₹)</option>
+                <option value="USDT">USDT ($)</option>
+            </select>
+            <select id="withdrawalStatusFilter" class="admin-input"><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+            <button id="withdrawalResetBtn" class="admin-btn">Reset</button>
+            <a href="/admin/wallet/ledger" class="admin-btn admin-btn-primary whitespace-nowrap">Open Ledger</a>
+        </div>
+
+        <div class="mt-5 table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Request</th><th>User</th><th>Destination</th><th>Amount</th><th>Status</th><th>Risk</th><th class="text-right">Actions</th></tr></thead>
+                <tbody id="withdrawalsTableBody"></tbody>
+            </table>
+        </div>
+        <div id="withdrawalsPagination" class="mt-5"></div>
+    </div>
+
+    <!-- Currency Switch Requests Section -->
+    <div class="admin-card p-5 tx-fade-up tx-delay-2 mt-6">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-black text-white flex items-center gap-2">
+                    <span>🔄 Currency Switch Requests</span>
+                    <span id="currencySwitchPendingCount" class="text-xs bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full font-black hidden">0 Pending</span>
+                </h2>
+                <p class="mt-1 text-sm text-slate-400">User requests to switch primary currency (INR ↔ USDT). Approving automatically converts Main Wallet balance at live exchange rate.</p>
+            </div>
+            <button id="refreshCurrencySwitchBtn" class="admin-btn">Refresh Requests</button>
+        </div>
+
+        <div class="table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Current Currency</th>
+                        <th>Target Currency</th>
+                        <th>Current Main Balance</th>
+                        <th>Exchange Rate</th>
+                        <th>Estimated Converted</th>
+                        <th>Status</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="currencySwitchTableBody">
+                    <tr><td colspan="8" class="text-center py-4 text-slate-400 font-bold">Loading requests...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Admin Profit Wallet Modal -->
+    <div id="adminWalletModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-slate-900 border border-white/10 rounded-3xl p-6 w-[90%] max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col gap-5 scale-95 transition-transform duration-300 relative">
+            <!-- Close Button -->
+            <button id="closeAdminWalletModal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-2 rounded-full hover:bg-white/5 transition-colors">✕</button>
+            
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2">
+                        <span>Admin Profit Wallet</span>
+                        <span id="adminProfitWalletBadge" class="text-xs bg-cyan-400/10 text-cyan-300 border border-cyan-400/20 px-2.5 py-0.5 rounded-full font-black">USDT Wallet ($)</span>
+                    </h2>
+                    <p class="text-xs font-semibold text-slate-400 mt-1">Manage and withdraw platform-wide accumulated revenue fees in USDT or INR.</p>
+                </div>
+
+                <!-- Currency Selector Tabs -->
+                <div class="flex items-center gap-2 rounded-2xl bg-white/5 p-1 border border-white/10">
+                    <button id="btnAdminProfitTabUsdt" type="button" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-cyan-400 text-slate-950 shadow-md">
+                        🪙 USDT Wallet ($)
+                    </button>
+                    <button id="btnAdminProfitTabInr" type="button" class="px-3 py-1.5 rounded-xl text-xs font-black transition-all text-slate-400 hover:text-white">
+                        🇮🇳 INR Wallet (₹)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Balance Statistics Cards -->
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div class="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-xs font-bold text-slate-400">Total Revenue</p>
+                    <h3 id="adminTotalRevenue" class="mt-1.5 text-2xl font-black text-white">$0.00</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">All trading & platform fees</p>
+                </div>
+                <div class="rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                    <p class="text-xs font-bold text-slate-400">Total Withdrawn</p>
+                    <h3 id="adminTotalWithdrawn" class="mt-1.5 text-2xl font-black text-slate-300">$0.00</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">transferred to admin wallets</p>
+                </div>
+                <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
+                    <p class="text-xs font-bold text-emerald-400">Available Balance</p>
+                    <h3 id="adminAvailableBalance" class="mt-1.5 text-2xl font-black text-emerald-300">$0.00</h3>
+                    <p class="text-[10px] text-emerald-400/60 mt-1">Available for withdrawal</p>
+                </div>
+            </div>
+
+            <!-- Two Columns content -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 overflow-hidden min-h-0 flex-1">
+                <!-- Left Side: Action Form Container -->
+                <div class="md:col-span-2 flex flex-col gap-4">
+                    <!-- Tab Selector -->
+                    <div class="flex gap-2 border-b border-white/5 pb-2">
+                        <button id="btnAdminActionTabWithdraw" type="button" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white/5 border border-white/10 text-cyan-300">Request Withdrawal</button>
+                        <button id="btnAdminActionTabTransfer" type="button" class="flex-1 py-1.5 text-xs font-black rounded-lg text-slate-400 hover:text-white transition">Profit Transfer</button>
+                    </div>
+
+                    <!-- Withdrawal Form Container -->
+                    <div id="adminWithdrawalFormContainer" class="flex flex-col gap-4 flex-1">
+                        <div class="space-y-3.5">
+                            <label class="block">
+                                <span class="mb-1.5 block text-xs font-bold text-slate-300">Select Network</span>
+                                <select id="adminWithdrawNetwork" class="admin-input py-2.5 text-sm">
+                                    <option value="TRC20">USDT - TRC20</option>
+                                    <option value="ERC20">USDT - ERC20</option>
+                                    <option value="BEP20">USDT - BEP20</option>
+                                </select>
+                            </label>
+
+                            <label class="block">
+                                <span id="adminWithdrawAddressLabel" class="mb-1.5 block text-xs font-bold text-slate-300">Wallet Address</span>
+                                <input id="adminWithdrawAddress" class="admin-input py-2.5 text-sm font-mono" placeholder="Enter recipient wallet address" autocomplete="off" spellcheck="false" />
+                            </label>
+
+                            <div class="block">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-xs font-bold text-slate-300">Withdraw Amount</span>
+                                    <button id="btnAdminWithdrawMax" type="button" class="text-xs text-cyan-300 font-bold hover:underline">Use Max</button>
+                                </div>
+                                <input id="adminWithdrawAmount" type="number" min="0.01" step="0.01" class="admin-input py-2.5 text-sm" placeholder="0.00" />
+                            </div>
+                        </div>
+
+                        <button id="btnAdminWithdrawSubmit" type="button" class="admin-btn admin-btn-primary w-full py-3 font-black text-sm tracking-wide mt-auto">
+                            Withdraw Revenue
+                        </button>
+                    </div>
+
+                    <!-- Transfer Form Container -->
+                    <div id="adminTransferFormContainer" class="hidden flex flex-col gap-4 flex-1">
+                        <div class="space-y-3.5">
+                            <div>
+                                <span class="mb-1.5 block text-xs font-bold text-slate-300">Transfer Direction</span>
+                                <div class="rounded-xl bg-white/5 border border-white/10 p-2.5 flex items-center justify-between text-xs text-slate-300">
+                                    <span id="adminTransferFromLabel" class="font-bold text-cyan-300">USDT Wallet</span>
+                                    <span>➔</span>
+                                    <span id="adminTransferToLabel" class="font-bold text-emerald-300">INR Wallet</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="mb-1.5 block text-xs font-bold text-slate-300">Live Exchange Rate</span>
+                                <div id="adminTransferRateText" class="text-sm font-black text-amber-300">1 USDT = ₹88.50 INR</div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-xs font-bold text-slate-300">Transfer Amount</span>
+                                    <button id="btnAdminTransferMax" type="button" class="text-xs text-cyan-300 font-bold hover:underline">Use Max</button>
+                                </div>
+                                <input id="adminTransferAmount" type="number" min="0.01" step="0.0001" class="admin-input py-2.5 text-sm" placeholder="0.00" />
+                            </div>
+
+                            <div class="rounded-xl bg-cyan-950/20 p-3 border border-cyan-400/20 text-xs">
+                                <span class="text-slate-400 block font-bold">Conversion Estimate:</span>
+                                <strong id="adminTransferPreviewText" class="text-sm text-emerald-400 mt-1 block">₹0.00 INR</strong>
+                            </div>
+                        </div>
+
+                        <button id="btnAdminTransferSubmit" type="button" class="admin-btn admin-btn-success w-full py-3 font-black text-sm tracking-wide mt-auto">
+                            Confirm Transfer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Side: Withdrawal History -->
+                <div class="md:col-span-3 flex flex-col gap-3 min-h-0">
+                    <h3 class="text-sm font-black text-white border-b border-white/5 pb-2">Recent Withdrawals</h3>
+                    
+                    <div class="flex-1 overflow-y-auto pr-1">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="text-slate-400 border-b border-white/5 font-bold">
+                                    <th class="pb-2">Date</th>
+                                    <th class="pb-2">Network</th>
+                                    <th class="pb-2">Recipient</th>
+                                    <th class="pb-2 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminWithdrawalHistoryList" class="text-slate-300 font-semibold">
+                                <!-- JS will inject rows here -->
+                            </tbody>
+                        </table>
+                        <div id="adminWithdrawalHistoryEmpty" class="text-center py-8 text-slate-500 font-bold hidden">
+                            No profit withdrawals found.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+</section>
+            </main>
+        </section>
+    </div>
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-wallet.js"></script>
+</body>
+</html>

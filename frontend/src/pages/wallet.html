@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Crypto Wallet | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style id="txWalletIntroStyles">
+        .tx-wallet-intro-active {
+            overflow: hidden !important;
+        }
+
+        .tx-wallet-page-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 1000000;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            padding:
+                max(20px, env(safe-area-inset-top))
+                max(16px, env(safe-area-inset-right))
+                max(20px, env(safe-area-inset-bottom))
+                max(16px, env(safe-area-inset-left));
+            background:
+                radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.15), transparent 31%),
+                radial-gradient(circle at 18% 85%, rgba(16, 185, 129, 0.10), transparent 30%),
+                radial-gradient(circle at 84% 14%, rgba(59, 130, 246, 0.10), transparent 30%),
+                linear-gradient(145deg, #020617 0%, #071426 52%, #020617 100%);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 520ms ease, visibility 520ms ease;
+        }
+
+        .tx-wallet-page-intro::before,
+        .tx-wallet-page-intro::after {
+            content: "";
+            position: absolute;
+            width: min(76vw, 680px);
+            aspect-ratio: 1;
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.09);
+            pointer-events: none;
+            animation: txWalletIntroRing 2.6s ease-out infinite;
+        }
+
+        .tx-wallet-page-intro::after {
+            width: min(54vw, 480px);
+            border-color: rgba(52, 211, 153, 0.10);
+            animation-delay: 0.55s;
+        }
+
+        .tx-wallet-page-intro.is-leaving {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .tx-wallet-page-intro.is-leaving .tx-wallet-intro-stage {
+            opacity: 0;
+            transform: translateY(-10px) scale(1.025);
+        }
+
+        .tx-wallet-intro-stage {
+            position: relative;
+            z-index: 2;
+            width: min(94vw, 720px);
+            text-align: center;
+            transition: opacity 420ms ease, transform 520ms ease;
+        }
+
+        .tx-wallet-intro-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .tx-wallet-intro-mark {
+            position: relative;
+            display: grid;
+            width: 58px;
+            height: 58px;
+            place-items: center;
+            border-radius: 19px;
+            border: 1px solid rgba(103, 232, 249, 0.34);
+            background: linear-gradient(145deg, rgba(34, 211, 238, 0.15), rgba(8, 47, 73, 0.36));
+            color: #67e8f9;
+            font-size: 25px;
+            font-weight: 900;
+            box-shadow:
+                0 0 38px rgba(34, 211, 238, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.10);
+            animation: txWalletMarkFloat 1.8s ease-in-out infinite;
+        }
+
+        .tx-wallet-intro-mark::after {
+            content: "";
+            position: absolute;
+            inset: -7px;
+            border-radius: 24px;
+            border: 1px solid rgba(34, 211, 238, 0.12);
+            animation: txWalletMarkPulse 1.8s ease-in-out infinite;
+        }
+
+        .tx-wallet-intro-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: clamp(30px, 6vw, 52px);
+            line-height: 1;
+            font-weight: 760;
+            letter-spacing: -0.045em;
+        }
+
+        .tx-wallet-intro-title span {
+            color: #22d3ee;
+        }
+
+        .tx-wallet-intro-kicker {
+            margin: 11px 0 0;
+            color: #7dd3fc;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+        }
+
+        .tx-wallet-flow {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr);
+            align-items: center;
+            gap: 18px;
+            margin: 38px auto 0;
+        }
+
+        .tx-wallet-flow-card {
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.10), transparent 40%),
+                rgba(8, 17, 34, 0.88);
+            padding: 20px;
+            text-align: left;
+            box-shadow:
+                0 20px 48px rgba(2, 6, 23, 0.38),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .tx-wallet-flow-card.main {
+            border-color: rgba(52, 211, 153, 0.22);
+        }
+
+        .tx-wallet-flow-card.trading {
+            border-color: rgba(34, 211, 238, 0.24);
+        }
+
+        .tx-wallet-flow-card-label {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .tx-wallet-flow-card-value {
+            display: block;
+            margin-top: 10px;
+            height: 18px;
+            width: 72%;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.09);
+        }
+
+        .tx-wallet-flow-card-value::after,
+        .tx-wallet-flow-card-line::after {
+            content: "";
+            display: block;
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.44), transparent);
+            transform: translateX(-140%);
+            animation: txWalletShimmer 1.35s ease-in-out infinite;
+        }
+
+        .tx-wallet-flow-card-line {
+            height: 9px;
+            width: 46%;
+            margin-top: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.07);
+        }
+
+        .tx-wallet-transfer-rail {
+            position: relative;
+            height: 76px;
+            overflow: hidden;
+            border: 1px solid rgba(34, 211, 238, 0.14);
+            border-radius: 999px;
+            background:
+                linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+                rgba(2, 6, 23, 0.58);
+            background-size: 18px 18px;
+            box-shadow: inset 0 0 24px rgba(34, 211, 238, 0.04);
+        }
+
+        .tx-wallet-transfer-rail::before {
+            content: "";
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            top: 50%;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(52, 211, 153, 0.18), #22d3ee, rgba(52, 211, 153, 0.18));
+            transform: translateY(-50%);
+        }
+
+        .tx-wallet-transfer-arrow {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: rgba(165, 243, 252, 0.72);
+            font-size: 19px;
+            font-weight: 900;
+        }
+
+        .tx-wallet-usdt {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            display: grid;
+            width: 38px;
+            height: 38px;
+            place-items: center;
+            border-radius: 999px;
+            border: 1px solid rgba(52, 211, 153, 0.38);
+            background: linear-gradient(145deg, #34d399, #14b8a6);
+            color: #022c22;
+            font-size: 20px;
+            font-weight: 950;
+            box-shadow: 0 0 26px rgba(52, 211, 153, 0.24);
+            transform: translateY(-50%);
+            animation: txWalletCoinMove 2.2s cubic-bezier(.42, 0, .2, 1) infinite;
+        }
+
+        .tx-wallet-intro-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 7px;
+            height: 44px;
+            margin-top: 24px;
+        }
+
+        .tx-wallet-intro-bars span {
+            width: 6px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #22d3ee, rgba(34, 211, 238, 0.18));
+            animation: txWalletBars 1.2s ease-in-out infinite alternate;
+        }
+
+        .tx-wallet-intro-bars span:nth-child(1) { height: 15px; animation-delay: 0ms; }
+        .tx-wallet-intro-bars span:nth-child(2) { height: 27px; animation-delay: 120ms; }
+        .tx-wallet-intro-bars span:nth-child(3) { height: 38px; animation-delay: 240ms; }
+        .tx-wallet-intro-bars span:nth-child(4) { height: 23px; animation-delay: 360ms; }
+        .tx-wallet-intro-bars span:nth-child(5) { height: 34px; animation-delay: 480ms; }
+
+        @keyframes txWalletIntroRing {
+            0% { opacity: 0; transform: scale(0.72); }
+            35% { opacity: 0.62; }
+            100% { opacity: 0; transform: scale(1.18); }
+        }
+
+        @keyframes txWalletMarkFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes txWalletMarkPulse {
+            0%, 100% { opacity: 0.45; transform: scale(0.94); }
+            50% { opacity: 1; transform: scale(1.06); }
+        }
+
+        @keyframes txWalletShimmer {
+            to { transform: translateX(340%); }
+        }
+
+        @keyframes txWalletCoinMove {
+            0% { left: 10px; transform: translateY(-50%) scale(0.86); opacity: 0; }
+            16% { opacity: 1; }
+            50% { transform: translateY(-50%) scale(1); }
+            84% { opacity: 1; }
+            100% { left: calc(100% - 48px); transform: translateY(-50%) scale(0.86); opacity: 0; }
+        }
+
+        @keyframes txWalletBars {
+            from { opacity: 0.34; transform: scaleY(0.72); }
+            to { opacity: 1; transform: scaleY(1.05); }
+        }
+
+        @media (max-width: 680px) {
+            .tx-wallet-intro-brand {
+                gap: 10px;
+            }
+
+            .tx-wallet-intro-mark {
+                width: 50px;
+                height: 50px;
+                border-radius: 16px;
+                font-size: 22px;
+            }
+
+            .tx-wallet-intro-kicker {
+                letter-spacing: 0.20em;
+            }
+
+            .tx-wallet-flow {
+                grid-template-columns: 1fr;
+                width: min(100%, 370px);
+                gap: 12px;
+                margin-top: 28px;
+            }
+
+            .tx-wallet-transfer-rail {
+                height: 62px;
+                transform: rotate(90deg);
+                width: 110px;
+                justify-self: center;
+            }
+
+            .tx-wallet-usdt {
+                animation-name: txWalletCoinMoveMobile;
+            }
+
+            .tx-wallet-flow-card {
+                border-radius: 20px;
+                padding: 16px;
+            }
+        }
+
+        @keyframes txWalletCoinMoveMobile {
+            0% { left: 10px; transform: translateY(-50%) rotate(-90deg) scale(0.86); opacity: 0; }
+            16% { opacity: 1; }
+            50% { transform: translateY(-50%) rotate(-90deg) scale(1); }
+            84% { opacity: 1; }
+            100% { left: calc(100% - 48px); transform: translateY(-50%) rotate(-90deg) scale(0.86); opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tx-wallet-page-intro::before,
+            .tx-wallet-page-intro::after,
+            .tx-wallet-intro-mark,
+            .tx-wallet-intro-mark::after,
+            .tx-wallet-flow-card-value::after,
+            .tx-wallet-flow-card-line::after,
+            .tx-wallet-usdt,
+            .tx-wallet-intro-bars span {
+                animation: none !important;
+            }
+        }
+    </style>
+
+</head>
+
+<body class="tx-wallet-intro-active bg-[#020617] text-white" data-page="wallet">
+
+    <div id="txWalletPageIntro" class="tx-wallet-page-intro" aria-hidden="true">
+        <div class="tx-wallet-intro-stage">
+            <div class="tx-wallet-intro-brand">
+                <div class="tx-wallet-intro-mark">₮</div>
+                <div class="text-left">
+                    <h1 class="tx-wallet-intro-title">TRAIDIUM<span>X</span></h1>
+                    <p class="tx-wallet-intro-kicker">Secure USDT Wallet Flow</p>
+                </div>
+            </div>
+
+            <div class="tx-wallet-flow">
+                <div class="tx-wallet-flow-card main">
+                    <span class="tx-wallet-flow-card-label">Main Wallet</span>
+                    <span class="tx-wallet-flow-card-value"></span>
+                    <span class="tx-wallet-flow-card-line"></span>
+                </div>
+
+                <div class="tx-wallet-transfer-rail">
+                    <span class="tx-wallet-transfer-arrow">⇄</span>
+                    <span class="tx-wallet-usdt">₮</span>
+                </div>
+
+                <div class="tx-wallet-flow-card trading">
+                    <span class="tx-wallet-flow-card-label">Trading Wallet</span>
+                    <span class="tx-wallet-flow-card-value"></span>
+                    <span class="tx-wallet-flow-card-line"></span>
+                </div>
+            </div>
+
+            <div class="tx-wallet-intro-bars" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+
+
+    <div data-component="navbar"></div>
+
+    <main class="overflow-hidden pt-32">
+        <section class="relative">
+            <div class="absolute inset-0 -z-10">
+                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
+                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+                <div class="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"></div>
+            </div>
+
+            <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+                <div class="grid items-center gap-10 lg:grid-cols-[1fr_0.95fr]">
+                    <div class="tx-fade-up">
+                        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black text-cyan-300">
+                            <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                            Main wallet + Trading wallet
+                        </div>
+                        <h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+                            Wallet flow built for crypto trading.
+                        </h1>
+                        <p class="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+                            Deposits credit Main Wallet through the company deposit address. Trades use Trading Wallet only. Withdrawals use your external wallet address and complete after admin approval.
+                        </p>
+                    </div>
+
+                    <div id="walletBalanceCards" class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-[2rem] border border-emerald-400/20 bg-emerald-400/[0.06] p-5 backdrop-blur-xl">
+                            <p class="text-sm font-bold text-slate-400">Main Wallet</p>
+                            <h3 id="walletAvailableBalance" class="mt-2 text-3xl font-black text-emerald-400">--</h3>
+                            <p class="mt-2 text-xs text-slate-500">Deposit / withdrawal wallet</p>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
+                            <p class="text-sm font-bold text-slate-400">Trading Wallet</p>
+                            <h3 id="walletLockedBalance" class="mt-2 text-3xl font-black text-cyan-400">--</h3>
+                            <p class="mt-2 text-xs text-slate-500">Trades use this balance</p>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm font-bold text-slate-400">Trading Locked Margin</p>
+                            <h3 id="walletOpenMargin" class="mt-2 text-3xl font-black text-white">--</h3>
+                            <p class="mt-2 text-xs text-slate-500">Open position margin</p>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm font-bold text-slate-400">Wallet Status</p>
+                            <h3 id="walletStatusText" class="mt-2 text-3xl font-black text-orange-300">Loading</h3>
+                            <p class="mt-2 text-xs text-slate-500">Backend ledger sync</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 pb-20 pt-2 sm:px-6 lg:px-8">
+            <div id="walletAlert" class="mb-6 hidden rounded-3xl border px-5 py-4 text-sm font-bold"></div>
+
+            <div id="walletLoginRequired" class="mb-6 hidden rounded-[2rem] border border-orange-400/30 bg-orange-400/10 p-6 backdrop-blur-xl">
+                <h2 class="text-2xl font-black text-orange-300">Login required</h2>
+                <p class="mt-2 text-slate-300">Please login to view wallet balance, wallet actions and transaction history.</p>
+                <a href="./login.html" class="mt-5 inline-flex rounded-full bg-cyan-400 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300">Login Now</a>
+            </div>
+
+            <div id="walletRestrictedNotice" class="mb-6 hidden rounded-[2rem] border border-red-400/30 bg-red-400/10 p-6 backdrop-blur-xl">
+                <h2 class="text-2xl font-black text-red-300">Wallet amount hidden</h2>
+                <p class="mt-2 leading-7 text-slate-300">Your account is restricted, so balances are hidden. Withdrawal history remains available.</p>
+            </div>
+
+            <div id="walletStatsGrid" class="mb-6 grid gap-4 md:grid-cols-3">
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <p class="text-sm text-slate-400">Main Wallet Total</p>
+                    <h3 id="walletTotalBalance" class="mt-3 text-3xl font-black text-white">--</h3>
+                </div>
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <p class="text-sm text-slate-400">Unrealized P&L</p>
+                    <h3 id="walletUnrealizedPnl" class="mt-3 text-3xl font-black text-slate-300">--</h3>
+                </div>
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <p class="text-sm text-slate-400">Ledger Entries</p>
+                    <h3 id="walletLedgerCount" class="mt-3 text-3xl font-black text-white">0</h3>
+                </div>
+            </div>
+
+            <div id="walletActionPanel" class="mb-6 rounded-[2rem] border border-cyan-400/20 bg-white/[0.05] p-5 backdrop-blur-xl">
+                <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <div class="mb-3 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Wallet Actions</div>
+                        <h2 class="text-2xl font-black">Transfer, deposit and withdraw</h2>
+                        <p id="walletEnvironmentText" class="mt-1 max-w-3xl text-sm leading-6 text-slate-400">Backend crypto wallet APIs are loading.</p>
+                    </div>
+                    <button id="refreshWalletBtn" type="button" class="w-fit rounded-full border border-cyan-400/30 bg-cyan-400/10 px-5 py-3 text-sm font-black text-cyan-300 transition hover:bg-cyan-400/20">Refresh Wallet</button>
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                    <button id="walletOpenTransferBtn" type="button" class="tx-wallet-action-btn transfer">
+                        <span>Transfer</span>
+                        <small>Main ⇄ Trading</small>
+                    </button>
+                    <button id="walletOpenDepositBtn" type="button" class="tx-wallet-action-btn deposit">
+                        <span>Deposit</span>
+                        <small>Company address</small>
+                    </button>
+                    <button id="walletOpenWithdrawBtn" type="button" class="tx-wallet-action-btn withdraw">
+                        <span>Withdraw</span>
+                        <small>Admin approval</small>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid gap-6">
+                <div id="walletLedgerPanel" class="tx-history-card">
+                    <div class="tx-history-head">
+                        <div>
+                            <h3>Wallet ledger</h3>
+                            <p>Every backend wallet movement.</p>
+                        </div>
+                        <div class="tx-history-controls">
+                            <select id="ledgerAccountFilter" class="hidden font-bold text-cyan-300" style="background-color:#020617; border-color: rgba(34, 211, 238, 0.2);">
+                                <option value="main">Main Account</option>
+                            </select>
+                            <input id="ledgerSearchInput" type="search" placeholder="Search ledger" />
+                            <select id="ledgerCurrencyFilter">
+                                <option value="all">All currencies</option>
+                                <option value="INR">INR (₹)</option>
+                                <option value="USDT">USDT ($)</option>
+                            </select>
+                            <select id="ledgerTypeFilter">
+                                <option value="all">All types</option>
+                                <option value="credit">Credit</option>
+                                <option value="debit">Debit</option>
+                                <option value="deposit">Deposit</option>
+                                <option value="withdrawal">Withdrawal</option>
+                                <option value="transfer">Transfer</option>
+                                <option value="fee">Fee</option>
+                            </select>
+                            <select id="ledgerPageSize">
+                                <option value="5">5 / page</option>
+                                <option value="10">10 / page</option>
+                                <option value="20">20 / page</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tx-history-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Direction</th>
+                                    <th>Amount</th>
+                                    <th>After</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="ledgerEmptyState" class="tx-history-empty hidden">No ledger entries found.</div>
+                    <div id="ledgerPagination" class="tx-pagination"></div>
+                </div>
+
+                <div id="walletDepositHistoryPanel" class="tx-history-card">
+                    <div class="tx-history-head">
+                        <div>
+                            <h3>Deposit history</h3>
+                            <p>Company-address deposit records and verification status.</p>
+                        </div>
+                        <div class="tx-history-controls">
+                            <input id="depositSearchInput" type="search" placeholder="Search deposits" />
+                            <select id="depositCurrencyFilter">
+                                <option value="all">All currencies</option>
+                                <option value="INR">INR (₹)</option>
+                                <option value="USDT">USDT ($)</option>
+                            </select>
+                            <select id="depositStatusFilter">
+                                <option value="all">All status</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <select id="depositPageSize">
+                                <option value="5">5 / page</option>
+                                <option value="10">10 / page</option>
+                                <option value="20">20 / page</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tx-history-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reference</th>
+                                    <th>Network</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Verification</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="depositTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="depositEmptyState" class="tx-history-empty hidden">No deposit requests found.</div>
+                    <div id="depositPagination" class="tx-pagination"></div>
+                </div>
+
+                <div class="tx-history-card">
+                    <div class="tx-history-head">
+                        <div>
+                            <h3>Withdrawal history</h3>
+                            <p>Pending requests lock balance. Admin approval finalizes payout.</p>
+                        </div>
+                        <div class="tx-history-controls">
+                            <input id="withdrawalSearchInput" type="search" placeholder="Search withdrawals" />
+                            <select id="withdrawalCurrencyFilter">
+                                <option value="all">All currencies</option>
+                                <option value="INR">INR (₹)</option>
+                                <option value="USDT">USDT ($)</option>
+                            </select>
+                            <select id="withdrawalStatusFilter">
+                                <option value="all">All status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <select id="withdrawalPageSize">
+                                <option value="5">5 / page</option>
+                                <option value="10">10 / page</option>
+                                <option value="20">20 / page</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tx-history-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Reference</th>
+                                    <th>Network</th>
+                                    <th>Address</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Remark</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawalTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="withdrawalEmptyState" class="tx-history-empty hidden">No withdrawal requests found.</div>
+                    <div id="withdrawalPagination" class="tx-pagination"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="walletActionModal" class="fixed inset-0 z-[9999] hidden items-center justify-center px-4 py-6" aria-hidden="true">
+        <div id="walletActionBackdrop" class="absolute inset-0 bg-slate-950/75 backdrop-blur-xl"></div>
+        <div class="tx-wallet-action-card relative max-h-[92vh] w-full max-w-[640px] overflow-y-auto rounded-[2rem] border border-cyan-400/30 bg-[#07111f] shadow-[0_30px_100px_rgba(0,0,0,0.65)] tx-wallet-modal-scroll">
+            <div class="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-br from-slate-900 to-cyan-950/60 px-6 py-5 backdrop-blur-xl">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <div class="mb-2 text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Wallet Quick Action</div>
+                        <h2 id="walletActionModalTitle" class="text-3xl font-black tracking-tight">Wallet Action</h2>
+                        <p id="walletActionModalSubtitle" class="mt-1 text-sm text-slate-300">Main Wallet deposit/withdraw + Trading Wallet transfer.</p>
+                    </div>
+                    <button id="walletActionModalClose" type="button" class="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/30 text-2xl text-white transition hover:bg-white/10">×</button>
+                </div>
+            </div>
+
+            <div class="px-6 py-5">
+                <div class="mb-5 grid grid-cols-3 gap-3 rounded-2xl border border-white/20 bg-slate-900/70 p-4">
+                    <div>
+                        <p class="text-xs font-black uppercase text-slate-500">Trading</p>
+                        <p id="walletModalTradingBalance" class="mt-1 text-sm font-black text-cyan-300">--</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase text-slate-500">Main</p>
+                        <p id="walletModalMainBalance" class="mt-1 text-sm font-black text-emerald-300">--</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase text-slate-500">P&L</p>
+                        <p id="walletModalPnl" class="mt-1 text-sm font-black text-slate-300">--</p>
+                    </div>
+                </div>
+
+                <div id="walletActionModalMessage" class="hidden"></div>
+
+                <section data-wallet-action-panel="transfer" class="hidden">
+                    <form id="walletTransferForm" class="grid gap-4">
+                        <div id="txTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                            <span>Market Exchange Rate:</span>
+                            <span id="txTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                        </div>
+                        <div>
+                            <label for="walletTransferDirection" class="tx-form-label">Direction</label>
+                            <select id="walletTransferDirection" name="direction" class="tx-form-input">
+                                <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
+                                <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="walletTransferAmount" id="walletTransferAmountLabel" class="tx-form-label">Amount (INR)</label>
+                                <button id="txTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
+                            </div>
+                            <input id="walletTransferAmount" name="amount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="tx-form-input text-lg font-extrabold text-white" required />
+                        </div>
+                        <div id="transferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
+                            Enter amount to see live conversion
+                        </div>
+                        <button id="walletTransferSubmitBtn" type="submit" class="tx-submit-btn transfer">Transfer Funds</button>
+                    </form>
+                </section>
+
+                <section data-wallet-action-panel="deposit" class="hidden">
+                    <!-- Top Currency Switcher Tabs (Sleek Pills) -->
+                    <div id="txDepositCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="txSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
+                            $ USD / USDT
+                        </button>
+                        <button id="txSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Subtitle -->
+                    <p id="txDepositSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
+                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                    </p>
+
+                    <form id="depositForm" class="grid gap-4">
+                        <input id="cryptoAsset" name="crypto_asset" type="hidden" value="USDT" />
+
+                        <!-- USDT Crypto Mode Fields -->
+                        <div id="cryptoDepositBox" class="grid gap-4">
+                            <div>
+                                <label for="cryptoNetwork" class="tx-form-label">Network</label>
+                                <select id="cryptoNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
+                                    <option value="TRC20">USDT TRC20 (Tron)</option>
+                                    <option value="BEP20">USDT BEP20 (Binance Smart Chain)</option>
+                                    <option value="ERC20">USDT ERC20 (Ethereum)</option>
+                                </select>
+                            </div>
+
+                            <!-- Company Deposit Address Box (Green Card style) -->
+                            <div class="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+                                <div class="flex items-center justify-between">
+                                    <span id="cryptoAddressBoxLabel" class="text-xs font-black uppercase tracking-wider text-emerald-400">USDT TRC20</span>
+                                    <button id="copyCryptoAddressBtn" type="button" class="flex items-center gap-1.5 text-xs font-black text-emerald-400 transition hover:text-emerald-300">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        Copy address
+                                    </button>
+                                </div>
+                                <code id="cryptoDepositAddress" class="mt-2 block break-all font-mono text-sm font-bold text-white">--</code>
+                                <p id="cryptoAddressStatus" class="mt-1 text-[11px] font-semibold text-slate-400">Loading address...</p>
+                            </div>
+
+                            <div class="hidden">
+                                <input id="depositAddressConfirmation" name="deposit_address_confirmation" type="text" />
+                            </div>
+                        </div>
+
+                        <!-- INR Mode Fields -->
+                        <div id="inrDepositBox" class="grid gap-4 hidden">
+                            <div class="rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4">
+                                <div class="mb-3 flex items-center justify-between">
+                                    <span class="text-xs font-black uppercase tracking-wider text-cyan-300">Company Bank / UPI Gateway</span>
+                                    <button id="copyInrUpiBtn" type="button" class="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-400/20">📋 Copy UPI ID</button>
+                                </div>
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                        <p class="text-[10px] font-bold uppercase text-slate-400">Company UPI ID</p>
+                                        <p id="inrUpiId" class="mt-1 font-mono text-xs font-black text-cyan-300">traidiumx@upi</p>
+                                    </div>
+                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                        <p class="text-[10px] font-bold uppercase text-slate-400">Account Name</p>
+                                        <p id="inrAccountName" class="mt-1 font-mono text-xs font-bold text-slate-200">TraidiumX Trading Services Ltd</p>
+                                    </div>
+                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                        <p class="text-[10px] font-bold uppercase text-slate-400">Bank & Account No.</p>
+                                        <p id="inrBankDetails" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC Bank • 50100498765432</p>
+                                    </div>
+                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                        <p class="text-[10px] font-bold uppercase text-slate-400">IFSC Code</p>
+                                        <p id="inrIfscCode" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC0000128</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="inrUtrNumber" class="tx-form-label">Payment Ref / UTR Number</label>
+                                <input id="inrUtrNumber" name="inr_utr_number" type="text" placeholder="Enter 12-digit UTR or Transaction Ref ID" class="tx-form-input font-mono" />
+                            </div>
+                        </div>
+
+                        <!-- Amount Input -->
+                        <div>
+                            <label for="depositAmount" id="depositAmountLabel" class="tx-form-label">Amount (USD)</label>
+                            <input id="depositAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                        </div>
+
+                        <!-- Calculation Card (Exact match to reference image) -->
+                        <div id="depositCalcCard" class="rounded-2xl border border-white/10 bg-slate-950/80 p-4">
+                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+                                <span>You deposit</span>
+                                <span id="depCalcYouDeposit" class="font-extrabold text-white">$0.00</span>
+                            </div>
+                            <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
+                                <span>Wallet credit</span>
+                                <span id="depCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                            </div>
+                            <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
+                                <span id="depCalcRateNote">Min $10 · $1 = ₹88.50</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button id="createDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                            Deposit USDT
+                        </button>
+
+                        <p id="txDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
+                            Send USDT to the address above. Balance credits on submit.
+                        </p>
+                    </form>
+                </section>
+
+                <section data-wallet-action-panel="withdraw" class="hidden">
+                    <div id="txWithdrawCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="txSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            $ USD / USDT
+                        </button>
+                        <button id="txSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <p id="txWithdrawSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
+                        Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
+                    </p>
+
+                    <form id="withdrawalForm" class="grid gap-4">
+                        <input id="withdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
+                        <input id="withdrawAsset" name="crypto_asset" type="hidden" value="INR" />
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div id="txWithdrawAmountBox">
+                                <label for="withdrawAmount" id="withdrawAmountLabel" class="tx-form-label">Amount (INR / ₹)</label>
+                                <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                            </div>
+                            <div id="txWithdrawNetworkBox">
+                                <label for="withdrawNetwork" class="tx-form-label">Network</label>
+                                <select id="withdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
+                                    <option value="TRC20">TRON (TRC20)</option>
+                                    <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                                    <option value="ERC20">Ethereum (ERC20)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="withdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                            Enter withdrawal amount to see live conversion
+                        </div>
+
+                        <!-- Crypto Payout (USDT) -->
+                        <div id="txWithdrawCryptoAddressBox">
+                            <label for="withdrawalAddress" id="withdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
+                            <input id="withdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
+                        </div>
+
+                        <!-- INR Payout (Bank details & UPI) -->
+                        <div id="txWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="withdrawHolderName" class="tx-form-label">Account Holder Name</label>
+                                <input id="withdrawHolderName" type="text" placeholder="e.g. Raj Patel" class="tx-form-input font-bold text-white" />
+                            </div>
+                            <div>
+                                <label for="withdrawBankName" class="tx-form-label">Bank Name</label>
+                                <input id="withdrawBankName" type="text" placeholder="e.g. HDFC Bank" class="tx-form-input font-bold text-white" />
+                            </div>
+                            <div>
+                                <label for="withdrawAccountNumber" class="tx-form-label">Account Number</label>
+                                <input id="withdrawAccountNumber" type="text" placeholder="e.g. 50100498765432" class="tx-form-input font-bold text-white" />
+                            </div>
+                            <div>
+                                <label for="withdrawIfscCode" class="tx-form-label">IFSC Code</label>
+                                <input id="withdrawIfscCode" type="text" placeholder="e.g. HDFC0001234" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="withdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
+                                <input id="withdrawUpiId" type="text" placeholder="e.g. name@upi" class="tx-form-input font-bold text-white" />
+                            </div>
+                        </div>
+                        <div id="txWithdrawTagBox">
+                            <label for="destinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                            <input id="destinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
+                        </div>
+
+                        <div id="withdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
+                            <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <p>Withdraw amount: <b id="withdrawPreviewAmount">--</b></p>
+                                <p>You will receive: <b id="withdrawPreviewReceive">--</b></p>
+                                <p>Company fee: <b id="withdrawPreviewCompanyFee">--</b></p>
+                                <p class="hidden">Network fee: <b id="withdrawPreviewNetworkFee">--</b></p>
+                                <p class="hidden">Total fees: <b id="withdrawPreviewTotalFee">--</b></p>
+                                <p>Total wallet debit: <b id="withdrawPreviewTotalDebit">--</b></p>
+                            </div>
+                            <p id="withdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                        </div>
+
+                        <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                            Create Withdrawal Request
+                        </button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div data-component="footer"></div>
+
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/wallet.js"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>

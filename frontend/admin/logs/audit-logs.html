@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+
+    <title>Audit Logs | TraidiumX Admin</title>
+</head>
+<body data-admin-page="audit" data-page-title="Audit Logs" data-page-subtitle="Track admin actions and compliance history.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-6">
+
+    <!-- Header -->
+
+    <div class="admin-card p-6 tx-fade-up">
+
+        <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+
+            <div>
+
+                <p class="text-xs font-black uppercase tracking-[.22em] text-cyan-300">
+                    Security & Compliance
+                </p>
+
+                <h2 class="mt-2 text-3xl font-black text-white">
+                    Audit Logs
+                </h2>
+
+                <p class="mt-2 max-w-3xl text-sm font-semibold text-slate-400">
+                    Monitor every administrator action, user management activity,
+                    wallet approval, KYC review, trading operations and security
+                    events across the TraidiumX platform.
+                </p>
+
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+
+                <button
+                    id="auditRefreshBtn"
+                    class="admin-btn admin-btn-primary">
+
+                    ↻ Refresh
+
+                </button>
+
+                <button
+                    id="auditExportBtn"
+                    class="admin-btn">
+
+                    ⬇ Export CSV
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Summary -->
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Total Logs
+            </p>
+
+            <h3
+                id="auditTotalLogs"
+                class="mt-3 text-3xl font-black text-white">
+
+                0
+
+            </h3>
+
+        </div>
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Today's Logs
+            </p>
+
+            <h3
+                id="auditTodayLogs"
+                class="mt-3 text-3xl font-black text-cyan-300">
+
+                0
+
+            </h3>
+
+        </div>
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Failed Actions
+            </p>
+
+            <h3
+                id="auditFailedLogs"
+                class="mt-3 text-3xl font-black text-rose-300">
+
+                0
+
+            </h3>
+
+        </div>
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Active Admins
+            </p>
+
+            <h3
+                id="auditAdmins"
+                class="mt-3 text-3xl font-black text-emerald-300">
+
+                0
+
+            </h3>
+
+        </div>
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Security Alerts
+            </p>
+
+            <h3
+                id="auditSecurity"
+                class="mt-3 text-3xl font-black text-amber-300">
+
+                0
+
+            </h3>
+
+        </div>
+
+        <div class="admin-card admin-card-hover p-5">
+
+            <p class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Critical Events
+            </p>
+
+            <h3
+                id="auditCritical"
+                class="mt-3 text-3xl font-black text-red-400">
+
+                0
+
+            </h3>
+
+        </div>
+
+    </div>
+
+    <!-- Filters -->
+
+    <div class="admin-card p-5">
+
+        <form
+            id="auditFilterForm"
+            class="grid gap-3 md:grid-cols-2 xl:grid-cols-8">
+
+            <div class="xl:col-span-2">
+
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
+                    Search
+                </label>
+
+                <input
+                    id="auditSearch"
+                    class="admin-input"
+                    placeholder="Log ID, Admin, Email..." />
+
+            </div>
+
+            <div>
+
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
+                    Action
+                </label>
+
+                <select
+                    id="auditAction"
+                    class="admin-input">
+
+                    <option value="all">All</option>
+
+                </select>
+
+            </div>
+
+            <div>
+
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
+                    Status
+                </label>
+
+                <select
+                    id="auditStatus"
+                    class="admin-input">
+
+                    <option value="all">All</option>
+
+                    <option value="success">
+                        Success
+                    </option>
+
+                    <option value="failed">
+                        Failed
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div>
+
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
+                    From
+                </label>
+
+                <input
+                    id="auditFrom"
+                    type="date"
+                    class="admin-input"/>
+
+            </div>
+
+            <div>
+
+                <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
+                    To
+                </label>
+
+                <input
+                    id="auditTo"
+                    type="date"
+                    class="admin-input"/>
+
+            </div>
+
+            <div class="flex items-end gap-2 xl:col-span-8">
+
+                <button
+                    class="admin-btn admin-btn-primary"
+                    type="submit">
+
+                    Apply Filters
+
+                </button>
+
+                <button
+                    id="auditResetBtn"
+                    type="button"
+                    class="admin-btn">
+
+                    Reset
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+    <!-- Audit Table -->
+
+<div class="admin-card p-0 tx-fade-up tx-delay-2 overflow-hidden">
+
+    <div class="flex flex-col gap-3 border-b border-white/10 p-5 lg:flex-row lg:items-center lg:justify-between">
+
+        <div>
+
+            <h3 class="text-lg font-black text-white">
+                Audit Records
+            </h3>
+
+            <p
+                id="auditMeta"
+                class="mt-1 text-sm font-bold text-slate-400">
+
+                Loading audit logs...
+
+            </p>
+
+        </div>
+
+        <div class="flex items-center gap-2">
+
+            <span class="text-xs font-black uppercase tracking-wide text-slate-400">
+                Rows
+            </span>
+
+            <select
+                id="auditLimit"
+                class="admin-input w-24 py-2">
+
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <div class="table-wrap overflow-x-auto">
+
+        <table class="admin-table admin-table-wide min-w-[1700px]">
+
+            <thead>
+
+                <tr>
+
+                    <th>Log ID</th>
+
+                    <th>Admin</th>
+
+                    <th>Email</th>
+
+                    <th>Action</th>
+
+                    <th>Resource</th>
+
+                    <th>Resource ID</th>
+
+                    <th>Status</th>
+
+                    <th>IP Address</th>
+
+                    <th>Browser</th>
+
+                    <th>Description</th>
+
+                    <th>Created</th>
+
+                    <th class="text-right">
+                        Actions
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="auditTableBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Pagination -->
+
+    <div class="admin-pagination border-t border-white/10 p-4">
+
+        <div>
+
+            <p
+                id="auditPageLabel"
+                class="text-sm font-black text-white">
+
+                Page 1 / 1
+
+            </p>
+
+            <p
+                id="auditShowingLabel"
+                class="mt-1 text-xs font-bold text-slate-500">
+
+                Showing 0 logs
+
+            </p>
+
+        </div>
+
+        <div
+            id="auditPageNumbers"
+            class="pagination-pages">
+
+        </div>
+
+        <div class="flex items-center gap-2">
+
+            <button
+                id="auditPrevBtn"
+                class="admin-btn py-2">
+
+                ‹ Prev
+
+            </button>
+
+            <button
+                id="auditNextBtn"
+                class="admin-btn py-2">
+
+                Next ›
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- View Audit Modal -->
+
+<div
+    id="auditViewModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-6">
+
+    <div class="admin-card w-full max-w-5xl p-0 overflow-hidden">
+
+        <div class="flex items-center justify-between border-b border-white/10 px-6 py-4">
+
+            <div>
+
+                <h3
+                    id="auditViewTitle"
+                    class="text-xl font-black text-white">
+
+                    Audit Details
+
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-400">
+                    Complete activity information
+                </p>
+
+            </div>
+
+            <button
+                id="auditCloseBtn"
+                class="admin-btn">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <div
+            id="auditViewBody"
+            class="max-h-[70vh] overflow-y-auto p-6 space-y-5">
+
+            <div
+                class="rounded-xl border border-white/10 bg-slate-900/40 p-5">
+
+                <h4 class="mb-3 font-black text-white">
+                    General Information
+                </h4>
+
+                <div
+                    id="auditGeneralInfo"
+                    class="grid gap-4 md:grid-cols-2">
+
+                </div>
+
+            </div>
+
+            <div
+                class="rounded-xl border border-white/10 bg-slate-900/40 p-5">
+
+                <h4 class="mb-3 font-black text-white">
+                    Metadata
+                </h4>
+
+                <pre
+                    id="auditMetadata"
+                    class="overflow-auto rounded-lg bg-slate-950 p-4 text-xs text-green-300">
+
+                </pre>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+            </main>
+        </section>
+    </div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-logs.js?v=2"></script>
+
+</body>
+</html>

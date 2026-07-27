@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Options Trading | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        /* Options page only: hide bottom horizontal scrollbar line without changing existing data/UI */
+        body[data-page="options"] .os-chain-scroll,
+        body[data-page="options"] .os-table-scroll,
+        body[data-page="options"] .os-terminal-table {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        body[data-page="options"] .os-chain-scroll::-webkit-scrollbar,
+        body[data-page="options"] .os-table-scroll::-webkit-scrollbar,
+        body[data-page="options"] .os-terminal-table::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+        }
+
+
+        /* Options page only: keep right order panel inside screen after hiding scrollbar line */
+        body[data-page="options"] {
+            overflow-x: hidden !important;
+        }
+
+        body[data-page="options"] .os-page,
+        body[data-page="options"] main,
+        body[data-page="options"] section {
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+        }
+
+        body[data-page="options"] .os-terminal-grid {
+            width: 100% !important;
+            max-width: 100% !important;
+            grid-template-columns: minmax(0, 1fr) minmax(250px, 300px) minmax(270px, 330px) !important;
+            gap: 10px !important;
+            overflow: hidden !important;
+        }
+
+        body[data-page="options"] .os-chain-card,
+        body[data-page="options"] .os-side-market-card,
+        body[data-page="options"] .os-order-card,
+        body[data-page="options"] .os-bottom-card,
+        body[data-page="options"] .os-market-bar {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        body[data-page="options"] .os-chain-card {
+            overflow: hidden !important;
+        }
+
+
+
+        /* Options page chain table: hide bottom line and fit inside card without right-side cut */
+        body[data-page="options"] .os-chain-scroll {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            max-width: 100% !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        body[data-page="options"] .os-chain-scroll::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+        }
+
+        body[data-page="options"] .os-chain-table {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+        }
+
+        body[data-page="options"] .os-chain-table th,
+        body[data-page="options"] .os-chain-table td {
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+            font-size: 11px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        body[data-page="options"] .os-chain-table small {
+            font-size: 9px !important;
+            line-height: 1.1 !important;
+        }
+
+        body[data-page="options"] .os-strike-head,
+        body[data-page="options"] .os-chain-table th:nth-child(7),
+        body[data-page="options"] .os-chain-table td:nth-child(7) {
+            width: 13% !important;
+            text-align: center !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        body[data-page="options"] .os-row-actions {
+            gap: 4px !important;
+        }
+
+        body[data-page="options"] .os-row-actions button {
+            padding: 3px 8px !important;
+            font-size: 9px !important;
+            min-width: 56px !important;
+            max-width: 70px !important;
+        }
+
+        body[data-page="options"] .os-order-card {
+            justify-self: stretch !important;
+        }
+
+        body[data-page="options"] .os-input-wrap,
+        body[data-page="options"] .os-margin-box,
+        body[data-page="options"] .os-cost-card,
+        body[data-page="options"] .os-trade-btn,
+        body[data-page="options"] .os-register-btn {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+
+
+        /* Options page only: remove empty stretched area under options chain */
+        body[data-page="options"] .os-terminal-grid {
+            align-items: start !important;
+        }
+
+        body[data-page="options"] .os-chain-card,
+        body[data-page="options"] .os-side-market-card,
+        body[data-page="options"] .os-order-card {
+            align-self: start !important;
+        }
+
+        body[data-page="options"] .os-chain-card {
+            height: fit-content !important;
+            max-height: max-content !important;
+        }
+
+        body[data-page="options"] .os-chain-scroll {
+            height: auto !important;
+            min-height: 0 !important;
+        }
+
+        body[data-page="options"] .os-chain-table {
+            margin-bottom: 0 !important;
+        }
+
+
+        /* Options chain row compact fix: remove the large hidden blank space under strike rows while keeping all Buy/Sell actions available on hover/focus. */
+        body[data-page="options"] .os-chain-table td {
+            height: auto !important;
+            min-height: 0 !important;
+            vertical-align: top !important;
+        }
+
+        body[data-page="options"] .os-strike-cell {
+            position: relative !important;
+            overflow: visible !important;
+        }
+
+        body[data-page="options"] .os-strike-cell > button {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+        }
+
+        body[data-page="options"] .os-row-actions {
+            position: absolute !important;
+            left: 50% !important;
+            top: calc(100% - 3px) !important;
+            z-index: 25 !important;
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(58px, 1fr)) !important;
+            gap: 4px !important;
+            width: max-content !important;
+            min-width: 132px !important;
+            margin: 0 !important;
+            padding: 6px !important;
+            border: 1px solid rgba(148, 163, 184, 0.18) !important;
+            border-radius: 12px !important;
+            background: rgba(15, 23, 42, 0.98) !important;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36) !important;
+            transform: translateX(-50%) translateY(6px) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        body[data-page="options"] .os-chain-table tr:hover .os-row-actions,
+        body[data-page="options"] .os-chain-table tr:focus-within .os-row-actions,
+        body[data-page="options"] .os-chain-table tr.selected .os-row-actions {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateX(-50%) translateY(0) !important;
+        }
+
+        body[data-page="options"] .os-row-actions button {
+            white-space: nowrap !important;
+        }
+
+
+
+        /* Options page only: show the bottom terminal directly under the chain table on desktop, so the left side does not leave an empty blank area while the right cards continue. */
+        @media (min-width: 1281px) {
+            body[data-page="options"] .os-terminal-grid {
+                grid-template-rows: auto auto !important;
+                align-items: start !important;
+            }
+
+            body[data-page="options"] .os-chain-card {
+                grid-column: 1 / 2 !important;
+                grid-row: 1 / 2 !important;
+            }
+
+            body[data-page="options"] .os-bottom-card {
+                grid-column: 1 / 2 !important;
+                grid-row: 2 / 3 !important;
+                margin-top: 0 !important;
+                align-self: start !important;
+                width: 100% !important;
+            }
+
+            body[data-page="options"] .os-side-market-card {
+                grid-column: 2 / 3 !important;
+                grid-row: 1 / span 2 !important;
+            }
+
+            body[data-page="options"] .os-order-card {
+                grid-column: 3 / 4 !important;
+                grid-row: 1 / span 2 !important;
+            }
+        }
+
+        @media (max-width: 1500px) {
+            body[data-page="options"] .os-terminal-grid {
+                grid-template-columns: minmax(0, 1fr) minmax(230px, 280px) minmax(260px, 300px) !important;
+            }
+        }
+
+        @media (max-width: 1280px) {
+            body[data-page="options"] .os-terminal-grid {
+                grid-template-columns: 1fr !important;
+                overflow: visible !important;
+            }
+
+            body[data-page="options"] .os-chain-card,
+            body[data-page="options"] .os-side-market-card,
+            body[data-page="options"] .os-order-card,
+            body[data-page="options"] .os-bottom-card {
+                grid-column: auto !important;
+                grid-row: auto !important;
+            }
+        }
+
+
+
+
+        @media (min-width: 1281px) {
+            body[data-page="options"] .os-options-clean-grid {
+                grid-template-rows: auto auto !important;
+            }
+            body[data-page="options"] .os-options-clean-grid .os-chain-card {
+                grid-column: 1 / 2 !important;
+                grid-row: 1 / 2 !important;
+            }
+            body[data-page="options"] .os-options-clean-grid .os-bottom-card {
+                grid-column: 1 / 2 !important;
+                grid-row: 2 / 3 !important;
+                margin-top: 0 !important;
+                width: 100% !important;
+            }
+            body[data-page="options"] .os-options-clean-grid .os-order-card {
+                grid-column: 2 / 3 !important;
+                grid-row: 1 / span 2 !important;
+            }
+        }
+
+        @media (max-width: 1280px) {
+            body[data-page="options"] .os-options-clean-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Trading Wallet Card styling matching Futures page */
+        .rt-pair-funds-card {
+            position: relative;
+            overflow: hidden;
+            min-width: 320px;
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(8, 20, 35, 0.98), rgba(17, 24, 39, 0.94));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 35px rgba(0, 0, 0, 0.18);
+            padding: 11px;
+            flex: 0 0 auto;
+        }
+
+        .rt-pair-funds-card::before {
+            content: "";
+            position: absolute;
+            inset: -70px -70px auto auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.20), transparent 70%);
+            pointer-events: none;
+        }
+
+        .rt-pair-funds-head {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 9px;
+        }
+
+        .rt-pair-funds-head h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+        }
+
+        .rt-pair-funds-badge {
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.10);
+            color: #67e8f9;
+            padding: 4px 8px;
+            font-size: 9px;
+            font-weight: 950;
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .rt-pair-funds-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .rt-pair-funds-item {
+            min-width: 0;
+            border: 1px solid rgba(148, 163, 184, 0.13);
+            border-radius: 13px;
+            background: rgba(2, 6, 23, 0.48);
+            padding: 8px 9px;
+        }
+
+        .rt-pair-funds-item span {
+            display: block;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .rt-pair-funds-item strong {
+            display: block;
+            margin-top: 4px;
+            color: #e5e7eb;
+            font-size: 14px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rt-pair-funds-item.estimate strong {
+            color: #67e8f9;
+        }
+
+        .rt-pair-funds-actions {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 9px;
+        }
+
+        .rt-pair-funds-btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 9px 10px;
+            font-size: 11px;
+            font-weight: 950;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rt-pair-funds-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .rt-pair-funds-btn.transfer {
+            background: rgba(245, 158, 11, 0.16);
+            border: 1px solid rgba(245, 158, 11, 0.34);
+            color: #fde68a;
+        }
+
+        .rt-pair-funds-btn.deposit {
+            background: linear-gradient(135deg, #34d399, #22d3ee);
+            color: #020617;
+        }
+
+        .rt-pair-funds-btn.withdraw {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.28);
+            color: #fecaca;
+        }
+
+        /* Options quick wallet modal styles */
+        #optionsWalletModal {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 18px !important;
+            background: rgba(2, 6, 23, 0.76) !important;
+            backdrop-filter: blur(12px) !important;
+        }
+
+        #optionsWalletModal.hidden {
+            display: none !important;
+        }
+
+        #optionsWalletModal.flex {
+            display: flex !important;
+        }
+
+        #optionsWalletModal > div {
+            width: min(520px, calc(100vw - 28px)) !important;
+            max-width: 520px !important;
+            max-height: min(86vh, 720px) !important;
+            overflow: hidden auto !important;
+            border: 1px solid rgba(34, 211, 238, 0.24) !important;
+            border-radius: 28px !important;
+            background:
+                radial-gradient(circle at top right, rgba(34, 211, 238, 0.14), transparent 34%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98)) !important;
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+        }
+
+        #optionsWalletModal > div::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+        }
+
+        .options-wallet-panel-message {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 750;
+            display: none;
+        }
+        .options-wallet-panel-message.hidden {
+            display: none !important;
+        }
+        .options-wallet-panel-message.success {
+            display: block !important;
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #a7f3d0;
+        }
+        .options-wallet-panel-message.error {
+            display: block !important;
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: #fca5a5;
+        }
+
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white" data-page="options">
+
+    <div data-component="navbar"></div>
+
+    <main class="os-page pt-32">
+        <section class="mx-auto max-w-[1800px] px-3 pb-10 sm:px-4 lg:px-6">
+
+            <!-- MOVING MARKET TICKER -->
+            <div id="optionsTickerStrip" class="os-ticker-strip"></div>
+
+            <!-- TOP OPTIONS INFO BAR -->
+            <div class="os-market-bar mt-4">
+                <div class="os-market-left">
+                    <div class="os-coin-badge" id="optionsCoinBadge">₿</div>
+
+                    <div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h1 id="selectedOptionsTitle" class="text-2xl font-black text-white">BTC Options</h1>
+
+                            <select id="optionsUnderlyingSelect" class="os-select">
+                                <option value="BTC">BTC Options</option>
+                                <option value="ETH">ETH Options</option>
+                                <option value="SOL">SOL Options</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="os-metrics-grid">
+                    <div class="os-metric">
+                        <span>Underlying Price</span>
+                        <strong id="underlyingPrice">--</strong>
+                    </div>
+
+                    <div class="os-metric">
+                        <span>24H Change</span>
+                        <strong id="optionsChange">--</strong>
+                    </div>
+
+                    <div class="os-metric">
+                        <span>Mark IV</span>
+                        <strong id="ivRank" class="text-cyan-400">--</strong>
+                    </div>
+
+                    <div class="os-metric">
+                        <span>24H Volume</span>
+                        <strong id="optionsVolume">--</strong>
+                    </div>
+
+                    <div class="os-metric">
+                        <span>Open Interest</span>
+                        <strong id="totalOpenInterest">--</strong>
+                    </div>
+
+                    <div class="os-metric">
+                        <span>Time to Expiry</span>
+                        <strong id="expiryCountdown" class="text-orange-300">--</strong>
+                    </div>
+                </div>
+
+                <!-- FUNDS QUICK ACTIONS - Synchronized with Options Wallet -->
+                <div class="rt-pair-funds-card">
+                    <div class="rt-pair-funds-head flex items-center justify-between">
+                        <h3>Trading Wallet</h3>
+                        <div class="flex items-center gap-2">
+                            <select id="tradingAccountSelector" class="rt-select text-xs py-1 px-2 border border-slate-700 bg-slate-900 text-white rounded cursor-pointer font-bold outline-none focus:border-cyan-400">
+                                <option value="main">Main Trading Account</option>
+                            </select>
+                            <button id="subAccountSettingsBtn" type="button" class="text-slate-400 hover:text-cyan-400 text-sm p-1" title="Manage Sub Accounts">⚙️</button>
+                        </div>
+                    </div>
+
+                    <div class="rt-pair-funds-grid">
+                        <div class="rt-pair-funds-item">
+                            <span>Trading Balance</span>
+                            <strong id="optionsTotalBalance">$0.00</strong>
+                        </div>
+
+                        <div class="rt-pair-funds-item estimate">
+                            <span>Main Wallet</span>
+                            <strong id="optionsEstimatedBalance">$0.00</strong>
+                        </div>
+
+                        <div class="rt-pair-funds-item pnl">
+                            <span>Trading P&amp;L</span>
+                            <strong id="optionsTradingPnl">+0.00 USDT</strong>
+                        </div>
+                    </div>
+
+                    <div class="rt-pair-funds-actions">
+                        <button id="optionsHeaderTransferBtn" type="button" class="rt-pair-funds-btn transfer">
+                            Transfer
+                        </button>
+                        <button id="optionsHeaderDepositBtn" type="button" class="rt-pair-funds-btn deposit">
+                            Deposit
+                        </button>
+                        <button id="optionsHeaderWithdrawBtn" type="button" class="rt-pair-funds-btn withdraw">
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPTIONS TERMINAL GRID -->
+            <section class="os-terminal-grid mt-4">
+
+                <!-- LEFT: OPTIONS CHAIN -->
+                <div class="os-chain-card">
+                    <div class="os-chain-header">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 hidden">
+                                <button class="os-view-tab active" type="button" data-view-tab="prices">Prices</button>
+                                <button class="os-view-tab" type="button" data-view-tab="greeks">Greeks</button>
+                                <button class="os-view-tab" type="button" data-view-tab="data">Data</button>
+                            </div>
+
+                            <h2 class="mt-4 text-xl font-black text-white sm:text-2xl">Options Chain</h2>
+                            <p id="chainSubText" class="mt-1 text-xs font-semibold text-slate-500">BTC live options chain · select strike to trade</p>
+                        </div>
+
+                        <div class="flex flex-col gap-3 xl:items-end">
+                            <div id="expiryTabs" class="os-expiry-tabs">
+                                <button class="active" type="button" data-expiry-days="1">Today</button>
+                                <button type="button" data-expiry-days="7">7D</button>
+                                <button type="button" data-expiry-days="14">14D</button>
+                                <button type="button" data-expiry-days="30">30D</button>
+                            </div>
+
+                            <div class="flex flex-col gap-2 sm:flex-row">
+                                <input id="strikeSearchInput" type="search" class="os-search-input" placeholder="Search strike" />
+
+                                <button id="resetChainBtn" class="os-small-btn" type="button">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="os-chain-topline">
+                        <span class="text-emerald-400 font-bold">Calls ▲</span>
+                        <strong id="atmStrike">ATM --</strong>
+                        <span class="text-red-400 font-bold">Puts ▼</span>
+                    </div>
+
+                    <div class="hidden xl:block">
+                        <div class="os-chain-scroll">
+                            <table class="os-chain-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bids ($)</th>
+                                        <th>Asks ($)</th>
+                                        <th>Mark ($)</th>
+                                        <th>IV%</th>
+                                        <th class="os-strike-head">Strike</th>
+                                        <th>IV%</th>
+                                        <th>Mark ($)</th>
+                                        <th>Asks ($)</th>
+                                        <th>Bids ($)</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="optionsChainBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Mobile View Wrapper -->
+                    <div class="xl:hidden p-3 sm:p-4">
+                        <!-- Calls/Puts Switch for Mobile -->
+                        <div class="flex rounded-2xl bg-slate-900/60 p-1 border border-white/5 mb-4">
+                            <button id="mobileToggleCallsBtn" type="button" class="flex-1 py-2 text-center text-sm font-black rounded-xl transition-all cursor-pointer bg-emerald-400 text-slate-950">
+                                Calls
+                            </button>
+                            <button id="mobileTogglePutsBtn" type="button" class="flex-1 py-2 text-center text-sm font-black rounded-xl transition-all cursor-pointer text-slate-400">
+                                Puts
+                            </button>
+                        </div>
+                        
+                        <!-- Mobile Responsive Table -->
+                        <div class="os-table-scroll rounded-xl border border-white/5 bg-slate-950/40 p-2 overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-white/5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                        <th class="py-2.5 px-2">Strike</th>
+                                        <th class="py-2.5 px-2 text-right">Bid</th>
+                                        <th class="py-2.5 px-2 text-right">Ask</th>
+                                        <th class="py-2.5 px-2 text-right">IV</th>
+                                        <th class="py-2.5 px-2 text-right">Delta</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="optionsMobileTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDDLE: ORDERBOOK + TRADES -->
+                <aside class="os-side-market-card">
+                    <div class="os-contract-card">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Selected Contract</p>
+                                <h3 id="selectedOptionContract" class="mt-1 text-lg font-black text-white">BTC-CE</h3>
+                                <p id="selectedOptionPremium" class="mt-1 text-xs font-black text-cyan-400">Premium: --</p>
+                            </div>
+
+                            <span id="greeksTypeBadge" class="os-side-badge call">CALL</span>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-4 gap-2 text-center">
+                            <div class="os-mini-stat"><span>Delta</span><strong id="deltaValue">--</strong></div>
+                            <div class="os-mini-stat"><span>Gamma</span><strong id="gammaValue">--</strong></div>
+                            <div class="os-mini-stat"><span>Theta</span><strong id="thetaValue">--</strong></div>
+                            <div class="os-mini-stat"><span>Vega</span><strong id="vegaValue">--</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="os-book-card">
+                        <div class="os-panel-tabs">
+                            <button id="orderBookTabBtn" class="active" type="button">Order Book</button>
+                            <button id="tradesTabBtn" type="button">Recent Trades</button>
+                        </div>
+
+                        <div id="optionsOrderBookPanel">
+                            <div class="os-book-tools">
+                                <button class="active" type="button" data-book-view="both"><span class="green"></span><span class="red"></span></button>
+                                <button type="button" data-book-view="bids"><span class="green wide"></span></button>
+                                <button type="button" data-book-view="asks"><span class="red wide"></span></button>
+                            </div>
+
+                            <div class="os-book-head">
+                                <span>Price (USDT)</span>
+                                <span id="optionBookSizeLabel">Size (BTC)</span>
+                            </div>
+
+                            <div id="optionsOrderBookAsks" class="os-book-list asks"></div>
+                            <div id="optionsOrderBookMid" class="os-book-mid">--</div>
+                            <div id="optionsOrderBookBids" class="os-book-list bids"></div>
+                        </div>
+
+                        <div id="optionsTradesPanel" class="hidden">
+                            <div class="os-book-head">
+                                <span>Price</span>
+                                <span>Size</span>
+                                <span>Time</span>
+                            </div>
+                            <div id="optionsTradesList" class="os-trades-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="os-contract-details">
+                        <h3>Contract Details</h3>
+                        <div><span>Contract Size</span><strong id="contractSizeText">0.001 BTC</strong></div>
+                        <div><span>Settlement</span><strong>USDT</strong></div>
+                        <div><span>Exercise</span><strong>European</strong></div>
+                        <div><span>Maker / Taker</span><strong>0.016% / 0.040%</strong></div>
+                    </div>
+                </aside>
+
+                <!-- RIGHT: ORDER FORM -->
+                <aside class="os-order-card">
+
+                    <div class="os-buy-sell-tabs">
+                        <button id="optionSideBuy" class="active-buy" type="button" data-option-action="BUY">Buy / Long</button>
+                        <button id="optionSideSell" type="button" data-option-action="SELL">Sell / Short</button>
+                    </div>
+
+                    <div class="os-order-tabs mt-4">
+                        <button class="active" type="button" data-option-order-type="MARKET">Market</button>
+                    </div>
+
+                    <div class="mt-4 space-y-3">
+                        <label class="os-input-label">Quantity</label>
+                        <div class="os-input-wrap">
+                            <input id="optionsQuantity" type="number" min="1" step="1" value="1" placeholder="Quantity" />
+                            <span>Contracts</span>
+                        </div>
+
+                        <div class="os-percent-grid">
+                            <button type="button" data-qty-percent="10">10%</button>
+                            <button type="button" data-qty-percent="25">25%</button>
+                            <button type="button" data-qty-percent="50">50%</button>
+                            <button type="button" data-qty-percent="75">75%</button>
+                            <button type="button" data-qty-percent="100">100%</button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="os-cost-card">
+                                <span>Premium</span>
+                                <strong id="premiumPreview">--</strong>
+                            </div>
+                            <div class="os-cost-card">
+                                <span>Required Margin</span>
+                                <strong id="costPreview">--</strong>
+                            </div>
+                        </div>
+
+                        <div class="os-margin-box">
+                            <div><span>Available Margin</span><strong>Login required</strong></div>
+                            <div><span>Funds Required</span><strong id="fundsRequired">--</strong></div>
+                        </div>
+
+                        <div class="my-4 flex items-center justify-between px-1 text-sm font-black text-slate-400">
+                            <span>Est. Margin</span>
+                            <span id="walletEstMargin" class="text-cyan-400">0.00 USDT</span>
+                        </div>
+
+                        <button id="optionPlaceOrderBtn" class="os-trade-btn" type="button">Log In to Trade</button>
+
+                        <a href="./register.html" class="os-register-btn">Create Account</a>
+                    </div>
+                </aside>
+
+                <!-- BOTTOM TABLE -->
+                <section class="os-bottom-card mt-4">
+                    <div class="os-bottom-tabs">
+                        <button class="active" type="button" data-bottom-tab="positions">Positions</button>
+                        <button type="button" data-bottom-tab="fills">Fills</button>
+                        <button type="button" data-bottom-tab="orderHistory">Order History</button>
+                    </div>
+
+                    <div id="optionsTerminalTable" class="os-terminal-table">
+                        <p>
+                            <a href="./login.html">Log In</a>
+                            <span> or </span>
+                            <a href="./register.html">Register Now</a>
+                            <span> to trade options.</span>
+                        </p>
+                    </div>
+                </section>
+            </section>
+        </section>
+    </main>
+    <!-- Options quick wallet modal: deposit / withdraw / transfer without leaving Options page -->
+    <div id="optionsWalletModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 99999 !important;">
+        <div class="rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40" style="max-width: 520px; width: 100%; margin: auto; display: flex; flex-direction: column;">
+            <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Trading Wallet Quick Action</p>
+                    <h3 id="optionsWalletModalTitle" class="mt-1 text-2xl font-black text-white">Transfer Funds</h3>
+                    <p class="mt-1 text-xs font-semibold text-slate-400">Main Wallet deposit/withdraw + Trading Wallet transfer, without leaving Options.</p>
+                </div>
+                <button id="optionsWalletModalClose" type="button" class="rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300">✕</button>
+            </div>
+
+            <div class="px-5 pb-5 pt-4">
+                <div class="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 text-xs">
+                    <div>
+                        <p id="optionsModalTradingLabel" class="font-black uppercase tracking-wide text-slate-500">Trading</p>
+                        <strong id="optionsModalTradingBalance" class="mt-1 block text-cyan-300">$0.00</strong>
+                    </div>
+                    <div>
+                        <p class="font-black uppercase tracking-wide text-slate-500">Main</p>
+                        <strong id="optionsModalMainBalance" class="mt-1 block text-emerald-300">$0.00</strong>
+                    </div>
+                    <div>
+                        <p class="font-black uppercase tracking-wide text-slate-500">P&amp;L</p>
+                        <strong id="optionsModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USDT</strong>
+                    </div>
+                </div>
+
+                <form id="optionsTransferForm" class="options-wallet-panel grid gap-4" data-options-wallet-panel="transfer">
+                    <div id="optionsTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                        <span>Market Exchange Rate:</span>
+                        <span id="optionsTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                    </div>
+                    <div>
+                        <label for="optionsTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
+                        <select id="optionsTransferDirection" name="direction" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
+                            <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="optionsTransferAmount" id="optionsTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR)</label>
+                            <button id="optionsTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
+                        </div>
+                        <input id="optionsTransferAmount" name="amount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                    </div>
+                    <div id="optionsTransferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
+                        Enter amount to see live conversion
+                    </div>
+                    <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Transfer Funds</button>
+                    <div id="optionsTransferMessage" class="options-wallet-panel-message hidden"></div>
+                </form>
+
+                <form id="optionsDepositForm" class="options-wallet-panel hidden grid gap-4" data-options-wallet-panel="deposit">
+                    <input id="optionsCryptoAsset" name="crypto_asset" type="hidden" value="USDT" />
+
+                    <!-- Top Currency Switcher Tabs (Sleek Pills) -->
+                    <div id="optionsDepositCurrencyToggleBar" class="mb-2 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="optionsSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
+                            $ USD / USDT
+                        </button>
+                        <button id="optionsSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Subtitle -->
+                    <p id="optionsDepositSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
+                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                    </p>
+
+                    <!-- USDT Crypto Mode Fields -->
+                    <div id="optionsCryptoDepositBox" class="grid gap-4">
+                        <div>
+                            <label for="optionsCryptoNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
+                            <select id="optionsCryptoNetwork" name="crypto_network" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="TRC20">USDT TRC20 (Tron)</option>
+                                <option value="BEP20">USDT BEP20 (Binance Smart Chain)</option>
+                                <option value="ERC20">USDT ERC20 (Ethereum)</option>
+                            </select>
+                        </div>
+
+                        <!-- Company Deposit Address Box (Green Card style) -->
+                        <div class="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+                            <div class="flex items-center justify-between">
+                                <span id="optionsCryptoAddressBoxLabel" class="text-xs font-black uppercase tracking-wider text-emerald-400">USDT TRC20</span>
+                                <button id="optionsCopyCryptoAddressBtn" type="button" class="flex items-center gap-1.5 text-xs font-black text-emerald-400 transition hover:text-emerald-300">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    Copy address
+                                </button>
+                            </div>
+                            <code id="optionsDepositAddress" class="mt-2 block break-all font-mono text-sm font-bold text-white">--</code>
+                            <p id="optionsDepositAddressStatus" class="mt-1 text-[11px] font-semibold text-slate-400">Loading address...</p>
+                        </div>
+
+                        <div class="hidden">
+                            <input id="optionsDepositAddressConfirmation" name="deposit_address_confirmation" type="text" />
+                        </div>
+                    </div>
+
+                    <!-- INR Mode Fields -->
+                    <div id="optionsInrDepositBox" class="grid gap-4 hidden">
+                        <div class="rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4">
+                            <div class="mb-3 flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider text-cyan-300">Company Bank / UPI Gateway</span>
+                                <button id="optionsCopyInrUpiBtn" type="button" class="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-400/20">📋 Copy UPI ID</button>
+                            </div>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Company UPI ID</p>
+                                    <p id="optionsInrUpiId" class="mt-1 font-mono text-xs font-black text-cyan-300">traidiumx@upi</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Account Name</p>
+                                    <p id="optionsInrAccountName" class="mt-1 font-mono text-xs font-bold text-slate-200">TraidiumX Trading Services Ltd</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Bank & Account No.</p>
+                                    <p id="optionsInrBankDetails" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC Bank • 50100498765432</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">IFSC Code</p>
+                                    <p id="optionsInrIfscCode" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC0000128</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="optionsInrUtrNumber" class="block text-xs font-black uppercase tracking-wide text-slate-400">Payment Ref / UTR Number</label>
+                            <input id="optionsInrUtrNumber" name="inr_utr_number" type="text" placeholder="Enter 12-digit UTR or Transaction Ref ID" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-sm font-bold text-white outline-none focus:border-cyan-400" />
+                        </div>
+                    </div>
+
+                    <!-- Amount Input -->
+                    <div>
+                        <label for="optionsDepositAmount" id="optionsDepositAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (USD)</label>
+                        <input id="optionsDepositAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                    </div>
+
+                    <!-- Calculation Card -->
+                    <div id="optionsDepositCalcCard" class="rounded-2xl border border-white/10 bg-slate-950/80 p-4">
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+                            <span>You deposit</span>
+                            <span id="optionsDepCalcYouDeposit" class="font-extrabold text-white">$0.00</span>
+                        </div>
+                        <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
+                            <span>Wallet credit</span>
+                            <span id="optionsDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                        </div>
+                        <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
+                            <span id="optionsDepCalcRateNote">Min $10 · $1 = ₹88.50</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="optionsCreateDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                        Deposit USDT
+                    </button>
+
+                    <p id="optionsDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
+                        Send USDT to the address above. Balance credits on submit.
+                    </p>
+                    <div id="optionsDepositMessage" class="options-wallet-panel-message hidden"></div>
+                </form>
+
+                <form id="optionsWithdrawForm" class="options-wallet-panel hidden grid gap-4" data-options-wallet-panel="withdraw">
+                    <div id="txOptionsWithdrawCurrencyToggleBar" class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="txOptionsSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            $ USD / USDT
+                        </button>
+                        <button id="txOptionsSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <p id="optionsWithdrawSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
+                        Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
+                    </p>
+                    <input id="optionsWithdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
+                    <input id="optionsWithdrawAsset" name="crypto_asset" type="hidden" value="INR" />
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div id="optionsWithdrawAmountBox">
+                            <label for="optionsWithdrawAmount" id="optionsWithdrawAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR / ₹)</label>
+                            <input id="optionsWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-red-400" required />
+                        </div>
+                        <div id="optionsWithdrawNetworkBox">
+                            <label for="optionsWithdrawNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
+                            <select id="optionsWithdrawNetwork" name="crypto_network" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400">
+                                <option value="TRC20">TRON (TRC20)</option>
+                                <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                                <option value="ERC20">Ethereum (ERC20)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="optionsWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                        Enter withdrawal amount to see live conversion
+                    </div>
+
+                    <div>
+                        <label for="optionsWithdrawalAddress" id="optionsWithdrawalAddressLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Your UPI ID / Bank Account Payout Details</label>
+                        <input id="optionsWithdrawalAddress" name="withdrawal_address" type="text" placeholder="Enter UPI ID (e.g. name@upi) or Bank Account No. & IFSC" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400" required />
+                    </div>
+                    <div id="optionsWithdrawTagBox">
+                        <label for="optionsDestinationTag" class="block text-xs font-black uppercase tracking-wide text-slate-400">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                        <input id="optionsDestinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400" />
+                    </div>
+
+                    <div id="optionsWithdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
+                        <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <p>Withdraw amount: <b id="optionsWithdrawPreviewAmount">--</b></p>
+                            <p>You will receive: <b id="optionsWithdrawPreviewReceive">--</b></p>
+                            <p>Company fee: <b id="optionsWithdrawPreviewCompanyFee">--</b></p>
+                            <p>Total wallet debit: <b id="optionsWithdrawPreviewTotalDebit">--</b></p>
+                        </div>
+                        <p id="optionsWithdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                    </div>
+
+                    <button id="optionsCreateWithdrawalBtn" type="submit" class="w-full rounded-2xl bg-red-400 py-3.5 text-sm font-black text-slate-950 transition hover:bg-red-300 shadow-lg shadow-red-500/20">
+                        Create Withdrawal Request
+                    </button>
+                    <div id="optionsWithdrawMessage" class="options-wallet-panel-message hidden"></div>
+                </form>
+
+                <p id="optionsWalletModalMessage" class="hidden"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Sub-Account Management Modal -->
+    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
+        <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
+            <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Sub Accounts settings</p>
+                    <h3 class="mt-1 text-2xl font-black text-white">Manage Sub Accounts</h3>
+                    <p class="mt-1 text-xs font-semibold text-slate-400">Create, view, and transfer funds between your trading sub-accounts.</p>
+                </div>
+                <button id="subAccountModalClose" type="button" class="rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300">✕</button>
+            </div>
+
+            <div class="px-5 pb-5 pt-4">
+                <!-- Tabs to switch between List and Transfer -->
+                <div class="mb-4 hidden gap-2 border-b border-slate-800 pb-2">
+                    <button id="subTabListBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400">Sub Accounts</button>
+                    <button id="subTabTransferBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white">Transfer Funds</button>
+                </div>
+
+                <!-- Panel 1: Sub Accounts List & Creation -->
+                <div id="subPanelList" class="space-y-4">
+                    <form id="createSubForm" class="grid gap-3">
+                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400">Create New Sub Account</label>
+                        <div class="flex gap-2">
+                            <input id="newSubNameInput" type="text" placeholder="Sub account name (e.g. Sub Account 1)" class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-cyan-400" required />
+                            <button type="submit" class="rounded-xl bg-cyan-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-300">Create</button>
+                        </div>
+                        <p id="createSubMessage" class="hidden text-xs font-bold"></p>
+                    </form>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400 mb-2">Existing Sub Accounts</label>
+                        <div id="subAccountsContainer" class="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                            <p class="text-xs text-slate-500 font-semibold py-2">Loading sub accounts...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Sub-Account Transfer Form -->
+                <div id="subPanelTransfer" class="hidden space-y-4">
+                    <form id="subTransferForm" class="grid gap-4">
+                        <div>
+                            <label for="subTransferAccount" class="block text-xs font-black uppercase tracking-wide text-slate-400">Target Trading Account</label>
+                            <select id="subTransferAccount" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="main">Main Trading Account</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="subTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
+                            <select id="subTransferDirection" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="main_to_sub">Main Wallet → Target Trading Account (USDT)</option>
+                                <option value="sub_to_main">Target Trading Account (USDT) → Main Wallet</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="subTransferAmount" id="subTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount</label>
+                                <button id="subTransferMaxBtn" type="button" class="text-xs font-black uppercase tracking-wider text-cyan-300 hover:text-cyan-200">MAX</button>
+                            </div>
+                            <input id="subTransferAmount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                        </div>
+
+                        <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                            Rate: 1 USDT = ₹88.50 INR. Enter amount to see preview.
+                        </div>
+
+                        <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Execute Transfer</button>
+                        <div id="subTransferMessage" class="hidden text-xs font-bold p-3 rounded-xl"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/options.js?v=40"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>

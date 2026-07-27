@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Withdrawal Detail | TraidiumX Admin</title>
+</head>
+<body data-admin-page="withdrawals" data-page-title="Withdrawal Detail" data-page-subtitle="Review a single withdrawal request before approval or rejection.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+<section class="space-y-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <a href="/admin/wallet/withdrawals" class="admin-btn">← Back to Withdrawals</a>
+        <a href="/admin/wallet/ledger" class="admin-btn admin-btn-primary">Open Ledger</a>
+    </div>
+    <div id="withdrawalDetailCard" class="admin-card p-6 tx-fade-up"></div>
+    <div class="grid gap-5 xl:grid-cols-2">
+        <div class="admin-card p-6 tx-fade-up tx-delay-1"><h3 class="text-xl font-black text-white">Linked Wallet Ledger</h3><div class="mt-5 table-wrap"><table class="admin-table"><thead><tr><th>Type</th><th>Amount</th><th>Balance</th><th>Date</th></tr></thead><tbody id="withdrawalLedgerBody"></tbody></table></div></div>
+        <div class="admin-card p-6 tx-fade-up tx-delay-2"><h3 class="text-xl font-black text-white">Admin Audit Trail</h3><div id="withdrawalAuditTrail" class="mt-5 space-y-3"></div></div>
+    </div>
+</section>
+            </main>
+        </section>
+    </div>
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-wallet.js"></script>
+</body>
+</html>

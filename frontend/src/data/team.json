@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Aarav Mehta",
+        "role": "Product Lead",
+        "description": "Responsible for platform flow, product strategy and trading experience.",
+        "badge": "Product"
+    },
+    {
+        "name": "Riya Shah",
+        "role": "Frontend Engineer",
+        "description": "Builds responsive UI, reusable components and frontend interactions.",
+        "badge": "Frontend"
+    },
+    {
+        "name": "Kabir Patel",
+        "role": "Backend Engineer",
+        "description": "Plans Flask APIs, MongoDB models, authentication and order validation.",
+        "badge": "Backend"
+    },
+    {
+        "name": "Neha Verma",
+        "role": "Compliance Analyst",
+        "description": "Focuses on KYC, AML, risk disclosure and exchange policy workflow.",
+        "badge": "Compliance"
+    }
+]

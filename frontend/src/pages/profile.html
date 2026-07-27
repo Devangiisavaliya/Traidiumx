@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Profile | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        :root {
+            --tx-profile-bg: #020617;
+            --tx-profile-card: rgba(10, 18, 35, 0.84);
+            --tx-profile-card-soft: rgba(15, 23, 42, 0.70);
+            --tx-profile-border: rgba(148, 163, 184, 0.15);
+            --tx-profile-border-strong: rgba(34, 211, 238, 0.28);
+            --tx-profile-cyan: #22d3ee;
+            --tx-profile-cyan-soft: rgba(34, 211, 238, 0.10);
+            --tx-profile-text: #f8fafc;
+            --tx-profile-muted: #94a3b8;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body[data-page="profile"] {
+            min-width: 0;
+            font-weight: 400;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            background:
+                radial-gradient(circle at 8% 10%, rgba(34, 211, 238, 0.10), transparent 27rem),
+                radial-gradient(circle at 92% 24%, rgba(37, 99, 235, 0.10), transparent 30rem),
+                var(--tx-profile-bg);
+        }
+
+        body[data-page="profile"] .font-black {
+            font-weight: 700 !important;
+        }
+
+        .tx-profile-main {
+            position: relative;
+            min-height: 100vh;
+            overflow: hidden;
+            padding-top: 8rem;
+        }
+
+        .tx-profile-wrap {
+            width: min(100% - 2rem, 88rem);
+            margin: 0 auto;
+            padding: 2.25rem 0 4rem;
+        }
+
+        .tx-profile-card {
+            border: 1px solid var(--tx-profile-border);
+            border-radius: 1.65rem;
+            background:
+                linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(5, 12, 27, 0.88));
+            box-shadow:
+                0 20px 55px rgba(2, 6, 23, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(18px);
+        }
+
+        .tx-profile-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 0.8fr);
+            gap: 1.25rem;
+            align-items: stretch;
+            margin-bottom: 1.25rem;
+        }
+
+        .tx-profile-intro {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            min-height: 11.5rem;
+            padding: 1.75rem;
+        }
+
+        .tx-profile-intro::after {
+            content: "";
+            position: absolute;
+            top: -5rem;
+            right: -4rem;
+            width: 15rem;
+            height: 15rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.10);
+            filter: blur(34px);
+            pointer-events: none;
+        }
+
+        .tx-profile-avatar {
+            position: relative;
+            z-index: 1;
+            width: 5.25rem;
+            height: 5.25rem;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border-radius: 1.45rem;
+            border: 1px solid rgba(103, 232, 249, 0.32);
+            color: #67e8f9;
+            background: linear-gradient(145deg, rgba(34, 211, 238, 0.18), rgba(14, 116, 144, 0.08));
+            box-shadow: 0 16px 36px rgba(8, 145, 178, 0.15);
+        }
+
+        .tx-profile-avatar svg {
+            width: 2.35rem;
+            height: 2.35rem;
+        }
+
+        .tx-profile-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+            color: #67e8f9;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-eyebrow::before {
+            content: "";
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 999px;
+            background: #22d3ee;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.10);
+        }
+
+        .tx-profile-title {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: var(--tx-profile-text);
+            font-size: clamp(2rem, 4vw, 3.25rem);
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+            font-weight: 700;
+        }
+
+        .tx-profile-subtitle {
+            position: relative;
+            z-index: 1;
+            max-width: 42rem;
+            margin: 0.75rem 0 0;
+            color: var(--tx-profile-muted);
+            font-size: 0.95rem;
+            line-height: 1.75;
+        }
+
+        .tx-profile-status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .tx-profile-status {
+            min-width: 0;
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.13);
+            border-radius: 1.15rem;
+            background: rgba(2, 6, 23, 0.48);
+        }
+
+        .tx-profile-status-label {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-status-label svg {
+            width: 0.95rem;
+            height: 0.95rem;
+            color: #67e8f9;
+        }
+
+        #profileAccountStatus,
+        #profileKycStatus,
+        #profileSessionStatus {
+            margin-top: 0.6rem !important;
+            overflow-wrap: anywhere;
+            font-size: 1.05rem !important;
+            line-height: 1.25 !important;
+            font-weight: 700 !important;
+        }
+
+        #profileMessage {
+            margin-bottom: 1.25rem !important;
+            border-radius: 1rem !important;
+            font-weight: 600 !important;
+        }
+
+        .tx-profile-content {
+            display: grid;
+            grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .tx-profile-section {
+            padding: 1.4rem;
+        }
+
+        .tx-profile-section + .tx-profile-section {
+            margin-top: 1.25rem;
+        }
+
+        .tx-profile-section-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .tx-profile-heading-wrap {
+            min-width: 0;
+        }
+
+        .tx-profile-section-kicker {
+            margin: 0 0 0.3rem;
+            color: #22d3ee;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-section-title {
+            margin: 0;
+            color: var(--tx-profile-text);
+            font-size: 1.25rem;
+            line-height: 1.3;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+        }
+
+        .tx-profile-section-copy {
+            margin: 0.35rem 0 0;
+            color: var(--tx-profile-muted);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .tx-profile-kyc-link,
+        .tx-profile-action-btn,
+        #historyRefreshBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            min-height: 2.65rem;
+            border-radius: 0.9rem !important;
+            padding: 0.7rem 1rem !important;
+            font-size: 0.78rem !important;
+            font-weight: 700 !important;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .tx-profile-kyc-link {
+            flex: 0 0 auto;
+            color: #03111d;
+            background: #22d3ee;
+        }
+
+        .tx-profile-kyc-link:hover,
+        .tx-profile-action-btn:hover,
+        #historyRefreshBtn:hover {
+            transform: translateY(-1px);
+        }
+
+        .tx-profile-details {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .tx-profile-detail {
+            display: grid;
+            grid-template-columns: 2.25rem minmax(0, 1fr);
+            gap: 0.8rem;
+            align-items: center;
+            min-height: 4.5rem;
+            padding: 0.9rem 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 1rem;
+            background: rgba(2, 6, 23, 0.44);
+        }
+
+        .tx-profile-detail-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            display: grid;
+            place-items: center;
+            border-radius: 0.75rem;
+            color: #67e8f9;
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .tx-profile-detail-icon svg {
+            width: 1.05rem;
+            height: 1.05rem;
+        }
+
+        .tx-profile-detail-label {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-detail-value {
+            margin: 0.2rem 0 0;
+            overflow-wrap: anywhere;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            font-weight: 600;
+        }
+
+        .tx-profile-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .tx-profile-field-full {
+            grid-column: 1 / -1;
+        }
+
+        .tx-profile-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tx-profile-label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .tx-profile-forgot {
+            color: #67e8f9;
+            font-size: 0.72rem;
+            font-weight: 600;
+            transition: color 160ms ease;
+        }
+
+        .tx-profile-forgot:hover {
+            color: #cffafe;
+        }
+
+        .tx-profile-input {
+            width: 100%;
+            min-width: 0;
+            min-height: 3.2rem;
+            border: 1px solid rgba(148, 163, 184, 0.14) !important;
+            border-radius: 0.95rem !important;
+            padding: 0.85rem 1rem !important;
+            color: #f8fafc !important;
+            background: rgba(2, 6, 23, 0.70) !important;
+            outline: none !important;
+            font-size: 0.86rem !important;
+            font-weight: 500 !important;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .tx-profile-input::placeholder {
+            color: #64748b;
+        }
+
+        .tx-profile-input:focus {
+            border-color: rgba(34, 211, 238, 0.72) !important;
+            background: rgba(2, 6, 23, 0.90) !important;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.09);
+        }
+
+        .tx-profile-error {
+            min-height: 1rem;
+            margin: 0.35rem 0 0;
+            color: #fca5a5;
+            font-size: 0.68rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .tx-profile-primary-btn,
+        .tx-profile-secondary-btn {
+            width: 100%;
+            min-height: 3.15rem;
+            border-radius: 0.95rem !important;
+            padding: 0.85rem 1rem !important;
+            font-size: 0.8rem !important;
+            font-weight: 700 !important;
+            transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+        }
+
+        .tx-profile-primary-btn {
+            color: #03111d !important;
+            background: linear-gradient(135deg, #22d3ee, #67e8f9) !important;
+            box-shadow: 0 12px 25px rgba(34, 211, 238, 0.12);
+        }
+
+        .tx-profile-secondary-btn {
+            border: 1px solid rgba(34, 211, 238, 0.30) !important;
+            color: #a5f3fc !important;
+            background: rgba(34, 211, 238, 0.08) !important;
+        }
+
+        .tx-profile-primary-btn:hover,
+        .tx-profile-secondary-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .tx-history-section {
+            margin-top: 1.25rem;
+            padding: 1.4rem;
+        }
+
+        .tx-history-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .tx-history-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-top: 1.15rem;
+        }
+
+        .tx-history-stat {
+            position: relative;
+            overflow: hidden;
+            min-height: 5.4rem;
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 1rem;
+            background: rgba(2, 6, 23, 0.48);
+        }
+
+        .tx-history-stat::after {
+            content: "";
+            position: absolute;
+            right: -1.8rem;
+            bottom: -2.2rem;
+            width: 5.5rem;
+            height: 5.5rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.055);
+        }
+
+        .tx-history-stat-label {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #64748b;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        #depositCountText,
+        #withdrawalCountText,
+        #latestActivityText {
+            position: relative;
+            z-index: 1;
+            margin-top: 0.45rem !important;
+            overflow-wrap: anywhere;
+            font-size: 1.3rem !important;
+            line-height: 1.35 !important;
+            font-weight: 700 !important;
+        }
+
+        .tx-history-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .tx-history-column {
+            min-width: 0;
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 1.2rem;
+            background: rgba(2, 6, 23, 0.43);
+        }
+
+        .tx-history-column-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .tx-history-column-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .tx-history-badge {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.66rem;
+            font-weight: 700;
+        }
+
+        .tx-history-badge-credit {
+            color: #6ee7b7;
+            background: rgba(52, 211, 153, 0.10);
+        }
+
+        .tx-history-badge-debit {
+            color: #fdba74;
+            background: rgba(251, 146, 60, 0.10);
+        }
+
+        #depositHistoryList,
+        #withdrawalHistoryList {
+            gap: 0.65rem !important;
+        }
+
+        #depositHistoryList article,
+        #withdrawalHistoryList article {
+            border-color: rgba(148, 163, 184, 0.13) !important;
+            border-radius: 1rem !important;
+            padding: 0.9rem !important;
+            background: rgba(15, 23, 42, 0.62) !important;
+            box-shadow: none !important;
+            transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+        }
+
+        #depositHistoryList article:hover,
+        #withdrawalHistoryList article:hover {
+            border-color: rgba(34, 211, 238, 0.25) !important;
+            background: rgba(15, 23, 42, 0.82) !important;
+            transform: translateY(-1px);
+        }
+
+        #depositHistoryList article p,
+        #withdrawalHistoryList article p {
+            line-height: 1.55;
+        }
+
+        #depositHistoryPagination button,
+        #withdrawalHistoryPagination button {
+            min-width: 2.25rem;
+            min-height: 2.25rem;
+            border-radius: 0.72rem !important;
+            font-weight: 700 !important;
+        }
+
+
+
+        .tx-profile-intro-body {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .tx-profile-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .tx-profile-edit-btn {
+            position: relative;
+            z-index: 2;
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 2.75rem;
+            margin-left: 0;
+            border: 1px solid rgba(34, 211, 238, 0.30);
+            border-radius: 0.9rem;
+            padding: 0.72rem 1rem;
+            color: #a5f3fc;
+            background: rgba(34, 211, 238, 0.08);
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .tx-profile-edit-btn svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .tx-profile-edit-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34, 211, 238, 0.56);
+            background: rgba(34, 211, 238, 0.14);
+        }
+
+        body.tx-profile-modal-open {
+            overflow: hidden;
+        }
+
+        .tx-profile-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: grid;
+            place-items: center;
+            padding:
+                max(1rem, env(safe-area-inset-top))
+                max(1rem, env(safe-area-inset-right))
+                max(1rem, env(safe-area-inset-bottom))
+                max(1rem, env(safe-area-inset-left));
+        }
+
+        .tx-profile-modal.hidden {
+            display: none !important;
+        }
+
+        .tx-profile-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.82);
+            backdrop-filter: blur(10px);
+        }
+
+        .tx-profile-modal-panel {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 31rem);
+            max-height: min(95vh, 45rem);
+            overflow-y: auto;
+            border: 1px solid rgba(34, 211, 238, 0.24);
+            border-radius: 1.5rem;
+            padding: 1.35rem;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.10), transparent 15rem),
+                linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(3, 10, 24, 0.98));
+            box-shadow: 0 30px 90px rgba(2, 6, 23, 0.68);
+            animation: tx-profile-modal-in 180ms ease-out both;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+            -ms-overflow-style: none;  /* Hide scrollbar for IE/Edge */
+        }
+
+        .tx-profile-modal-panel::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+        }
+
+        .tx-profile-modal-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .tx-profile-modal-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1.3rem;
+            line-height: 1.3;
+            font-weight: 700;
+        }
+
+        .tx-profile-modal-copy {
+            margin: 0.35rem 0 0;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .tx-profile-modal-close {
+            width: 2.45rem;
+            height: 2.45rem;
+            flex: 0 0 auto;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 0.8rem;
+            color: #cbd5e1;
+            background: rgba(2, 6, 23, 0.55);
+            transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+        }
+
+        .tx-profile-modal-close:hover {
+            border-color: rgba(34, 211, 238, 0.38);
+            color: #67e8f9;
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .tx-profile-modal-close svg {
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+
+        .tx-profile-modal-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+        }
+
+        .tx-profile-modal-cancel {
+            min-height: 3.15rem;
+            border: 1px solid rgba(148, 163, 184, 0.17);
+            border-radius: 0.95rem;
+            padding: 0.85rem 1rem;
+            color: #cbd5e1;
+            background: rgba(2, 6, 23, 0.58);
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: border-color 160ms ease, background 160ms ease;
+        }
+
+        .tx-profile-modal-cancel:hover {
+            border-color: rgba(148, 163, 184, 0.32);
+            background: rgba(15, 23, 42, 0.86);
+        }
+
+        @keyframes tx-profile-modal-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.985); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @media (max-width: 1100px) {
+            .tx-profile-hero,
+            .tx-profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-status-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .tx-profile-main {
+                padding-top: 6.6rem;
+            }
+
+            .tx-profile-wrap {
+                width: min(100% - 1.25rem, 88rem);
+                padding-top: 1.25rem;
+            }
+
+            .tx-profile-intro {
+                align-items: flex-start;
+                min-height: auto;
+                padding: 1.2rem;
+            }
+
+            .tx-profile-avatar {
+                width: 4rem;
+                height: 4rem;
+                border-radius: 1.1rem;
+            }
+
+            .tx-profile-avatar svg {
+                width: 1.8rem;
+                height: 1.8rem;
+            }
+
+
+            .tx-profile-edit-btn {
+                margin-left: 0;
+            }
+
+            .tx-profile-status-grid,
+            .tx-history-stats,
+            .tx-profile-form-grid,
+            .tx-history-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-section,
+            .tx-history-section {
+                padding: 1rem;
+            }
+
+            .tx-profile-section-head,
+            .tx-history-head {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .tx-profile-kyc-link,
+            #historyRefreshBtn {
+                width: 100% !important;
+            }
+
+            .tx-profile-field-full {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tx-profile-intro {
+                flex-direction: column;
+            }
+
+
+            .tx-profile-intro-body,
+            .tx-profile-edit-btn {
+                width: 100%;
+            }
+
+            .tx-profile-edit-btn {
+                margin-left: 0;
+            }
+
+            .tx-profile-modal-panel {
+                border-radius: 1.2rem;
+                padding: 1rem;
+            }
+
+            .tx-profile-modal-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-title {
+                font-size: 1.9rem;
+            }
+
+            .tx-profile-card {
+                border-radius: 1.25rem;
+            }
+
+            .tx-profile-detail {
+                grid-template-columns: 2rem minmax(0, 1fr);
+                min-height: 4.1rem;
+                padding: 0.8rem;
+            }
+
+            .tx-profile-status-grid {
+                padding: 0.8rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
+        }
+
+
+        /* Profile navigation and merged KYC */
+        .tx-profile-kyc-notice {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem 1.1rem;
+            border: 1px solid rgba(251, 191, 36, 0.24);
+            border-radius: 1.3rem;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.10), rgba(15, 23, 42, 0.82));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .tx-profile-kyc-notice[data-kyc-state="approved"] {
+            border-color: rgba(52, 211, 153, 0.28);
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.11), rgba(15, 23, 42, 0.82));
+        }
+
+        .tx-profile-kyc-notice[data-kyc-state="rejected"] {
+            border-color: rgba(248, 113, 113, 0.30);
+            background: linear-gradient(135deg, rgba(248, 113, 113, 0.10), rgba(15, 23, 42, 0.82));
+        }
+
+        .tx-profile-kyc-notice-icon {
+            width: 3rem;
+            height: 3rem;
+            display: grid;
+            place-items: center;
+            border-radius: 1rem;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.10);
+        }
+
+        .tx-profile-kyc-notice[data-kyc-state="approved"] .tx-profile-kyc-notice-icon {
+            color: #34d399;
+            background: rgba(52, 211, 153, 0.10);
+        }
+
+        .tx-profile-kyc-notice[data-kyc-state="rejected"] .tx-profile-kyc-notice-icon {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.10);
+        }
+
+        .tx-profile-kyc-notice-icon svg { width: 1.45rem; height: 1.45rem; }
+        .tx-profile-kyc-notice-copy { min-width: 0; }
+        .tx-profile-kyc-notice-copy .tx-profile-section-kicker { margin-bottom: 0.18rem; }
+        .tx-profile-kyc-notice-copy h2 { margin: 0; color: #f8fafc; font-size: 1rem; line-height: 1.35; font-weight: 700; }
+        .tx-profile-kyc-notice-copy p:last-child { margin: 0.3rem 0 0; color: #94a3b8; font-size: 0.78rem; line-height: 1.55; }
+
+        .tx-profile-kyc-notice-btn {
+            min-height: 2.7rem;
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: 0.9rem;
+            padding: 0.7rem 1rem;
+            color: #03111d;
+            background: #22d3ee;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: transform 180ms ease, background 180ms ease;
+        }
+
+        .tx-profile-kyc-notice-btn:hover { transform: translateY(-1px); background: #67e8f9; }
+
+        .tx-profile-tabs {
+            display: flex;
+            gap: 0.55rem;
+            margin-bottom: 1.25rem;
+            padding: 0.55rem;
+            overflow-x: auto;
+            border: 1px solid var(--tx-profile-border);
+            border-radius: 1.2rem;
+            background: rgba(5, 12, 27, 0.82);
+            scrollbar-width: none;
+        }
+
+        .tx-profile-tabs::-webkit-scrollbar { display: none; }
+
+        .tx-profile-tab {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 2.8rem;
+            flex: 1 0 auto;
+            border: 1px solid transparent;
+            border-radius: 0.9rem;
+            padding: 0.7rem 1rem;
+            color: #94a3b8;
+            background: transparent;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease, transform 180ms ease;
+        }
+
+        .tx-profile-tab:hover { color: #e2e8f0; background: rgba(255, 255, 255, 0.035); }
+        .tx-profile-tab.active { color: #67e8f9; border-color: rgba(34, 211, 238, 0.24); background: rgba(34, 211, 238, 0.09); }
+        .tx-profile-tab svg { width: 1.05rem; height: 1.05rem; flex: 0 0 auto; }
+
+        .tx-profile-tab-badge {
+            border-radius: 999px;
+            padding: 0.18rem 0.45rem;
+            color: #fde68a;
+            background: rgba(251, 191, 36, 0.12);
+            font-size: 0.58rem;
+            line-height: 1.2;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-tab-badge[data-state="approved"] { color: #6ee7b7; background: rgba(52, 211, 153, 0.12); }
+        .tx-profile-tab-badge[data-state="rejected"] { color: #fca5a5; background: rgba(248, 113, 113, 0.12); }
+
+        .tx-profile-tab-panel { animation: txProfilePanelIn 220ms ease both; }
+        .tx-profile-tab-panel[hidden], .tx-profile-tab-panel.hidden { display: none !important; }
+        .tx-profile-single-column { width: min(100%, 58rem); margin: 0 auto; }
+        .tx-profile-security-column { width: min(100%, 52rem); }
+        .tx-profile-tab-panel .tx-history-section { margin-top: 0; }
+
+        .tx-profile-kyc-shell {
+            overflow: hidden;
+            border: 1px solid var(--tx-profile-border);
+            border-radius: 1.65rem;
+            padding: 1.15rem;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.76), rgba(5, 12, 27, 0.82));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .tx-profile-kyc-shell > .mb-8 { margin-bottom: 1.25rem !important; }
+
+        @keyframes txProfilePanelIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 700px) {
+            .tx-profile-kyc-notice { grid-template-columns: auto minmax(0, 1fr); }
+            .tx-profile-kyc-notice-btn { grid-column: 1 / -1; width: 100%; }
+            .tx-profile-tab { flex: 0 0 auto; }
+            .tx-profile-kyc-shell { padding: 0.75rem; border-radius: 1.3rem; }
+        }
+
+        /* ===== Final compact Profile UI: Overview + Security only ===== */
+        html { scroll-padding-top: 8rem; }
+
+        .tx-profile-wrap {
+            width: min(calc(100% - 2rem), 82rem);
+            padding-top: 1.6rem;
+        }
+
+        .tx-profile-hero {
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .tx-profile-summary {
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 1.2rem 1.5rem;
+            align-items: center;
+            padding: 1.35rem 1.45rem;
+        }
+
+        .tx-profile-summary::before {
+            content: "";
+            position: absolute;
+            right: -5rem;
+            top: -7rem;
+            width: 18rem;
+            height: 18rem;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.14), transparent 68%);
+            pointer-events: none;
+        }
+
+        .tx-profile-summary-main {
+            position: relative;
+            z-index: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tx-profile-summary .tx-profile-avatar {
+            width: 4.4rem;
+            height: 4.4rem;
+            border-radius: 1.25rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .tx-profile-summary .tx-profile-eyebrow {
+            margin-bottom: 0.35rem;
+            font-size: 0.66rem;
+        }
+
+        .tx-profile-summary .tx-profile-title {
+            font-size: clamp(1.75rem, 3vw, 2.45rem);
+            line-height: 1.08;
+        }
+
+        .tx-profile-hero-email {
+            margin: 0.45rem 0 0;
+            color: #94a3b8;
+            font-size: 0.86rem;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .tx-profile-hero-client-id-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.35rem;
+        }
+        .tx-profile-hero-client-id {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.86rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .tx-profile-copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: none;
+            padding: 0.2rem;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .tx-profile-copy-btn:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .tx-profile-copy-success {
+            font-size: 0.72rem;
+            color: #34d399;
+        }
+
+        .tx-profile-member-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: 1px solid rgba(34, 211, 238, 0.18);
+            border-radius: 999px;
+            padding: 0.28rem 0.55rem;
+            color: #a5f3fc;
+            background: rgba(34, 211, 238, 0.07);
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .tx-profile-summary .tx-profile-edit-btn {
+            align-self: start;
+            min-height: 2.55rem;
+            padding: 0.62rem 0.9rem;
+        }
+
+        .tx-profile-status-strip {
+            position: relative;
+            z-index: 1;
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.65rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.10);
+        }
+
+        .tx-profile-status-strip .tx-profile-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-height: 3.35rem;
+            padding: 0.72rem 0.85rem;
+            border-radius: 0.95rem;
+            background: rgba(2, 6, 23, 0.42);
+        }
+
+        .tx-profile-status-strip .tx-profile-status-label {
+            font-size: 0.64rem;
+        }
+
+        .tx-profile-status-strip #profileAccountStatus,
+        .tx-profile-status-strip #profileKycStatus,
+        .tx-profile-status-strip #profileSessionStatus {
+            margin: 0 !important;
+            font-size: 0.88rem !important;
+            white-space: nowrap;
+        }
+
+        .tx-profile-kyc-notice[hidden],
+        .tx-profile-kyc-notice.hidden {
+            display: none !important;
+        }
+
+        .tx-profile-kyc-notice {
+            margin-bottom: 0.9rem;
+        }
+
+        .tx-profile-tabs {
+            scroll-margin-top: 8rem;
+            margin-bottom: 1rem;
+            padding: 0.42rem;
+            border-radius: 1rem;
+        }
+
+        .tx-profile-tab {
+            min-height: 2.6rem;
+            border-radius: 0.75rem;
+            padding: 0.62rem 0.85rem;
+            font-size: 0.75rem;
+        }
+
+        .tx-profile-single-column,
+        .tx-profile-security-column {
+            width: 100%;
+            max-width: none;
+        }
+
+        .tx-profile-overview-card {
+            padding: 1.35rem;
+        }
+
+        .tx-profile-overview-card .tx-profile-section-head {
+            margin-bottom: 1rem;
+        }
+
+        .tx-profile-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .tx-profile-overview-item {
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            min-height: 7.4rem;
+            padding: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 1.05rem;
+            background: rgba(2, 6, 23, 0.48);
+        }
+
+        .tx-profile-overview-item::after {
+            content: "";
+            position: absolute;
+            right: -2.2rem;
+            bottom: -2.5rem;
+            width: 6rem;
+            height: 6rem;
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.045);
+            pointer-events: none;
+        }
+
+        .tx-profile-overview-icon {
+            position: relative;
+            z-index: 1;
+            width: 2.15rem;
+            height: 2.15rem;
+            display: grid;
+            place-items: center;
+            margin-bottom: 0.75rem;
+            border-radius: 0.72rem;
+            color: #67e8f9;
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .tx-profile-overview-icon svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .tx-profile-overview-label {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #64748b;
+            font-size: 0.64rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .tx-profile-overview-value {
+            position: relative;
+            z-index: 1;
+            margin: 0.35rem 0 0;
+            color: #f8fafc;
+            font-size: 0.93rem;
+            font-weight: 600;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .tx-profile-security-card {
+            display: grid;
+            grid-template-columns: minmax(15rem, 0.72fr) minmax(0, 1.28fr);
+            gap: 1.2rem;
+            padding: 1.2rem;
+        }
+
+        .tx-profile-security-aside {
+            position: relative;
+            overflow: hidden;
+            min-height: 100%;
+            padding: 1.3rem;
+            border: 1px solid rgba(34, 211, 238, 0.14);
+            border-radius: 1.15rem;
+            background:
+                radial-gradient(circle at 20% 0%, rgba(34, 211, 238, 0.12), transparent 45%),
+                rgba(2, 6, 23, 0.48);
+        }
+
+        .tx-profile-security-shield {
+            width: 3.1rem;
+            height: 3.1rem;
+            display: grid;
+            place-items: center;
+            margin-bottom: 1rem;
+            border-radius: 1rem;
+            color: #67e8f9;
+            background: rgba(34, 211, 238, 0.10);
+        }
+
+        .tx-profile-security-shield svg {
+            width: 1.45rem;
+            height: 1.45rem;
+        }
+
+        .tx-profile-security-aside h2 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .tx-profile-security-aside p {
+            margin: 0.55rem 0 0;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            line-height: 1.7;
+        }
+
+        .tx-profile-security-note {
+            margin-top: 1.1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.10);
+            color: #cbd5e1;
+            font-size: 0.74rem;
+            line-height: 1.65;
+        }
+
+        .tx-profile-security-form-wrap {
+            min-width: 0;
+            padding: 0.25rem 0.15rem;
+        }
+
+        .tx-profile-security-form-wrap .tx-profile-section-head {
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .tx-profile-security-card {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-overview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tx-profile-overview-item:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .tx-profile-wrap {
+                width: min(calc(100% - 1rem), 82rem);
+                padding-top: 1rem;
+            }
+
+            .tx-profile-summary {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .tx-profile-summary .tx-profile-edit-btn {
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+                min-height: 2.35rem;
+                padding: 0.55rem 0.75rem;
+            }
+
+            .tx-profile-summary-main {
+                padding-right: 6.7rem;
+            }
+
+            .tx-profile-status-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-profile-overview-item:last-child {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tx-profile-summary-main {
+                align-items: flex-start;
+                padding-right: 0;
+            }
+
+            .tx-profile-summary .tx-profile-avatar {
+                width: 3.7rem;
+                height: 3.7rem;
+                border-radius: 1.05rem;
+                font-size: 1.1rem;
+            }
+
+            .tx-profile-summary .tx-profile-edit-btn {
+                position: static;
+                width: 100%;
+            }
+
+            .tx-profile-summary {
+                gap: 0.9rem;
+            }
+
+            .tx-profile-title-row {
+                gap: 0.55rem;
+            }
+
+            .tx-profile-member-badge {
+                display: none;
+            }
+
+            .tx-profile-security-card,
+            .tx-profile-overview-card {
+                padding: 0.85rem;
+            }
+        }
+
+
+
+        /* ===== Mobile profile tabs: no clipping on small / curved screens ===== */
+        @media (max-width: 700px) {
+            .tx-profile-wrap {
+                width: 100%;
+                padding-left: max(0.65rem, env(safe-area-inset-left));
+                padding-right: max(0.65rem, env(safe-area-inset-right));
+                box-sizing: border-box;
+            }
+
+            .tx-profile-tabs {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+                gap: 0.42rem;
+                overflow: visible;
+                overscroll-behavior-x: none;
+                padding: 0.42rem;
+                box-sizing: border-box;
+            }
+
+            .tx-profile-tab {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                flex: none;
+                gap: 0.38rem;
+                padding: 0.62rem 0.45rem;
+                font-size: 0.72rem;
+                line-height: 1.2;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                box-sizing: border-box;
+            }
+
+            .tx-profile-tab svg {
+                width: 0.98rem;
+                height: 0.98rem;
+            }
+
+            .tx-profile-tab-badge {
+                flex: 0 0 auto;
+                padding: 0.16rem 0.34rem;
+                font-size: 0.5rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .tx-profile-wrap {
+                padding-left: max(0.5rem, env(safe-area-inset-left));
+                padding-right: max(0.5rem, env(safe-area-inset-right));
+            }
+
+            .tx-profile-tabs {
+                gap: 0.34rem;
+                padding: 0.35rem;
+                border-radius: 0.9rem;
+            }
+
+            .tx-profile-tab {
+                gap: 0.3rem;
+                min-height: 2.45rem;
+                padding: 0.55rem 0.3rem;
+                border-radius: 0.68rem;
+                font-size: 0.66rem;
+            }
+
+            .tx-profile-tab svg {
+                width: 0.9rem;
+                height: 0.9rem;
+            }
+
+            .tx-profile-tab-badge {
+                padding: 0.14rem 0.28rem;
+                font-size: 0.46rem;
+            }
+        }
+
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white" data-page="profile">
+    <div data-component="navbar"></div>
+
+    <main class="tx-profile-main">
+        <section class="tx-profile-wrap">
+            <div class="tx-profile-hero">
+                <header class="tx-profile-card tx-profile-summary">
+                    <div class="tx-profile-summary-main">
+                        <div class="tx-profile-avatar" aria-hidden="true">
+                            <span id="profileAvatarInitials">TX</span>
+                        </div>
+
+                        <div class="tx-profile-intro-body">
+                            <div class="tx-profile-eyebrow">Personal Account</div>
+                            <div class="tx-profile-title-row">
+                                <h1 id="profileHeroName" class="tx-profile-title">Profile</h1>
+                                <span class="tx-profile-member-badge">TraidiumX User</span>
+                            </div>
+                            <p id="profileHeroEmail" class="tx-profile-hero-email">Account information and security settings</p>
+                            <div class="tx-profile-hero-client-id-container">
+                                <p id="profileHeroClientID" class="tx-profile-hero-client-id">Client ID: --</p>
+                                <button id="copyClientIDBtn" class="tx-profile-copy-btn hidden" title="Copy Client ID" type="button">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                                    </svg>
+                                </button>
+                                <span id="copyIDSuccessMsg" class="tx-profile-copy-success hidden">Copied!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="profileEditBtn" type="button" class="tx-profile-edit-btn" aria-haspopup="dialog" aria-controls="profileEditModal">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M13.5 6.5 17.5 10.5M5 19l3.1-.6L18.2 8.3a2.1 2.1 0 0 0-3-3L5.1 15.4 5 19Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Edit Profile
+                    </button>
+
+                    <div class="tx-profile-status-strip" aria-label="Account status overview">
+                        <div class="tx-profile-status">
+                            <p class="tx-profile-status-label">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="m8.5 12 2.2 2.2L15.8 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/></svg>
+                                Account
+                            </p>
+                            <h3 id="profileAccountStatus" class="text-emerald-400">--</h3>
+                        </div>
+
+                        <div class="tx-profile-status">
+                            <p class="tx-profile-status-label">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5.5 5.6v5.1c0 4.2 2.5 7.9 6.5 9.3 4-1.4 6.5-5.1 6.5-9.3V5.6L12 3Z" stroke="currentColor" stroke-width="1.6"/><path d="m9.3 11.8 1.7 1.7 3.8-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                KYC
+                            </p>
+                            <h3 id="profileKycStatus" class="text-orange-300">--</h3>
+                        </div>
+
+                        <div class="tx-profile-status">
+                            <p class="tx-profile-status-label">
+                                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4l2.8 1.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Session
+                            </p>
+                            <h3 id="profileSessionStatus" class="text-cyan-400">Checking</h3>
+                        </div>
+                    </div>
+                </header>
+            </div>
+
+            <div id="profileMessage" class="mb-6 hidden rounded-2xl border px-5 py-4 text-sm font-black"></div>
+
+            <section id="profileKycNotice" class="tx-profile-kyc-notice" data-kyc-state="pending" aria-live="polite">
+                <div class="tx-profile-kyc-notice-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5.5 5.6v5.1c0 4.2 2.5 7.9 6.5 9.3 4-1.4 6.5-5.1 6.5-9.3V5.6L12 3Z" stroke="currentColor" stroke-width="1.7"/><path d="m9.2 12 1.7 1.7 4-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="tx-profile-kyc-notice-copy">
+                    <p class="tx-profile-section-kicker">Identity Verification</p>
+                    <h2 id="profileKycNoticeTitle">Complete KYC before your first withdrawal</h2>
+                    <p id="profileKycNoticeText">Verify mobile OTP, Aadhaar number and matching front/back Aadhaar photos to enable withdrawals. Deposit, transfer and trading do not require KYC.</p>
+                </div>
+                <button id="profileKycNoticeBtn" type="button" class="tx-profile-kyc-notice-btn" data-profile-open-kyc>Complete KYC</button>
+            </section>
+
+            <nav class="tx-profile-tabs" aria-label="Profile sections">
+                <button type="button" class="tx-profile-tab active" data-profile-tab="overview" aria-controls="profileOverviewPanel" aria-selected="true">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 20c.6-3.5 3-5.5 6.5-5.5s5.9 2 6.5 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    Overview
+                </button>
+                <button type="button" class="tx-profile-tab" data-profile-tab="security" aria-controls="profileSecurityPanel" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M8.5 10V7.5a3.5 3.5 0 1 1 7 0V10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    Security
+                </button>
+                <button type="button" class="tx-profile-tab" data-profile-tab="kyc" aria-controls="profileKycPanel" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 5.5 5.6v5.1c0 4.2 2.5 7.9 6.5 9.3 4-1.4 6.5-5.1 6.5-9.3V5.6L12 3Z" stroke="currentColor" stroke-width="1.7"/></svg>
+                    KYC
+                    <span id="profileKycTabBadge" class="tx-profile-tab-badge">Required</span>
+                </button>
+                <button type="button" class="tx-profile-tab" data-profile-tab="wallet-history" aria-controls="profileWalletHistoryPanel" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="6" width="17" height="13" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M15 11h5.5v4H15a2 2 0 1 1 0-4Z" stroke="currentColor" stroke-width="1.7"/></svg>
+                    Wallet History
+                </button>
+                <button type="button" class="tx-profile-tab" data-profile-tab="sub-accounts" aria-controls="profileSubAccountsPanel" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Sub Accounts
+                </button>
+                <button type="button" class="tx-profile-tab" data-profile-tab="bank-accounts" aria-controls="profileBankAccountsPanel" aria-selected="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                    Bank Accounts
+                </button>
+            </nav>
+
+            <div id="profileOverviewPanel" class="tx-profile-tab-panel" data-profile-panel="overview">
+                <div class="tx-profile-single-column">
+                    <section class="tx-profile-card tx-profile-overview-card">
+                        <div class="tx-profile-section-head">
+                            <div class="tx-profile-heading-wrap">
+                                <p class="tx-profile-section-kicker">Account Overview</p>
+                                <h2 class="tx-profile-section-title">Personal Information</h2>
+                                <p class="tx-profile-section-copy">Your saved TraidiumX account details.</p>
+                            </div>
+                        </div>
+
+                        <div class="tx-profile-overview-grid">
+                            <article class="tx-profile-overview-item">
+                                <span class="tx-profile-overview-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 20c.6-3.5 3-5.5 6.5-5.5s5.9 2 6.5 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                                </span>
+                                <p class="tx-profile-overview-label">Full Name</p>
+                                <h3 id="profileNameText" class="tx-profile-overview-value">--</h3>
+                            </article>
+
+                            <article class="tx-profile-overview-item">
+                                <span class="tx-profile-overview-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </span>
+                                <p class="tx-profile-overview-label">Email Address</p>
+                                <h3 id="profileEmailText" class="tx-profile-overview-value">--</h3>
+                            </article>
+
+                            <article class="tx-profile-overview-item">
+                                <span class="tx-profile-overview-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5.5" width="16" height="14" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M8 3v5M16 3v5M4 10h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                </span>
+                                <p class="tx-profile-overview-label">Member Since</p>
+                                <h3 id="profileCreatedText" class="tx-profile-overview-value">--</h3>
+                            </article>
+
+                            <article class="tx-profile-overview-item">
+                                <span class="tx-profile-overview-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </span>
+                                <p class="tx-profile-overview-label">Trading Platform</p>
+                                <h3 id="profilePlatformText" class="tx-profile-overview-value">--</h3>
+                            </article>
+
+                            <article class="tx-profile-overview-item">
+                                <span class="tx-profile-overview-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </span>
+                                <p class="tx-profile-overview-label">Preferred Plan</p>
+                                <h3 id="profilePreferredPlanText" class="tx-profile-overview-value">--</h3>
+                            </article>
+                            <article class="tx-profile-overview-item">
+                                <div>
+                                    <span class="tx-profile-overview-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </span>
+                                    <p class="tx-profile-overview-label">Primary Currency</p>
+                                    <h3 id="profilePrimaryCurrencyText" class="tx-profile-overview-value text-emerald-400 font-bold">INR (₹)</h3>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <!-- MetaTrader 5 Connection Section -->
+                    <section id="profileMt5ConnectionSection" class="tx-profile-card tx-profile-overview-card mt-5 hidden">
+                        <div class="tx-profile-section-head">
+                            <div class="tx-profile-heading-wrap">
+                                <p class="tx-profile-section-kicker">MetaTrader 5 Connection</p>
+                                <h2 class="tx-profile-section-title">Connect your MT5 account</h2>
+                                <p class="tx-profile-section-copy">Enter the login details you received by email to connect to MetaTrader 5.</p>
+                            </div>
+                        </div>
+                        
+                        <form id="profileMt5Form" autocomplete="off" class="tx-profile-form-grid" style="display: grid; gap: 20px; grid-template-columns: 1fr 1fr; margin-top: 24px;">
+                            <div style="grid-column: span 1;">
+                                <label for="profileMt5Login" class="tx-profile-label" style="display: block; font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 8px;">MT5 Login ID</label>
+                                <input id="profileMt5Login" name="mt5_login_id" type="text" autocomplete="new-password" class="tx-profile-input" style="width: 100%; padding: 12px; background: #020617; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-weight: 600; outline: none; border-color: rgba(255,255,255,0.15);" placeholder="Enter MT5 Login ID" required />
+                            </div>
+                            <div style="grid-column: span 1;">
+                                <label for="profileMt5Server" class="tx-profile-label" style="display: block; font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 8px;">Server Name</label>
+                                <input id="profileMt5Server" name="mt5_server" type="text" autocomplete="new-password" class="tx-profile-input" style="width: 100%; padding: 12px; background: #020617; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-weight: 600; outline: none; border-color: rgba(255,255,255,0.15);" placeholder="Enter Server Name" required />
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label for="profileMt5Password" class="tx-profile-label" style="display: block; font-size: 13px; font-weight: 700; color: #94a3b8; margin-bottom: 8px;">Password</label>
+                                <input id="profileMt5Password" name="mt5_password" type="password" autocomplete="new-password" class="tx-profile-input" style="width: 100%; padding: 12px; background: #020617; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-weight: 600; outline: none; border-color: rgba(255,255,255,0.15);" placeholder="Enter MT5 password" required />
+                            </div>
+                            <div style="grid-column: span 2; margin-top: 10px;">
+                                <button id="profileMt5ConnectBtn" type="submit" class="tx-profile-primary-btn" style="width: 100%; padding: 14px; background: #22d3ee; color: #020617; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.2s;">Connect MT5 Account</button>
+                            </div>
+                        </form>
+                        <p id="profileMt5Msg" class="mt-3 text-sm font-semibold" style="text-align: center; font-weight: bold;"></p>
+                    </section>
+
+                </div>
+            </div>
+
+            <div id="profileSecurityPanel" class="tx-profile-tab-panel hidden" data-profile-panel="security" hidden>
+                <div class="tx-profile-single-column tx-profile-security-column">
+                    <section class="tx-profile-card tx-profile-security-card">
+                        <aside class="tx-profile-security-aside">
+                            <div class="tx-profile-security-shield" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5.5 5.6v5.1c0 4.2 2.5 7.9 6.5 9.3 4-1.4 6.5-5.1 6.5-9.3V5.6L12 3Z" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 12h5M12 9.5v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                            </div>
+                            <p class="tx-profile-section-kicker">Account Security</p>
+                            <h2>Protect your account</h2>
+                            <p>Use a unique password that you do not use on any other website or application.</p>
+                            <div class="tx-profile-security-note">After a successful password change, your current signed-in session will remain active.</div>
+                        </aside>
+
+                        <div class="tx-profile-security-form-wrap">
+                            <div class="tx-profile-section-head">
+                                <div class="tx-profile-heading-wrap">
+                                    <p class="tx-profile-section-kicker">Password Settings</p>
+                                    <h2 class="tx-profile-section-title">Change Password</h2>
+                                    <p class="tx-profile-section-copy">Enter your current password and choose a new secure password.</p>
+                                </div>
+                            </div>
+
+                            <form id="passwordChangeForm" class="tx-profile-form-grid">
+                                <div class="tx-profile-field-full">
+                                    <div class="tx-profile-label-row">
+                                        <label for="currentPassword" class="tx-profile-label">Current Password</label>
+                                        <a href="./forgot-password.html" class="tx-profile-forgot">Forgot Password?</a>
+                                    </div>
+                                    <input id="currentPassword" name="current_password" type="password" autocomplete="current-password" class="tx-profile-input" placeholder="Enter current password" />
+                                    <p id="currentPasswordError" class="tx-profile-error"></p>
+                                </div>
+
+                                <div>
+                                    <label for="newPassword" class="tx-profile-label">New Password</label>
+                                    <input id="newPassword" name="new_password" type="password" autocomplete="new-password" class="tx-profile-input" placeholder="New password" />
+                                    <p id="newPasswordError" class="tx-profile-error"></p>
+                                </div>
+
+                                <div>
+                                    <label for="confirmNewPassword" class="tx-profile-label">Confirm Password</label>
+                                    <input id="confirmNewPassword" name="confirm_password" type="password" autocomplete="new-password" class="tx-profile-input" placeholder="Confirm password" />
+                                    <p id="confirmNewPasswordError" class="tx-profile-error"></p>
+                                </div>
+
+                                <div class="tx-profile-field-full">
+                                    <button id="passwordChangeBtn" type="submit" class="tx-profile-secondary-btn disabled:cursor-not-allowed disabled:opacity-60">Change Password</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="profileKycPanel" class="tx-profile-tab-panel hidden" data-profile-panel="kyc" hidden>
+                <div class="tx-profile-kyc-shell">
+            <div class="mb-8 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl sm:p-8">
+                    <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-xs font-black text-amber-300">
+                        <span class="h-2 w-2 rounded-full bg-amber-400 shadow-lg shadow-amber-400/50"></span>
+                        <span id="kycBadgeText">DigiLocker Verification</span>
+                    </div>
+
+                    <h1 id="kycMainTitle" class="text-4xl font-black leading-tight sm:text-6xl">
+                        Complete KYC via DigiLocker.
+                    </h1>
+
+                    <p id="kycMainDesc" class="mt-5 max-w-2xl text-sm leading-8 text-slate-300 sm:text-base">
+                        Verify your mobile number with OTP, then securely connect to DigiLocker to fetch and verify your Aadhaar Card and PAN Verification Record. The system verifies your details instantly.
+                    </p>
+                </div>
+
+                <div class="rounded-[2rem] border border-cyan-400/25 bg-cyan-400/[0.06] p-6 backdrop-blur-xl sm:p-8">
+                    <p class="text-sm font-black uppercase tracking-[0.16em] text-cyan-300">Current Status</p>
+                    <h2 id="kycStatusText" class="mt-4 text-4xl font-black text-orange-300">Checking</h2>
+                    <p id="kycRemarkText" class="mt-3 text-sm leading-7 text-slate-300">Loading your KYC status from backend.</p>
+
+                    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div data-kyc-step-card="1" class="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 p-4 transition">
+                            <p class="text-xs text-slate-500">Step 1</p>
+                            <h3 class="mt-1 font-black text-white text-xs">Mobile OTP</h3>
+                            <p data-kyc-step-status="1" class="mt-2 text-[11px] font-black uppercase tracking-wider text-cyan-300">Continue</p>
+                        </div>
+                        <div data-kyc-step-card="2" class="rounded-2xl border border-white/10 bg-slate-950/60 p-4 opacity-60 transition">
+                            <p class="text-xs text-slate-500">Step 2</p>
+                            <h3 id="kycStep2CardLabel" class="mt-1 font-black text-white text-xs">DigiLocker</h3>
+                            <p data-kyc-step-status="2" class="mt-2 text-[11px] font-black uppercase tracking-wider text-slate-600">Locked</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="kycMessage" class="mb-6 hidden rounded-2xl border px-5 py-4 text-sm font-black"></div>
+
+            <div class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <section class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl sm:p-8">
+                    <div class="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                            <h2 id="kycSubmitTitle" class="text-2xl font-black">DigiLocker Verification</h2>
+                            <p id="kycSubmitDesc" class="mt-1 text-sm text-slate-400">Complete mobile verification first, then authenticate with DigiLocker.</p>
+                        </div>
+                        <span id="kycFormBadge" class="rounded-full border border-orange-400/30 bg-orange-400/10 px-4 py-2 text-xs font-black text-orange-300">Verify required</span>
+                    </div>
+
+                    <!-- Step 1: Mobile OTP Panel -->
+                    <div id="kycMobilePanel" class="mt-6 space-y-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+                        <h3 class="text-lg font-black text-white">Step 1: Mobile Number Verification</h3>
+                        <p class="text-xs text-slate-400">Verify your mobile number to proceed to document upload.</p>
+                        
+                        <div class="grid gap-4 sm:grid-cols-[1fr_auto]">
+                            <div>
+                                <label for="kycMobileNumber" class="mb-2 block text-sm font-black text-slate-300">Mobile Number</label>
+                                <input id="kycMobileNumber" type="tel" maxlength="10" class="w-full rounded-2xl border border-white/10 bg-slate-950 px-5 py-4 text-sm font-bold text-white outline-none transition focus:border-cyan-400" placeholder="10 digit mobile number" />
+                                <p id="kycMobileNumberError" class="mt-2 text-xs font-bold text-red-300"></p>
+                            </div>
+                            <div class="flex items-end">
+                                <button id="kycSendOtpBtn" type="button" class="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-cyan-300">Send OTP</button>
+                            </div>
+                        </div>
+
+                        <!-- OTP Verification Sub-panel -->
+                        <div id="kycMobileOtpBox" class="hidden rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4 mt-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">OTP Verification</p>
+                                    <p class="mt-2 text-sm font-semibold leading-6 text-slate-300">Enter the 6 digit code sent to your mobile.</p>
+                                </div>
+                                <span id="kycMobileOtpTimer" class="rounded-full border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-black text-amber-200">Valid 05:00</span>
+                            </div>
+
+                            <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+                                <input id="kycMobileOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6 digit code" class="w-full rounded-2xl border border-white/10 bg-slate-950 px-5 py-4 text-center text-lg font-black tracking-[0.25em] text-white outline-none transition focus:border-cyan-400" />
+                                <button id="kycVerifyOtpBtn" type="button" class="rounded-2xl bg-cyan-400 px-6 py-4 text-sm font-black text-slate-950 transition hover:bg-cyan-300">Verify</button>
+                            </div>
+                            <p id="kycMobileOtpError" class="mt-2 text-xs font-bold text-red-300"></p>
+                            <p id="kycMobileDevOtp" class="mt-3 hidden rounded-2xl border border-amber-400/20 bg-amber-400/[0.08] px-4 py-3 text-xs font-bold leading-6 text-amber-200"></p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: DigiLocker Verification Panel -->
+                    <div id="kycForm" class="hidden mt-6 space-y-6">
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="flex items-center justify-center h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    </svg>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="text-lg font-black text-white">Identity Verification</h3>
+                                    <p class="text-xs text-slate-400">Verify Aadhaar via DigiLocker — OTP goes to your Aadhaar-linked mobile.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="rounded-2xl border border-amber-400/20 bg-amber-400/[0.04] p-4 text-xs font-semibold leading-relaxed text-amber-200 mb-5 text-left">
+                                Tap <strong>Open DigiLocker</strong>. OTP goes to the <strong>mobile registered with your Aadhaar (UIDAI)</strong>.
+                            </div>
+                            
+                            <div class="rounded-2xl border border-white/5 bg-slate-950/60 p-5 mb-6 text-sm font-semibold text-slate-300 text-left">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">What happens next</h4>
+                                <ol class="list-decimal list-inside space-y-2.5">
+                                    <li>DigiLocker window opens (allow pop-ups if blocked).</li>
+                                    <li>Enter Aadhaar / continue DigiLocker steps.</li>
+                                    <li>OTP SMS arrives on Aadhaar-linked mobile.</li>
+                                    <li>After success, KYC is approved automatically.</li>
+                                </ol>
+                                <p class="mt-4 text-xs font-bold text-amber-300/80 leading-5">Digio sandbox mode — use Digio test credentials if live UIDAI OTP is not enabled on your Digio account yet.</p>
+                            </div>
+                            
+                            <button id="kycOpenDigioBtn" type="button" class="w-full flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black transition duration-200 transform hover:scale-[1.01] active:scale-[0.99]" style="background-color: #ff9f43 !important; color: #1e272e !important; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.4) !important; border: none !important; font-weight: 800 !important; cursor: pointer !important;">
+                                Open DigiLocker <span class="text-xl">&rsaquo;</span>
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div id="kycApprovedMessagePanel" class="hidden text-center" style="margin-top: 24px; border: 1px solid rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.04); border-radius: 24px; padding: 32px 24px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.15);">
+                            <svg style="width: 36px; height: 36px; color: #34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-white" style="font-size: 20px; font-weight: 900; margin-bottom: 8px;">Verification Complete</h3>
+                        <p id="kycApprovedMessageText" class="text-slate-300" style="font-size: 13px; line-height: 22px; max-width: 320px; margin: 0 auto;">Your Aadhaar Card KYC has been verified and approved. Withdrawal access is now enabled.</p>
+                    </div>
+
+                    <div id="kycPendingMessagePanel" class="hidden text-center" style="margin-top: 24px; border: 1px solid rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.04); border-radius: 24px; padding: 32px 24px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.15);">
+                            <svg style="width: 36px; height: 36px; color: #f59e0b;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-white" style="font-size: 20px; font-weight: 900; margin-bottom: 8px;">Verification Pending</h3>
+                        <p id="kycPendingMessageText" class="text-slate-300" style="font-size: 13px; line-height: 22px; max-width: 320px; margin: 0 auto;">Your Aadhaar document verification is processing. The status will update when the OCR verification finishes.</p>
+                    </div>
+                </section>
+
+                <section class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl sm:p-8">
+                    <h2 class="text-2xl font-black">Submitted Details</h2>
+                    <p id="kycSubmittedDetailsDesc" class="mt-1 text-sm text-slate-400">Latest Aadhaar card verification result.</p>
+
+                    <div class="mt-6 space-y-4">
+                        <div class="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Name</p>
+                            <h3 id="kycSubmittedName" class="mt-2 break-words text-xl font-black text-white">--</h3>
+                        </div>
+
+                        <div class="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
+                            <p id="kycSubmittedNumberLabel" class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Aadhaar Card Number</p>
+                            <h3 id="kycSubmittedNumber" class="mt-2 break-words text-xl font-black text-white">--</h3>
+                        </div>
+
+                        <div class="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
+                            <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-500">Document Type</p>
+                            <h3 id="kycSubmittedDoc" class="mt-2 break-words text-xl font-black text-white">DigiLocker</h3>
+                        </div>
+
+                        <div class="rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.06] p-5">
+                            <h3 class="font-black text-cyan-300">Wallet rule</h3>
+                            <p class="mt-2 text-sm leading-7 text-slate-400">
+                                KYC approval is compulsory for deposits, trading, and withdrawals. Complete identity verification to unlock full account capabilities.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+                </div>
+            </div>
+
+            <div id="profileWalletHistoryPanel" class="tx-profile-tab-panel hidden" data-profile-panel="wallet-history" hidden>
+            <section class="tx-profile-card tx-history-section">
+                <div class="tx-history-head">
+                    <div class="tx-profile-heading-wrap">
+                        <p class="tx-profile-section-kicker">Wallet Activity</p>
+                        <h2 class="tx-profile-section-title">Deposit & Withdrawal History</h2>
+                        <p class="tx-profile-section-copy">Latest wallet requests are shown here. Each side displays 10 records per page.</p>
+                    </div>
+                    <button id="historyRefreshBtn" type="button" class="border border-cyan-400/30 bg-cyan-400/10 text-cyan-200 disabled:cursor-not-allowed disabled:opacity-60">Refresh History</button>
+                </div>
+
+                <div class="tx-history-stats">
+                    <div class="tx-history-stat">
+                        <p class="tx-history-stat-label">Deposits</p>
+                        <h3 id="depositCountText" class="mt-2 text-3xl font-black text-emerald-400">0</h3>
+                    </div>
+                    <div class="tx-history-stat">
+                        <p class="tx-history-stat-label">Withdrawals</p>
+                        <h3 id="withdrawalCountText" class="mt-2 text-3xl font-black text-orange-300">0</h3>
+                    </div>
+                    <div class="tx-history-stat">
+                        <p class="tx-history-stat-label">Latest Activity</p>
+                        <h3 id="latestActivityText" class="mt-2 break-words text-xl font-black text-cyan-300">--</h3>
+                    </div>
+                </div>
+
+                <div class="tx-history-grid">
+                    <div class="tx-history-column">
+                        <div class="tx-history-column-head">
+                            <h3 class="tx-history-column-title">Deposit History</h3>
+                            <span class="tx-history-badge tx-history-badge-credit">Credit</span>
+                        </div>
+                        <div id="depositHistoryList" class="grid gap-3"></div>
+                        <p id="depositHistoryEmpty" class="hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm font-bold text-slate-400">No deposit history found.</p>
+                        <div id="depositHistoryPagination" class="mt-5 hidden flex-wrap items-center justify-center gap-2" aria-label="Deposit history pagination"></div>
+                    </div>
+
+                    <div class="tx-history-column">
+                        <div class="tx-history-column-head">
+                            <h3 class="tx-history-column-title">Withdrawal History</h3>
+                            <span class="tx-history-badge tx-history-badge-debit">Debit</span>
+                        </div>
+                        <div id="withdrawalHistoryList" class="grid gap-3"></div>
+                        <p id="withdrawalHistoryEmpty" class="hidden rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm font-bold text-slate-400">No withdrawal history found.</p>
+                        <div id="withdrawalHistoryPagination" class="mt-5 hidden flex-wrap items-center justify-center gap-2" aria-label="Withdrawal history pagination"></div>
+                    </div>
+                </div>
+            </section>
+            </div>
+
+            <!-- Sub Accounts Panel -->
+            <div id="profileSubAccountsPanel" class="tx-profile-tab-panel hidden" data-profile-panel="sub-accounts" hidden>
+                <div class="tx-profile-single-column">
+                    <section class="tx-profile-card">
+                        <div class="tx-profile-section-head">
+                            <div class="tx-profile-heading-wrap">
+                                <p class="tx-profile-section-kicker">Multi-Account Management</p>
+                                <h2 class="tx-profile-section-title">Manage Sub Accounts</h2>
+                                <p class="tx-profile-section-copy">Create and manage your trading sub-accounts, and transfer funds between wallets.</p>
+                            </div>
+                        </div>
+
+                        <!-- Create Sub Account Form -->
+                        <div class="border-b border-white/5 pb-6">
+                            <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-3">Create New Sub Account</h3>
+                            <form id="profileCreateSubForm" class="flex flex-col sm:flex-row gap-3">
+                                <input id="profileNewSubNameInput" type="text" placeholder="Sub account name (e.g. Scalping, Day Trading)" class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" required style="background-color: #090e1a;" />
+                                <button type="submit" class="rounded-xl bg-cyan-400 px-6 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300 transition">Create Account</button>
+                            </form>
+                            <p id="profileCreateSubMessage" class="hidden text-xs font-bold mt-2"></p>
+                        </div>
+
+                        <!-- List of Sub Accounts -->
+                        <div class="py-6 border-b border-white/5">
+                            <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-3">Existing Sub Accounts</h3>
+                            <div id="profileSubAccountsList" class="space-y-3">
+                                <p class="text-xs text-slate-500 font-semibold">Loading sub accounts...</p>
+                            </div>
+                        </div>
+
+                        <!-- Transfer Funds between sub accounts -->
+                        <div class="pt-6">
+                            <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-3">Transfer Funds</h3>
+                            <form id="profileSubTransferForm" class="space-y-4 max-w-lg">
+                                <div>
+                                    <label for="profileSubTransferAccount" class="block text-xs font-bold text-slate-400 mb-1">Target Trading Account</label>
+                                    <select id="profileSubTransferAccount" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" style="background-color: #090e1a;">
+                                        <option value="main">Main Trading Account</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="profileSubTransferDirection" class="block text-xs font-bold text-slate-400 mb-1">Direction</label>
+                                    <select id="profileSubTransferDirection" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" style="background-color: #090e1a;">
+                                        <option value="main_to_sub">Main Wallet → Target Trading Account (USDT)</option>
+                                        <option value="sub_to_main">Target Trading Account (USDT) → Main Wallet</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="profileSubTransferAmount" class="block text-xs font-bold text-slate-400 mb-1">Amount</label>
+                                    <input id="profileSubTransferAmount" type="number" min="0.000001" step="0.000001" placeholder="0.00" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" required style="background-color: #090e1a;" />
+                                </div>
+                                <div id="profileSubTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                                    Rate: 1 USDT = ₹88.50 INR. Enter amount to see preview.
+                                </div>
+                                <button type="submit" class="w-full rounded-xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300 transition">Execute Transfer</button>
+                                <div id="profileSubTransferMessage" class="hidden text-xs font-bold p-3 rounded-xl"></div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Bank Accounts Panel -->
+            <div id="profileBankAccountsPanel" class="tx-profile-tab-panel hidden" data-profile-panel="bank-accounts" hidden>
+                <div class="tx-profile-single-column">
+                    <section class="tx-profile-card">
+                        <div class="tx-profile-section-head">
+                            <div class="tx-profile-heading-wrap">
+                                <p class="tx-profile-section-kicker">Payment Details</p>
+                                <h2 class="tx-profile-section-title">Saved Bank Accounts</h2>
+                                <p class="tx-profile-section-copy">Save your UPI ID or bank account details for quick autofill during withdrawals. Max 5 accounts.</p>
+                            </div>
+                        </div>
+
+                        <!-- Add Bank Account Form -->
+                        <div class="border-b border-white/5 pb-7 mb-7">
+                            <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-5 flex items-center gap-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                Add New Bank Account
+                            </h3>
+
+                            <form id="profileAddBankForm" class="space-y-4">
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="bankHolderName" class="tx-profile-label">Account Holder Name</label>
+                                        <input id="bankHolderName" name="account_holder_name" type="text" maxlength="80" placeholder="e.g. Raj Patel" class="tx-profile-input" />
+                                    </div>
+                                    <div>
+                                        <label for="bankName" class="tx-profile-label">Bank Name</label>
+                                        <input id="bankName" name="bank_name" type="text" maxlength="80" placeholder="e.g. HDFC Bank" class="tx-profile-input" />
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="bankAccountNumber" class="tx-profile-label">Account Number <span class="text-slate-500 font-normal">(optional if UPI given)</span></label>
+                                        <input id="bankAccountNumber" name="account_number" type="text" maxlength="20" placeholder="e.g. 50100498765432" class="tx-profile-input" />
+                                    </div>
+                                    <div>
+                                        <label for="bankIfscCode" class="tx-profile-label">IFSC Code</label>
+                                        <input id="bankIfscCode" name="ifsc_code" type="text" maxlength="11" placeholder="e.g. HDFC0001234" class="tx-profile-input" style="text-transform:uppercase;" />
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="bankUpiId" class="tx-profile-label">UPI ID <span class="text-slate-500 font-normal">(optional if account no. given)</span></label>
+                                        <input id="bankUpiId" name="upi_id" type="text" maxlength="60" placeholder="e.g. name@upi" class="tx-profile-input" />
+                                    </div>
+                                    <div>
+                                        <label for="bankAccountType" class="tx-profile-label">Account Type</label>
+                                        <select id="bankAccountType" name="account_type" class="tx-profile-input font-bold text-white" style="background-color:#020617;">
+                                            <option value="savings">Savings</option>
+                                            <option value="current">Current</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <input id="bankIsPrimary" name="is_primary" type="checkbox" class="w-4 h-4 accent-cyan-400 rounded cursor-pointer" />
+                                    <label for="bankIsPrimary" class="text-sm font-bold text-slate-300 cursor-pointer">Set as Primary (auto-fills in withdrawal popup)</label>
+                                </div>
+
+                                <div id="profileBankFormMsg" class="hidden text-sm font-bold px-4 py-3 rounded-xl"></div>
+
+                                <button type="submit" id="profileAddBankBtn" class="tx-profile-primary-btn w-full py-3.5 font-black">
+                                    Save Bank Account
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Saved Accounts List -->
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-4 flex items-center gap-2">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                Saved Accounts
+                                <span id="profileBankCountBadge" class="ml-auto text-xs font-black bg-cyan-400/15 text-cyan-300 border border-cyan-400/25 px-2.5 py-0.5 rounded-full">0 / 5</span>
+                            </h3>
+                            <div id="profileBankAccountsList" class="space-y-4">
+                                <div class="flex items-center justify-center gap-2 py-8 text-slate-500 text-sm font-semibold">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                    Loading bank accounts...
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="profileEditModal" class="tx-profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="profileEditModalTitle" aria-hidden="true">
+        <div class="tx-profile-modal-backdrop" data-profile-modal-close></div>
+        <section class="tx-profile-modal-panel" tabindex="-1">
+            <div class="tx-profile-modal-head">
+                <div>
+                    <p class="tx-profile-section-kicker">Profile Details</p>
+                    <h2 id="profileEditModalTitle" class="tx-profile-modal-title">Edit Profile</h2>
+                    <p class="tx-profile-modal-copy">Update the name shown on your TraidiumX account.</p>
+                </div>
+                <button id="profileEditCloseBtn" type="button" class="tx-profile-modal-close" aria-label="Close edit profile popup">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form id="profileUpdateForm">
+                <div>
+                    <label for="profileName" class="tx-profile-label">Full Name</label>
+                    <input id="profileName" name="name" type="text" maxlength="60" autocomplete="name" class="tx-profile-input" placeholder="Enter full name" />
+                    <p id="profileNameError" class="tx-profile-error"></p>
+                </div>
+
+                <div class="tx-profile-modal-actions">
+                    <button id="profileEditCancelBtn" type="button" class="tx-profile-modal-cancel">Cancel</button>
+                    <button id="profileSaveBtn" type="submit" class="tx-profile-primary-btn disabled:cursor-not-allowed disabled:opacity-60">Save Changes</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div data-component="footer"></div>
+
+
+
+    <!-- Live Selfie Camera Modal -->
+    <div id="kycCameraModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm animate-fade-in">
+        <div class="relative w-full max-w-md rounded-[2rem] border border-white/10 bg-slate-900 p-6 shadow-2xl">
+            <h3 class="text-lg font-black text-white mb-4">Capture Live Selfie</h3>
+            <div class="relative overflow-hidden rounded-2xl bg-black aspect-video border border-white/5">
+                <video id="kycCameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                <canvas id="kycCameraCanvas" class="hidden"></canvas>
+            </div>
+            <div class="mt-5 flex gap-3">
+                <button id="kycCameraCaptureBtn" type="button" class="flex-1 rounded-2xl bg-cyan-400 py-4 text-sm font-black text-slate-950 hover:bg-cyan-300 transition">Capture</button>
+                <button id="kycCameraCloseBtn" type="button" class="flex-1 rounded-2xl border border-white/10 bg-slate-800 py-4 text-sm font-black text-white hover:bg-slate-700 transition">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/profile.js"></script>
+    <script src="../js/kyc.js"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,638 @@
+/* ==========================================
+   TraidiumX Full Animations CSS
+   Clean Version - Navbar + Section Badge
+========================================== */
+
+
+/* ================================
+   Basic Page Animations
+================================ */
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes floating {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(34, 211, 238, 0.20);
+    }
+
+    50% {
+        box-shadow: 0 0 45px rgba(34, 211, 238, 0.20);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(34, 211, 238, 0.20);
+    }
+}
+
+.tx-fade-up {
+    animation: fadeUp 0.7s ease both;
+}
+
+.tx-floating {
+    animation: floating 4s ease-in-out infinite;
+}
+
+.tx-pulse-glow {
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+
+/* ==========================================
+   Clean Shark-Inspired Pill Navbar
+========================================== */
+
+.tx-pill-header {
+    pointer-events: none;
+}
+
+.tx-pill-navbar,
+.tx-pill-mobile-menu {
+    pointer-events: auto;
+}
+
+/* Main navbar pill */
+.tx-pill-navbar {
+    min-height: 82px;
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow:
+        0 0 0 1px rgba(34, 211, 238, 0.06),
+        0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+/* Navbar moving shine */
+.tx-pill-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.tx-pill-glow::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -60%;
+    height: 100%;
+    width: 45%;
+    background: linear-gradient(
+        110deg,
+        transparent,
+        rgba(34, 211, 238, 0.12),
+        rgba(96, 165, 250, 0.10),
+        transparent
+    );
+    transform: skewX(-20deg);
+    animation: txPillNavbarShine 7s linear infinite;
+}
+
+@keyframes txPillNavbarShine {
+    0% {
+        left: -60%;
+    }
+
+    100% {
+        left: 130%;
+    }
+}
+
+
+/* ================================
+   Logo Animation
+================================ */
+
+.tx-pill-brand {
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.tx-pill-brand:hover {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 16px rgba(34, 211, 238, 0.35));
+}
+
+
+/* ================================
+   Desktop Navbar Links
+================================ */
+
+.tx-pill-link {
+    position: relative;
+    color: #94a3b8;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.tx-pill-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -12px;
+    height: 2px;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22d3ee, #60a5fa);
+    transform: translateX(-50%);
+    transition: width 0.28s ease;
+}
+
+.tx-pill-link:hover {
+    color: #22d3ee;
+    transform: translateY(-1px);
+}
+
+.tx-pill-link:hover::after,
+.tx-pill-link.active::after {
+    width: 100%;
+}
+
+.tx-pill-link.active {
+    color: #22d3ee;
+}
+
+
+/* ================================
+   Trade Now Button
+================================ */
+
+.tx-pill-trade-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    overflow: hidden;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #67e8f9, #22d3ee, #38bdf8);
+    padding: 10px 8px 10px 20px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 950;
+    letter-spacing: 0.02em;
+    box-shadow: 0 16px 40px rgba(34, 211, 238, 0.28);
+    transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease;
+}
+
+.tx-pill-trade-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    left: -100%;
+    width: 70%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.55),
+        transparent
+    );
+    transform: skewX(-22deg);
+    animation: txTradeButtonSweep 3.4s ease-in-out infinite;
+}
+
+@keyframes txTradeButtonSweep {
+    0% {
+        left: -100%;
+    }
+
+    45% {
+        left: 140%;
+    }
+
+    100% {
+        left: 140%;
+    }
+}
+
+.tx-pill-trade-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 20px 52px rgba(34, 211, 238, 0.42);
+}
+
+.tx-pill-arrow {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    height: 38px;
+    width: 38px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: #020617;
+    color: #ffffff;
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 0.28s ease, background 0.28s ease;
+}
+
+.tx-pill-trade-btn:hover .tx-pill-arrow {
+    transform: translateX(3px);
+    background: #0f172a;
+}
+
+
+/* ================================
+   Mobile / Responsive Menu Button
+   Hidden on normal desktop/laptop.
+   Visible only below 1024px.
+================================ */
+
+.tx-pill-mobile-btn {
+    position: relative;
+    display: none;
+    height: 46px;
+    width: 46px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 900;
+    transition: all 0.25s ease;
+}
+
+/* Show hamburger only on tablet/mobile */
+@media (max-width: 1023px) {
+    .tx-pill-mobile-btn {
+        display: inline-flex;
+    }
+}
+
+/* Round pulse animation - first ring */
+.tx-pill-mobile-btn::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+    border: 1px solid rgba(34, 211, 238, 0.16);
+    opacity: 0;
+    animation: txMobileRingPulse 2.4s ease-in-out infinite;
+}
+
+/* Round pulse animation - second ring */
+.tx-pill-mobile-btn::after {
+    content: "";
+    position: absolute;
+    inset: -15px;
+    border-radius: 999px;
+    border: 1px solid rgba(34, 211, 238, 0.08);
+    opacity: 0;
+    animation: txMobileRingPulse 2.4s ease-in-out infinite 0.35s;
+}
+
+@keyframes txMobileRingPulse {
+    0% {
+        opacity: 0;
+        transform: scale(0.78);
+    }
+
+    35% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.15);
+    }
+}
+
+.tx-pill-mobile-btn:hover {
+    border-color: rgba(34, 211, 238, 0.75);
+    color: #22d3ee;
+    box-shadow: 0 0 26px rgba(34, 211, 238, 0.16);
+}
+
+.tx-pill-mobile-btn span {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* ================================
+   Mobile Dropdown Menu
+================================ */
+
+.tx-pill-mobile-menu {
+    animation: txPillMobileDown 0.28s ease both;
+}
+
+@keyframes txPillMobileDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.tx-pill-mobile-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    padding: 14px 16px;
+    color: #cbd5e1;
+    font-size: 14px;
+    font-weight: 850;
+    transition: all 0.25s ease;
+}
+
+.tx-pill-mobile-link::after {
+    content: "›";
+    color: #22d3ee;
+    font-size: 22px;
+    opacity: 0.8;
+}
+
+.tx-pill-mobile-link:hover,
+.tx-pill-mobile-link.active {
+    border-color: rgba(34, 211, 238, 0.55);
+    color: #22d3ee;
+    background: rgba(34, 211, 238, 0.08);
+    transform: translateX(4px);
+}
+
+.tx-pill-mobile-trade {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #22d3ee;
+    padding: 15px 18px;
+    color: #020617;
+    font-size: 14px;
+    font-weight: 950;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tx-pill-mobile-trade:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(34, 211, 238, 0.24);
+}
+
+
+/* ==========================================
+   Animated Section Pill Badge
+   Used for: Transparent Platform Metrics
+========================================== */
+
+.tx-section-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(34, 211, 238, 0.38);
+    border-radius: 999px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(34, 211, 238, 0.12),
+            rgba(15, 23, 42, 0.72)
+        );
+    padding: 11px 22px;
+    color: #67e8f9;
+    font-size: 12px;
+    font-weight: 950;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    box-shadow:
+        inset 0 0 20px rgba(34, 211, 238, 0.05),
+        0 0 24px rgba(34, 211, 238, 0.10);
+    backdrop-filter: blur(16px);
+    animation: txSectionPillPulse 3s ease-in-out infinite;
+}
+
+.tx-section-pill::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -90%;
+    height: 100%;
+    width: 60%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(103, 232, 249, 0.24),
+        transparent
+    );
+    transform: skewX(-22deg);
+    animation: txSectionPillShine 3.8s ease-in-out infinite;
+}
+
+.tx-section-pill::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        rgba(34, 211, 238, 0.22),
+        rgba(96, 165, 250, 0.10),
+        rgba(34, 211, 238, 0.22)
+    );
+    opacity: 0.65;
+    filter: blur(10px);
+}
+
+.tx-section-pill span {
+    position: relative;
+    z-index: 2;
+}
+
+.tx-section-pill-dot {
+    height: 8px;
+    width: 8px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #22d3ee;
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.85);
+    animation: txSectionDotPulse 1.7s ease-in-out infinite;
+}
+
+@keyframes txSectionPillPulse {
+    0%,
+    100% {
+        border-color: rgba(34, 211, 238, 0.35);
+        box-shadow:
+            inset 0 0 20px rgba(34, 211, 238, 0.05),
+            0 0 18px rgba(34, 211, 238, 0.08);
+    }
+
+    50% {
+        border-color: rgba(34, 211, 238, 0.70);
+        box-shadow:
+            inset 0 0 26px rgba(34, 211, 238, 0.08),
+            0 0 34px rgba(34, 211, 238, 0.18);
+    }
+}
+
+@keyframes txSectionPillShine {
+    0% {
+        left: -90%;
+    }
+
+    45% {
+        left: 135%;
+    }
+
+    100% {
+        left: 135%;
+    }
+}
+
+@keyframes txSectionDotPulse {
+    0%,
+    100% {
+        opacity: 0.55;
+        transform: scale(0.9);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+
+/* ================================
+   Responsive Breakpoints
+================================ */
+
+@media (max-width: 1023px) {
+    .tx-pill-navbar {
+        min-height: 78px;
+    }
+}
+
+@media (max-width: 640px) {
+    .tx-pill-header {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 12px;
+    }
+
+    .tx-pill-navbar {
+        min-height: 74px;
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .tx-pill-brand h1 {
+        font-size: 21px;
+    }
+
+    .tx-pill-brand p {
+        font-size: 10px;
+        letter-spacing: 0.28em;
+    }
+
+    .tx-pill-mobile-btn {
+        height: 42px;
+        width: 42px;
+        font-size: 20px;
+    }
+
+    .tx-pill-mobile-btn::before {
+        inset: -7px;
+    }
+
+    .tx-pill-mobile-btn::after {
+        inset: -13px;
+    }
+
+    .tx-section-pill {
+        padding: 10px 16px;
+        font-size: 10px;
+        letter-spacing: 0.07em;
+    }
+
+    .tx-section-pill-dot {
+        height: 7px;
+        width: 7px;
+    }
+}
+
+@media (max-width: 380px) {
+    .tx-pill-brand h1 {
+        font-size: 18px;
+    }
+
+    .tx-pill-brand p {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+    }
+
+    .tx-pill-mobile-btn {
+        height: 40px;
+        width: 40px;
+    }
+
+    .tx-section-pill {
+        max-width: 100%;
+        font-size: 9px;
+        letter-spacing: 0.05em;
+    }
+}
+
+
+/* ================================
+   Reduced Motion Accessibility
+================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.001ms !important;
+    }
+}

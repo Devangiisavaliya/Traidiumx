@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+
+    <title>KYC Review | TraidiumX Admin</title>
+</head>
+<body data-admin-page="kyc" data-page-title="KYC Review" data-page-subtitle="Review submitted KYC requests and approve/reject from admin side.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <div class="admin-card p-5 tx-fade-up"><div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-xl font-black text-white">KYC Queue</h2><p class="mt-1 text-sm text-slate-400">Review pending KYC documents and verification score.</p></div><button class="admin-btn admin-btn-primary" onclick="TXAdmin.toast('KYC filter', 'Use status/search filters after backend filtering is extended.', 'info')">Advanced Filter</button></div></div>
+    <div class="admin-card p-5 tx-fade-up tx-delay-1"><div class="table-wrap"><table class="admin-table"><thead><tr><th>ID</th><th>User</th><th>Document Type</th><th>Status</th><th>Score</th><th>Remark</th><th>Submitted</th><th class="text-right">Action</th></tr></thead><tbody id="kycTableBody"></tbody></table></div></div>
+</section>
+
+            </main>
+        </section>
+    </div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+
+    <script src="/admin/static/js/admin-kyc.js"></script>
+</body>
+</html>

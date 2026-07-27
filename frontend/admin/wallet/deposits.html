@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+<title>Deposits | TraidiumX Admin</title>
+</head>
+<body data-admin-page="deposits" data-page-title="Deposits" data-page-subtitle="View crypto deposit history, verification status and wallet credit records.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+<section class="space-y-5">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="admin-card admin-card-hover p-5 tx-fade-up">
+            <p class="text-sm font-bold text-slate-400">Pending Deposits</p>
+            <h3 id="depositPendingCount" class="mt-2 text-3xl font-black text-amber-300">0</h3>
+            <p id="depositPendingAmount" class="mt-2 text-xs font-bold text-slate-500">$0 waiting verification</p>
+        </div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-1">
+            <p class="text-sm font-bold text-slate-400">Credited Today</p>
+            <h3 id="depositCompletedToday" class="mt-2 text-3xl font-black text-emerald-300">0</h3>
+            <p class="mt-2 text-xs font-bold text-slate-500">Verified wallet credits</p>
+        </div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-2">
+            <p class="text-sm font-bold text-slate-400">Rejected Today</p>
+            <h3 id="depositRejectedToday" class="mt-2 text-3xl font-black text-rose-300">0</h3>
+            <p class="mt-2 text-xs font-bold text-slate-500">No wallet credit applied</p>
+        </div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-3">
+            <p class="text-sm font-bold text-slate-400">Total Completed Volume</p>
+            <h3 id="depositCompletedAmount" class="mt-2 text-3xl font-black text-white">$0</h3>
+            <p id="depositSubmittedToday" class="mt-2 text-xs font-bold text-slate-500">0 submitted today</p>
+        </div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="text-xl font-black text-white">Deposit History</h2>
+                <p class="mt-1 text-sm text-slate-400">Search deposits and view TXID, status, user and wallet credit history.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="/admin/wallet/ledger" class="admin-btn">Open Ledger</a>
+                <a href="/admin/wallet/withdrawals" class="admin-btn admin-btn-primary">Withdrawals</a>
+            </div>
+        </div>
+
+        <div class="grid gap-3 xl:grid-cols-[1.5fr_0.75fr_0.75fr_0.75fr_auto]">
+            <input id="depositSearch" class="admin-input" placeholder="Search reference, user, TXID, address..." />
+            <select id="depositCurrencyFilter" class="admin-input">
+                <option value="all" selected>All currencies</option>
+                <option value="INR">INR (₹)</option>
+                <option value="USDT">USDT ($)</option>
+            </select>
+            <select id="depositStatusFilter" class="admin-input">
+                <option value="all">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select id="depositNetworkFilter" class="admin-input">
+                <option value="">All networks</option>
+                <option value="TRC20">TRC20</option>
+                <option value="ERC20">ERC20</option>
+                <option value="BEP20">BEP20</option>
+            </select>
+            <button id="depositResetBtn" type="button" class="admin-btn">Reset</button>
+        </div>
+
+        <div class="mt-5 table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Request</th>
+                        <th>User</th>
+                        <th>Network / Address</th>
+                        <th>Amount</th>
+                        <th>Verification</th>
+                        <th>Status</th>
+                        <th class="text-right">TX Link</th>
+                    </tr>
+                </thead>
+                <tbody id="depositsTableBody"></tbody>
+            </table>
+        </div>
+        <div id="depositsPagination" class="mt-5"></div>
+    </div>
+</section>
+            </main>
+        </section>
+    </div>
+
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-deposits.js"></script>
+</body>
+</html>

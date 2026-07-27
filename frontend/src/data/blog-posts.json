@@ -1,0 +1,116 @@
+[
+    {
+        "id": 1,
+        "slug": "futures-trading-basics",
+        "title": "Futures Trading Basics for New Crypto Traders",
+        "category": "Futures",
+        "date": "22 Jun 2026",
+        "author": "TraidiumX Research",
+        "readTime": "6 min read",
+        "views": 18420,
+        "featured": true,
+        "tags": ["Futures", "Leverage", "Margin"],
+        "excerpt": "Understand leverage, margin, liquidation and risk before placing your first futures trade.",
+        "content": [
+            "Crypto futures allow traders to take long or short exposure without directly holding the underlying asset. This makes futures powerful, but also risky when leverage is used carelessly.",
+            "Leverage increases position size using margin. For example, with 10x leverage, a small margin can control a much larger position. This can increase profit potential, but losses can also move quickly.",
+            "Liquidation risk is the most important concept for new futures traders. If margin becomes insufficient, the position can be force-closed. A strong risk plan should include position sizing, stop loss, and avoiding excessive leverage.",
+            "Before real trading, beginners should understand mark price, index price, funding rate, margin mode, order type and position management."
+        ]
+    },
+    {
+        "id": 2,
+        "slug": "options-chain-explained",
+        "title": "Options Chain Explained: Calls, Puts and Strike Prices",
+        "category": "Options",
+        "date": "20 Jun 2026",
+        "author": "TraidiumX Academy",
+        "readTime": "8 min read",
+        "views": 15200,
+        "featured": false,
+        "tags": ["Options", "Call", "Put"],
+        "excerpt": "Learn how to read an options chain, compare premiums and understand strike prices.",
+        "content": [
+            "An options chain shows available call and put contracts for different strike prices and expiry dates.",
+            "A call option gives exposure to upside movement, while a put option gives exposure to downside movement. The premium is the price paid for the option contract.",
+            "Important fields in an options chain include strike price, LTP, implied volatility, volume, open interest and option Greeks.",
+            "Beginners should avoid buying random out-of-the-money options without understanding time decay and volatility risk."
+        ]
+    },
+    {
+        "id": 3,
+        "slug": "risk-management-rules",
+        "title": "7 Risk Management Rules Every Trader Should Follow",
+        "category": "Risk",
+        "date": "18 Jun 2026",
+        "author": "TraidiumX Desk",
+        "readTime": "5 min read",
+        "views": 21390,
+        "featured": false,
+        "tags": ["Risk", "Trading Plan", "Discipline"],
+        "excerpt": "A practical checklist for controlling losses and protecting trading capital.",
+        "content": [
+            "Risk management is the foundation of long-term trading survival. Strategy matters, but capital protection matters more.",
+            "A trader should define maximum risk per trade before entering the position. Many disciplined traders keep risk small relative to total capital.",
+            "Stop loss, position size and leverage should be decided before the trade, not after emotional pressure begins.",
+            "Journaling trades helps identify repeated mistakes and improve decision-making over time."
+        ]
+    },
+    {
+        "id": 4,
+        "slug": "maker-vs-taker-fees",
+        "title": "Maker vs Taker Fees: What Traders Need to Know",
+        "category": "Fees",
+        "date": "15 Jun 2026",
+        "author": "TraidiumX Support",
+        "readTime": "4 min read",
+        "views": 9800,
+        "featured": false,
+        "tags": ["Fees", "Maker", "Taker"],
+        "excerpt": "Understand why different order types can have different fee rates.",
+        "content": [
+            "Maker and taker fees depend on how an order interacts with the order book.",
+            "A maker order adds liquidity to the order book. A taker order removes liquidity by matching immediately with existing orders.",
+            "Trading platforms often charge different fees for maker and taker orders. This encourages liquidity and improves market depth.",
+            "For active traders, understanding fee impact is important because small fee differences can become meaningful at high volume."
+        ]
+    },
+    {
+        "id": 5,
+        "slug": "funding-rate-guide",
+        "title": "Funding Rate Guide for Perpetual Futures",
+        "category": "Futures",
+        "date": "12 Jun 2026",
+        "author": "TraidiumX Research",
+        "readTime": "7 min read",
+        "views": 12670,
+        "featured": false,
+        "tags": ["Funding", "Perpetual", "Futures"],
+        "excerpt": "Learn why funding rates exist and how they affect long and short positions.",
+        "content": [
+            "Perpetual futures do not have a fixed expiry date, so funding rates help keep futures price close to the spot index price.",
+            "Depending on market conditions, longs may pay shorts or shorts may pay longs at scheduled funding intervals.",
+            "Funding rate is not the same as trading fee. It is a periodic payment between traders.",
+            "Ignoring funding can reduce profitability, especially for high leverage or long-duration positions."
+        ]
+    },
+    {
+        "id": 6,
+        "slug": "kyc-security-practices",
+        "title": "Security and KYC Practices for Crypto Platforms",
+        "category": "Security",
+        "date": "10 Jun 2026",
+        "author": "TraidiumX Compliance",
+        "readTime": "6 min read",
+        "views": 8900,
+        "featured": false,
+        "tags": ["Security", "KYC", "Compliance"],
+        "excerpt": "Why account security, KYC and AML checks matter for responsible trading platforms.",
+        "content": [
+            "Security and compliance are core requirements for any responsible crypto platform.",
+            "KYC helps verify user identity and reduce misuse of financial services. AML checks help detect suspicious activity.",
+            "Users should protect accounts with strong passwords, two-factor authentication and safe device practices.",
+            "A production platform should include backend validation, audit logs, transaction monitoring and secure authentication."
+        ]
+    }
+]

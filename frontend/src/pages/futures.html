@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Futures Trading | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        /* Futures table must show all backend rows. No 10-row display cap for Positions/Open Orders. */
+        .rt-table-wrap {
+            max-height: none !important;
+            overflow-y: visible !important;
+        }
+
+        .rt-position-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 16px 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+            background: linear-gradient(90deg, rgba(34, 211, 238, 0.06), rgba(15, 23, 42, 0.14));
+        }
+
+        .rt-position-action-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 900;
+            color: #e5e7eb;
+        }
+
+        .rt-position-action-subtitle {
+            display: block;
+            margin-top: 3px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .rt-close-all-positions-btn {
+            border: 1px solid rgba(248, 113, 113, 0.32);
+            border-radius: 13px;
+            background: rgba(239, 68, 68, 0.16);
+            color: #fecaca;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .rt-close-all-positions-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(239, 68, 68, 0.24);
+            border-color: rgba(248, 113, 113, 0.50);
+        }
+
+        .rt-close-all-positions-btn:disabled {
+            transform: none;
+            cursor: not-allowed;
+        }
+
+
+        .rt-funds-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(34, 211, 238, 0.16);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.96));
+        }
+
+        .rt-funds-card::before {
+            content: "";
+            position: absolute;
+            inset: -92px -100px auto auto;
+            width: 190px;
+            height: 190px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.18), transparent 68%);
+            pointer-events: none;
+        }
+
+        .rt-funds-head {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .rt-funds-head h3 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 950;
+            color: #ffffff;
+        }
+
+        .rt-funds-badge {
+            border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.18);
+            background: rgba(34, 211, 238, 0.08);
+            color: #67e8f9;
+            padding: 5px 9px;
+            font-size: 9px;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .rt-funds-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .rt-funds-item {
+            min-width: 0;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 16px;
+            background: rgba(2, 6, 23, 0.44);
+            padding: 11px 12px;
+        }
+
+        .rt-funds-item span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .rt-funds-item strong {
+            display: block;
+            margin-top: 6px;
+            color: #e5e7eb;
+            font-size: 15px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rt-funds-item.estimate strong {
+            color: #67e8f9;
+        }
+
+        .rt-funds-actions {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .rt-funds-action-btn {
+            border: 0;
+            border-radius: 14px;
+            padding: 11px 12px;
+            font-size: 12px;
+            font-weight: 950;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+        }
+
+        .rt-funds-action-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .rt-funds-action-btn.deposit {
+            background: linear-gradient(135deg, #34d399, #22d3ee);
+            color: #020617;
+        }
+
+        .rt-funds-action-btn.withdraw {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.28);
+            color: #fecaca;
+        }
+
+        .rt-funds-note {
+            position: relative;
+            margin: 10px 0 0;
+            color: #64748b;
+            font-size: 10px;
+            line-height: 1.45;
+            font-weight: 700;
+        }
+
+        .rt-pair-bar.rt-pair-bar-with-funds {
+            display: grid;
+            grid-template-columns: minmax(270px, 0.72fr) minmax(760px, 1.85fr) minmax(360px, 0.78fr);
+            align-items: stretch;
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .rt-pair-bar-with-funds .rt-pair-main {
+            min-width: 0;
+        }
+
+        .rt-pair-bar-with-funds .rt-metrics-grid {
+            grid-template-columns: repeat(7, minmax(92px, 1fr));
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .rt-pair-funds-card {
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(8, 20, 35, 0.98), rgba(17, 24, 39, 0.94));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 35px rgba(0, 0, 0, 0.18);
+            padding: 11px;
+        }
+
+        .rt-pair-funds-card::before {
+            content: "";
+            position: absolute;
+            inset: -70px -70px auto auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.20), transparent 70%);
+            pointer-events: none;
+        }
+
+        .rt-pair-funds-head {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 9px;
+        }
+
+        .rt-pair-funds-head h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: -0.02em;
+        }
+
+        .rt-pair-funds-badge {
+            border: 1px solid rgba(34, 211, 238, 0.22);
+            border-radius: 999px;
+            background: rgba(34, 211, 238, 0.10);
+            color: #67e8f9;
+            padding: 4px 8px;
+            font-size: 9px;
+            font-weight: 950;
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .rt-pair-funds-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .rt-pair-funds-item {
+            min-width: 0;
+            border: 1px solid rgba(148, 163, 184, 0.13);
+            border-radius: 13px;
+            background: rgba(2, 6, 23, 0.48);
+            padding: 8px 9px;
+        }
+
+        .rt-pair-funds-item span {
+            display: block;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 950;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .rt-pair-funds-item strong {
+            display: block;
+            margin-top: 4px;
+            color: #e5e7eb;
+            font-size: 14px;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rt-pair-funds-item.estimate strong {
+            color: #67e8f9;
+        }
+
+        .rt-pair-funds-actions {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 9px;
+        }
+
+        .rt-pair-funds-btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 9px 10px;
+            font-size: 11px;
+            font-weight: 950;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .rt-pair-funds-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .rt-pair-funds-btn.transfer {
+            background: rgba(245, 158, 11, 0.16);
+            border: 1px solid rgba(245, 158, 11, 0.34);
+            color: #fde68a;
+        }
+
+        .rt-pair-funds-btn.deposit {
+            background: linear-gradient(135deg, #34d399, #22d3ee);
+            color: #020617;
+        }
+
+        .rt-pair-funds-btn.withdraw {
+            background: rgba(248, 113, 113, 0.15);
+            border: 1px solid rgba(248, 113, 113, 0.28);
+            color: #fecaca;
+        }
+
+
+        /* Professional compact Futures wallet quick action modal */
+        #futuresWalletModal {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 9998 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 18px !important;
+            background: rgba(2, 6, 23, 0.76) !important;
+            backdrop-filter: blur(12px) !important;
+        }
+
+        #futuresWalletModal.hidden {
+            display: none !important;
+        }
+
+        #futuresWalletModal.flex {
+            display: flex !important;
+        }
+
+        #futuresWalletModal > div {
+            width: min(520px, calc(100vw - 28px)) !important;
+            max-width: 520px !important;
+            max-height: min(86vh, 720px) !important;
+            overflow: hidden auto !important;
+            border: 1px solid rgba(34, 211, 238, 0.24) !important;
+            border-radius: 24px !important;
+            background:
+                radial-gradient(circle at top right, rgba(34, 211, 238, 0.14), transparent 34%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98)) !important;
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+        }
+
+        #futuresWalletModal > div::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+        }
+
+        #futuresWalletModal .futures-wallet-tab {
+            border: 1px solid rgba(148, 163, 184, 0.15) !important;
+            border-radius: 14px !important;
+            background: rgba(2, 6, 23, 0.55) !important;
+            color: #94a3b8 !important;
+            padding: 11px 10px !important;
+            font-size: 11px !important;
+            font-weight: 950 !important;
+            transition: transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease !important;
+        }
+
+        #futuresWalletModal .futures-wallet-tab:hover,
+        #futuresWalletModal .futures-wallet-tab.is-active {
+            transform: translateY(-1px) !important;
+            border-color: rgba(34, 211, 238, 0.46) !important;
+            background: rgba(34, 211, 238, 0.12) !important;
+            color: #67e8f9 !important;
+            box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.08) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel.hidden {
+            display: none !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel label {
+            margin-top: 0 !important;
+            color: #94a3b8 !important;
+            font-size: 10px !important;
+            font-weight: 950 !important;
+            letter-spacing: .06em !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel input,
+        #futuresWalletModal .futures-wallet-panel select {
+            width: 100% !important;
+            min-height: 42px !important;
+            border: 1px solid rgba(148, 163, 184, 0.18) !important;
+            border-radius: 14px !important;
+            background: rgba(2, 6, 23, 0.72) !important;
+            color: #e5e7eb !important;
+            padding: 10px 12px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            outline: none !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel input:focus,
+        #futuresWalletModal .futures-wallet-panel select:focus {
+            border-color: rgba(34, 211, 238, 0.7) !important;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.10) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel button[type="submit"] {
+            min-height: 43px !important;
+            border: 0 !important;
+            border-radius: 14px !important;
+            font-size: 13px !important;
+            font-weight: 950 !important;
+            transition: transform .15s ease, filter .15s ease, opacity .15s ease !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel button[type="submit"]:hover {
+            transform: translateY(-1px) !important;
+            filter: brightness(1.08) !important;
+        }
+
+        #futuresWalletModalMessage {
+            margin-top: 14px !important;
+            border-radius: 14px !important;
+            padding: 11px 12px !important;
+            font-size: 12px !important;
+            line-height: 1.35 !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel-message {
+            margin-top: 12px !important;
+            border-radius: 16px !important;
+            padding: 12px 14px !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+            font-weight: 900 !important;
+            border: 1px solid rgba(148, 163, 184, 0.20) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel-message.hidden {
+            display: none !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel-message.success {
+            color: #bbf7d0 !important;
+            background: rgba(34, 197, 94, 0.12) !important;
+            border-color: rgba(34, 197, 94, 0.34) !important;
+            box-shadow: inset 4px 0 0 rgba(34, 197, 94, 0.75) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel-message.error {
+            color: #fecaca !important;
+            background: rgba(239, 68, 68, 0.12) !important;
+            border-color: rgba(248, 113, 113, 0.36) !important;
+            box-shadow: inset 4px 0 0 rgba(248, 113, 113, 0.75) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-panel-message.info {
+            color: #bae6fd !important;
+            background: rgba(14, 165, 233, 0.12) !important;
+            border-color: rgba(56, 189, 248, 0.34) !important;
+            box-shadow: inset 4px 0 0 rgba(34, 211, 238, 0.75) !important;
+        }
+
+        #futuresWalletModal .futures-wallet-note {
+            border-radius: 16px !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            background: rgba(15, 23, 42, 0.70) !important;
+            padding: 11px 13px !important;
+            color: #94a3b8 !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+            font-weight: 800 !important;
+        }
+
+        #futuresWalletModal .futures-wallet-note.warning {
+            border-color: rgba(251, 191, 36, 0.25) !important;
+            background: rgba(251, 191, 36, 0.08) !important;
+            color: #fde68a !important;
+        }
+
+        /* DROPDOWN POPOVER PANEL (ANCHORED UNDER SYMBOL HEADER) */
+        .rt-pair-bar,
+        .rt-pair-main-wrap {
+            position: relative !important;
+            overflow: visible !important;
+        }
+
+        #symbolPickerModal {
+            position: absolute !important;
+            top: calc(100% + 8px) !important;
+            left: 0 !important;
+            z-index: 900 !important;
+            display: none;
+            width: 440px !important;
+            max-width: calc(100vw - 32px) !important;
+            padding: 0 !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+        }
+
+        #symbolPickerModal.hidden {
+            display: none !important;
+        }
+
+        #symbolPickerModal.flex,
+        #symbolPickerModal.block {
+            display: block !important;
+        }
+
+        .symbol-picker-card {
+            position: relative !important;
+            width: 100% !important;
+            max-height: 460px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(34, 211, 238, 0.28) !important;
+            border-radius: 18px !important;
+            background: rgba(5, 10, 20, 0.96) !important;
+            backdrop-filter: blur(20px) !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .symbol-picker-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 16px 20px !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14) !important;
+        }
+
+        .symbol-picker-badge {
+            border-radius: 10px !important;
+            background: rgba(37, 99, 235, 0.2) !important;
+            border: 1px solid rgba(59, 130, 246, 0.35) !important;
+            color: #60a5fa !important;
+            padding: 4px 12px !important;
+            font-size: 12px !important;
+            font-weight: 950 !important;
+        }
+
+        .symbol-picker-close {
+            width: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            background: rgba(15, 23, 42, 0.8) !important;
+            color: #94a3b8 !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            cursor: pointer !important;
+        }
+
+        .symbol-picker-close:hover {
+            color: #ffffff !important;
+            border-color: rgba(248, 113, 113, 0.5) !important;
+        }
+
+        .symbol-picker-search-wrap {
+            padding: 14px 20px 8px !important;
+        }
+
+        .symbol-picker-search-wrap input {
+            width: 100% !important;
+            height: 42px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(148, 163, 184, 0.18) !important;
+            background: rgba(2, 6, 23, 0.72) !important;
+            color: #ffffff !important;
+            padding: 10px 14px 10px 38px !important;
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            outline: none !important;
+        }
+
+        .symbol-picker-search-wrap input:focus {
+            border-color: rgba(34, 211, 238, 0.6) !important;
+        }
+
+        .symbol-picker-filters {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            overflow-x: auto !important;
+            padding: 6px 20px 12px !important;
+        }
+
+        .symbol-filter-pill {
+            border-radius: 12px !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+            background: rgba(2, 6, 23, 0.6) !important;
+            color: #94a3b8 !important;
+            padding: 6px 14px !important;
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            white-space: nowrap !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+        }
+
+        .symbol-filter-pill:hover,
+        .symbol-filter-pill.active {
+            background: #2563eb !important;
+            border-color: #3b82f6 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+        }
+
+        .symbol-picker-table-head {
+            display: grid !important;
+            grid-template-columns: 36px 1.2fr 0.9fr 1fr 1fr !important;
+            align-items: center !important;
+            padding: 10px 20px !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+            color: #64748b !important;
+            font-size: 10px !important;
+            font-weight: 950 !important;
+            text-transform: uppercase !important;
+        }
+
+        .symbol-picker-list {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            padding: 8px 12px !important;
+            min-height: 260px !important;
+        }
+
+        .symbol-picker-row {
+            display: grid !important;
+            grid-template-columns: 36px 1.2fr 0.9fr 1fr 1fr !important;
+            align-items: center !important;
+            padding: 11px 12px !important;
+            border-radius: 14px !important;
+            border: 1px solid transparent !important;
+            cursor: pointer !important;
+            transition: background 0.15s ease, border-color 0.15s ease !important;
+        }
+
+        .symbol-picker-row:hover,
+        .symbol-picker-row.is-active {
+            background: rgba(30, 41, 59, 0.75) !important;
+            border-color: rgba(34, 211, 238, 0.3) !important;
+        }
+
+        @media (max-width: 640px) {
+            #symbolPickerModal {
+                align-items: flex-start !important;
+                padding: 12px !important;
+            }
+
+            .symbol-picker-card {
+                width: 100% !important;
+                max-height: calc(100vh - 24px) !important;
+                border-radius: 20px !important;
+            }
+        }
+
+        @media (max-width: 1500px) {
+            .rt-pair-bar.rt-pair-bar-with-funds {
+                grid-template-columns: minmax(250px, 0.75fr) minmax(560px, 1.6fr) minmax(330px, 0.85fr);
+            }
+
+            .rt-pair-bar-with-funds .rt-metrics-grid {
+                grid-template-columns: repeat(4, minmax(100px, 1fr));
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .rt-pair-bar.rt-pair-bar-with-funds {
+                grid-template-columns: 1fr;
+            }
+
+            .rt-pair-bar-with-funds .rt-metrics-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 1280px) {
+            .rt-funds-grid,
+            .rt-funds-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .rt-position-action-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .rt-close-all-positions-btn {
+                width: 100%;
+            }
+        }
+
+
+        /* Hide horizontal scrollbar line in Futures terminal tabs (Trade History / Transaction History / all terminal tables). */
+        .rt-bottom-tabs + .rt-table-wrap,
+        .rt-card .rt-table-wrap {
+            overflow-x: auto !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        .rt-bottom-tabs + .rt-table-wrap::-webkit-scrollbar,
+        .rt-card .rt-table-wrap::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+            background: transparent !important;
+        }
+
+        .rt-bottom-tabs + .rt-table-wrap::-webkit-scrollbar-track,
+        .rt-bottom-tabs + .rt-table-wrap::-webkit-scrollbar-thumb,
+        .rt-card .rt-table-wrap::-webkit-scrollbar-track,
+        .rt-card .rt-table-wrap::-webkit-scrollbar-thumb {
+            display: none !important;
+            background: transparent !important;
+        }
+
+
+        /* Futures terminal fit fix: hide bottom scrollbar line without cutting Time/Description columns. */
+        .rt-card .rt-table-wrap {
+            overflow-x: hidden !important;
+        }
+
+        #terminalTable .rt-table {
+            width: 100% !important;
+            min-width: 0 !important;
+            table-layout: fixed !important;
+        }
+
+        #terminalTable .rt-table th,
+        #terminalTable .rt-table td {
+            padding: 12px 10px !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
+            vertical-align: middle !important;
+        }
+
+        #terminalTable .rt-table td:last-child,
+        #terminalTable .rt-table th:last-child {
+            text-align: right !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+        }
+
+        /* Transaction History: Type / Direction / Amount / Balance / Description / Time */
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(1),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(1) { width: 18%; }
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(2),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(2) { width: 9%; }
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(3),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(3) { width: 12%; }
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(4),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(4) { width: 13%; }
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(5),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(5) { width: 34%; }
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) th:nth-child(6),
+        #terminalTable .rt-table:has(thead th:nth-child(6):last-child) td:nth-child(6) { width: 14%; }
+
+        /* Trade History: compact full-width layout so Time stays visible. */
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(1),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(1) { width: 13%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(2),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(2) { width: 8%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(3),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(3) { width: 10%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(4),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(4) { width: 8%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(5),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(5) { width: 10%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(6),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(6) { width: 8%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(7),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(7) { width: 10%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(8),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(8) { width: 13%; }
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) th:nth-child(9),
+        #terminalTable .rt-table:has(thead th:nth-child(9):last-child) td:nth-child(9) { width: 20%; }
+
+
+        /* Futures 7-day server wishlist. */
+        .tx-futures-chart-shell {
+            position: relative !important;
+        }
+
+        .tx-futures-header-wishlist {
+            position: relative;
+            z-index: 10;
+            display: inline-flex;
+            margin-top: 9px;
+        }
+
+        .tx-futures-header-wishlist .tx-futures-chart-action-btn {
+            min-height: 32px;
+            box-shadow: none;
+        }
+
+        .tx-futures-chart-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 34px;
+            border: 1px solid rgba(71, 85, 105, 0.88);
+            border-radius: 9px;
+            background: rgba(5, 10, 19, 0.94);
+            color: #cbd5e1;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 900;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(10px);
+            transition: border-color .15s ease, color .15s ease, background .15s ease, transform .15s ease;
+        }
+
+        .tx-futures-chart-action-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(34, 211, 238, 0.58);
+            color: #ffffff;
+        }
+
+        .tx-futures-chart-action-btn[aria-expanded="true"] {
+            border-color: rgba(34, 211, 238, 0.72);
+            background: rgba(8, 47, 73, 0.92);
+            color: #a5f3fc;
+        }
+
+        .tx-futures-recent-count {
+            display: inline-flex;
+            min-width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #22d3ee;
+            color: #020617;
+            padding: 0 5px;
+            font-size: 9px;
+            font-weight: 950;
+        }
+
+        .tx-futures-recent-panel {
+            position: absolute;
+            top: calc(100% + 9px);
+            left: 0;
+            right: auto;
+            z-index: 100;
+            width: min(310px, calc(100vw - 32px));
+            max-height: 370px;
+            overflow: hidden;
+            border: 1px solid rgba(34, 211, 238, 0.28);
+            border-radius: 14px;
+            background: rgba(5, 10, 19, 0.97);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.48);
+            backdrop-filter: blur(16px);
+        }
+
+        .tx-futures-recent-panel.hidden {
+            display: none !important;
+        }
+
+        .tx-futures-panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+            padding: 12px 13px;
+        }
+
+        .tx-futures-panel-head strong {
+            display: block;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 950;
+        }
+
+        .tx-futures-panel-head span {
+            display: block;
+            margin-top: 3px;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .tx-futures-panel-close {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(71, 85, 105, 0.72);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 950;
+            cursor: pointer;
+        }
+
+        .tx-futures-recent-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 7px;
+            scrollbar-width: thin;
+        }
+
+        .tx-futures-recent-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            width: 100%;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .tx-futures-recent-item:hover,
+        .tx-futures-recent-item.active {
+            border-color: rgba(34, 211, 238, 0.24);
+            background: rgba(8, 47, 73, 0.42);
+        }
+
+        .tx-futures-recent-symbol {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 950;
+        }
+
+        .tx-futures-recent-time {
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .tx-futures-panel-empty {
+            padding: 22px 14px;
+            color: #64748b;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 640px) {
+
+            .tx-futures-chart-action-btn {
+                min-height: 31px;
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+
+            .tx-futures-header-wishlist {
+                margin-top: 6px;
+                max-width: 100%;
+                z-index: 10;
+            }
+
+            .tx-futures-header-wishlist .tx-futures-chart-action-btn {
+                min-height: 29px;
+                padding: 5px 12px;
+                font-size: 11px;
+                border-radius: 999px;
+                background: rgba(34, 211, 238, 0.08);
+                border: 1px solid rgba(34, 211, 238, 0.25);
+                color: #cffafe;
+            }
+
+            .tx-futures-header-wishlist .tx-futures-recent-panel {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: min(92vw, 420px);
+                max-height: 80vh;
+                z-index: 100005;
+                margin: 0;
+            }
+        }
+
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white" data-page="futures">
+
+    <div data-component="navbar"></div>
+
+    <main class="rt-page pt-32">
+        <!-- PAIR INFO BAR -->
+        <section class="mx-auto mt-4 max-w-[1800px] px-4">
+            <div class="rt-pair-bar rt-pair-bar-with-funds">
+                <div class="rt-pair-main">
+                    <div class="rt-coin-badge" id="coinBadge">₿</div>
+
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h1 id="currentSymbolTitle" class="text-2xl font-black">BTC-USDT</h1>
+
+                            <select id="pairSelect" class="rt-select">
+                                <option value="BTCUSDT">BTC-USDT</option>
+                                <option value="ETHUSDT">ETH-USDT</option>
+                                <option value="BNBUSDT">BNB-USDT</option>
+                                <option value="SOLUSDT">SOL-USDT</option>
+                                <option value="XRPUSDT">XRP-USDT</option>
+                                <option value="DOGEUSDT">DOGE-USDT</option>
+                                <option value="ADAUSDT">ADA-USDT</option>
+                                <option value="AVAXUSDT">AVAX-USDT</option>
+                                <option value="LINKUSDT">LINK-USDT</option>
+                                <option value="LTCUSDT">LTC-USDT</option>
+                                <option value="TRXUSDT">TRX-USDT</option>
+                                <option value="DOTUSDT">DOT-USDT</option>
+                                <option value="BCHUSDT">BCH-USDT</option>
+                                <option value="ATOMUSDT">ATOM-USDT</option>
+                                <option value="UNIUSDT">UNI-USDT</option>
+                                <option value="APTUSDT">APT-USDT</option>
+                                <option value="XAUUSD">XAUUSD</option>
+                            </select>
+                        </div>
+
+                        <p id="currentSymbolSub" class="mt-1 text-sm text-slate-400">Perpetual Futures</p>
+
+                        <div class="tx-futures-header-wishlist">
+                            <button id="futuresRecentSymbolsBtn" type="button" class="tx-futures-chart-action-btn" aria-expanded="false" aria-controls="futuresRecentSymbolsPanel">
+                                <span>★ 7-Day Wishlist</span>
+                                <span id="futuresRecentSymbolsCount" class="tx-futures-recent-count">0</span>
+                            </button>
+
+                            <div id="futuresRecentSymbolsPanel" class="tx-futures-recent-panel hidden" role="dialog" aria-label="Recently viewed futures symbols">
+                                <div class="tx-futures-panel-head">
+                                    <div>
+                                        <strong>Recently Viewed Symbols</strong>
+                                        <span>Saved user-wise in MongoDB for 7 days</span>
+                                    </div>
+                                    <button id="futuresRecentSymbolsClose" type="button" class="tx-futures-panel-close" aria-label="Close recently viewed symbols">✕</button>
+                                </div>
+                                <div id="futuresRecentSymbolsList" class="tx-futures-recent-list">
+                                    <div class="tx-futures-panel-empty">Login to load your 7-day symbol list.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rt-metrics-grid">
+                    <div class="rt-metric">
+                        <span>Mark Price</span>
+                        <strong id="markPrice">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>Index Price</span>
+                        <strong id="indexPrice">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>24H Change</span>
+                        <strong id="change24h">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>24H Low</span>
+                        <strong id="low24h">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>24H High</span>
+                        <strong id="high24h">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>24H Vol</span>
+                        <strong id="vol24h">--</strong>
+                    </div>
+
+                    <div class="rt-metric">
+                        <span>Funding / Countdown</span>
+                        <strong id="fundingRate" class="text-orange-300">-- / --:--:--</strong>
+                    </div>
+                </div>
+
+                <!-- FUNDS QUICK ACTIONS - Highlighted in top pair header -->
+                <div class="rt-pair-funds-card">
+                    <div class="rt-pair-funds-head flex items-center justify-between">
+                        <h3>Trading Wallet</h3>
+                        <div class="flex items-center gap-2">
+                            <select id="tradingAccountSelector" class="rt-select text-xs py-1 px-2 border border-slate-700 bg-slate-900 text-white rounded cursor-pointer font-bold outline-none focus:border-cyan-400">
+                                <option value="main">Main Trading Account</option>
+                            </select>
+                            <button id="subAccountSettingsBtn" type="button" class="text-slate-400 hover:text-cyan-400 text-sm p-1" title="Manage Sub Accounts">⚙️</button>
+                        </div>
+                    </div>
+
+                    <div class="rt-pair-funds-grid">
+                        <div class="rt-pair-funds-item">
+                            <span>Trading Balance</span>
+                            <strong id="futuresTotalBalance">$0.00</strong>
+                        </div>
+
+                        <div class="rt-pair-funds-item estimate">
+                            <span>Main Wallet</span>
+                            <strong id="futuresEstimatedBalance">$0.00</strong>
+                        </div>
+
+                        <div class="rt-pair-funds-item pnl">
+                            <span>Trading P&amp;L</span>
+                            <strong id="futuresTradingPnl">+0.00 USDT</strong>
+                        </div>
+                    </div>
+
+                    <div class="rt-pair-funds-actions">
+                        <button id="futuresTransferBtn" type="button" class="rt-pair-funds-btn transfer">
+                            Transfer
+                        </button>
+                        <button id="futuresDepositBtn" type="button" class="rt-pair-funds-btn deposit">
+                            Deposit
+                        </button>
+                        <button id="futuresWithdrawBtn" type="button" class="rt-pair-funds-btn withdraw">
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TERMINAL GRID - 3 PART LAYOUT -->
+<section class="rt-terminal-3col rt-terminal-focused mx-auto mt-4 max-w-[1800px] px-4">
+
+    <!-- ================= LEFT: CHART + TABLE ================= -->
+    <div class="rt-left-terminal space-y-4">
+
+        <!-- CHART CARD -->
+        <div class="rt-card rt-chart-card overflow-hidden">
+
+            <div class="rt-chart-layout rt-tv-chart-layout rt-tv-native-only">
+                <div class="rt-chart-area rt-tv-chart-area rt-tv-native-area tx-futures-chart-shell">
+                    <div id="terminalPairTitle" class="rt-hidden-tv-status">BTC-USDT PERPETUAL · 1m · TraidiumX</div>
+                    <div id="terminalCandleInfo" class="rt-hidden-tv-status">TradingView chart connecting...</div>
+
+                    <div id="chartContainer" class="rt-chart-container rt-tv-chart-container rt-perfect-tv-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POSITIONS / ORDERS TABLE -->
+        <div class="rt-card rt-positions-card">
+            <div class="rt-bottom-tabs">
+                <button class="active" type="button" data-terminal-tab="positions">Positions</button>
+                <button type="button" data-terminal-tab="openOrders">Open Orders</button>
+                <button type="button" data-terminal-tab="orderHistory">Order History</button>
+                <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
+                <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
+                <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
+            </div>
+
+            <div class="rt-table-wrap">
+                <div id="terminalTable"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= MIDDLE: ORDER BOOK + RECENT TRADES ================= -->
+    <div class="rt-middle-orderbook">
+        <div class="rt-card rt-ob-card">
+            <div class="rt-ob-header">
+                <div class="rt-ob-top-tabs">
+                    <button id="orderBookTabBtn" class="active" type="button">Order Book</button>
+                    <button id="tradesTabBtn" type="button">Recent Trades</button>
+                </div>
+                <div class="rt-ob-info">i</div>
+            </div>
+
+            <!-- Visual toggle icons matching standard exchange orderbook views -->
+            <div class="rt-ob-icons-row">
+                <button class="rt-ob-view-btn active" type="button" data-book-view="both"><span class="ob-green"></span><span class="ob-red"></span></button>
+                <button class="rt-ob-view-btn" type="button" data-book-view="bids"><span class="ob-green"></span></button>
+                <button class="rt-ob-view-btn" type="button" data-book-view="asks"><span class="ob-red"></span></button>
+            </div>
+
+            <!-- Orderbook Panel -->
+            <div id="orderBookPanel" class="space-y-1">
+                <div class="rt-book-head compact">
+                    <span>Price (USDT)</span>
+                    <span id="orderBookSizeLabel">Size</span>
+                    <span id="orderBookSumLabel">Total</span>
+                </div>
+                
+                <!-- ASKS (Red/Top) -->
+                <div id="orderBookAsks" class="rt-book-list asks">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <!-- MID (Spread/Last Price) -->
+                <div id="orderBookMid" class="rt-book-mid">--</div>
+                
+                <!-- BIDS (Green/Bottom) -->
+                <div id="orderBookBids" class="rt-book-list bids">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <!-- Buy / Sell ratio indicator -->
+                <div class="px-4 py-2 flex items-center justify-between text-[11px] font-black text-slate-500 border-t border-white/5 mt-2">
+                    <span id="buyPercentBar" class="text-emerald-400">B --%</span>
+                    <span id="sellPercentBar" class="text-red-400">S --%</span>
+                </div>
+            </div>
+
+            <!-- Recent Trades Panel -->
+            <div id="tradesPanel" class="hidden space-y-1">
+                <div class="rt-book-head compact">
+                    <span>Price (USDT)</span>
+                    <span>Size</span>
+                    <span>Time</span>
+                </div>
+                <div id="recentTradesList" class="rt-trades-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= RIGHT: ORDER FORM + MARGIN ================= -->
+    <aside class="rt-right-panel space-y-4">
+
+        <!-- ORDER PANEL -->
+        <div class="rt-card rt-order-panel-card">
+            <div class="rt-order-header">
+                <h3>Isolated Margin · Backend Risk Engine</h3>
+                <span id="orderHeaderLeverageBadge">Max 50x</span>
+            </div>
+
+            <div class="rt-order-type-tabs three">
+                <button class="active" type="button" data-order-type="MARKET">Market</button>
+                <button type="button" data-order-type="LIMIT">Limit</button>
+                <button type="button" data-order-type="STOP_LIMIT">Stop Limit</button>
+            </div>
+
+            <div id="limitPriceWrap" class="hidden">
+                <label class="rt-label">Limit Price</label>
+                <input id="limitPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter limit price" />
+            </div>
+
+            <div id="stopPriceWrap" class="hidden">
+                <label class="rt-label">Stop Price</label>
+                <input id="stopPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter stop trigger price" />
+            </div>
+
+            <label class="rt-label">Quantity</label>
+            <input id="quantityInput" type="number" step="0.001" class="rt-input" placeholder="Quantity" />
+
+            <div class="rt-percent-row">
+                <button type="button" data-percent="25">25%</button>
+                <button type="button" data-percent="50">50%</button>
+                <button type="button" data-percent="75">75%</button>
+                <button type="button" data-percent="100">Max</button>
+            </div>
+
+            <label class="rt-label">Leverage</label>
+            <select id="leverageSelect" class="rt-input">
+                <option value="1">1x</option>
+                <option value="2">2x</option>
+                <option value="3">3x</option>
+                <option value="5">5x</option>
+                <option value="10" selected>10x</option>
+                <option value="20">20x</option>
+                <option value="25">25x</option>
+                <option value="50">50x</option>
+            </select>
+
+            <label class="rt-tp-sl-label mx-4 mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <input id="tpSlCheckbox" type="checkbox" class="accent-cyan-400" />
+                Set Take Profit/ Stop Loss
+            </label>
+
+            <div id="tpSlFields" class="hidden px-4 pt-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="rt-label compact">Take Profit</label>
+                        <input id="takeProfitInput" type="number" step="0.01" class="rt-input" placeholder="TP price" />
+                    </div>
+                    <div>
+                        <label class="rt-label compact">Stop Loss</label>
+                        <input id="stopLossInput" type="number" step="0.01" class="rt-input" placeholder="SL price" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="rt-side-tabs">
+                <button id="sideBuyBtn" class="active" type="button" data-side="BUY">Buy / Long</button>
+                <button id="sideSellBtn" type="button" data-side="SELL">Sell / Short</button>
+            </div>
+
+            <div class="rt-wallet-mini-grid mt-4 grid grid-cols-2 gap-3 px-4 text-sm">
+                <div class="rt-wallet-mini">
+                    <span>Trading Available</span>
+                    <strong id="walletAvailable">0.00 USDT</strong>
+                </div>
+
+                <div class="rt-wallet-mini">
+                    <span>Used Margin</span>
+                    <strong id="walletUsed">0.00 USDT</strong>
+                </div>
+
+                <div class="rt-wallet-mini">
+                    <span>Total Profit</span>
+                    <strong id="walletTotalProfit" class="text-emerald-400">+0.00 USDT</strong>
+                </div>
+
+                <div class="rt-wallet-mini">
+                    <span>Total Loss</span>
+                    <strong id="walletTotalLoss" class="text-red-400">0.00 USDT</strong>
+                </div>
+            </div>
+
+            <div class="rt-est-margin-row mt-4 flex items-center justify-between px-5 text-sm font-black text-slate-400">
+                <span>Est. Margin</span>
+                <span id="walletEstMargin" class="text-cyan-400">0.00 USDT</span>
+            </div>
+
+            <button id="placeOrderBtn" type="button" class="rt-place-order-btn">
+                Login to Trade
+            </button>
+
+            <div id="notLoggedInOrderHelp" class="px-4 pb-4 text-center hidden">
+                <p class="mb-3 text-sm font-bold text-slate-500">New to TraidiumX?</p>
+                <a href="./register.html" class="rt-create-account-btn">Create Account</a>
+            </div>
+
+            <p id="orderMessage" class="rt-order-message hidden"></p>
+        </div>
+
+        <!-- MARGIN -->
+        <div class="rt-card rt-margin-card p-4">
+            <div class="rt-margin-head">
+                <h3>Overall Profit / Loss</h3>
+                <span id="sessionStatus">Backend Controlled</span>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+                <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USDT</h2>
+                <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
+                    BTC-USDT
+                </span>
+            </div>
+
+            <div class="mt-4 h-2 rounded-full bg-slate-800">
+                <div id="marginRatioBar" class="h-full w-0 rounded-full bg-cyan-400"></div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-4 text-xs">
+                <div>
+                    <p class="text-slate-500">Maintenance Margin</p>
+                    <strong id="maintenanceMarginValue" class="mt-1 block text-white">0.0000 USDT</strong>
+                </div>
+
+                <div>
+                    <p class="text-slate-500">Margin Balance</p>
+                    <strong id="marginBalanceValue" class="mt-1 block text-white">0.0000 USDT</strong>
+                </div>
+            </div>
+        </div>
+
+    </aside>
+
+</section>
+    </main>
+
+
+    <!-- Futures quick wallet modal: deposit / withdraw / transfer without leaving Futures page -->
+    <div id="futuresWalletModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
+        <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
+            <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Trading Wallet Quick Action</p>
+                    <h3 id="futuresWalletModalTitle" class="mt-1 text-2xl font-black text-white">Transfer Funds</h3>
+                    <p class="mt-1 text-xs font-semibold text-slate-400">Main Wallet deposit/withdraw + Trading Wallet transfer, without leaving Futures.</p>
+                </div>
+                <button id="futuresWalletModalClose" type="button" class="rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300">✕</button>
+            </div>
+
+
+            <div class="px-5 pb-5 pt-4">
+                <div class="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-3 text-xs">
+                    <div>
+                        <p id="futuresModalTradingLabel" class="font-black uppercase tracking-wide text-slate-500">Trading</p>
+                        <strong id="futuresModalTradingBalance" class="mt-1 block text-cyan-300">$0.00</strong>
+                    </div>
+                    <div>
+                        <p class="font-black uppercase tracking-wide text-slate-500">Main</p>
+                        <strong id="futuresModalMainBalance" class="mt-1 block text-emerald-300">$0.00</strong>
+                    </div>
+                    <div>
+                        <p class="font-black uppercase tracking-wide text-slate-500">P&amp;L</p>
+                        <strong id="futuresModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USDT</strong>
+                    </div>
+                </div>
+
+                <form id="futuresTransferForm" class="futures-wallet-panel grid gap-4" data-futures-wallet-panel="transfer">
+                    <div id="futuresTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                        <span>Market Exchange Rate:</span>
+                        <span id="futuresTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                    </div>
+                    <div>
+                        <label for="futuresTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
+                        <select id="futuresTransferDirection" name="direction" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
+                            <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="futuresTransferAmount" id="futuresTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR)</label>
+                            <button id="futuresTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
+                        </div>
+                        <input id="futuresTransferAmount" name="amount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                    </div>
+                    <div id="futuresTransferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
+                        Enter amount to see live conversion
+                    </div>
+                    <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Transfer Funds</button>
+                    <div id="futuresTransferMessage" class="futures-wallet-panel-message hidden"></div>
+                </form>
+
+                <form id="futuresDepositForm" class="futures-wallet-panel hidden grid gap-4" data-futures-wallet-panel="deposit">
+                    <input id="futuresCryptoAsset" name="crypto_asset" type="hidden" value="USDT" />
+
+                    <!-- Top Currency Switcher Tabs (Sleek Pills) -->
+                    <div id="futuresDepositCurrencyToggleBar" class="mb-2 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="futuresSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
+                            $ USD / USDT
+                        </button>
+                        <button id="futuresSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Subtitle -->
+                    <p id="futuresDepositSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
+                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                    </p>
+
+                    <!-- USDT Crypto Mode Fields -->
+                    <div id="futuresCryptoDepositBox" class="grid gap-4">
+                        <div>
+                            <label for="futuresCryptoNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
+                            <select id="futuresCryptoNetwork" name="crypto_network" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="TRC20">USDT TRC20 (Tron)</option>
+                                <option value="BEP20">USDT BEP20 (Binance Smart Chain)</option>
+                                <option value="ERC20">USDT ERC20 (Ethereum)</option>
+                            </select>
+                        </div>
+
+                        <!-- Company Deposit Address Box (Green Card style) -->
+                        <div class="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
+                            <div class="flex items-center justify-between">
+                                <span id="futuresCryptoAddressBoxLabel" class="text-xs font-black uppercase tracking-wider text-emerald-400">USDT TRC20</span>
+                                <button id="futuresCopyCryptoAddressBtn" type="button" class="flex items-center gap-1.5 text-xs font-black text-emerald-400 transition hover:text-emerald-300">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    Copy address
+                                </button>
+                            </div>
+                            <code id="futuresDepositAddress" class="mt-2 block break-all font-mono text-sm font-bold text-white">--</code>
+                            <p id="futuresDepositAddressStatus" class="mt-1 text-[11px] font-semibold text-slate-400">Loading address...</p>
+                        </div>
+
+                        <div class="hidden">
+                            <input id="futuresDepositAddressConfirmation" name="deposit_address_confirmation" type="text" />
+                        </div>
+                    </div>
+
+                    <!-- INR Mode Fields -->
+                    <div id="futuresInrDepositBox" class="grid gap-4 hidden">
+                        <div class="rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4">
+                            <div class="mb-3 flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider text-cyan-300">Company Bank / UPI Gateway</span>
+                                <button id="futuresCopyInrUpiBtn" type="button" class="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-400/20">📋 Copy UPI ID</button>
+                            </div>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Company UPI ID</p>
+                                    <p id="futuresInrUpiId" class="mt-1 font-mono text-xs font-black text-cyan-300">traidiumx@upi</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Account Name</p>
+                                    <p id="futuresInrAccountName" class="mt-1 font-mono text-xs font-bold text-slate-200">TraidiumX Trading Services Ltd</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">Bank & Account No.</p>
+                                    <p id="futuresInrBankDetails" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC Bank • 50100498765432</p>
+                                </div>
+                                <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
+                                    <p class="text-[10px] font-bold uppercase text-slate-400">IFSC Code</p>
+                                    <p id="futuresInrIfscCode" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC0000128</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="futuresInrUtrNumber" class="block text-xs font-black uppercase tracking-wide text-slate-400">Payment Ref / UTR Number</label>
+                            <input id="futuresInrUtrNumber" name="inr_utr_number" type="text" placeholder="Enter 12-digit UTR or Transaction Ref ID" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 font-mono text-sm font-bold text-white outline-none focus:border-cyan-400" />
+                        </div>
+                    </div>
+
+                    <!-- Amount Input -->
+                    <div>
+                        <label for="futuresDepositAmount" id="futuresDepositAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (USD)</label>
+                        <input id="futuresDepositAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                    </div>
+
+                    <!-- Calculation Card -->
+                    <div id="futuresDepositCalcCard" class="rounded-2xl border border-white/10 bg-slate-950/80 p-4">
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
+                            <span>You deposit</span>
+                            <span id="futuresDepCalcYouDeposit" class="font-extrabold text-white">$0.00</span>
+                        </div>
+                        <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
+                            <span>Wallet credit</span>
+                            <span id="futuresDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                        </div>
+                        <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
+                            <span id="futuresDepCalcRateNote">Min $10 · $1 = ₹88.50</span>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button id="futuresCreateDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                        Deposit USDT
+                    </button>
+
+                    <p id="futuresDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
+                        Send USDT to the address above. Balance credits on submit.
+                    </p>
+                    <div id="futuresDepositMessage" class="futures-wallet-panel-message hidden"></div>
+                </form>
+
+                <form id="futuresWithdrawForm" class="futures-wallet-panel hidden grid gap-4" data-futures-wallet-panel="withdraw">
+                    <div id="txFuturesWithdrawCurrencyToggleBar" class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="txFuturesSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            $ USD / USDT
+                        </button>
+                        <button id="txFuturesSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                            ₹ INR
+                        </button>
+                    </div>
+
+                    <p id="futuresWithdrawSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
+                        Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
+                    </p>
+                    <input id="futuresWithdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
+                    <input id="futuresWithdrawAsset" name="crypto_asset" type="hidden" value="INR" />
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div id="futuresWithdrawAmountBox">
+                            <label for="futuresWithdrawAmount" id="futuresWithdrawAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR / ₹)</label>
+                            <input id="futuresWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-red-400" required />
+                        </div>
+                        <div id="futuresWithdrawNetworkBox">
+                            <label for="futuresWithdrawNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
+                            <select id="futuresWithdrawNetwork" name="crypto_network" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400">
+                                <option value="TRC20">TRON (TRC20)</option>
+                                <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                                <option value="ERC20">Ethereum (ERC20)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="futuresWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                        Enter withdrawal amount to see live conversion
+                    </div>
+
+                    <div>
+                        <label for="futuresWithdrawalAddress" id="futuresWithdrawalAddressLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Your UPI ID / Bank Account Payout Details</label>
+                        <input id="futuresWithdrawalAddress" name="withdrawal_address" type="text" placeholder="Enter UPI ID (e.g. name@upi) or Bank Account No. & IFSC" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400" required />
+                    </div>
+                    <div id="futuresWithdrawTagBox">
+                        <label for="futuresDestinationTag" class="block text-xs font-black uppercase tracking-wide text-slate-400">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                        <input id="futuresDestinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-red-400" />
+                    </div>
+
+                    <div id="futuresWithdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
+                        <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <p>Withdraw amount: <b id="futuresWithdrawPreviewAmount">--</b></p>
+                            <p>You will receive: <b id="futuresWithdrawPreviewReceive">--</b></p>
+                            <p>Company fee: <b id="futuresWithdrawPreviewCompanyFee">--</b></p>
+                            <p>Total wallet debit: <b id="futuresWithdrawPreviewTotalDebit">--</b></p>
+                        </div>
+                        <p id="futuresWithdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                    </div>
+
+                    <button id="futuresCreateWithdrawalBtn" type="submit" class="w-full rounded-2xl bg-red-400 py-3.5 text-sm font-black text-slate-950 transition hover:bg-red-300 shadow-lg shadow-red-500/20">
+                        Create Withdrawal Request
+                    </button>
+                    <div id="futuresWithdrawMessage" class="futures-wallet-panel-message hidden"></div>
+                </form>
+
+                <p id="futuresWalletModalMessage" class="hidden"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Sub-Account Management Modal -->
+    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
+        <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
+            <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Sub Accounts settings</p>
+                    <h3 class="mt-1 text-2xl font-black text-white">Manage Sub Accounts</h3>
+                    <p class="mt-1 text-xs font-semibold text-slate-400">Create, view, and transfer funds between your trading sub-accounts.</p>
+                </div>
+                <button id="subAccountModalClose" type="button" class="rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300">✕</button>
+            </div>
+
+            <div class="px-5 pb-5 pt-4">
+                <!-- Tabs to switch between List and Transfer -->
+                <div class="mb-4 hidden gap-2 border-b border-slate-800 pb-2">
+                    <button id="subTabListBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400">Sub Accounts</button>
+                    <button id="subTabTransferBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white">Transfer Funds</button>
+                </div>
+
+                <!-- Panel 1: Sub Accounts List & Creation -->
+                <div id="subPanelList" class="space-y-4">
+                    <form id="createSubForm" class="grid gap-3">
+                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400">Create New Sub Account</label>
+                        <div class="flex gap-2">
+                            <input id="newSubNameInput" type="text" placeholder="Sub account name (e.g. Sub Account 1)" class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-cyan-400" required />
+                            <button type="submit" class="rounded-xl bg-cyan-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-300">Create</button>
+                        </div>
+                        <p id="createSubMessage" class="hidden text-xs font-bold"></p>
+                    </form>
+
+                    <div class="border-t border-slate-800 pt-3">
+                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400 mb-2">Existing Sub Accounts</label>
+                        <div id="subAccountsContainer" class="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                            <p class="text-xs text-slate-500 font-semibold py-2">Loading sub accounts...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Sub-Account Transfer Form -->
+                <div id="subPanelTransfer" class="hidden space-y-4">
+                    <form id="subTransferForm" class="grid gap-4">
+                        <div>
+                            <label for="subTransferAccount" class="block text-xs font-black uppercase tracking-wide text-slate-400">Target Trading Account</label>
+                            <select id="subTransferAccount" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="main">Main Trading Account</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="subTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
+                            <select id="subTransferDirection" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
+                                <option value="main_to_sub">Main Wallet → Target Trading Account (USDT)</option>
+                                <option value="sub_to_main">Target Trading Account (USDT) → Main Wallet</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="subTransferAmount" id="subTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount</label>
+                                <button id="subTransferMaxBtn" type="button" class="text-xs font-black uppercase tracking-wider text-cyan-300 hover:text-cyan-200">MAX</button>
+                            </div>
+                            <input id="subTransferAmount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                        </div>
+
+                        <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                            Rate: 1 USDT = ₹88.50 INR. Enter amount to see preview.
+                        </div>
+
+                        <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Execute Transfer</button>
+                        <div id="subTransferMessage" class="hidden text-xs font-bold p-3 rounded-xl"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/futures.js?v=30"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<link rel="icon" href="data:," />
+
+    <title>Users | TraidiumX Admin</title>
+
+<style>
+    /* Users table: keep Actions in one line without horizontal scrollbar */
+    .admin-users-table-wrap {
+        overflow-x: visible !important;
+        width: 100%;
+    }
+
+    .admin-users-table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding-left: 0.72rem !important;
+        padding-right: 0.72rem !important;
+        vertical-align: middle;
+    }
+
+    .admin-users-table th:nth-child(1),
+    .admin-users-table td:nth-child(1) { width: 18%; }
+    .admin-users-table th:nth-child(2),
+    .admin-users-table td:nth-child(2) { width: 14%; }
+    .admin-users-table th:nth-child(3),
+    .admin-users-table td:nth-child(3) { width: 13%; }
+    .admin-users-table th:nth-child(4),
+    .admin-users-table td:nth-child(4) { width: 9%; }
+    .admin-users-table th:nth-child(5),
+    .admin-users-table td:nth-child(5) { width: 8%; }
+    .admin-users-table th:nth-child(6),
+    .admin-users-table td:nth-child(6) { width: 8%; }
+    .admin-users-table th:nth-child(7),
+    .admin-users-table td:nth-child(7) { width: 8%; }
+    .admin-users-table th:nth-child(8),
+    .admin-users-table td:nth-child(8) { width: 8%; }
+    .admin-users-table th:nth-child(9),
+    .admin-users-table td:nth-child(9) { width: 18%; }
+
+    .admin-users-action-head,
+    .admin-users-action-cell {
+        white-space: nowrap;
+        overflow: visible;
+    }
+
+    .admin-users-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.45rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    .admin-users-actions .admin-btn {
+        min-width: 62px;
+        white-space: nowrap;
+        padding: 0.55rem 0.68rem !important;
+        font-size: 0.78rem !important;
+        line-height: 1 !important;
+        border-radius: 999px;
+    }
+
+    .admin-users-table td:nth-child(1) .truncate,
+    .admin-users-table td:nth-child(2) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 1280px) {
+        .admin-users-table-wrap {
+            overflow-x: auto !important;
+        }
+
+        .admin-users-table {
+            min-width: 1180px !important;
+        }
+    }
+
+    .admin-users-filter-card {
+        display: grid;
+        gap: 16px;
+    }
+
+    .admin-users-filter-row {
+        display: grid;
+        grid-template-columns: minmax(260px, 1.45fr) minmax(170px, .7fr) minmax(170px, .7fr) auto;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .admin-users-filter-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        white-space: nowrap;
+    }
+
+    .admin-users-filter-actions .admin-btn {
+        min-height: 46px;
+        padding-inline: 18px;
+    }
+
+    .admin-users-pagination-bottom {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 16px;
+    }
+
+    @media (max-width: 1180px) {
+        .admin-users-filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        .admin-users-filter-actions {
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .admin-users-filter-row {
+            grid-template-columns: 1fr;
+        }
+        .admin-users-filter-actions {
+            justify-content: stretch;
+        }
+        .admin-users-filter-actions .admin-btn {
+            flex: 1;
+        }
+        .admin-users-pagination-bottom {
+            justify-content: stretch;
+        }
+        .admin-users-pagination-bottom .admin-btn {
+            flex: 1;
+        }
+    }
+
+</style>
+
+</head>
+<body data-admin-page="users" data-page-title="Users" data-page-subtitle="Manage TraidiumX users, wallet exposure, account status and security controls.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div class="admin-card admin-card-hover p-5 tx-fade-up"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Total Users</p><h3 id="usersTotal" class="mt-3 text-3xl font-black text-white">0</h3></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-2"><p class="text-xs font-black uppercase tracking-wide text-slate-400">New Today</p><h3 id="usersNewToday" class="mt-3 text-3xl font-black text-cyan-300">0</h3></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-3"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Wallet Exposure</p><h3 id="usersWalletTotal" class="mt-3 text-2xl font-black text-white">$0</h3></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-1"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Active</p><h3 id="usersActive" class="mt-3 text-3xl font-black text-emerald-300">0</h3></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-1"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Suspended</p><h3 id="usersSuspended" class="mt-3 text-3xl font-black text-amber-300">0</h3></div>
+        <div class="admin-card admin-card-hover p-5 tx-fade-up tx-delay-2"><p class="text-xs font-black uppercase tracking-wide text-slate-400">Blocked</p><h3 id="usersBlocked" class="mt-3 text-3xl font-black text-rose-300">0</h3></div>
+        
+        
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up admin-users-filter-card">
+        <div>
+            <h2 class="text-xl font-black text-white">User Management</h2>
+            <p class="mt-1 text-sm text-slate-400">Search, filter, inspect wallets and manage user access safely.</p>
+        </div>
+        <div class="admin-users-filter-row">
+            <input id="userSearch" class="admin-input" placeholder="Search name, email, UID, phone..." />
+            <select id="userStatusFilter" class="admin-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="blocked">Blocked</option>
+                <option value="restricted">Restricted</option>
+            </select>
+            <select id="userKycFilter" class="admin-select">
+                <option value="">All KYC</option>
+                <option value="pending">Pending</option>
+                <option value="under_review">Under Review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <div class="admin-users-filter-actions">
+                <button id="userResetBtn" type="button" class="admin-btn">Reset</button>
+                <button id="exportUsersBtn" type="button" class="admin-btn admin-btn-primary">Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div><h3 class="text-lg font-black text-white">Users</h3><p id="usersPaginationText" class="mt-1 text-sm font-bold text-slate-400">Loading users...</p></div>
+        </div>
+        <div class="table-wrap admin-users-table-wrap">
+            <table class="admin-table admin-users-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Contact</th>
+                        <th>KYC</th>
+                        <th>Status</th>
+                        <th>Available</th>
+                        <th>Locked</th>
+                        <th>Total Wallet</th>
+                        <th>Joined</th>
+                        <th class="text-right admin-users-action-head">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+        <div class="admin-users-pagination-bottom">
+            <button id="usersPrevBtn" type="button" class="admin-btn">Prev</button>
+            <button id="usersNextBtn" type="button" class="admin-btn">Next</button>
+        </div>
+    </div>
+</section>
+
+<div id="userActionModal" class="admin-modal" aria-hidden="true">
+    <div class="admin-modal-panel p-6">
+        <div class="mb-5 flex items-start justify-between gap-4">
+            <div>
+                <h3 id="userActionTitle" class="text-xl font-black text-white">User Action</h3>
+                <p id="userActionSubtitle" class="mt-1 text-sm text-slate-400">This action will update account access and be saved in audit logs.</p>
+            </div>
+            <button type="button" class="admin-btn" data-user-modal-close>×</button>
+        </div>
+        <label class="mb-2 block text-xs font-black uppercase tracking-wide text-slate-400">Reason</label>
+        <textarea id="userActionReason" class="admin-textarea min-h-[120px]" placeholder="Write reason for audit log..."></textarea>
+        <div class="mt-5 flex justify-end gap-3">
+            <button type="button" class="admin-btn" data-user-modal-close>Cancel</button>
+            <button type="button" id="confirmUserActionBtn" class="admin-btn admin-btn-primary">Confirm</button>
+        </div>
+    </div>
+</div>
+
+
+            </main>
+        </section>
+    </div>
+
+<script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-data.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-users.js?v=users-complete-1"></script>
+</body>
+</html>

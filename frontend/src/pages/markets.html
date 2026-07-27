@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Markets | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        .market-sync-visual {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            height: 2rem;
+        }
+
+        .market-sync-visual span {
+            width: 0.28rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #67e8f9, #22d3ee);
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+            animation: market-status-wave 1.05s ease-in-out infinite;
+        }
+
+        .market-sync-visual span:nth-child(1),
+        .market-sync-visual span:nth-child(5) { height: 0.55rem; }
+        .market-sync-visual span:nth-child(2),
+        .market-sync-visual span:nth-child(4) { height: 1rem; animation-delay: 0.12s; }
+        .market-sync-visual span:nth-child(3) { height: 1.55rem; animation-delay: 0.24s; }
+
+        .market-network-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .market-network-dot {
+            width: 0.48rem;
+            height: 0.48rem;
+            border-radius: 999px;
+            background: #22d3ee;
+            box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.42);
+            animation: market-network-pulse 1.65s ease-out infinite;
+        }
+
+        .market-skeleton-row {
+            position: relative;
+            overflow: hidden;
+            min-height: 3.7rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            background: rgba(2, 6, 23, 0.58);
+        }
+
+        .market-skeleton-row::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            transform: translateX(-110%);
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.08), transparent);
+            animation: market-skeleton-sweep 1.5s ease-in-out infinite;
+        }
+
+        #topMarketSlider > div {
+            transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                        border-color 260ms ease,
+                        box-shadow 260ms ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            #topMarketSlider > div:hover {
+                transform: translateY(-4px);
+                border-color: rgba(34, 211, 238, 0.24);
+                box-shadow: 0 18px 36px rgba(2, 6, 23, 0.26);
+            }
+        }
+
+        @keyframes market-status-wave {
+            0%, 100% { transform: scaleY(0.55); opacity: 0.55; }
+            50% { transform: scaleY(1.05); opacity: 1; }
+        }
+
+        @keyframes market-network-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.38); }
+            70% { box-shadow: 0 0 0 7px rgba(34, 211, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+        }
+
+        @keyframes market-skeleton-sweep {
+            100% { transform: translateX(110%); }
+        }
+
+
+
+        /* Full-page market intro animation */
+        body.markets-intro-active {
+            overflow: hidden;
+        }
+
+        .markets-page-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: grid;
+            place-items: center;
+            min-height: 100dvh;
+            padding:
+                max(1rem, env(safe-area-inset-top))
+                max(1rem, env(safe-area-inset-right))
+                max(1rem, env(safe-area-inset-bottom))
+                max(1rem, env(safe-area-inset-left));
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(34, 211, 238, 0.18), transparent 34%),
+                radial-gradient(circle at 82% 76%, rgba(59, 130, 246, 0.16), transparent 38%),
+                linear-gradient(145deg, #020617 0%, #061327 52%, #020617 100%);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 560ms ease, visibility 560ms ease;
+        }
+
+        .markets-page-intro::before,
+        .markets-page-intro::after {
+            content: "";
+            position: absolute;
+            width: min(56vw, 42rem);
+            aspect-ratio: 1;
+            border-radius: 999px;
+            filter: blur(90px);
+            opacity: 0.28;
+            pointer-events: none;
+            animation: market-intro-orbit 6s ease-in-out infinite alternate;
+        }
+
+        .markets-page-intro::before {
+            left: -18%;
+            top: -28%;
+            background: #06b6d4;
+        }
+
+        .markets-page-intro::after {
+            right: -20%;
+            bottom: -32%;
+            background: #2563eb;
+            animation-delay: -2.4s;
+        }
+
+        .markets-page-intro.is-exiting {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .markets-intro-shell {
+            position: relative;
+            width: min(92vw, 46rem);
+            overflow: hidden;
+            border: 1px solid rgba(103, 232, 249, 0.22);
+            border-radius: 2rem;
+            padding: clamp(1rem, 3vw, 2rem);
+            background:
+                linear-gradient(145deg, rgba(15, 31, 52, 0.88), rgba(2, 6, 23, 0.92));
+            box-shadow:
+                0 34px 90px rgba(2, 6, 23, 0.72),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            transform: translateY(0) scale(1);
+            animation: market-intro-shell-in 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .markets-intro-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(115deg, rgba(255, 255, 255, 0.055), transparent 36%);
+        }
+
+        .markets-intro-brand {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .markets-intro-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .markets-intro-logo-mark {
+            display: grid;
+            width: 3rem;
+            height: 3rem;
+            place-items: center;
+            border: 1px solid rgba(103, 232, 249, 0.28);
+            border-radius: 1rem;
+            background: rgba(34, 211, 238, 0.1);
+            color: #67e8f9;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            box-shadow: 0 0 24px rgba(34, 211, 238, 0.12);
+        }
+
+        .markets-intro-logo-copy strong {
+            display: block;
+            color: #f8fafc;
+            font-size: clamp(1.05rem, 3vw, 1.4rem);
+            font-weight: 750;
+            letter-spacing: -0.025em;
+        }
+
+        .markets-intro-logo-copy span {
+            display: block;
+            margin-top: 0.12rem;
+            color: #22d3ee;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+        }
+
+        .markets-intro-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.48rem;
+            flex: 0 0 auto;
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 999px;
+            padding: 0.52rem 0.72rem;
+            background: rgba(52, 211, 153, 0.08);
+            color: #6ee7b7;
+            font-size: 0.65rem;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+        }
+
+        .markets-intro-live-dot {
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 999px;
+            background: #34d399;
+            box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.42);
+            animation: market-intro-live-pulse 1.45s ease-out infinite;
+        }
+
+        .markets-intro-chart {
+            position: relative;
+            z-index: 2;
+            height: clamp(12rem, 34vw, 17rem);
+            overflow: hidden;
+            border: 1px solid rgba(103, 232, 249, 0.14);
+            border-radius: 1.5rem;
+            background-color: rgba(2, 6, 23, 0.78);
+            background-image:
+                linear-gradient(rgba(148, 163, 184, 0.055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
+            background-size: 100% 25%, 12.5% 100%;
+            box-shadow: inset 0 0 42px rgba(34, 211, 238, 0.025);
+        }
+
+        .markets-intro-chart-glow {
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            bottom: -42%;
+            height: 72%;
+            border-radius: 50%;
+            background: rgba(34, 211, 238, 0.16);
+            filter: blur(40px);
+            animation: market-intro-glow 2.4s ease-in-out infinite alternate;
+        }
+
+        .markets-intro-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .markets-intro-area {
+            opacity: 0;
+            animation: market-intro-area-in 1s ease 420ms forwards;
+        }
+
+        .markets-intro-line {
+            fill: none;
+            stroke: url(#marketsIntroLineGradient);
+            stroke-width: 3.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.5));
+            stroke-dasharray: 720;
+            stroke-dashoffset: 720;
+            animation: market-intro-line-draw 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        }
+
+        .markets-intro-price-dot {
+            fill: #67e8f9;
+            filter: drop-shadow(0 0 7px #22d3ee);
+            animation: market-intro-price-dot 1.1s ease-in-out infinite alternate;
+        }
+
+        .markets-intro-candles {
+            position: absolute;
+            inset: 13% 7% 12%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: clamp(0.35rem, 1.2vw, 0.72rem);
+            pointer-events: none;
+        }
+
+        .markets-intro-candle {
+            position: relative;
+            width: clamp(0.36rem, 1.1vw, 0.62rem);
+            height: var(--candle-height);
+            border-radius: 0.22rem;
+            background: var(--candle-color);
+            box-shadow: 0 0 12px color-mix(in srgb, var(--candle-color) 35%, transparent);
+            opacity: 0.78;
+            transform-origin: center;
+            animation: market-intro-candle 1.3s ease-in-out infinite alternate;
+            animation-delay: var(--candle-delay);
+        }
+
+        .markets-intro-candle::before,
+        .markets-intro-candle::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            width: 1px;
+            height: 0.9rem;
+            transform: translateX(-50%);
+            background: var(--candle-color);
+            opacity: 0.76;
+        }
+
+        .markets-intro-candle::before { bottom: 100%; }
+        .markets-intro-candle::after { top: 100%; }
+
+        .markets-intro-tickers {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            margin-top: 1rem;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            background: rgba(2, 6, 23, 0.5);
+        }
+
+        .markets-intro-tickers::before,
+        .markets-intro-tickers::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            z-index: 2;
+            width: 3.5rem;
+            pointer-events: none;
+        }
+
+        .markets-intro-tickers::before {
+            left: 0;
+            background: linear-gradient(90deg, rgba(2, 6, 23, 0.98), transparent);
+        }
+
+        .markets-intro-tickers::after {
+            right: 0;
+            background: linear-gradient(-90deg, rgba(2, 6, 23, 0.98), transparent);
+        }
+
+        .markets-intro-ticker-track {
+            display: flex;
+            width: max-content;
+            animation: market-intro-ticker 8s linear infinite;
+        }
+
+        .markets-intro-ticker-set {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.72rem 0.35rem;
+        }
+
+        .markets-intro-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-width: max-content;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 999px;
+            padding: 0.46rem 0.68rem;
+            background: rgba(15, 23, 42, 0.78);
+            color: #cbd5e1;
+            font-size: 0.68rem;
+            font-weight: 650;
+        }
+
+        .markets-intro-chip b {
+            color: #f8fafc;
+            font-weight: 750;
+        }
+
+        .markets-intro-chip .up { color: #34d399; }
+        .markets-intro-chip .down { color: #fb7185; }
+
+        @keyframes market-intro-shell-in {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes market-intro-orbit {
+            from { transform: translate3d(-2%, -1%, 0) scale(0.92); }
+            to { transform: translate3d(8%, 7%, 0) scale(1.08); }
+        }
+
+        @keyframes market-intro-live-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.42); }
+            70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+        }
+
+        @keyframes market-intro-glow {
+            from { transform: scaleX(0.78); opacity: 0.52; }
+            to { transform: scaleX(1.08); opacity: 0.92; }
+        }
+
+        @keyframes market-intro-line-draw {
+            0% { stroke-dashoffset: 720; opacity: 0.2; }
+            58%, 82% { stroke-dashoffset: 0; opacity: 1; }
+            100% { stroke-dashoffset: -90; opacity: 0.15; }
+        }
+
+        @keyframes market-intro-area-in {
+            to { opacity: 0.46; }
+        }
+
+        @keyframes market-intro-price-dot {
+            from { transform: translateY(-2px); opacity: 0.72; }
+            to { transform: translateY(2px); opacity: 1; }
+        }
+
+        @keyframes market-intro-candle {
+            from { transform: scaleY(0.72); opacity: 0.42; }
+            to { transform: scaleY(1.08); opacity: 0.9; }
+        }
+
+        @keyframes market-intro-ticker {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 639px) {
+            .markets-intro-shell {
+                width: min(94vw, 30rem);
+                border-radius: 1.55rem;
+                padding: 0.9rem;
+            }
+
+            .markets-intro-logo-mark {
+                width: 2.6rem;
+                height: 2.6rem;
+                border-radius: 0.85rem;
+            }
+
+            .markets-intro-live {
+                padding: 0.45rem 0.58rem;
+                font-size: 0.58rem;
+            }
+
+            .markets-intro-chart {
+                height: 12.25rem;
+                border-radius: 1.2rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .market-sync-visual span,
+            .market-network-dot,
+            .market-skeleton-row::after,
+            .markets-page-intro::before,
+            .markets-page-intro::after,
+            .markets-intro-shell,
+            .markets-intro-live-dot,
+            .markets-intro-chart-glow,
+            .markets-intro-line,
+            .markets-intro-price-dot,
+            .markets-intro-candle,
+            .markets-intro-ticker-track {
+                animation: none !important;
+            }
+
+            #topMarketSlider {
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+
+</head>
+
+<body class="markets-intro-active bg-[#020617] text-white" data-page="markets">
+
+
+    <!-- Full-page market intro: removed automatically when the board is ready -->
+    <div id="marketsPageIntro" class="markets-page-intro" role="status" aria-label="Preparing TraidiumX live market board">
+        <div class="markets-intro-shell">
+            <div class="markets-intro-brand">
+                <div class="markets-intro-logo">
+                    <span class="markets-intro-logo-mark">TX</span>
+                    <span class="markets-intro-logo-copy">
+                        <strong>TRAIDIUMX</strong>
+                        <span>MARKETS</span>
+                    </span>
+                </div>
+
+                <span class="markets-intro-live">
+                    <span class="markets-intro-live-dot" aria-hidden="true"></span>
+                    LIVE BOARD
+                </span>
+            </div>
+
+            <div class="markets-intro-chart" aria-hidden="true">
+                <div class="markets-intro-chart-glow"></div>
+
+                <svg class="markets-intro-svg" viewBox="0 0 720 280" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="marketsIntroLineGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stop-color="#38bdf8" />
+                            <stop offset="55%" stop-color="#22d3ee" />
+                            <stop offset="100%" stop-color="#34d399" />
+                        </linearGradient>
+                        <linearGradient id="marketsIntroAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.32" />
+                            <stop offset="100%" stop-color="#22d3ee" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+
+                    <path class="markets-intro-area" fill="url(#marketsIntroAreaGradient)"
+                        d="M0 224 C45 210 66 229 105 198 C140 171 151 191 190 155 C224 122 255 160 298 132 C338 106 368 139 406 102 C449 62 475 117 518 91 C565 62 587 102 624 69 C658 39 683 65 720 39 L720 280 L0 280 Z" />
+                    <path class="markets-intro-line"
+                        d="M0 224 C45 210 66 229 105 198 C140 171 151 191 190 155 C224 122 255 160 298 132 C338 106 368 139 406 102 C449 62 475 117 518 91 C565 62 587 102 624 69 C658 39 683 65 720 39" />
+                    <circle class="markets-intro-price-dot" cx="720" cy="39" r="5.5" />
+                </svg>
+
+                <div class="markets-intro-candles">
+                    <span class="markets-intro-candle" style="--candle-height: 18%; --candle-delay: -0.1s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 26%; --candle-delay: -0.8s; --candle-color: #fb7185;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 20%; --candle-delay: -0.3s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 34%; --candle-delay: -1.0s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 22%; --candle-delay: -0.45s; --candle-color: #fb7185;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 40%; --candle-delay: -0.7s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 28%; --candle-delay: -0.2s; --candle-color: #fb7185;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 46%; --candle-delay: -0.95s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 24%; --candle-delay: -0.5s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 38%; --candle-delay: -0.15s; --candle-color: #fb7185;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 31%; --candle-delay: -0.62s; --candle-color: #34d399;"></span>
+                    <span class="markets-intro-candle" style="--candle-height: 50%; --candle-delay: -0.35s; --candle-color: #34d399;"></span>
+                </div>
+            </div>
+
+            <div class="markets-intro-tickers" aria-hidden="true">
+                <div class="markets-intro-ticker-track">
+                    <div class="markets-intro-ticker-set">
+                        <span class="markets-intro-chip"><b>BTC-USDT</b><span class="up">+1.24%</span></span>
+                        <span class="markets-intro-chip"><b>ETH-USDT</b><span class="up">+0.82%</span></span>
+                        <span class="markets-intro-chip"><b>XAU-USDT</b><span class="down">-0.16%</span></span>
+                        <span class="markets-intro-chip"><b>SOL-USDT</b><span class="up">+2.08%</span></span>
+                        <span class="markets-intro-chip"><b>OPTIONS</b><span class="up">LIVE</span></span>
+                    </div>
+                    <div class="markets-intro-ticker-set">
+                        <span class="markets-intro-chip"><b>BTC-USDT</b><span class="up">+1.24%</span></span>
+                        <span class="markets-intro-chip"><b>ETH-USDT</b><span class="up">+0.82%</span></span>
+                        <span class="markets-intro-chip"><b>XAU-USDT</b><span class="down">-0.16%</span></span>
+                        <span class="markets-intro-chip"><b>SOL-USDT</b><span class="up">+2.08%</span></span>
+                        <span class="markets-intro-chip"><b>OPTIONS</b><span class="up">LIVE</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div data-component="navbar"></div>
+
+    <main class="overflow-hidden pt-32">
+
+        <!-- ================= MARKETS HERO START ================= -->
+        <section class="relative">
+            <div class="absolute inset-0 -z-10">
+                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
+                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+            </div>
+
+            <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+                <div class="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+
+                    <div class="tx-fade-up">
+                        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                            <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                            Live crypto & commodity derivatives market board
+                        </div>
+
+                        <h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+                            Explore crypto, gold futures and options markets.
+                        </h1>
+
+                        <p class="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+                            Track backend-approved USDT futures, Binance-routed Gold/XAUUSD and live Options
+                            entry points with last traded price, 24h change, volume and quick trading actions.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">Listed Contracts</p>
+                            <h3 id="totalContracts" class="mt-2 text-3xl font-black text-white">—</h3>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">Max Leverage</p>
+                            <h3 id="maxLeverageText" class="mt-2 text-3xl font-black text-cyan-400">—</h3>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-cyan-400/30 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">Market Status</p>
+                            <div id="marketStatusText" class="mt-2 flex min-h-8 items-center text-cyan-300" aria-live="polite">
+                                <span class="market-sync-visual" aria-hidden="true">
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </span>
+                                <span class="sr-only">Market status is being prepared</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+        <!-- ================= MARKETS HERO END ================= -->
+
+
+        <!-- ================= MARKET CONTENT START ================= -->
+        <section class="mx-auto max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+
+            <!-- ================= MARKET CATEGORY CARDS START ================= -->
+            <div class="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black">Markets</h2>
+                        <p class="mt-1 text-sm text-slate-400">
+                            Select market type and view full contract board.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <button type="button" data-filter="USDT Futures" class="market-tab active-market-tab">
+                        <span>USDT Futures</span>
+                        <span class="market-tab-count" id="usdtCount">0</span>
+                    </button>
+
+                    <button type="button" data-filter="Commodities" class="market-tab">
+                        <span>Gold / Commodities</span>
+                        <span class="market-tab-count" id="commodityCount">0</span>
+                    </button>
+
+                    <button type="button" data-filter="Options" class="market-tab">
+                        <span>Options</span>
+                        <span class="market-tab-count" id="optionsCount">0</span>
+                    </button>
+
+                    <button type="button" data-filter="All" class="market-tab">
+                        <span>All Markets</span>
+                        <span class="market-tab-count" id="allCount">0</span>
+                    </button>
+                </div>
+            </div>
+            <!-- ================= MARKET CATEGORY CARDS END ================= -->
+
+
+            <!-- ================= TOP MARKET CARDS START ================= -->
+            <div class="mb-6">
+                <!-- Wrapper for horizontal scrolling / swipe on mobile, grid on desktop -->
+                <div id="topMarketSlider" class="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory scroll-smooth pb-4 lg:pb-0 no-scrollbar">
+                    
+                    <!-- Card 1: Top Gainers -->
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-xl font-black">Top Gainers</h3>
+                            <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">24H</span>
+                        </div>
+                        <div id="topGainersList" class="space-y-3">
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Top Losers -->
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-xl font-black">Top Losers</h3>
+                            <span class="rounded-full bg-red-400/10 px-3 py-1 text-xs font-black text-red-400">24H</span>
+                        </div>
+                        <div id="topLosersList" class="space-y-3">
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Trending -->
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-xl font-black">Trending</h3>
+                            <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">Hot</span>
+                        </div>
+                        <div id="trendingList" class="space-y-3">
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                            <div class="market-skeleton-row" aria-hidden="true"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Carousel Navigation Dots (Visible only on mobile/tablet) -->
+                <div id="topMarketSliderDots" class="flex lg:hidden items-center justify-center gap-2 mt-3">
+                    <span class="h-1.5 w-5 rounded-full bg-violet-500 transition-all duration-300 cursor-pointer" data-slide-dot="0"></span>
+                    <span class="h-1.5 w-1.5 rounded-full bg-slate-700 transition-all duration-300 cursor-pointer" data-slide-dot="1"></span>
+                    <span class="h-1.5 w-1.5 rounded-full bg-slate-700 transition-all duration-300 cursor-pointer" data-slide-dot="2"></span>
+                </div>
+            </div>
+            <!-- ================= TOP MARKET CARDS END ================= -->
+
+
+            <!-- ================= MARKET TABLE CONTROL START ================= -->
+            <div class="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+
+                    <div>
+                        <h2 id="marketBoardTitle" class="text-2xl font-black">USDT Futures Markets</h2>
+                        <p id="marketBoardSubtitle" class="mt-1 text-sm text-slate-400">
+                            Search live contract, check leverage and open trading terminal.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-3 sm:flex-row">
+                        <div class="relative">
+                            <input
+                                id="marketSearchInput"
+                                type="search"
+                                placeholder="Search BTC, ETH, GOLD..."
+                                class="w-full rounded-full border border-white/10 bg-slate-950 px-5 py-3 pr-12 text-sm text-white outline-none transition focus:border-cyan-400 sm:w-80"
+                            />
+                            <span class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
+                        </div>
+
+                        <select
+                            id="sortMarketSelect"
+                            class="rounded-full border border-white/10 bg-slate-950 px-5 py-3 text-sm text-white outline-none transition focus:border-cyan-400"
+                        >
+                            <option value="default">Default</option>
+                            <option value="gainers">Top Gainers</option>
+                            <option value="losers">Top Losers</option>
+                            <option value="volume" selected>High Volume</option>
+                            <option value="price">High Price</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ================= MARKET TABLE CONTROL END ================= -->
+
+
+            <!-- ================= DESKTOP TABLE START ================= -->
+            <div class="hidden overflow-hidden rounded-[2rem] border border-cyan-400/20 bg-white/[0.05] backdrop-blur-xl xl:block">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[1040px]">
+                        <thead>
+                            <tr class="border-b border-white/10 bg-slate-950/70 text-left text-xs uppercase tracking-[0.14em] text-slate-400">
+                                <th class="px-5 py-5">Contract</th>
+                                <th class="px-5 py-5">Lev.</th>
+                                <th class="px-5 py-5">LTP</th>
+                                <th class="px-5 py-5">24H Change</th>
+                                <th class="px-5 py-5">Vol</th>
+                                <th class="px-5 py-5 text-right">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="marketsTableBody" class="divide-y divide-white/10"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- ================= DESKTOP TABLE END ================= -->
+
+
+            <!-- ================= MOBILE / TABLET CARDS START ================= -->
+            <div id="marketsMobileCards" class="grid gap-4 xl:hidden"></div>
+            <!-- ================= MOBILE / TABLET CARDS END ================= -->
+
+
+            <div id="marketsEmptyState" class="mt-6 hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-8 text-center">
+                <h3 class="text-2xl font-black">No market found</h3>
+                <p class="mt-2 text-slate-400">Try searching another pair like BTC, ETH, GOLD, SOL or XRP.</p>
+            </div>
+
+        </section>
+        <!-- ================= MARKET CONTENT END ================= -->
+
+    </main>
+
+    <div data-component="footer"></div>
+
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/markets.js?v=23"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>

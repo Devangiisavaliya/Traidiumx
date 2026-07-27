@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Refer & Earn | TraidiumX</title>
+
+    <!-- Tailwind Output CSS -->
+    <link rel="stylesheet" href="../../dist/output.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+</head>
+
+<body class="bg-[#020617] text-white" data-page="refer">
+
+    <!-- Reusable Navbar -->
+    <div data-component="navbar"></div>
+
+    <!-- ================= MAIN START ================= -->
+    <main class="overflow-hidden pt-32">
+
+        <!-- ================= REFER HERO START ================= -->
+        <section class="relative">
+            <div class="absolute inset-0 -z-10">
+                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
+                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+                <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[140px]"></div>
+            </div>
+
+            <div class="mx-auto grid min-h-[82vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+
+                <!-- Hero Left -->
+                <div class="tx-fade-up">
+                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                        Invite friends. Earn rewards.
+                    </div>
+
+                    <h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+                        Refer your friends and earn forever.
+                    </h1>
+
+                    <p class="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+                        Share your TraidiumX referral link with traders. Your friends get fee benefits,
+                        and you earn recurring referral rewards from their trading activity.
+                    </p>
+
+                    <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">You Earn</p>
+                            <h3 id="referRewardRate" class="mt-2 text-3xl font-black text-cyan-400">20%</h3>
+                            <p class="mt-1 text-xs text-slate-500">Trading fee reward</p>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">Friend Saves</p>
+                            <h3 id="referFriendDiscount" class="mt-2 text-3xl font-black text-emerald-400">10%</h3>
+                            <p class="mt-1 text-xs text-slate-500">Fee discount</p>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                            <p class="text-sm text-slate-400">Affiliate</p>
+                            <h3 id="referAffiliateMax" class="mt-2 text-3xl font-black text-purple-300">60%</h3>
+                            <p class="mt-1 text-xs text-slate-500">Up to commission</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+                        <a href="#referralBox" class="rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
+                            Invite Friends
+                        </a>
+
+                        <a href="#affiliateProgram" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-400">
+                            Join Affiliate Program
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Hero Right Referral Card -->
+                <div id="referralBox" class="relative tx-fade-up">
+                    <div class="absolute -inset-8 rounded-[3rem] bg-cyan-400/20 blur-3xl"></div>
+
+                    <div class="relative rounded-[2.5rem] border border-cyan-400/20 bg-white/[0.06] p-5 shadow-2xl backdrop-blur-xl sm:p-6">
+                        <div class="mb-6 flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-bold text-cyan-300">Your Referral Link</p>
+                                <h2 class="mt-1 text-2xl font-black">Share & Earn</h2>
+                            </div>
+
+                            <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">
+                                Active
+                            </span>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="referralCodeInput" class="mb-2 block text-sm font-semibold text-slate-300">
+                                    Referral Code
+                                </label>
+
+                                <div class="flex gap-3">
+                                    <input
+                                        id="referralCodeInput"
+                                        type="text"
+                                        value="LOGIN REQUIRED"
+                                        maxlength="16"
+                                        readonly
+                                        class="w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black uppercase text-white outline-none focus:border-cyan-400"
+                                    />
+
+                                    <button id="copyCodeBtn" type="button" class="refer-small-btn">
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="referralLinkInput" class="mb-2 block text-sm font-semibold text-slate-300">
+                                    Referral Link
+                                </label>
+
+                                <div class="flex gap-3">
+                                    <input
+                                        id="referralLinkInput"
+                                        type="text"
+                                        readonly
+                                        class="w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-slate-300 outline-none focus:border-cyan-400"
+                                    />
+
+                                    <button id="copyReferralBtn" type="button" class="refer-small-btn">
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button id="generateCodeBtn" type="button" class="w-full rounded-2xl border border-cyan-400/35 px-5 py-3 text-sm font-black text-cyan-300 hover:bg-cyan-400 hover:text-slate-950">
+                                Refresh Backend Referral Data
+                            </button>
+
+                            <div class="grid gap-3 sm:grid-cols-3">
+                                <button id="shareWhatsappBtn" type="button" class="refer-share-btn">
+                                    WhatsApp
+                                </button>
+
+                                <button id="shareTelegramBtn" type="button" class="refer-share-btn">
+                                    Telegram
+                                </button>
+
+                                <button id="shareNativeBtn" type="button" class="refer-share-btn">
+                                    Share
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 rounded-3xl border border-white/10 bg-slate-950/70 p-5">
+                            <div class="mb-4 flex items-center justify-between">
+                                <p class="font-black text-white">Referral Progress</p>
+                                <span id="referralStatusBadge" class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
+                                    Backend
+                                </span>
+                            </div>
+
+                            <div class="grid gap-4 sm:grid-cols-3">
+                                <div>
+                                    <p id="referralInviteCount" class="text-2xl font-black text-white">0</p>
+                                    <p class="text-xs text-slate-500">Invites</p>
+                                </div>
+
+                                <div>
+                                    <p id="referralVerifiedCount" class="text-2xl font-black text-emerald-400">0</p>
+                                    <p class="text-xs text-slate-500">Verified</p>
+                                </div>
+
+                                <div>
+                                    <p id="referralRewardTotal" class="text-2xl font-black text-cyan-400">0.00 USDT</p>
+                                    <p class="text-xs text-slate-500">Rewards</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 h-3 overflow-hidden rounded-full bg-slate-800">
+                                <div id="referralProgressBar" class="h-full w-[0%] rounded-full bg-cyan-400"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= REFER HERO END ================= -->
+
+
+        <!-- ================= HOW IT WORKS START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="mb-12 text-center">
+                <div class="mb-6 flex justify-center">
+                    <div class="tx-section-pill">
+                        <span class="tx-section-pill-dot"></span>
+                        <span>How Referral Works</span>
+                    </div>
+                </div>
+
+                <h2 class="text-3xl font-black sm:text-5xl">
+                    Refer in 3 simple steps.
+                </h2>
+
+                <p class="mx-auto mt-4 max-w-2xl text-slate-400">
+                    Share your link, help friends start trading and earn recurring referral rewards.
+                </p>
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-3">
+                <div class="refer-step-card">
+                    <div class="refer-step-number">1</div>
+                    <div class="mb-5 text-5xl">🔗</div>
+                    <h3 class="text-2xl font-black">Share Link</h3>
+                    <p class="mt-3 leading-7 text-slate-400">
+                        Copy your referral link and share it with friends, communities and trading groups.
+                    </p>
+                </div>
+
+                <div class="refer-step-card">
+                    <div class="refer-step-number">2</div>
+                    <div class="mb-5 text-5xl">✅</div>
+                    <h3 class="text-2xl font-black">Friends Join</h3>
+                    <p class="mt-3 leading-7 text-slate-400">
+                        Your friends register, complete KYC and start using TraidiumX trading products.
+                    </p>
+                </div>
+
+                <div class="refer-step-card">
+                    <div class="refer-step-number">3</div>
+                    <div class="mb-5 text-5xl">💰</div>
+                    <h3 class="text-2xl font-black">Earn Rewards</h3>
+                    <p class="mt-3 leading-7 text-slate-400">
+                        Earn backend-tracked rewards based on eligible trading fee activity.
+                    </p>
+                </div>
+            </div>
+        </section>
+        <!-- ================= HOW IT WORKS END ================= -->
+
+
+        <!-- ================= REWARD CALCULATOR START ================= -->
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl sm:p-10 lg:grid-cols-[0.9fr_1.1fr]">
+
+                <div>
+                    <p class="text-sm font-black uppercase tracking-[0.20em] text-cyan-400">
+                        Reward Calculator
+                    </p>
+
+                    <h2 class="mt-4 text-4xl font-black sm:text-5xl">
+                        Estimate your monthly referral income.
+                    </h2>
+
+                    <p class="mt-5 max-w-xl leading-8 text-slate-300">
+                        Use this calculator to estimate potential USDT rewards. Final payout depends on backend-tracked eligible trading fees and company reward rules.
+                    </p>
+
+                    <p class="mt-5 rounded-2xl border border-orange-400/20 bg-orange-400/10 p-4 text-sm leading-6 text-orange-200">
+                        This is an estimate only. Actual rewards are calculated from backend transactions, eligible fees and company reward rules.
+                    </p>
+                </div>
+
+                <div class="rounded-[2rem] border border-cyan-400/20 bg-slate-950/70 p-5">
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Active Friends</label>
+                            <input id="activeFriendsInput" type="number" min="1" value="25" class="refer-input" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Avg Monthly Fees (USDT)</label>
+                            <input id="avgFeeInput" type="number" min="1" value="100" class="refer-input" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Commission %</label>
+                            <input id="commissionInput" type="number" min="1" max="60" value="20" class="refer-input" />
+                        </div>
+                    </div>
+
+                    <div class="mt-6 rounded-[2rem] bg-cyan-400 p-6 text-slate-950">
+                        <p class="text-sm font-black uppercase tracking-[0.18em] text-slate-700">
+                            Estimated Monthly Reward
+                        </p>
+
+                        <h3 id="estimatedReward" class="mt-3 text-5xl font-black">0.00 USDT</h3>
+
+                        <p id="rewardBreakdown" class="mt-3 font-semibold text-slate-800">
+                            25 friends × 100.00 USDT fees × 20% commission
+                        </p>
+                    </div>
+
+                    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-2xl bg-slate-900 p-4">
+                            <p class="text-xs text-slate-500">Daily Avg</p>
+                            <h4 id="dailyReward" class="mt-1 text-xl font-black text-white">0.00 USDT</h4>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-900 p-4">
+                            <p class="text-xs text-slate-500">Yearly Estimate</p>
+                            <h4 id="yearlyReward" class="mt-1 text-xl font-black text-emerald-400">0.00 USDT</h4>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-900 p-4">
+                            <p class="text-xs text-slate-500">Commission Rate</p>
+                            <h4 id="ratePreview" class="mt-1 text-xl font-black text-cyan-400">20%</h4>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- ================= REWARD CALCULATOR END ================= -->
+
+
+        <!-- ================= AFFILIATE PROGRAM START ================= -->
+        <section id="affiliateProgram" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="grid items-center gap-10 rounded-[2.5rem] border border-purple-400/20 bg-gradient-to-br from-purple-500/20 via-cyan-500/10 to-slate-950 p-6 sm:p-10 lg:grid-cols-2">
+
+                <div>
+                    <p class="text-sm font-black uppercase tracking-[0.20em] text-purple-300">
+                        Affiliate / KOL Program
+                    </p>
+
+                    <h2 class="mt-4 text-4xl font-black sm:text-5xl">
+                        Grow your network and unlock higher commission.
+                    </h2>
+
+                    <p class="mt-5 max-w-xl leading-8 text-slate-300">
+                        Built for influencers, educators, community owners and professional trading networks.
+                        Apply for higher commission tiers and dedicated affiliate support.
+                    </p>
+
+                    <div class="mt-8 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-3xl bg-white/10 p-5">
+                            <h3 class="text-3xl font-black text-purple-300">60%</h3>
+                            <p class="mt-2 text-sm text-slate-400">Up to commission</p>
+                        </div>
+
+                        <div class="rounded-3xl bg-white/10 p-5">
+                            <h3 class="text-3xl font-black text-cyan-300">KOL</h3>
+                            <p class="mt-2 text-sm text-slate-400">Creator program</p>
+                        </div>
+
+                        <div class="rounded-3xl bg-white/10 p-5">
+                            <h3 class="text-3xl font-black text-emerald-300">Live</h3>
+                            <p class="mt-2 text-sm text-slate-400">Backend tracking</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="affiliateForm" class="rounded-[2rem] border border-white/10 bg-slate-950/70 p-5">
+                    <div class="grid gap-4">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Full Name</label>
+                            <input id="affiliateName" type="text" placeholder="Enter your name" class="refer-input" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Email</label>
+                            <input id="affiliateEmail" type="email" placeholder="name@example.com" class="refer-input" />
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Community Size</label>
+                            <select id="affiliateAudience" class="refer-input">
+                                <option value="">Select audience size</option>
+                                <option value="1K - 10K">1K - 10K</option>
+                                <option value="10K - 50K">10K - 50K</option>
+                                <option value="50K - 100K">50K - 100K</option>
+                                <option value="100K+">100K+</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-slate-300">Main Platform</label>
+                            <input id="affiliatePlatform" type="text" placeholder="YouTube, Telegram, Instagram..." class="refer-input" />
+                        </div>
+
+                        <button type="submit" class="rounded-2xl bg-cyan-400 px-5 py-4 text-sm font-black text-slate-950 hover:bg-cyan-300">
+                            Apply For Affiliate Program
+                        </button>
+
+                        <p id="affiliateFormMessage" class="hidden rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-300">
+                            Application submitted successfully.
+                        </p>
+                    </div>
+                </form>
+
+            </div>
+        </section>
+        <!-- ================= AFFILIATE PROGRAM END ================= -->
+
+
+        <!-- ================= FAQ START ================= -->
+        <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-black sm:text-5xl">
+                    Referral Questions
+                </h2>
+
+                <p class="mt-4 text-slate-400">
+                    Simple answers for referral and affiliate users.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <details class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="cursor-pointer list-none text-lg font-black">
+                        How does referral earning work?
+                    </summary>
+
+                    <p class="mt-4 leading-7 text-slate-400">
+                        You share your backend-generated referral link and earn rewards when referred users complete eligible trading activity. Final reward rules are controlled by backend and company policy.
+                    </p>
+                </details>
+
+                <details class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="cursor-pointer list-none text-lg font-black">
+                        Can I generate a new referral code?
+                    </summary>
+
+                    <p class="mt-4 leading-7 text-slate-400">
+                        Referral codes are generated securely from backend and assigned to authenticated users. Users can copy and share their assigned code/link.
+                    </p>
+                </details>
+
+                <details class="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                    <summary class="cursor-pointer list-none text-lg font-black">
+                        Is affiliate approval automatic?
+                    </summary>
+
+                    <p class="mt-4 leading-7 text-slate-400">
+                        No. Affiliate applications are stored in backend for company operations review. This project does not add a separate management panel.
+                    </p>
+                </details>
+            </div>
+        </section>
+        <!-- ================= FAQ END ================= -->
+
+    </main>
+    <!-- ================= MAIN END ================= -->
+
+    <!-- Reusable Footer -->
+    <div data-component="footer"></div>
+
+    <!-- JavaScript -->
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/refer-earn.js"></script>
+    <script src="../js/responsive.js"></script>
+</body>
+</html>

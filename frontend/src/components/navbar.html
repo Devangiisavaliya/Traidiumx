@@ -1,0 +1,354 @@
+<style id="txMobileNavbarResponsiveFix">
+    @media (max-width: 1023px) {
+        html.tx-mobile-menu-open,
+        body.tx-mobile-menu-open {
+            overflow: hidden !important;
+            overscroll-behavior: none;
+        }
+
+        .tx-pill-header {
+            z-index: 9999 !important;
+            padding-top: max(10px, env(safe-area-inset-top)) !important;
+            padding-right: max(10px, env(safe-area-inset-right)) !important;
+            padding-left: max(10px, env(safe-area-inset-left)) !important;
+        }
+
+        .tx-pill-navbar {
+            min-height: 68px;
+            padding: 11px 13px !important;
+            border-radius: 24px !important;
+        }
+
+        .tx-pill-brand h1 {
+            font-size: clamp(19px, 5.5vw, 24px) !important;
+        }
+
+        .tx-pill-brand p {
+            margin-top: 4px !important;
+            font-size: 9px !important;
+            letter-spacing: .28em !important;
+        }
+
+        #mobileMenu {
+            z-index: 10000 !important;
+            position: fixed !important;
+            top: var(--tx-mobile-menu-top, 88px) !important;
+            right: max(10px, env(safe-area-inset-right)) !important;
+            bottom: max(8px, env(safe-area-inset-bottom)) !important;
+            left: max(10px, env(safe-area-inset-left)) !important;
+            width: auto !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain;
+            padding: 12px !important;
+            border-radius: 24px !important;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tx-mobile-header-notice-btn {
+            width: 44px !important;
+            height: 44px !important;
+            min-height: 44px !important;
+            border-radius: 999px !important;
+            padding: 0 !important;
+            display: inline-grid !important;
+            place-items: center !important;
+        }
+
+        #mobileMenu::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        .tx-mobile-menu-links {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 9px !important;
+        }
+
+        .tx-mobile-menu-links .tx-pill-mobile-link {
+            min-width: 0;
+            min-height: 50px;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 11px 12px !important;
+            border-radius: 15px !important;
+            font-size: 12px !important;
+            line-height: 1.25;
+            white-space: normal;
+        }
+
+        .tx-mobile-menu-links .tx-pill-mobile-link::after {
+            flex: 0 0 auto;
+            font-size: 18px;
+        }
+
+        .tx-mobile-menu-links .tx-pill-mobile-link:hover,
+        .tx-mobile-menu-links .tx-pill-mobile-link.active {
+            transform: none !important;
+        }
+
+        .tx-mobile-menu-wide {
+            grid-column: 1 / -1 !important;
+        }
+
+        #mobileAuthArea {
+            position: sticky;
+            bottom: -12px;
+            z-index: 5;
+            margin-top: 10px !important;
+            padding: 10px 0 12px;
+            background: linear-gradient(180deg, rgba(3, 7, 18, 0), rgba(3, 7, 18, .96) 22%, #030712 58%);
+        }
+
+        .tx-mobile-auth-profile {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 60px;
+            border: 1px solid rgba(34, 211, 238, .22);
+            border-radius: 16px;
+            background: rgba(34, 211, 238, .07);
+            padding: 12px 14px;
+            color: #cffafe;
+            text-decoration: none;
+        }
+
+        .tx-mobile-auth-profile strong,
+        .tx-mobile-auth-profile span {
+            display: block;
+            min-width: 0;
+        }
+
+        .tx-mobile-auth-profile strong {
+            overflow: hidden;
+            color: #f8fafc;
+            font-size: 13px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tx-mobile-auth-profile span {
+            margin-top: 3px;
+            color: #22d3ee;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+
+        .tx-mobile-auth-profile svg {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+            fill: none;
+            stroke: #67e8f9;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .tx-mobile-auth-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 9px;
+            margin-top: 9px;
+        }
+
+        .tx-mobile-auth-actions .tx-navbar-notification-root-mobile {
+            min-width: 0;
+        }
+
+        .tx-mobile-auth-actions .tx-navbar-notification-btn-mobile,
+        .tx-mobile-logout-btn {
+            width: 100% !important;
+            min-width: 0;
+            min-height: 50px !important;
+            border-radius: 15px !important;
+            padding: 10px 9px !important;
+            font-size: 11px !important;
+            line-height: 1.1;
+        }
+
+        .tx-mobile-logout-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid rgba(248, 113, 113, .38);
+            background: linear-gradient(135deg, rgba(127, 29, 29, .32), rgba(69, 10, 10, .42));
+            color: #fecaca;
+            font-weight: 850;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .tx-mobile-logout-btn svg {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    @media (max-width: 349px) {
+        .tx-mobile-menu-links .tx-pill-mobile-link {
+            padding-right: 9px !important;
+            padding-left: 9px !important;
+            font-size: 10.5px !important;
+        }
+
+        .tx-mobile-auth-actions .tx-navbar-notification-btn-mobile,
+        .tx-mobile-logout-btn {
+            font-size: 9.5px !important;
+        }
+    }
+</style>
+<header class="tx-pill-header fixed left-0 top-0 z-50 w-full px-4 pt-4 sm:px-6 lg:px-8">
+    <nav class="tx-pill-navbar relative mx-auto flex max-w-7xl items-center justify-between rounded-full border border-cyan-400/15 bg-[#030712]/90 px-5 py-4 shadow-2xl backdrop-blur-2xl sm:px-8">
+
+        <!-- Animated Navbar Glow -->
+        <div class="tx-pill-glow"></div>
+
+        <!-- Logo = Home Link -->
+        <a href="#" data-route="index.html" class="tx-pill-brand relative z-10 flex items-center gap-3">
+            <div class="leading-none">
+                <h1 class="text-2xl font-black tracking-tight text-white sm:text-3xl">
+                    TRAIDIUM<span class="text-cyan-400">X</span>
+                </h1>
+
+                <p class="mt-1 text-xs font-black uppercase tracking-[0.35em] text-cyan-400">
+                    Exchange
+                </p>
+            </div>
+        </a>
+
+        <!-- Desktop Menu -->
+        <!-- lg:flex means menu will show from laptop/desktop screens -->
+        <div class="relative z-10 hidden items-center gap-5 lg:flex xl:gap-8">
+            <a href="#" data-route="src/pages/markets.html" data-page-link="markets" class="tx-pill-link">
+                Markets
+            </a>
+
+            <a href="#" data-route="src/pages/futures.html" data-page-link="futures" class="tx-pill-link">
+                Futures
+            </a>
+
+            <a href="#" data-route="src/pages/options.html" data-page-link="options" class="tx-pill-link">
+                Options
+            </a>
+            
+             <a href="#" data-route="src/pages/wallet.html" data-page-link="wallet" class="tx-pill-link">
+                Wallet
+            </a>
+
+            <a href="#" data-route="src/pages/refer-earn.html" data-page-link="refer" class="tx-pill-link">
+                Refer & Earn
+            </a>
+
+            <a href="#" data-route="src/pages/fee-structure.html" data-page-link="fees" class="tx-pill-link">
+                Fee Structure
+            </a>
+
+            <a href="#" data-route="src/pages/blog.html" data-page-link="blog" class="tx-pill-link">
+                Blog
+            </a>
+</div>
+
+        <!-- Desktop Auth / Trade Area -->
+        <div id="desktopAuthArea" class="relative z-10 hidden items-center gap-3 lg:flex">
+            <a href="#" data-route="src/pages/register.html" class="tx-pill-trade-btn">
+                <span>TRADE NOW</span>
+                <span class="tx-pill-arrow">→</span>
+            </a>
+        </div>
+
+        <!-- Mobile / Tablet Right Actions (Notification Bell + Hamburger Button) -->
+        <div class="relative z-10 flex items-center gap-2 lg:hidden">
+            <div id="mobileHeaderNotificationRoot" class="tx-navbar-notification-root hidden items-center justify-center" data-notification-root>
+                <button
+                    type="button"
+                    class="tx-navbar-notification-btn tx-mobile-header-notice-btn"
+                    data-notification-toggle
+                    aria-label="Open notifications"
+                    aria-expanded="false"
+                >
+                    <span class="tx-navbar-notification-icon-wrap" aria-hidden="true">
+                        <svg class="tx-navbar-notification-icon" viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 3.6a5.4 5.4 0 0 0-5.4 5.4v2.55c0 .92-.31 1.8-.88 2.52l-.72.9a1.05 1.05 0 0 0 .82 1.7h12.36a1.05 1.05 0 0 0 .82-1.7l-.72-.9a4.02 4.02 0 0 1-.88-2.52V9A5.4 5.4 0 0 0 12 3.6Z" />
+                            <path d="M9.65 18.25a2.55 2.55 0 0 0 4.7 0" />
+                        </svg>
+                    </span>
+                    <span class="tx-navbar-notification-badge hidden" data-notification-badge>0</span>
+                </button>
+            </div>
+
+            <button
+                id="mobileMenuBtn"
+                type="button"
+                aria-label="Open mobile menu"
+                aria-expanded="false"
+                class="tx-pill-mobile-btn"
+            >
+                <span id="mobileMenuIcon">☰</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile / Tablet Menu -->
+    <div
+        id="mobileMenu"
+        class="tx-pill-mobile-menu mx-auto mt-3 hidden max-w-7xl rounded-3xl border border-cyan-400/15 bg-[#030712]/95 p-4 shadow-2xl backdrop-blur-2xl lg:hidden"
+    >
+        <div class="tx-mobile-menu-links">
+            <a href="#" data-route="src/pages/markets.html" data-page-link="markets" class="tx-pill-mobile-link">
+                Markets
+            </a>
+
+            <a href="#" data-route="src/pages/futures.html" data-page-link="futures" class="tx-pill-mobile-link">
+                Futures
+            </a>
+
+            <a href="#" data-route="src/pages/wallet.html" data-page-link="wallet" class="tx-pill-mobile-link">
+                Wallet
+            </a>
+
+            <a href="#" data-route="src/pages/options.html" data-page-link="options" class="tx-pill-mobile-link">
+                Options
+            </a>
+
+            <a href="#" data-route="src/pages/refer-earn.html" data-page-link="refer" class="tx-pill-mobile-link">
+                Refer & Earn
+            </a>
+
+            <a href="#" data-route="src/pages/fee-structure.html" data-page-link="fees" class="tx-pill-mobile-link">
+                Fee Structure
+            </a>
+
+            <a href="#" data-route="src/pages/blog.html" data-page-link="blog" class="tx-pill-mobile-link">
+                Blog
+            </a>
+
+            <a href="#" data-route="src/pages/challenge.html" data-page-link="challenge" class="tx-pill-mobile-link">
+                30 Day Challenge
+            </a>
+        </div>
+
+        <div id="mobileAuthArea" class="mt-4">
+            <a href="#" data-route="src/pages/register.html" class="tx-pill-mobile-trade">
+                TRADE NOW →
+            </a>
+        </div>
+    </div>
+</header>

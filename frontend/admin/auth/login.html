@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+    window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+<style>.tx-autofill-trap{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}</style>
+<link rel="icon" href="data:," />
+
+    <title>Admin Login | TraidiumX</title>
+</head>
+<body class="min-h-screen overflow-hidden">
+    <div class="login-orb left-10 top-20 h-56 w-56 bg-cyan-400/40"></div>
+    <div class="login-orb bottom-10 right-10 h-72 w-72 bg-blue-500/35" style="animation-delay:1.2s"></div>
+    <div class="login-orb right-1/3 top-1/3 h-48 w-48 bg-purple-500/30" style="animation-delay:2.4s"></div>
+
+    <main class="relative z-10 grid min-h-screen place-items-center px-4 py-10">
+        <section class="grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-2xl lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="relative hidden min-h-[620px] overflow-hidden bg-slate-950/60 p-10 lg:block">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,.22),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(59,130,246,.20),transparent_32%)]"></div>
+                <div class="relative z-10 flex h-full flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <div class="admin-brand-logo">TX</div>
+                            <div>
+                                <h1 class="text-2xl font-black text-white">TraidiumX</h1>
+                                <p class="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Admin Control</p>
+                            </div>
+                        </div>
+                        <h2 class="mt-16 max-w-xl text-5xl font-black leading-tight tracking-tight text-white">Operate wallets, KYC and trading risk from one secure panel.</h2>
+                        <p class="mt-5 max-w-lg text-base leading-8 text-slate-300">Tailwind admin interface connected with <b>backend/admin</b> APIs for secure operations.</p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="admin-card p-5"><p class="text-xs text-slate-400">Pending Withdrawals</p><h3 class="mt-2 text-3xl font-black text-amber-300">18</h3></div>
+                        <div class="admin-card p-5"><p class="text-xs text-slate-400">Risk Alerts</p><h3 class="mt-2 text-3xl font-black text-rose-300">7</h3></div>
+                        <div class="admin-card p-5"><p class="text-xs text-slate-400">KYC Queue</p><h3 class="mt-2 text-3xl font-black text-cyan-300">36</h3></div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 sm:p-10 lg:p-12">
+                <div class="mb-10 lg:hidden">
+                    <div class="flex items-center gap-3"><div class="admin-brand-logo">TX</div><div><h1 class="text-2xl font-black text-white">TraidiumX</h1><p class="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Admin Control</p></div></div>
+                </div>
+                <div class="tx-fade-up">
+                    <p class="text-sm font-black uppercase tracking-[.22em] text-cyan-300">Secure Login</p>
+                    <h2 class="mt-3 text-4xl font-black tracking-tight text-white">Welcome back.</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-400">Use your admin credentials. Use the seeded admin account or your MongoDB admin credentials.</p>
+                </div>
+                <form id="adminLoginForm" class="mt-9 space-y-5 tx-fade-up tx-delay-2" autocomplete="off" novalidate>
+                    <input type="text" name="tx_admin_autofill_user" autocomplete="username" tabindex="-1" aria-hidden="true" class="tx-autofill-trap" />
+                    <input type="password" name="tx_admin_autofill_pass" autocomplete="current-password" tabindex="-1" aria-hidden="true" class="tx-autofill-trap" />
+                    <div id="loginError" class="hidden rounded-2xl border border-rose-400/25 bg-rose-400/10 p-3 text-sm font-bold text-rose-200"></div>
+                    <div>
+                        <label class="mb-2 block text-sm font-bold text-slate-300">Admin Email</label>
+                        <input id="email" name="tx_admin_email" type="email" class="admin-input" placeholder="Enter admin email" autocomplete="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-form-type="other" />
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-bold text-slate-300">Password</label>
+                        <div class="relative">
+                            <input id="password" name="tx_admin_password" type="password" class="admin-input pr-20" placeholder="Enter admin password" autocomplete="new-password" data-lpignore="true" data-form-type="other" />
+                            <button id="toggleLoginPassword" type="button" class="absolute inset-y-0 right-4 my-auto h-8 rounded-xl px-3 text-xs font-black uppercase tracking-[.12em] text-cyan-300 transition hover:bg-cyan-300/10 hover:text-cyan-100" aria-label="Show password">Show</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 text-sm">
+                        <label class="flex items-center gap-2 font-semibold text-slate-400"><input type="checkbox" class="accent-cyan-400" checked /> Remember session</label>
+                    </div>
+                    <button class="admin-btn admin-btn-primary w-full py-4 text-base" type="submit">Open Admin Panel →</button>
+                </form>
+                <div class="mt-7 flex flex-col items-center justify-between gap-3 text-sm sm:flex-row">
+                    <a href="/admin/register" class="font-bold text-cyan-300 hover:text-cyan-200">Create admin account</a>
+                    <a href="/admin/forgot-password" class="font-bold text-slate-400 hover:text-slate-200">Forgot password?</a>
+                </div>
+                <p class="mt-8 text-center text-xs font-semibold text-slate-500">© <span class="tx-auto-year"></span> TraidiumX. Secure admin panel.</p>
+            </div>
+        </section>
+    </main>
+    <script src="/admin/static/js/admin-config.js"></script>
+<script src="/admin/static/js/admin-api.js"></script>
+    <script src="/admin/static/js/admin-auth.js"></script>
+    <script>
+        document.querySelectorAll('.tx-auto-year').forEach(el => el.textContent = new Date().getFullYear());
+        (() => {
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.getElementById('toggleLoginPassword');
+            if (!passwordInput || !toggleButton) return;
+            toggleButton.addEventListener('click', () => {
+                const shouldShow = passwordInput.type === 'password';
+                passwordInput.type = shouldShow ? 'text' : 'password';
+                toggleButton.textContent = shouldShow ? 'Hide' : 'Show';
+                toggleButton.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+                passwordInput.focus();
+            });
+        })();
+    </script>
+</body>
+</html>
