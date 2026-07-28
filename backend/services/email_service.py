@@ -1069,3 +1069,79 @@ def send_mt5_credentials_assigned_email(to_email, user_name, login_id, password,
     )
 
 
+def send_welcome_email(to_email, user_name=""):
+    """Send a premium welcome email to a newly registered user."""
+    if not is_email_delivery_configured():
+        return {"sent": False, "reason": "SMTP email delivery is not configured."}
+        
+    safe_name = html.escape(str(user_name or "TraidiumX member").strip() or "TraidiumX member", quote=True)
+    base = str(getattr(settings, "APP_PUBLIC_URL", "") or getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    action_url = f"{base}/src/pages/profile.html#kyc" if base else ""
+    
+    return _send_simple_transactional_email(
+        to_email=to_email,
+        subject="Welcome to TraidiumX!",
+        title="Welcome to TraidiumX",
+        lines=[
+            f"Hello {safe_name},",
+            "We are thrilled to welcome you to TraidiumX—your advanced platform for trading, futures, and secure options.",
+            "To get started and unlock full trading capabilities including withdrawals, please complete your profile identity verification (KYC).",
+            "KYC verification is fast, secure, and requires only your mobile OTP and DigiLocker / Aadhaar verification details.",
+        ],
+        email_type="welcome-email",
+        action_url=action_url,
+        action_label="Start KYC Verification"
+    )
+
+
+def send_kyc_required_email(to_email, user_name=""):
+    """Send a transactional email requesting the user to complete KYC."""
+    if not is_email_delivery_configured():
+        return {"sent": False, "reason": "SMTP email delivery is not configured."}
+        
+    safe_name = html.escape(str(user_name or "TraidiumX member").strip() or "TraidiumX member", quote=True)
+    base = str(getattr(settings, "APP_PUBLIC_URL", "") or getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    action_url = f"{base}/src/pages/profile.html#kyc" if base else ""
+
+    return _send_simple_transactional_email(
+        to_email=to_email,
+        subject="Action Required: Complete your TraidiumX KYC Verification",
+        title="Complete KYC Verification",
+        lines=[
+            f"Hello {safe_name},",
+            "To comply with financial regulations and secure your account, you must verify your identity.",
+            "KYC verification is mandatory before you can perform withdrawals.",
+            "It only takes a few minutes using your Aadhaar card and mobile OTP.",
+        ],
+        email_type="kyc-required",
+        action_url=action_url,
+        action_label="Start Verification"
+    )
+
+
+def send_first_deposit_email(to_email, user_name=""):
+    """Send a transactional email encouraging the user to make their first deposit."""
+    if not is_email_delivery_configured():
+        return {"sent": False, "reason": "SMTP email delivery is not configured."}
+        
+    safe_name = html.escape(str(user_name or "TraidiumX member").strip() or "TraidiumX member", quote=True)
+    base = str(getattr(settings, "APP_PUBLIC_URL", "") or getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    action_url = f"{base}/src/pages/wallet.html" if base else ""
+
+    return _send_simple_transactional_email(
+        to_email=to_email,
+        subject="Your KYC is Approved! Make your first deposit on TraidiumX",
+        title="Account Ready: Make Your First Deposit",
+        lines=[
+            f"Hello {safe_name},",
+            "Great news! Your KYC verification has been reviewed and approved by our team.",
+            "Your account is now fully active with unlimited features enabled.",
+            "Make your first deposit to fund your trading account and start trading immediately.",
+        ],
+        email_type="first-deposit-invite",
+        action_url=action_url,
+        action_label="Deposit Funds"
+    )
+
+
+

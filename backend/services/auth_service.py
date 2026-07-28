@@ -351,6 +351,22 @@ def verify_email_registration(data):
 
         user = find_user_by_email(email)
 
+        try:
+            from services.email_service import send_welcome_email, send_kyc_required_email
+            from services.notification_service import create_user_notification
+            
+            send_welcome_email(email, user.get("name", ""))
+            send_kyc_required_email(email, user.get("name", ""))
+            create_user_notification(
+                user=user,
+                title="Identity Verification Required",
+                message="Please complete your KYC verification to unlock full account features and enable withdrawals.",
+                notice_type="kyc_required",
+                severity="warning"
+            )
+        except Exception as mail_err:
+            print("Failed to send welcome/kyc registration emails:", mail_err)
+
         return {
             "success": True,
             "message": "Email verified and account created successfully.",

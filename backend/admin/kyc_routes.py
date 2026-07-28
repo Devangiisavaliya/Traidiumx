@@ -452,6 +452,23 @@ def approve_kyc(kyc_id):
         extra_fields,
     )
 
+    try:
+        user = db.users.find_one({"_id": to_object_id(user_id)})
+        if user:
+            from services.email_service import send_first_deposit_email
+            from services.notification_service import create_user_notification
+            
+            send_first_deposit_email(user.get("email"), user.get("name") or user.get("username", ""))
+            create_user_notification(
+                user=user,
+                title="KYC Approved! Make your first deposit",
+                message="Congratulations! Your identity verification has been approved. You can now make your first deposit and start trading.",
+                notice_type="kyc_approved",
+                severity="success"
+            )
+    except Exception as approval_err:
+        print("Failed to send KYC approval first deposit email/notification:", approval_err)
+
     create_admin_audit_log(
         admin_id=g.current_admin_id,
         admin_email=g.current_admin_email,
