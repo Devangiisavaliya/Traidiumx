@@ -236,6 +236,21 @@ def extract():
 @auth_required
 def status():
     result = get_kyc_status(g.current_user_id)
+    
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 1))
+        local_ip = s.getsockname()[0]
+    except Exception:
+        local_ip = '127.0.0.1'
+    finally:
+        s.close()
+        
+    if "data" not in result:
+        result["data"] = {}
+    result["data"]["local_ip"] = local_ip
+    result["data"]["server_port"] = request.host.split(':')[-1] if ':' in request.host else '5000'
 
     return success_response(
         message=result["message"],
@@ -522,52 +537,36 @@ def complete_digio():
     # Update User document
     now = now_utc()
     user_update = {
-        "kyc_status": "pending",
-        "kyc_status_label": kyc_status_label("pending"),
+        "kyc_status": "not_submitted",
+        "kyc_status_label": kyc_status_label("not_submitted"),
         "kyc_status_updated_at": now,
-        "name": extracted_name or user.get("name"),
-        "dob": dob,
-        "address": address,
-        "pan_number": pan,
-        "aadhaar_number": aadhaar_masked,
-        "driving_license_number": dl_number,
-        "kyc_photo": selfie_path or aadhaar_path,
-        "face_match_score": face_match_score,
+        "kyc_draft_aadhaar_number": aadhaar_masked,
+        "kyc_draft_pan_number": pan,
+        "kyc_draft_driving_license_number": dl_number,
+        "kyc_draft_full_name": extracted_name or user.get("name"),
+        "kyc_draft_dob": dob,
+        "kyc_draft_address": address,
+        "kyc_draft_document_front": aadhaar_path,
+        "kyc_draft_document_back": pan_path,
+        "kyc_digio_completed": True,
+        "kyc_progress_step": 3,
         "updated_at": now
     }
     db.users.update_one({"_id": user_id}, {"$set": user_update})
     
-    # Update KYC requests collection
-    kyc_payload = {
-        "status": "pending",
-        "verification_method": "digilocker",
-        "full_name": extracted_name or user.get("name"),
-        "document_type": "aadhaar_card",
-        "document_number": aadhaar_masked,
-        "aadhaar_number": aadhaar_masked,
-        "pan_number": pan,
-        "driving_license_number": dl_number,
-        "document_front": aadhaar_path,
-        "document_back": "",
-        "selfie": selfie_path,
-        "offline_ekyc_file": aadhaar_path,
-        "offline_ekyc_original_filename": "aadhaar.pdf",
-        "progress_step": 5,
-        "ocr_status": "passed",
-        "ocr_score": face_match_score,
-        "risk_score": face_match_score,
-        "remark": "Pending admin review after successful Digio DigiLocker verification."
-    }
-    create_or_update_kyc(str(user_id), kyc_payload)
-    
-    # Reload and format
     updated_user = db.users.find_one({"_id": user_id})
     return success_response(
-        message="KYC submitted successfully. Pending admin review.",
+        message="DigiLocker details saved successfully. Please complete the selfie verification.",
         data={
-            "kyc_status": "pending",
+            "kyc_status": "not_submitted",
+            "current_step": 3,
+            "step_states": {
+                "1": "verified",
+                "2": "verified",
+                "3": "current"
+            },
             "name": updated_user.get("name"),
-            "aadhaar_number": updated_user.get("aadhaar_number"),
-            "pan_number": updated_user.get("pan_number")
+            "aadhaar_number": updated_user.get("kyc_draft_aadhaar_number"),
+            "pan_number": updated_user.get("kyc_draft_pan_number")
         }
     )

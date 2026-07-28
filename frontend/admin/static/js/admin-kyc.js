@@ -351,7 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="space-y-4 text-xs font-semibold text-slate-300">
                     ${selfieUrl ? `
                     <div class="flex justify-center mb-4">
-                        <img src="${selfieUrl}" class="w-32 h-36 object-cover border border-white/10 rounded-2xl shadow-xl bg-slate-950" alt="Selfie" onerror="this.style.display='none'" />
+                        <img id="kycDetailSelfieImg" class="w-32 h-36 object-cover border border-white/10 rounded-2xl shadow-xl bg-slate-950" alt="Selfie" style="display: none;" />
                     </div>
                     ` : ""}
                     <div class="grid grid-cols-3 gap-2 border-b border-white/5 pb-2">
@@ -413,6 +413,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                     ` : ""}
                 </div>
             `;
+
+            if (selfieUrl) {
+                const imgEl = document.getElementById("kycDetailSelfieImg");
+                if (imgEl) {
+                    try {
+                        const token = api.getToken();
+                        const response = await fetch(selfieUrl, {
+                            headers: {
+                                "Authorization": `Bearer ${token}`
+                            }
+                        });
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            imgEl.src = URL.createObjectURL(blob);
+                            imgEl.style.display = "block";
+                        }
+                    } catch (err) {
+                        console.error("Failed to load secure selfie image:", err);
+                    }
+                }
+            }
         } catch (err) {
             content.innerHTML = `<div class="py-12 text-center text-sm font-bold text-rose-400">Failed to load details: ${api.escapeHtml(err.message || "Server error")}</div>`;
         }

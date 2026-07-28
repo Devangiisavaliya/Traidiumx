@@ -1,6 +1,11 @@
 const API_BASE_URL = (() => {
-    const { protocol, hostname } = window.location;
-    const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
+    const { protocol, hostname, port } = window.location;
+    const isLocalHost = hostname === "127.0.0.1" || 
+                        hostname === "localhost" || 
+                        hostname.startsWith("192.168.") || 
+                        hostname.startsWith("10.") || 
+                        hostname.startsWith("172.") || 
+                        port === "5000";
 
     if (isLocalHost) {
         return `${protocol}//${hostname}:5000/api`;

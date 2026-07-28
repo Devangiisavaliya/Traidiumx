@@ -831,7 +831,8 @@ def _validate_aadhaar_document_images(aadhaar_number, document_front, document_b
 def _draft_progress_payload(user):
     user = user or {}
     mobile_verified = bool(user.get("kyc_mobile_verified"))
-    aadhaar_number = clean_string(user.get("kyc_draft_aadhaar_number"))
+    digio_completed = bool(user.get("kyc_digio_completed"))
+    
     doc_type = user.get("kyc_draft_document_type") or "aadhaar_card"
     documents_verified = bool(
         user.get("kyc_documents_verified")
@@ -841,9 +842,11 @@ def _draft_progress_payload(user):
 
     if not mobile_verified:
         current_step = 1
+    elif digio_completed:
+        current_step = 3
     elif documents_verified:
         current_step = 4
-    elif aadhaar_number:
+    elif user.get("kyc_draft_aadhaar_number"):
         current_step = 3
     else:
         current_step = 2
@@ -853,24 +856,37 @@ def _draft_progress_payload(user):
         stored_step = int(stored_step)
     except (TypeError, ValueError):
         stored_step = current_step
-    current_step = max(current_step, min(stored_step, 4))
+    
+    if digio_completed:
+        current_step = max(current_step, min(stored_step, 3))
+    else:
+        current_step = max(current_step, min(stored_step, 4))
+
+    if digio_completed:
+        step_states = {
+            "1": "verified" if mobile_verified else "current",
+            "2": "verified" if digio_completed else "current",
+            "3": "current" if digio_completed else "locked",
+        }
+    else:
+        step_states = {
+            "1": "verified" if mobile_verified else "current",
+            "2": "verified" if current_step > 2 else ("current" if current_step == 2 else "locked"),
+            "3": "verified" if documents_verified else ("current" if current_step == 3 else "locked"),
+            "4": "current" if current_step == 4 else "locked",
+        }
 
     return {
         "current_step": current_step,
         "mobile_verified": mobile_verified,
         "mobile_number": user.get("kyc_mobile_verified_number", ""),
-        "aadhaar_number": aadhaar_number,
-        "aadhaar_number_saved": bool(aadhaar_number),
+        "aadhaar_number": user.get("kyc_draft_aadhaar_number", ""),
+        "aadhaar_number_saved": bool(user.get("kyc_draft_aadhaar_number")),
         "document_type": doc_type,
-        "documents_verified": documents_verified,
+        "documents_verified": digio_completed or documents_verified,
         "draft_full_name": user.get("kyc_draft_full_name", ""),
         "draft_scan": user.get("kyc_draft_ocr_result", {}) or {},
-        "step_states": {
-            "1": "verified" if mobile_verified else "current",
-            "2": "verified" if current_step > 2 else ("current" if current_step == 2 else "locked"),
-            "3": "verified" if documents_verified else ("current" if current_step == 3 else "locked"),
-            "4": "current" if current_step == 4 else "locked",
-        },
+        "step_states": step_states,
     }
 
 
@@ -1243,6 +1259,87 @@ def submit_kyc(user_id, form_data, files):
             "message": "Please verify your mobile number with OTP first.",
             "errors": {"mobile": "Mobile number must be verified via OTP first."},
             "status_code": 400,
+        }
+
+    if user.get("kyc_digio_completed"):
+        aadhaar_number = clean_string(user.get("kyc_draft_aadhaar_number"))
+        pan = clean_string(user.get("kyc_draft_pan_number"))
+        dl_number = clean_string(user.get("kyc_draft_driving_license_number") or user.get("driving_license_number"))
+        extracted_name = clean_string(user.get("kyc_draft_full_name")) or user.get("name")
+        dob = user.get("kyc_draft_dob")
+        address = user.get("kyc_draft_address")
+        
+        selfie = files.get("selfie")
+        selfie_error = _validate_selfie_image(selfie)
+        if selfie_error:
+            return {
+                "success": False,
+                "message": selfie_error,
+                "errors": {"selfie": selfie_error},
+                "status_code": 422,
+            }
+        selfie_result = save_kyc_file(selfie, user_id, "selfie")
+        if not selfie_result["success"]:
+            return {
+                "success": False,
+                "message": "Selfie file upload failed.",
+                "errors": {"selfie": selfie_result["error"]},
+                "status_code": 422,
+            }
+            
+        status = "pending"
+        remark = "Pending admin review after successful Digio DigiLocker verification."
+        message = "KYC steps completed successfully and submitted for verification."
+        
+        kyc_payload = {
+            "user_id": str(user_id),
+            "status": status,
+            "verification_method": "digilocker",
+            "full_name": extracted_name,
+            "document_type": "aadhaar_card",
+            "document_number": aadhaar_number,
+            "aadhaar_number": aadhaar_number,
+            "pan_number": pan,
+            "driving_license_number": dl_number,
+            "document_front": user.get("kyc_draft_document_front", ""),
+            "document_back": user.get("kyc_draft_document_back", ""),
+            "selfie": selfie_result["path"],
+            "progress_step": 5,
+            "ocr_status": "passed",
+            "ocr_score": 100.0,
+            "risk_score": 100.0,
+            "remark": remark,
+            "mobile_verified_number": user.get("kyc_mobile_verified_number", ""),
+            "created_at": now_utc(),
+            "updated_at": now_utc()
+        }
+        kyc = create_or_update_kyc(user_id=user_id, kyc_data=kyc_payload)
+        _sync_after_decision(user_id, status, remark)
+        
+        get_users_collection().update_one(
+            {"_id": user_object_id},
+            {"$set": {
+                "name": extracted_name,
+                "dob": dob,
+                "address": address,
+                "pan_number": pan,
+                "aadhaar_number": aadhaar_number,
+                "driving_license_number": dl_number,
+                "kyc_photo": selfie_result["path"],
+                "kyc_progress_step": 5,
+                "updated_at": now_utc(),
+            }},
+        )
+        
+        formatted = format_kyc(kyc)
+        formatted["status_label"] = kyc_status_label(status)
+        formatted["status_message"] = kyc_status_message(status, remark)
+        formatted["can_submit"] = False
+        return {
+            "success": True,
+            "message": message,
+            "data": {"kyc": formatted, "current_step": 5},
+            "status_code": 201,
         }
 
     aadhaar_number = clean_string(user.get("kyc_draft_aadhaar_number"))

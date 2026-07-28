@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Selfie Verification | TraidiumX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #020617;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.12), transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.08), transparent 50%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+        .hidden {
+            display: none !important;
+        }
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 24px 0;
+        }
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-box {
+            display: grid;
+            height: 36px;
+            width: 36px;
+            place-items: center;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #22d3ee, #3b82f6);
+            font-size: 14px;
+            font-weight: 900;
+            color: #020617;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+        }
+        .logo-text {
+            text-align: left;
+        }
+        .logo-title {
+            display: block;
+            text-transform: uppercase;
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            color: #ffffff;
+        }
+        .logo-subtitle {
+            display: block;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            color: #22d3ee;
+        }
+        main {
+            width: 100%;
+            max-width: 400px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 16px 0;
+        }
+        .card {
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .card-success {
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            background-color: rgba(16, 185, 129, 0.02);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+        }
+        p.subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3/4;
+            max-height: 40vh;
+            margin-top: 24px;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #000000;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        video, img.preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        video {
+            transform: scaleX(-1);
+        }
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: #020617;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 4px solid #22d3ee;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            padding: 0 16px;
+        }
+        .error-message {
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f87171;
+            min-height: 16px;
+            padding: 0 8px;
+        }
+        .button-group {
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .btn-cyan {
+            background-color: #22d3ee;
+            color: #020617;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+        }
+        .btn-cyan:disabled {
+            background-color: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-outline {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #0f172a;
+            color: #ffffff;
+        }
+        .btn-emerald {
+            background: linear-gradient(to right, #34d399, #14b8a6);
+            color: #020617;
+            box-shadow: 0 4px 15px rgba(52, 211, 153, 0.2);
+        }
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #34d399;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+        }
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 16px 0;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Branding -->
+    <header>
+        <div class="logo-container">
+            <div class="logo-box">TX</div>
+            <div class="logo-text">
+                <span class="logo-title">TraidiumX</span>
+                <span class="logo-subtitle">Security Gate</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main>
+        <div id="selfieCard" class="card">
+            
+            <div id="selfieInstructions">
+                <h1>Step 3: Capture Selfie</h1>
+                <p class="subtitle">Please capture a clear, front-facing selfie of yourself to complete your KYC verification.</p>
+            </div>
+
+            <!-- Video/Preview Container -->
+            <div class="camera-container">
+                <video id="webcam" autoplay playsinline></video>
+                <img id="selfiePreview" class="preview hidden" alt="Selfie Preview" />
+                <div id="cameraLoading" class="loading-overlay">
+                    <div class="spinner"></div>
+                    <p id="loadingMsg" class="loading-text">Requesting camera access...</p>
+                </div>
+            </div>
+
+            <p id="selfieError" class="error-message"></p>
+
+            <!-- Fallback native device camera input -->
+            <input id="nativeCameraInput" type="file" accept="image/*" capture="user" class="hidden" />
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button id="captureBtn" type="button" class="btn-cyan">
+                    Capture Photo
+                </button>
+                
+                <button id="retakeBtn" type="button" class="btn-outline hidden">
+                    Retake Snaps
+                </button>
+                
+                <button id="submitBtn" type="button" class="btn-emerald hidden">
+                    Submit Selfie
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Success Screen -->
+        <div id="successCard" class="card card-success hidden">
+            <div class="success-icon">
+                <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1>Upload Successful!</h1>
+            <p class="subtitle" style="max-width: 280px; margin: 12px auto 0 auto;">Your selfie has been securely uploaded. You can now close this tab and return to your desktop screen to check the status.</p>
+        </div>
+    </main>
+
+    <!-- Bottom Copy -->
+    <footer>
+        &copy; <span id="currentYear"></span> TraidiumX. Secure Encryption.
+    </footer>
+
+    <!-- App Configuration -->
+    <script src="/src/js/api-config.js"></script>
+    <!-- Page Logic -->
+    <script src="/src/js/mobile-selfie.js"></script>
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

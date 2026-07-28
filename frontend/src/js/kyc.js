@@ -179,7 +179,7 @@ function stepCardClass(state) {
 }
 
 function renderStepProgress(stepStates = {}) {
-    for (let step = 1; step <= 2; step += 1) {
+    for (let step = 1; step <= 3; step += 1) {
         const state = stepStates[String(step)] || (step < kycState.currentStep ? "verified" : step === kycState.currentStep ? "current" : "locked");
         const card = document.querySelector(`[data-kyc-step-card="${step}"]`);
         const status = document.querySelector(`[data-kyc-step-status="${step}"]`);
@@ -195,12 +195,326 @@ function renderStepProgress(stepStates = {}) {
     }
 }
 
+let selfiePollInterval = null;
+let selfieTimerInterval = null;
+let webcamStream = null;
+let selfieCapturedFile = null;
+
+function switchSelfieTab(activeTab) {
+    const deviceTabBtn = document.getElementById("selfieTabDeviceBtn");
+    const mobileTabBtn = document.getElementById("selfieTabMobileBtn");
+    
+    const deviceView = document.getElementById("selfieDeviceView");
+    const mobileView = document.getElementById("selfieMobileView");
+
+    // Reset captured snap when switching tabs
+    selfieCapturedFile = null;
+    const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+    if (submitBtn) submitBtn.disabled = true;
+
+    if (activeTab === "device") {
+        if (deviceTabBtn) {
+            deviceTabBtn.className = "flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black bg-blue-600 text-white shadow-lg transition";
+        }
+        if (mobileTabBtn) {
+            mobileTabBtn.className = "flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black text-slate-400 hover:text-white transition";
+        }
+        
+        if (deviceView) deviceView.classList.remove("hidden");
+        if (mobileView) mobileView.classList.add("hidden");
+
+        stopSelfiePolling();
+        stopSelfieTimer();
+        startWebcamStream();
+    } else {
+        if (mobileTabBtn) {
+            mobileTabBtn.className = "flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black bg-blue-600 text-white shadow-lg transition";
+        }
+        if (deviceTabBtn) {
+            deviceTabBtn.className = "flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black text-slate-400 hover:text-white transition";
+        }
+
+        if (mobileView) mobileView.classList.remove("hidden");
+        if (deviceView) deviceView.classList.add("hidden");
+
+        stopWebcamStream();
+        startMobileSelfieFlow();
+    }
+}
+
+function startSelfieTimer() {
+    stopSelfieTimer();
+    let timeLeft = 300; // 5 minutes
+    const timerSpan = document.getElementById("kycTimer");
+    
+    selfieTimerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            stopSelfieTimer();
+            initSelfieStep();
+            return;
+        }
+        const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+        const secs = String(timeLeft % 60).padStart(2, "0");
+        if (timerSpan) timerSpan.textContent = `${mins}:${secs}`;
+    }, 1000);
+}
+
+function stopSelfieTimer() {
+    if (selfieTimerInterval) {
+        clearInterval(selfieTimerInterval);
+        selfieTimerInterval = null;
+    }
+}
+
+async function startWebcamStream() {
+    stopWebcamStream();
+    const video = document.getElementById("kycWebcamStream");
+    const preview = document.getElementById("kycWebcamPreview");
+    const captureBtn = document.getElementById("kycCaptureSnapBtn");
+    const retakeBtn = document.getElementById("kycRetakeSnapBtn");
+
+    if (video) video.style.display = "block";
+    if (preview) preview.classList.add("hidden");
+    if (captureBtn) captureBtn.classList.remove("hidden");
+    if (retakeBtn) retakeBtn.classList.add("hidden");
+
+    try {
+        webcamStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: 640, height: 480 },
+            audio: false
+        });
+        if (video) video.srcObject = webcamStream;
+    } catch (err) {
+        console.error("Failed to access webcam:", err);
+        showKycMessage("Camera access blocked or not available. Please choose a file instead.", "error");
+    }
+}
+
+function stopWebcamStream() {
+    if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream = null;
+    }
+}
+
+function captureWebcamSnap() {
+    const video = document.getElementById("kycWebcamStream");
+    const preview = document.getElementById("kycWebcamPreview");
+    const captureBtn = document.getElementById("kycCaptureSnapBtn");
+    const retakeBtn = document.getElementById("kycRetakeSnapBtn");
+
+    if (!video || !video.videoWidth) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+        if (blob) {
+            selfieCapturedFile = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+            if (preview) {
+                preview.src = URL.createObjectURL(blob);
+                preview.classList.remove("hidden");
+            }
+            if (video) video.style.display = "none";
+            
+            if (captureBtn) captureBtn.classList.add("hidden");
+            if (retakeBtn) retakeBtn.classList.remove("hidden");
+
+            const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    }, "image/jpeg", 0.90);
+}
+
+function retakeWebcamSnap() {
+    selfieCapturedFile = null;
+    const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+    if (submitBtn) submitBtn.disabled = true;
+    startWebcamStream();
+}
+
+async function startMobileSelfieFlow() {
+    const qrContainer = document.getElementById("kycMobileQrContainer");
+    if (qrContainer) {
+        qrContainer.innerHTML = "";
+        try {
+            const statusResponse = await apiRequest("/kyc/status");
+            const localIp = statusResponse?.data?.local_ip || window.location.hostname;
+            const port = statusResponse?.data?.server_port || "5000";
+            const token = getAuthToken();
+            const mobileUrl = `http://${localIp}:${port}/src/pages/mobile-selfie.html?token=${encodeURIComponent(token)}`;
+            
+            new QRCode(qrContainer, {
+                text: mobileUrl,
+                width: 156,
+                height: 156,
+                colorDark: "#020617",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            
+            const qrImgElement = qrContainer.querySelector("img");
+            if (qrImgElement) {
+                qrImgElement.className = "w-full h-full object-contain";
+            }
+            
+            startSelfieTimer();
+        } catch (err) {
+            console.error("Failed to render QR Code with local IP:", err);
+            qrContainer.innerHTML = "";
+            const token = getAuthToken();
+            const mobileUrl = `${window.location.origin}/src/pages/mobile-selfie.html?token=${encodeURIComponent(token)}`;
+            
+            new QRCode(qrContainer, {
+                text: mobileUrl,
+                width: 156,
+                height: 156,
+                colorDark: "#020617",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            
+            const qrImgElement = qrContainer.querySelector("img");
+            if (qrImgElement) {
+                qrImgElement.className = "w-full h-full object-contain";
+            }
+        }
+    }
+
+    stopSelfiePolling();
+    selfiePollInterval = setInterval(async () => {
+        try {
+            const response = await apiRequest("/kyc/status");
+            const data = response?.data || {};
+            const status = String(data.kyc_status || "not_submitted").toLowerCase();
+            if (status === "pending" || status === "approved") {
+                stopSelfiePolling();
+                stopSelfieTimer();
+                showKycMessage("Selfie verification completed successfully!", "success");
+                await loadKycStatus();
+            }
+        } catch (err) {
+            console.error("Selfie polling error:", err);
+        }
+    }, 3000);
+}
+
+async function initSelfieStep() {
+    // Bind Tab Switching Buttons
+    const deviceTabBtn = document.getElementById("selfieTabDeviceBtn");
+    if (deviceTabBtn && !deviceTabBtn.dataset.bound) {
+        deviceTabBtn.dataset.bound = "true";
+        deviceTabBtn.addEventListener("click", () => switchSelfieTab("device"));
+    }
+
+    const mobileTabBtn = document.getElementById("selfieTabMobileBtn");
+    if (mobileTabBtn && !mobileTabBtn.dataset.bound) {
+        mobileTabBtn.dataset.bound = "true";
+        mobileTabBtn.addEventListener("click", () => switchSelfieTab("mobile"));
+    }
+
+    // Bind Webcam View Buttons
+    const captureSnapBtn = document.getElementById("kycCaptureSnapBtn");
+    if (captureSnapBtn && !captureSnapBtn.dataset.bound) {
+        captureSnapBtn.dataset.bound = "true";
+        captureSnapBtn.addEventListener("click", captureWebcamSnap);
+    }
+
+    const retakeSnapBtn = document.getElementById("kycRetakeSnapBtn");
+    if (retakeSnapBtn && !retakeSnapBtn.dataset.bound) {
+        retakeSnapBtn.dataset.bound = "true";
+        retakeSnapBtn.addEventListener("click", retakeWebcamSnap);
+    }
+
+    // Bind File Input fallback
+    const fileInput = document.getElementById("kycSelfie");
+    const fileNameText = document.getElementById("kycSelfieFileName");
+    if (fileInput && !fileInput.dataset.bound) {
+        fileInput.dataset.bound = "true";
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (fileNameText) fileNameText.textContent = file.name;
+                selfieCapturedFile = file;
+                const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Bind Unified Submit Request Button
+    const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+    if (submitBtn && !submitBtn.dataset.bound) {
+        submitBtn.dataset.bound = "true";
+        submitBtn.addEventListener("click", submitKycVerificationRequest);
+    }
+
+    // Default to Mobile Scan QR tab
+    switchSelfieTab("mobile");
+}
+
+function stopSelfiePolling() {
+    if (selfiePollInterval) {
+        clearInterval(selfiePollInterval);
+        selfiePollInterval = null;
+    }
+}
+
+async function submitKycVerificationRequest() {
+    const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        if (!selfieCapturedFile) {
+            showKycMessage("Please capture a selfie or choose a file first.", "error");
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+        }
+
+        showKycMessage("Submitting selfie verification request...", "success");
+
+        const formData = new FormData();
+        formData.append("selfie", selfieCapturedFile);
+
+        await apiRequest("/kyc/submit", {
+            method: "POST",
+            body: formData
+        });
+
+        showKycMessage("KYC verification request submitted successfully!", "success");
+        stopWebcamStream();
+        await loadKycStatus();
+    } catch (err) {
+        console.error("KYC submission failed:", err);
+        showKycMessage(err.message || "Selfie submission failed.", "error");
+        if (submitBtn) submitBtn.disabled = false;
+    }
+}
+
 function setWizardStep(step, stepStates = null) {
-    const safeStep = Math.max(1, Math.min(Number(step) || 1, 2));
+    const safeStep = Math.max(1, Math.min(Number(step) || 1, 3));
     kycState.currentStep = safeStep;
 
-    if (kycEl.mobilePanel) kycEl.mobilePanel.classList.toggle("hidden", safeStep !== 1);
-    if (kycEl.form) kycEl.form.classList.toggle("hidden", safeStep === 1);
+    const mobilePanel = document.getElementById("kycMobilePanel");
+    const formPanel = document.getElementById("kycForm");
+    const selfiePanel = document.getElementById("kycSelfiePanel");
+
+    if (mobilePanel) mobilePanel.classList.toggle("hidden", safeStep !== 1);
+    if (formPanel) formPanel.classList.toggle("hidden", safeStep !== 2);
+    if (selfiePanel) selfiePanel.classList.toggle("hidden", safeStep !== 3);
+
+    if (safeStep === 3) {
+        initSelfieStep();
+    } else {
+        stopSelfiePolling();
+    }
 
     renderStepProgress(stepStates || {});
     updateFormBadge();
@@ -220,7 +534,8 @@ function updateFormBadge() {
     }
     const labels = {
         1: "Mobile Verification Required",
-        2: "Step 1 Verified"
+        2: "Step 1 Verified",
+        3: "Step 2 Verified"
     };
     kycEl.formBadge.textContent = labels[kycState.currentStep] || "Verification Required";
     kycEl.formBadge.className = kycState.currentStep > 1

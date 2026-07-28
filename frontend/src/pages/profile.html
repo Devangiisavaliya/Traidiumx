@@ -1806,7 +1806,7 @@
                     <h2 id="kycStatusText" class="mt-4 text-4xl font-black text-orange-300">Checking</h2>
                     <p id="kycRemarkText" class="mt-3 text-sm leading-7 text-slate-300">Loading your KYC status from backend.</p>
 
-                    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div data-kyc-step-card="1" class="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 p-4 transition">
                             <p class="text-xs text-slate-500">Step 1</p>
                             <h3 class="mt-1 font-black text-white text-xs">Mobile OTP</h3>
@@ -1816,6 +1816,11 @@
                             <p class="text-xs text-slate-500">Step 2</p>
                             <h3 id="kycStep2CardLabel" class="mt-1 font-black text-white text-xs">DigiLocker</h3>
                             <p data-kyc-step-status="2" class="mt-2 text-[11px] font-black uppercase tracking-wider text-slate-600">Locked</p>
+                        </div>
+                        <div data-kyc-step-card="3" class="rounded-2xl border border-white/10 bg-slate-950/60 p-4 opacity-60 transition">
+                            <p class="text-xs text-slate-500">Step 3</p>
+                            <h3 class="mt-1 font-black text-white text-xs">Selfie snaps</h3>
+                            <p data-kyc-step-status="3" class="mt-2 text-[11px] font-black uppercase tracking-wider text-slate-600">Locked</p>
                         </div>
                     </div>
                 </div>
@@ -1901,6 +1906,80 @@
                             
                             <button id="kycOpenDigioBtn" type="button" class="w-full flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-black transition duration-200 transform hover:scale-[1.01] active:scale-[0.99]" style="background-color: #ff9f43 !important; color: #1e272e !important; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.4) !important; border: none !important; font-weight: 800 !important; cursor: pointer !important;">
                                 Open DigiLocker <span class="text-xl">&rsaquo;</span>
+                            </button>
+                    </div>
+                    </div>
+
+                    <!-- Step 3: Selfie Verification Panel -->
+                    <div id="kycSelfiePanel" class="hidden mt-6 space-y-6">
+                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-xl">
+                            
+                            <!-- Tabs Switcher -->
+                            <div class="flex rounded-2xl bg-slate-950/60 p-1 border border-white/5 mb-6">
+                                <button id="selfieTabDeviceBtn" type="button" class="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black text-slate-400 hover:text-white transition">
+                                    💻 Use This Device
+                                </button>
+                                <button id="selfieTabMobileBtn" type="button" class="flex-1 flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-black bg-blue-600 text-white shadow-lg transition">
+                                    📱 Scan QR From Mobile
+                                </button>
+                            </div>
+
+                            <!-- Tab 1 View: Device Camera -->
+                            <div id="selfieDeviceView" class="hidden rounded-2xl border border-white/5 bg-slate-950/40 p-6 text-center">
+                                <h4 class="font-black text-white text-base">Capture with Device Camera</h4>
+                                <p class="mt-1 text-xs text-slate-400">Align your face in the camera and click Capture snap</p>
+                                
+                                <div class="relative w-full max-w-[240px] aspect-[3/4] mx-auto mt-5 overflow-hidden rounded-2xl border border-white/10 bg-black">
+                                    <video id="kycWebcamStream" autoplay playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
+                                    <img id="kycWebcamPreview" class="hidden w-full h-full object-cover" alt="Selfie Preview" />
+                                </div>
+                                
+                                <div class="mt-5 flex gap-3 max-w-[240px] mx-auto">
+                                    <button id="kycCaptureSnapBtn" type="button" class="flex-1 rounded-xl bg-cyan-400 py-3 text-xs font-black text-slate-950 hover:bg-cyan-300 transition">Capture Snap</button>
+                                    <button id="kycRetakeSnapBtn" type="button" class="hidden flex-1 rounded-xl border border-white/10 bg-slate-900 py-3 text-xs font-black text-white hover:bg-slate-800 transition">Retake</button>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2 View: Mobile Scanner QR Code -->
+                            <div id="selfieMobileView" class="rounded-2xl border border-white/5 bg-slate-950/40 p-6 text-center">
+                                <h4 class="font-black text-white text-base">Scan with your Mobile Phone</h4>
+                                <p class="mt-1 text-xs text-slate-400">Open camera app on mobile to capture selfie directly</p>
+                                
+                                <style>
+                                    #kycMobileQrContainer canvas {
+                                        display: none !important;
+                                    }
+                                    #kycMobileQrContainer img {
+                                        width: 150px !important;
+                                        height: 150px !important;
+                                        display: block !important;
+                                        margin: 0 auto !important;
+                                    }
+                                </style>
+                                <div id="kycMobileQrContainer" class="mt-6 relative bg-white p-3 rounded-2xl w-[180px] h-[180px] mx-auto flex items-center justify-center shadow-lg">
+                                </div>
+                                
+                                <div class="mt-5 space-y-1">
+                                    <p class="text-xs font-bold text-cyan-400 flex items-center justify-center gap-1.5">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                        Waiting for mobile selfie...
+                                    </p>
+                                    <p class="text-[11px] font-bold text-slate-500">Link expires in: <span class="text-amber-400" id="kycTimer">05:00</span></p>
+                                </div>
+                            </div>
+
+                            <!-- File input fallback -->
+                            <div class="mt-6 pt-5 border-t border-white/5 text-left">
+                                <label class="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2">Or Choose Image File</label>
+                                <input id="kycSelfie" type="file" accept="image/*" class="hidden" />
+                                <button type="button" onclick="document.getElementById('kycSelfie').click()" class="rounded-xl border border-white/10 bg-slate-950 px-4 py-2.5 text-xs font-bold text-slate-400 hover:border-white/20 hover:text-white transition">Choose File</button>
+                                <span id="kycSelfieFileName" class="ml-3 text-xs font-semibold text-slate-500">No file chosen</span>
+                                <p id="kycSelfieError" class="mt-2 text-xs font-bold text-red-300"></p>
+                            </div>
+
+                            <!-- Submit Verification Request Button -->
+                            <button id="kycSubmitVerificationBtn" type="button" class="w-full rounded-2xl bg-yellow-500 py-4 text-sm font-black text-slate-950 hover:bg-yellow-400 transition mt-6 disabled:opacity-50 disabled:cursor-not-allowed" disabled style="background-color: #ffb800 !important; color: #020617 !important;">
+                                Submit Verification Request
                             </button>
                         </div>
                     </div>
@@ -2214,6 +2293,7 @@
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>
     <script src="../js/profile.js"></script>
+    <script src="../js/qrcode.min.js"></script>
     <script src="../js/kyc.js"></script>
     <script src="../js/responsive.js"></script>
 </body>
