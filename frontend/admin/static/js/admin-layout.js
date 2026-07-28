@@ -10,6 +10,7 @@
         { label: "Operations", items: [
             { id: "users", title: "Users", icon: "👥", href: "/admin/users" },
             { id: "kyc", title: "KYC Review", icon: "🪪", href: "/admin/kyc" },
+            { id: "reminders", title: "User Reminders", icon: "🔔", href: "/admin/users/reminders" },
             { id: "deposits", title: "Deposits", icon: "↥", href: "/admin/wallet/deposits" },
             { id: "withdrawals", title: "Withdrawals", icon: "↧", href: "/admin/wallet/withdrawals" },
             { id: "ledger", title: "Wallet Ledger", icon: "≋", href: "/admin/wallet/ledger" }

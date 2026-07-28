@@ -19,7 +19,7 @@ from .audit_service import create_admin_audit_log
 from .middleware import admin_required
 from .permissions import permission_required
 from .position_pnl import calculate_unrealized_pnl
-from .utils import build_pagination, parse_int, serialize_document, serialize_documents
+from .utils import build_pagination, parse_int, serialize_document, serialize_documents, serialize_value
 
 
 admin_user_api = Blueprint("admin_user_api", __name__, url_prefix="/users")
@@ -1464,6 +1464,154 @@ def assign_mt5_credentials(user_id):
 
     return success_response(
         message="MT5 credentials assigned and email sent successfully.",
+        data={"email_sent": True}
+    )
+
+
+@admin_user_api.get("/reminders-list")
+@admin_required
+@permission_required("users.view")
+def list_reminders():
+    db = get_database()
+    
+    all_users = list(db.users.find({}, {"password_hash": 0}).sort("created_at", -1))
+    enriched_users = _enrich_users(db, all_users)
+    
+    reminders = []
+    for u in enriched_users:
+        kyc_status = str(u.get("kyc_status") or u.get("kyc") or "pending").lower()
+        total_balance = float(u.get("total_balance", 0.0) or 0.0)
+        
+        if kyc_status != "approved":
+            category = "kyc_pending"
+            reason = "KYC Incomplete"
+        elif total_balance <= 0:
+            dep_count = db.deposits.count_documents({"user_id": str(u["_id"]), "status": "approved"})
+            if dep_count == 0:
+                category = "deposit_pending"
+                reason = "KYC Approved, No Deposit"
+            else:
+                continue
+        else:
+            continue
+            
+        reminders.append({
+            "id": str(u["_id"]),
+            "name": u.get("name") or u.get("full_name") or u.get("username") or "Unknown User",
+            "email": u.get("email") or "",
+            "mobile": u.get("mobile") or u.get("phone") or "",
+            "kyc_status": kyc_status,
+            "total_balance": total_balance,
+            "created_at": serialize_value(u.get("created_at")),
+            "category": category,
+            "reason": reason
+        })
+        
+    return success_response(
+        message="Follow-up users fetched successfully.",
+        data={"reminders": reminders}
+    )
+
+@admin_user_api.post("/<user_id>/send-reminder")
+@admin_required
+@permission_required("users.update_status")
+def send_user_reminder(user_id):
+    db = get_database()
+    user = db.users.find_one({"_id": _as_object_id(user_id)})
+    if not user:
+        return error_response(message="User not found.", status_code=404)
+        
+    data = request.get_json(silent=True) or {}
+    reminder_type = str(data.get("type") or "").strip().lower()
+    
+    if reminder_type not in ["kyc_reminder", "deposit_reminder", "custom_email"]:
+        return error_response(message="Invalid reminder type. Use kyc_reminder, deposit_reminder, or custom_email.", status_code=422)
+        
+    to_email = user.get("email")
+    user_name = user.get("name") or user.get("full_name") or user.get("username") or "Trader"
+    
+    from services.email_service import send_kyc_required_email, send_first_deposit_email, send_admin_broadcast_email
+    from services.notification_service import create_user_notification
+    
+    email_sent = False
+    error_msg = ""
+    
+    if reminder_type == "kyc_reminder":
+        res = send_kyc_required_email(to_email, user_name)
+        email_sent = res.get("sent", False)
+        error_msg = res.get("reason", "")
+        create_user_notification(
+            user=user,
+            title="Reminder: Complete your KYC",
+            message="Please complete your KYC identity verification to enable withdrawals and unlock full account features.",
+            notice_type="kyc_reminder",
+            severity="warning",
+            admin_id=g.current_admin_id,
+            admin_email=g.current_admin_email
+        )
+        log_message = "Sent KYC reminder email and notification."
+        
+    elif reminder_type == "deposit_reminder":
+        res = send_first_deposit_email(to_email, user_name)
+        email_sent = res.get("sent", False)
+        error_msg = res.get("reason", "")
+        create_user_notification(
+            user=user,
+            title="Make Your First Deposit",
+            message="Your KYC is verified. Fund your wallet to start trading on MetaTrader 5 options and futures.",
+            notice_type="deposit_reminder",
+            severity="info",
+            admin_id=g.current_admin_id,
+            admin_email=g.current_admin_email
+        )
+        log_message = "Sent deposit reminder email and notification."
+        
+    else:  # custom_email
+        subject = str(data.get("subject") or "").strip()
+        message_text = str(data.get("message") or "").strip()
+        
+        if not subject or not message_text:
+            return error_response(message="Subject and message are required for custom emails.", status_code=422)
+            
+        res = send_admin_broadcast_email(
+            to_email=to_email,
+            user_name=user_name,
+            title=subject,
+            message_text=message_text,
+            severity="info"
+        )
+        email_sent = res.get("sent", False)
+        error_msg = res.get("reason", "")
+        
+        create_user_notification(
+            user=user,
+            title=subject,
+            message=message_text,
+            notice_type="admin_custom_email",
+            severity="info",
+            admin_id=g.current_admin_id,
+            admin_email=g.current_admin_email
+        )
+        log_message = f"Sent custom email: '{subject}'."
+
+    create_admin_audit_log(
+        admin_id=g.current_admin_id,
+        admin_email=g.current_admin_email,
+        action="user.reminder_sent",
+        resource_type="user",
+        resource_id=user_id,
+        message=log_message,
+        metadata={"type": reminder_type, "email_sent": email_sent, "error": error_msg},
+    )
+    
+    if not email_sent:
+        return success_response(
+            message=f"Reminder recorded and notification sent, but email failed: {error_msg}",
+            data={"email_sent": False}
+        )
+        
+    return success_response(
+        message="Reminder email and notification sent successfully.",
         data={"email_sent": True}
     )
 

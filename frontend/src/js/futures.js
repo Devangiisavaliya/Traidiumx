@@ -2376,12 +2376,14 @@ async function txHandleFuturesTransferSubmit(event) {
         let response;
         if (activeSubId) {
             const mappedDirection = direction === "main_to_trading" ? "main_to_sub" : "sub_to_main";
+            const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
             response = await txApiRequestWithTimeout("/wallet/transfer-sub", {
                 method: "POST",
                 body: JSON.stringify({
                     amount: amount,
                     direction: mappedDirection,
-                    sub_user_id: activeSubId
+                    sub_user_id: activeSubId,
+                    currency: currency
                 })
             }, 5000);
         } else {
@@ -8894,9 +8896,11 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 selector.appendChild(opt);
             });
             
-            const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+            let activeSubId = localStorage.getItem("traidiumx_active_user_id");
             if (activeSubId) {
                 selector.value = activeSubId;
+            } else {
+                selector.value = "main";
             }
 
             const transferSelect = document.getElementById("subTransferAccount");
@@ -9152,8 +9156,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     document.addEventListener("DOMContentLoaded", txBindTpSlCheckbox, { once: true });
 
     window.addEventListener("traidiumx:currency-change", (event) => {
-        if (typeof txRefreshFuturesWalletAfterAction === "function") {
-            txRefreshFuturesWalletAfterAction();
-        }
+        window.location.reload();
     });
 })();

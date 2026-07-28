@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+        window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+    <link rel="icon" href="data:," />
+    <title>User Reminders | TraidiumX Admin</title>
+</head>
+<body data-admin-page="reminders" data-page-title="User Reminders" data-page-subtitle="Manage and send custom emails or quick KYC/Deposit notifications to users.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <!-- Quick Stats -->
+    <div class="grid gap-4 md:grid-cols-3">
+        <div class="admin-card p-5 tx-fade-up">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Total Follow-ups</p>
+            <h2 id="totalFollowups" class="mt-2 text-3xl font-black text-white">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Users needing attention</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">KYC Incomplete</p>
+            <h2 id="kycPendingCount" class="mt-2 text-3xl font-black text-amber-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Awaiting user documents</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-2">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Deposit Pending</p>
+            <h2 id="depositPendingCount" class="mt-2 text-3xl font-black text-cyan-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">KYC approved, balance is 0</p>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="admin-card p-5 tx-fade-up">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-black text-white">Follow-up Dashboard</h2>
+                <p class="mt-1 text-sm text-slate-400">View users pending actions and send automated reminder templates or write custom emails.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="categoryFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                    <option value="all">All Pending Actions</option>
+                    <option value="kyc_pending">KYC Incomplete</option>
+                    <option value="deposit_pending">Deposit Pending</option>
+                </select>
+                <input id="searchInput" type="search" placeholder="Search name, email, mobile" class="w-64 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+                <button id="refreshBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="overflow-hidden rounded-3xl border border-white/10">
+            <table class="admin-table w-full table-fixed">
+                <thead>
+                    <tr>
+                        <th class="w-[20%]">User</th>
+                        <th class="w-[20%]">Contact Details</th>
+                        <th class="w-[15%]">Join Date</th>
+                        <th class="w-[20%]">Status / Category</th>
+                        <th class="w-[25%] text-right">Send Reminders</th>
+                    </tr>
+                </thead>
+                <tbody id="remindersTableBody">
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-slate-500 font-bold">Loading users list...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Custom Email Modal -->
+<div id="customEmailModal" class="admin-modal">
+    <div class="admin-modal-panel p-6" style="width: min(540px, 100%); max-width: min(540px, 100%);">
+        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+            <h3 class="text-lg font-black text-slate-800 dark:text-white">Send Custom Branded Email</h3>
+            <button id="customEmailClose" class="rounded-xl p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition" data-modal-close>&times;</button>
+        </div>
+        <form id="customEmailForm" class="mt-4 space-y-4">
+            <input type="hidden" id="customEmailUserId" />
+            <div>
+                <label class="block text-xs font-black uppercase tracking-[0.18em] text-slate-500 mb-2">Recipient Name</label>
+                <input type="text" id="customEmailUserName" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm font-bold text-slate-300 outline-none" readonly />
+            </div>
+            <div>
+                <label class="block text-xs font-black uppercase tracking-[0.18em] text-slate-500 mb-2">Email Subject</label>
+                <input type="text" id="customEmailSubject" placeholder="e.g. Action Required: Update your MT5 account password" class="w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" required />
+            </div>
+            <div>
+                <label class="block text-xs font-black uppercase tracking-[0.18em] text-slate-500 mb-2">Message Body</label>
+                <textarea id="customEmailMessage" rows="6" placeholder="Type your custom email message here..." class="w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-semibold text-white outline-none focus:border-cyan-400 resize-none" required></textarea>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" class="admin-btn admin-btn-ghost" data-modal-close>Cancel</button>
+                <button type="submit" id="customEmailSubmitBtn" class="admin-btn admin-btn-primary">Send Email</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+            </main>
+        </section>
+    </div>
+
+    <!-- Script Imports -->
+    <script src="/admin/static/js/admin-config.js"></script>
+    <script src="/admin/static/js/admin-api.js"></script>
+    <script src="/admin/static/js/admin-layout.js"></script>
+    <script src="/admin/static/js/admin-reminders.js"></script>
+</body>
+</html>

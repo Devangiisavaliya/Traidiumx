@@ -453,21 +453,31 @@ def transfer_sub():
         return error_response(message="Target trading wallet not found.", status_code=404)
     target_wallet_doc = normalize_wallet_currency(target_wallet_doc)
 
-    primary_currency = str(main_wallet_doc.get("primary_currency") or "INR").upper()
+    requested_currency = str(data.get("currency") or "").strip().upper()
+    if requested_currency:
+        primary_currency = requested_currency
+    else:
+        if target_user.get("is_inr_trading_account"):
+            primary_currency = "INR"
+        else:
+            primary_currency = str(main_wallet_doc.get("primary_currency") or "INR").upper()
+
+    bucket_prefix = "main_wallet_inr" if primary_currency == "INR" else "main_wallet_usdt"
+    main_wallet_bucket = main_wallet_doc.get(bucket_prefix) or {}
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
     
     reference_id = f"TRF-SUB-{uuid.uuid4().hex[:12].upper()}"
 
     if direction == "main_to_sub":
-        main_available = round(float(main_wallet_doc.get("main_wallet", {}).get("available_balance", 0.0)), 8)
+        main_available = round(float(main_wallet_bucket.get("available_balance", 0.0)), 8)
         if main_available < amount:
             return error_response(message=f"Insufficient Main Wallet ({primary_currency}) balance.", status_code=422)
 
         if primary_currency == "INR":
             usdt_credit = round(amount / usdt_rate, 4)
             inc_main = {
-                "main_wallet.available_balance": -amount,
-                "main_wallet.total_balance": -amount,
+                "main_wallet_inr.available_balance": -amount,
+                "main_wallet_inr.total_balance": -amount,
             }
             inc_target = {
                 "trading_wallet.available_balance": usdt_credit,
@@ -479,8 +489,8 @@ def transfer_sub():
             target_desc = f"Received ${usdt_credit:g} USDT in Trading Wallet <- Transferred ₹{amount:g} INR from Main Wallet."
         else:
             inc_main = {
-                "main_wallet.available_balance": -amount,
-                "main_wallet.total_balance": -amount,
+                "main_wallet_usdt.available_balance": -amount,
+                "main_wallet_usdt.total_balance": -amount,
             }
             inc_target = {
                 "trading_wallet.available_balance": amount,
@@ -492,7 +502,7 @@ def transfer_sub():
             target_desc = f"Received ${amount:g} USDT in Trading Wallet <- Transferred ${amount:g} USDT from Main Wallet."
 
         res_main = db.wallets.find_one_and_update(
-            {"_id": main_wallet_doc["_id"], "main_wallet.available_balance": {"$gte": amount}},
+            {"_id": main_wallet_doc["_id"], f"{bucket_prefix}.available_balance": {"$gte": amount}},
             {"$inc": inc_main, "$set": {"updated_at": now_utc()}},
             return_document=ReturnDocument.AFTER
         )
@@ -505,7 +515,7 @@ def transfer_sub():
             return_document=ReturnDocument.AFTER
         )
 
-        main_balance_after = round(float(res_main.get("main_wallet", {}).get("available_balance", 0.0)), 8)
+        main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
         create_ledger_entry(
             user_id=main_user_id,
             wallet_id=main_wallet_doc["_id"],
@@ -548,8 +558,8 @@ def transfer_sub():
                 "total_balance": -amount,
             }
             inc_main = {
-                "main_wallet.available_balance": inr_credit,
-                "main_wallet.total_balance": inr_credit,
+                "main_wallet_inr.available_balance": inr_credit,
+                "main_wallet_inr.total_balance": inr_credit,
             }
             main_desc = f"Received ₹{inr_credit:g} INR in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
             target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ₹{inr_credit:g} INR to Main Wallet."
@@ -561,8 +571,8 @@ def transfer_sub():
                 "total_balance": -amount,
             }
             inc_main = {
-                "main_wallet.available_balance": amount,
-                "main_wallet.total_balance": amount,
+                "main_wallet_usdt.available_balance": amount,
+                "main_wallet_usdt.total_balance": amount,
             }
             main_desc = f"Received ${amount:g} USDT in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet."
             target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ${amount:g} USDT to Main Wallet."
@@ -595,7 +605,7 @@ def transfer_sub():
             currency="USDT"
         )
 
-        main_balance_after = round(float(res_main.get("main_wallet", {}).get("available_balance", 0.0)), 8)
+        main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
         credit_amt = inr_credit if primary_currency == "INR" else amount
         create_ledger_entry(
             user_id=main_user_id,

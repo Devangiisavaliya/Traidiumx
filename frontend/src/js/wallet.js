@@ -2856,10 +2856,25 @@ async function handleUnifiedWalletTransferSubmit(event) {
     try {
         walletSetButtonLoading(walletElements.unifiedTransferBtn, true);
         const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
-        const response = await apiRequest("/wallet/transfer", {
-            method: "POST",
-            body: JSON.stringify({ amount, direction, currency })
-        });
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        let response;
+        if (activeSubId) {
+            const mappedDirection = direction === "main_to_trading" ? "main_to_sub" : "sub_to_main";
+            response = await apiRequest("/wallet/transfer-sub", {
+                method: "POST",
+                body: JSON.stringify({
+                    amount: amount,
+                    direction: mappedDirection,
+                    sub_user_id: activeSubId,
+                    currency: currency
+                })
+            });
+        } else {
+            response = await apiRequest("/wallet/transfer", {
+                method: "POST",
+                body: JSON.stringify({ amount, direction, currency })
+            });
+        }
 
         form.reset();
         WALLET_STATE.wallet = response.data?.wallet || WALLET_STATE.wallet;
@@ -2919,10 +2934,25 @@ async function handleWalletTransferSubmit(event, direction) {
     try {
         setDemoButtonLoading(button, true);
         const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
-        const response = await apiRequest("/wallet/transfer", {
-            method: "POST",
-            body: JSON.stringify({ amount, direction, currency })
-        });
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        let response;
+        if (activeSubId) {
+            const mappedDirection = direction === "main_to_trading" ? "main_to_sub" : "sub_to_main";
+            response = await apiRequest("/wallet/transfer-sub", {
+                method: "POST",
+                body: JSON.stringify({
+                    amount: amount,
+                    direction: mappedDirection,
+                    sub_user_id: activeSubId,
+                    currency: currency
+                })
+            });
+        } else {
+            response = await apiRequest("/wallet/transfer", {
+                method: "POST",
+                body: JSON.stringify({ amount, direction, currency })
+            });
+        }
 
         form.reset();
         WALLET_STATE.wallet = response.data?.wallet || WALLET_STATE.wallet;
@@ -3553,3 +3583,7 @@ async function txInitLedgerSubAccountDropdown() {
         dropdown.classList.add("hidden");
     }
 }
+
+window.addEventListener("traidiumx:currency-change", (event) => {
+    window.location.reload();
+});

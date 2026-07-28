@@ -58,6 +58,8 @@
             .tx-ob-notice{margin-top:15px;border:1px solid rgba(251,191,36,.26);border-radius:17px;background:rgba(120,53,15,.18);padding:13px 14px;color:#fde68a;font-size:12px;font-weight:800;line-height:1.55}.tx-ob-notice.success{border-color:rgba(52,211,153,.28);background:rgba(6,78,59,.25);color:#bbf7d0}.tx-ob-notice.error{border-color:rgba(248,113,113,.28);background:rgba(127,29,29,.22);color:#fecaca}
             .tx-ob-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.tx-ob-btn{border:1px solid rgba(71,85,105,.75);border-radius:15px;background:rgba(15,23,42,.85);color:#cbd5e1;padding:12px 18px;font-size:12px;font-weight:950;cursor:pointer}.tx-ob-btn.primary{border:0;background:linear-gradient(135deg,#22d3ee,#8b5cf6);color:#020617}.tx-ob-btn.success{border:0;background:linear-gradient(135deg,#34d399,#22d3ee);color:#020617}.tx-ob-btn:disabled{opacity:.5;cursor:not-allowed}
             .tx-ob-form{display:grid;gap:12px;margin-top:14px}.tx-ob-form input{width:100%;border:1px solid rgba(71,85,105,.7);border-radius:14px;background:#020617;color:#fff;padding:12px 13px;font-size:13px;font-weight:750;outline:none}.tx-ob-form input:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.1)}
+            .tx-ob-close{background:none;border:none;color:#94a3b8;font-size:28px;cursor:pointer;padding:0 8px;line-height:1;outline:none;transition:color .15s ease}
+            .tx-ob-close:hover{color:#fff}
             @media(max-width:680px){.tx-ob-card{padding:20px;border-radius:22px}.tx-ob-grid,.tx-ob-plans,.tx-ob-summary{grid-template-columns:1fr}.tx-ob-progress{grid-template-columns:1fr}.tx-ob-actions{flex-direction:column-reverse}.tx-ob-btn{width:100%}}
         `;
         document.head.appendChild(style);
@@ -162,13 +164,13 @@
         });
     }
 
-    async function loadStatus(forceOpen = false) {
+    async function loadStatus(forceOpen = false, startFromBeginning = false) {
         if (typeof isLoggedIn !== "function" || !isLoggedIn() || typeof apiRequest !== "function") return;
         try {
             const response = await apiRequest("/onboarding/status");
             state.data = response.data || {};
-            state.selectedPlatform = state.data.selected_platform || "";
-            state.selectedPlan = state.data.preferred_plan || "";
+            state.selectedPlatform = startFromBeginning ? "" : (state.data.selected_platform || "");
+            state.selectedPlan = startFromBeginning ? "" : (state.data.preferred_plan || "");
             setUserCache(state.data);
             if (forceOpen || !state.data.onboarding_complete) render();
             else if (state.data.show_downgrade_warning) renderDowngradeWarning();
@@ -211,6 +213,7 @@
                             <h2 class="tx-ob-title">${step === 1 ? "Choose your platform" : step === 2 ? "Choose your account plan" : "Activate your trading account"}</h2>
                             <p class="tx-ob-sub">Deposit and trading do not require KYC. KYC is checked only when you submit a withdrawal request.</p>
                         </div>
+                        <button type="button" id="txObClose" class="tx-ob-close" aria-label="Close modal">&times;</button>
                     </div>
                     ${progress(step)}
                     <div id="txObBody">${step === 1 ? platformHtml(data) : step === 2 ? plansHtml(data) : activationHtml(data)}</div>
@@ -316,6 +319,7 @@
     }
 
     function bind(step) {
+        document.getElementById("txObClose")?.addEventListener("click", hide);
         document.querySelectorAll("[data-platform]").forEach((button) => button.addEventListener("click", () => {
             state.selectedPlatform = button.dataset.platform || "";
             document.querySelectorAll("[data-platform]").forEach((item) => item.classList.toggle("selected", item === button));
@@ -412,7 +416,7 @@
         });
     }
 
-    window.openTradingAccountSetup = () => loadStatus(true);
+    window.openTradingAccountSetup = (startFromBeginning = false) => loadStatus(true, startFromBeginning);
 
     function start() {
         if (typeof isLoggedIn === "function" && isLoggedIn()) loadStatus(false);

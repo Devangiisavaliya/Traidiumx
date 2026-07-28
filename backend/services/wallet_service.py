@@ -663,6 +663,24 @@ def _atomic_update_wallet(wallet_id, filter_extra, inc_data):
     filter_query = {"_id": wallet_id}
     filter_query.update(filter_extra or {})
 
+    # Detect current active currency to sync sub-bucket increments
+    try:
+        from flask import request
+        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
+    except Exception:
+        active_currency = "USDT"
+
+    bucket_suffix = "inr" if active_currency == "INR" else "usdt"
+    
+    # Clone inc_data to avoid side-effects
+    inc_data = dict(inc_data or {})
+    extra_inc = {}
+    for key, val in inc_data.items():
+        if key.startswith("trading_wallet."):
+            sub_key = key.replace("trading_wallet.", f"trading_wallet_{bucket_suffix}.")
+            extra_inc[sub_key] = val
+    inc_data.update(extra_inc)
+
     return get_wallets_collection().find_one_and_update(
         filter_query,
         {"$inc": inc_data, "$set": {"updated_at": now_utc()}},

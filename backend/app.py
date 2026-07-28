@@ -124,6 +124,10 @@ def create_app():
     def admin_user_detail_page():
         return serve_admin_page("users/user-detail.html")
 
+    @app.get("/admin/users/reminders")
+    def admin_user_reminders_page():
+        return serve_admin_page("users/reminders.html")
+
     @app.get("/admin/kyc")
     def admin_kyc_page():
         return serve_admin_page("kyc/kyc-list.html")

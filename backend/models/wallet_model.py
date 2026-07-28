@@ -187,35 +187,99 @@ def normalize_wallet_currency(wallet):
     ):
         updates["main_wallet"] = legacy_main
 
-    trading_wallet = wallet.get("trading_wallet") or {}
-    trading_available = _money(trading_wallet.get("available_balance", 0.0))
-    trading_locked = _money(trading_wallet.get("locked_balance", 0.0))
+    # Dynamic Trading Wallet Selection (USDT vs INR)
+    # Check current active navbar currency from the request headers
+    try:
+        from flask import request
+        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
+    except Exception:
+        active_currency = "USDT"
+
+    # Initialize sub-buckets if missing
+    trading_usdt = wallet.get("trading_wallet_usdt")
+    trading_inr = wallet.get("trading_wallet_inr")
+
+    if not trading_usdt or not isinstance(trading_usdt, dict) or not trading_inr or not isinstance(trading_inr, dict):
+        legacy_trading = wallet.get("trading_wallet") or {}
+        legacy_avail = _money(legacy_trading.get("available_balance", 0.0))
+        legacy_locked = _money(legacy_trading.get("locked_balance", 0.0))
+        
+        # Determine fallback base depending on legacy_currency
+        if primary_currency == "INR":
+            trading_inr = _wallet_bucket(legacy_avail, legacy_locked, "trading_wallet_inr")
+            trading_inr["currency"] = "USDT"
+            trading_usdt = _wallet_bucket(0.0, 0.0, "trading_wallet_usdt")
+            trading_usdt["currency"] = "USDT"
+        else:
+            trading_usdt = _wallet_bucket(legacy_avail, legacy_locked, "trading_wallet_usdt")
+            trading_usdt["currency"] = "USDT"
+            trading_inr = _wallet_bucket(0.0, 0.0, "trading_wallet_inr")
+            trading_inr["currency"] = "USDT"
+            
+        updates["trading_wallet_usdt"] = trading_usdt
+        updates["trading_wallet_inr"] = trading_inr
+    else:
+        # Check and normalize trading_wallet_inr
+        inr_avail = _money(trading_inr.get("available_balance", 0.0))
+        inr_locked = _money(trading_inr.get("locked_balance", 0.0))
+        inr_total = _money(inr_avail + inr_locked)
+        if (
+            trading_inr.get("currency") != "USDT"
+            or trading_inr.get("wallet_type") != "trading_wallet_inr"
+            or _money(trading_inr.get("total_balance", 0.0)) != inr_total
+        ):
+            trading_inr = {
+                **_wallet_bucket(inr_avail, inr_locked, "trading_wallet_inr"),
+                "currency": "USDT",
+                "available_balance": inr_avail,
+                "locked_balance": inr_locked,
+                "total_balance": inr_total,
+            }
+            updates["trading_wallet_inr"] = trading_inr
+
+        # Check and normalize trading_wallet_usdt
+        usdt_avail = _money(trading_usdt.get("available_balance", 0.0))
+        usdt_locked = _money(trading_usdt.get("locked_balance", 0.0))
+        usdt_total = _money(usdt_avail + usdt_locked)
+        if (
+            trading_usdt.get("currency") != "USDT"
+            or trading_usdt.get("wallet_type") != "trading_wallet_usdt"
+            or _money(trading_usdt.get("total_balance", 0.0)) != usdt_total
+        ):
+            trading_usdt = {
+                **_wallet_bucket(usdt_avail, usdt_locked, "trading_wallet_usdt"),
+                "currency": "USDT",
+                "available_balance": usdt_avail,
+                "locked_balance": usdt_locked,
+                "total_balance": usdt_total,
+            }
+            updates["trading_wallet_usdt"] = trading_usdt
+
+    # Mirror active trading sub-bucket to the top-level trading_wallet representation
+    active_trading = updates.get("trading_wallet_inr") or trading_inr
+    if active_currency == "USDT":
+        active_trading = updates.get("trading_wallet_usdt") or trading_usdt
+
+    trading_available = _money(active_trading.get("available_balance", 0.0))
+    trading_locked = _money(active_trading.get("locked_balance", 0.0))
     trading_total = _money(trading_available + trading_locked)
-    if _money(trading_wallet.get("total_balance", 0.0)) != trading_total:
-        trading_source = {
-            **_wallet_bucket(0.0, 0.0, TRADING_WALLET),
-            **trading_wallet,
-            "available_balance": trading_available,
-            "locked_balance": trading_locked,
-            "total_balance": trading_total,
-            "wallet_type": TRADING_WALLET,
-            "currency": WALLET_CURRENCY,
-        }
-        updates["trading_wallet"] = trading_source
+
+    trading_source = {
+        **_wallet_bucket(trading_available, trading_locked, TRADING_WALLET),
+        "currency": "USDT",
+        "available_balance": trading_available,
+        "locked_balance": trading_locked,
+        "total_balance": trading_total,
+    }
+    updates["trading_wallet"] = trading_source
 
     top_available = trading_available
     top_locked = trading_locked
     top_total = trading_total
-    if (
-        wallet.get("currency") != WALLET_CURRENCY
-        or wallet.get("wallet_type") != "multi_wallet_account"
-        or _money(wallet.get("available_balance", 0.0)) != top_available
-        or _money(wallet.get("locked_balance", 0.0)) != top_locked
-        or _money(wallet.get("total_balance", 0.0)) != top_total
-    ):
-        updates["available_balance"] = top_available
-        updates["locked_balance"] = top_locked
-        updates["total_balance"] = top_total
+    
+    updates["available_balance"] = top_available
+    updates["locked_balance"] = top_locked
+    updates["total_balance"] = top_total
 
     if wallet.get("currency") != WALLET_CURRENCY:
         updates["currency"] = WALLET_CURRENCY
@@ -300,6 +364,8 @@ def format_wallet(wallet):
         "trading_wallet": trading_wallet,
         "main_wallet_inr": main_wallet_inr,
         "main_wallet_usdt": main_wallet_usdt,
+        "trading_wallet_usdt": format_wallet_bucket(wallet.get("trading_wallet_usdt"), "trading_wallet_usdt", WALLET_CURRENCY),
+        "trading_wallet_inr": format_wallet_bucket(wallet.get("trading_wallet_inr"), "trading_wallet_inr", WALLET_CURRENCY),
         "deposit_wallet": main_wallet,
         "withdrawal_wallet": main_wallet,
     }

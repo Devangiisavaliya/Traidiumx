@@ -310,7 +310,10 @@ def get_sub_accounts():
     # If user is a sub-account, fetch sibling sub-accounts of same parent
     parent_user_id = user_doc.get("parent_user_id") or str(user_doc["_id"])
 
-    sub_users = list(db.users.find({"parent_user_id": parent_user_id}))
+    sub_users = list(db.users.find({
+        "parent_user_id": parent_user_id,
+        "is_inr_trading_account": {"$ne": True}
+    }))
     
     sub_accounts_data = []
     for sub in sub_users:

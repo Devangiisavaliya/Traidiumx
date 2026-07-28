@@ -86,6 +86,9 @@ async function apiRequest(endpoint, options = {}) {
         ...(options.headers || {})
     };
 
+    const activeCurrency = localStorage.getItem("tx_navbar_currency") || "USDT";
+    headers["X-Navbar-Currency"] = activeCurrency;
+
     if (!isFormData && !headers["Content-Type"]) {
         headers["Content-Type"] = "application/json";
     }
@@ -105,10 +108,15 @@ async function apiRequest(endpoint, options = {}) {
         headers["X-Active-User-Id"] = activeUserId;
     }
 
-    const requestUrl = `${API_BASE_URL}${normalizedEndpoint}`;
+    const method = (options.method || "GET").toUpperCase();
+    let requestUrl = `${API_BASE_URL}${normalizedEndpoint}`;
+    if (method === "GET") {
+        const separator = requestUrl.includes("?") ? "&" : "?";
+        requestUrl = `${requestUrl}${separator}_t=${Date.now()}`;
+    }
 
     const response = await fetch(requestUrl, {
-        method: options.method || "GET",
+        method,
         headers,
         body: options.body || null,
         credentials: options.credentials || "same-origin"
