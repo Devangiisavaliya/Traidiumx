@@ -343,20 +343,22 @@ body[data-page="options"] .os-terminal-table > .os-empty-table {
 /* -------------------------------------------------------------
    SPOT PRICE LINE ACROSS OPTION CHAIN
    ------------------------------------------------------------- */
-.os-underlying-line-row {
+body[data-page="options"] .os-chain-table .os-underlying-line-row {
     height: 4px !important;
     background: transparent !important;
+    overflow: visible !important;
 }
-.os-underlying-line-row td {
+body[data-page="options"] .os-chain-table .os-underlying-line-row td {
     padding: 0 !important;
     height: 4px !important;
     position: relative;
     border: none !important;
+    overflow: visible !important;
 }
 .os-underlying-line-container {
     position: absolute;
     left: 0;
-    right: 0;
+    width: 100%;
     top: -2px;
     display: flex;
     align-items: center;

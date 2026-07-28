@@ -455,9 +455,10 @@ def approve_kyc(kyc_id):
     try:
         user = db.users.find_one({"_id": to_object_id(user_id)})
         if user:
-            from services.email_service import send_first_deposit_email
+            from services.email_service import send_first_deposit_email, send_kyc_approved_email
             from services.notification_service import create_user_notification
             
+            send_kyc_approved_email(user.get("email"), user.get("name") or user.get("username", ""))
             send_first_deposit_email(user.get("email"), user.get("name") or user.get("username", ""))
             create_user_notification(
                 user=user,

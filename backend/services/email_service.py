@@ -1144,4 +1144,29 @@ def send_first_deposit_email(to_email, user_name=""):
     )
 
 
+def send_kyc_approved_email(to_email, user_name=""):
+    """Send a transactional email informing the user that their KYC is approved."""
+    if not is_email_delivery_configured():
+        return {"sent": False, "reason": "SMTP email delivery is not configured."}
+        
+    safe_name = html.escape(str(user_name or "TraidiumX member").strip() or "TraidiumX member", quote=True)
+    base = str(getattr(settings, "APP_PUBLIC_URL", "") or getattr(settings, "FRONTEND_URL", "") or "").rstrip("/")
+    action_url = f"{base}/src/pages/dashboard.html" if base else ""
+
+    return _send_simple_transactional_email(
+        to_email=to_email,
+        subject="Your KYC Verification has been Approved!",
+        title="KYC Approved Successfully",
+        lines=[
+            f"Hello {safe_name},",
+            "Congratulations! Your KYC identity verification has been successfully reviewed and approved by our compliance team.",
+            "Your account has been fully verified and is now ready for deposits, trading, and withdrawals.",
+            "Thank you for completing your verification details.",
+        ],
+        email_type="kyc-approved-success",
+        action_url=action_url,
+        action_label="Go to Dashboard"
+    )
+
+
 
