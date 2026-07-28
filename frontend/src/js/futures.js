@@ -5861,22 +5861,20 @@ function txFormatDateTime(value) {
 }
 
 function txFormatSymbol(symbol) {
-    const cleanSymbol = normalizeSymbol(symbol || "");
-    const pair = pairs.find((item) => item.symbol === cleanSymbol);
-
-    if (pair) {
-        return pair.label;
-    }
-
-    if (!cleanSymbol) {
-        return "--";
-    }
-
+    if (!symbol) return "--";
+    const cleanSymbol = String(symbol).trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (cleanSymbol === "XAUUSD" || cleanSymbol === "GOLDUSD") {
         return "XAUUSD";
     }
-
-    return cleanSymbol.replace("USDT", "-USDT");
+    if (cleanSymbol.endsWith("USDT")) {
+        const base = cleanSymbol.replace("USDT", "");
+        return `${base}-USDT`;
+    }
+    const pair = pairs.find((item) => item.symbol === cleanSymbol);
+    if (pair) {
+        return pair.label;
+    }
+    return cleanSymbol;
 }
 
 function txFormatSide(side) {
