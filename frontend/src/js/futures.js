@@ -1776,10 +1776,22 @@ function txOpenFuturesWalletModal(action = "transfer") {
         modalTradingLabel.textContent = activeText;
     }
 
+    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = primaryCurrency === "INR";
+    const rateBadge = document.getElementById("futuresTransferUsdtRateBadge");
+    if (rateBadge) {
+        rateBadge.style.display = isINR ? "flex" : "none";
+    }
+
     const transferDirSelect = document.getElementById("futuresTransferDirection");
     if (transferDirSelect) {
-        transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USDT)`;
-        transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (INR)`;
+        if (isINR) {
+            transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USDT)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (INR)`;
+        } else {
+            transferDirSelect.options[0].textContent = `Main Wallet (USDT) → ${activeText} (USDT)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (USDT)`;
+        }
     }
 
     if (!nodes.modal) {

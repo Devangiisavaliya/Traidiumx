@@ -998,6 +998,42 @@ function openWalletActionModal(action = "deposit") {
     if (walletElements.actionModalTitle) walletElements.actionModalTitle.textContent = titleMap[target];
     if (walletElements.actionModalSubtitle) walletElements.actionModalSubtitle.textContent = subtitleMap[target];
 
+    // Update Transfer direction labels depending on active sub-account and active currency
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    let activeSubName = "Trading Wallet";
+    if (activeSubId && typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) {
+        const sub = txSubAccountsLocalCache.find(s => s.id === activeSubId);
+        if (sub) {
+            activeSubName = sub.name;
+        }
+    }
+    
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+    const rateBadge = document.getElementById("txTransferUsdtRateBadge");
+    if (rateBadge) {
+        rateBadge.style.display = isINR ? "flex" : "none";
+    }
+
+    const dirSelect = document.getElementById("walletTransferDirection");
+    if (dirSelect) {
+        const inrOption1 = dirSelect.options[0];
+        const inrOption2 = dirSelect.options[1];
+        if (inrOption1) {
+            inrOption1.textContent = isINR 
+                ? `Main Wallet (INR) → ${activeSubName} (USDT)`
+                : `Main Wallet (USDT) → ${activeSubName} (USDT)`;
+        }
+        if (inrOption2) {
+            inrOption2.textContent = isINR
+                ? `${activeSubName} (USDT) → Main Wallet (INR)`
+                : `${activeSubName} (USDT) → Main Wallet (USDT)`;
+        }
+    }
+    if (walletElements.actionModalSubtitle && target === "transfer") {
+        walletElements.actionModalSubtitle.textContent = `Move balance between Main Wallet and ${activeSubName}.`;
+    }
+
     walletElements.actionPanels.forEach((panel) => {
         panel.classList.toggle("hidden", panel.getAttribute("data-wallet-action-panel") !== target);
     });
@@ -3432,6 +3468,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     startWalletAutoRefresh();
     scheduleWalletIntroSafety();
     updateLiveUsdtRate();
+    await txInitSubAccountsAndSelector();
 
     try {
         await loadWalletData();
@@ -3581,6 +3618,51 @@ async function txInitLedgerSubAccountDropdown() {
     } catch (err) {
         console.error("Failed to load sub-accounts for ledger filter:", err);
         dropdown.classList.add("hidden");
+    }
+}
+
+// Global cache for sub-accounts list
+let txSubAccountsLocalCache = [];
+
+async function txInitSubAccountsAndSelector() {
+    if (!isLoggedIn()) return;
+    try {
+        const selector = document.getElementById("tradingAccountSelector");
+        if (!selector) return;
+        
+        const response = await apiRequest("/user/sub-accounts");
+        const subAccounts = response.data || [];
+        txSubAccountsLocalCache = subAccounts;
+        
+        selector.innerHTML = `<option value="main">Main Trading Account</option>`;
+        subAccounts.forEach(sub => {
+            const opt = document.createElement("option");
+            opt.value = sub.id;
+            opt.textContent = sub.name;
+            selector.appendChild(opt);
+        });
+        
+        let activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        if (activeSubId) {
+            selector.value = activeSubId;
+        } else {
+            selector.value = "main";
+        }
+
+        if (selector.dataset.bound !== "1") {
+            selector.dataset.bound = "1";
+            selector.addEventListener("change", (e) => {
+                const val = e.target.value;
+                if (val === "main") {
+                    localStorage.removeItem("traidiumx_active_user_id");
+                } else {
+                    localStorage.setItem("traidiumx_active_user_id", val);
+                }
+                window.location.reload();
+            });
+        }
+    } catch (e) {
+        console.error("Failed to load sub accounts:", e);
     }
 }
 

@@ -9,6 +9,7 @@
         selectedPlatform: "",
         selectedPlan: "",
         loading: false,
+        mobileAppStepCompleted: false,
     };
 
     function esc(value) {
@@ -60,6 +61,35 @@
             .tx-ob-form{display:grid;gap:12px;margin-top:14px}.tx-ob-form input{width:100%;border:1px solid rgba(71,85,105,.7);border-radius:14px;background:#020617;color:#fff;padding:12px 13px;font-size:13px;font-weight:750;outline:none}.tx-ob-form input:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.1)}
             .tx-ob-close{background:none;border:none;color:#94a3b8;font-size:28px;cursor:pointer;padding:0 8px;line-height:1;outline:none;transition:color .15s ease}
             .tx-ob-close:hover{color:#fff}
+            .tx-ob-card.tx-narrow { max-width: 480px; }
+            .tx-ob-mobile-app-step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+            .tx-phone-mockup { position: relative; width: 230px; height: 390px; border: 8px solid #1e293b; border-radius: 36px; background: #070e17; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; margin: 0 auto 20px; }
+            .tx-phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 90px; height: 16px; background: #1e293b; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 10; }
+            .tx-phone-screen { height: 100%; display: flex; flex-direction: column; padding: 22px 14px 14px; box-sizing: border-box; justify-content: space-between; }
+            .tx-phone-header { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #64748b; font-weight: 700; }
+            .tx-phone-logo { color: #f59e0b; font-weight: 950; letter-spacing: 0.05em; }
+            .tx-phone-portfolio { text-align: left; margin-top: 10px; }
+            .tx-phone-portfolio h3 { margin: 0; font-size: 15px; font-weight: 900; color: #fff; }
+            .tx-phone-portfolio-card { background: linear-gradient(135deg, #2e1065, #0f172a); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 14px; padding: 10px 12px; margin-top: 8px; }
+            .tx-phone-label { font-size: 8px; color: #a78bfa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+            .tx-phone-balance { font-size: 18px; font-weight: 950; color: #fff; margin-top: 1px; }
+            .tx-phone-change { font-size: 8px; color: #34d399; font-weight: 700; margin-top: 1px; }
+            .tx-phone-chart { width: 100%; height: 48px; margin-top: 8px; display: block; }
+            .tx-phone-asset { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 8px; margin-top: 8px; }
+            .tx-phone-asset-info { display: flex; align-items: center; gap: 6px; }
+            .tx-phone-asset-icon { width: 22px; height: 22px; background: rgba(245,158,11,0.15); color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+            .tx-phone-asset-name { display: block; font-size: 9px; font-weight: 900; color: #fff; text-align: left; }
+            .tx-phone-asset-type { display: block; font-size: 7px; color: #64748b; font-weight: 700; text-align: left; }
+            .tx-phone-asset-change { font-size: 9px; color: #10b981; font-weight: 900; }
+            .tx-phone-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: auto; }
+            .tx-phone-btn { padding: 7px 0; border-radius: 8px; font-size: 8px; font-weight: 955; text-align: center; color: #fff; cursor: default; }
+            .tx-phone-btn.long { background: #10b981; }
+            .tx-phone-btn.short { background: #ef4444; }
+            .tx-ob-mobile-text { font-size: 13px; color: #94a3b8; font-weight: 700; line-height: 1.5; max-width: 480px; margin: 0 auto 20px; }
+            .tx-ob-app-card { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 480px; margin: 0 auto 16px; border: 1px solid rgba(34, 211, 238, 0.15); background: rgba(15, 23, 42, 0.6); border-radius: 18px; padding: 14px; box-sizing: border-box; text-align: left; }
+            .tx-ob-app-card-icon { width: 38px; height: 38px; border: 1px solid rgba(234, 179, 8, 0.25); background: rgba(234, 179, 8, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #eab308; }
+            .tx-ob-app-card h4 { margin: 0; font-size: 13px; font-weight: 950; color: #fff; }
+            .tx-ob-app-card p { margin: 2px 0 0; font-size: 11px; color: #64748b; font-weight: 700; }
             @media(max-width:680px){.tx-ob-card{padding:20px;border-radius:22px}.tx-ob-grid,.tx-ob-plans,.tx-ob-summary{grid-template-columns:1fr}.tx-ob-progress{grid-template-columns:1fr}.tx-ob-actions{flex-direction:column-reverse}.tx-ob-btn{width:100%}}
         `;
         document.head.appendChild(style);
@@ -187,16 +217,120 @@
 
     function stepNumber() {
         if (!state.selectedPlatform) return 1;
-        if (!state.selectedPlan) return 2;
-        return 3;
+        if (!state.mobileAppStepCompleted) return 2;
+        if (!state.selectedPlan) return 3;
+        return 4;
     }
 
     function progress(step) {
         return `
-            <div class="tx-ob-progress">
-                <div class="tx-ob-step ${step === 1 ? "active" : "done"}">1. Choose platform</div>
-                <div class="tx-ob-step ${step === 2 ? "active" : step > 2 ? "done" : ""}">2. Choose plan</div>
-                <div class="tx-ob-step ${step === 3 ? "active" : ""}">3. Fund & activate</div>
+            <div class="tx-ob-progress" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="tx-ob-step ${step === 1 ? "active" : "done"}">1. Platform</div>
+                <div class="tx-ob-step ${step === 2 ? "active" : step > 2 ? "done" : ""}">2. Mobile App</div>
+                <div class="tx-ob-step ${step === 3 ? "active" : step > 3 ? "done" : ""}">3. Choose plan</div>
+                <div class="tx-ob-step ${step === 4 ? "active" : ""}">4. Fund & activate</div>
+            </div>`;
+    }
+
+    function mobileAppHtml() {
+        return `
+            <div class="tx-ob-mobile-app-step">
+                <!-- Phone Mockup -->
+                <div class="tx-phone-mockup">
+                    <div class="tx-phone-notch"></div>
+                    <div class="tx-phone-screen">
+                        <div class="tx-phone-header">
+                            <span class="tx-phone-time">9:41</span>
+                            <span class="tx-phone-logo">TRAIDIUMX</span>
+                            <span class="tx-phone-bell">
+                                <svg style="width: 10px; height: 10px;" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="tx-phone-portfolio">
+                            <h3>Portfolio</h3>
+                            <div class="tx-phone-portfolio-card">
+                                <span class="tx-phone-label">Total Balance</span>
+                                <div class="tx-phone-balance">$12,480.50</div>
+                                <div class="tx-phone-change">▲ +$842.30 (24h)</div>
+                            </div>
+                        </div>
+                        <svg class="tx-phone-chart" viewBox="0 0 100 30">
+                            <defs>
+                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"></stop>
+                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"></stop>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0,25 Q15,5 30,20 T60,5 T90,15 T100,10 L100,30 L0,30 Z" fill="url(#chartGrad)"></path>
+                            <path d="M0,25 Q15,5 30,20 T60,5 T90,15 T100,10" fill="none" stroke="#10b981" stroke-width="1.5" />
+                        </svg>
+                        <div class="tx-phone-asset">
+                            <div class="tx-phone-asset-info">
+                                <span class="tx-phone-asset-icon">₿</span>
+                                <div>
+                                    <span class="tx-phone-asset-name">BTC/USDT</span>
+                                    <span class="tx-phone-asset-type">Perpetual</span>
+                                </div>
+                            </div>
+                            <span class="tx-phone-asset-change">+2.41%</span>
+                        </div>
+                        <div class="tx-phone-actions">
+                            <div class="tx-phone-btn long">LONG</div>
+                            <div class="tx-phone-btn short">SHORT</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="tx-ob-mobile-text">
+                    Your broker setup is complete. Install the TraidiumX app for faster trading on your phone.
+                </p>
+
+                <!-- Get App Badge Card -->
+                <div class="tx-ob-app-card">
+                    <div class="tx-ob-app-card-icon">
+                        <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Get TraidiumX on your phone</h4>
+                        <p>Use Install for Google Play, or pick App Store below.</p>
+                    </div>
+                </div>
+
+                <!-- Custom Step 2 Actions inside body -->
+                <div class="tx-ob-actions" style="flex-direction: column; gap: 8px; margin-top: 14px; width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; padding: 0 10px;">
+                    <button type="button" class="tx-ob-btn primary" id="txObInstallBtn" style="width: 100%; background: #eab308; color: #020617; font-weight: 950; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; height: 46px; cursor: pointer;">
+                        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        Install
+                    </button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
+                        <button type="button" class="tx-ob-btn" id="txObGooglePlayBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(255,255,255,0.08); background: #0f172a; color: #fff; cursor: pointer;">
+                            <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 20.285V3.715C3 3.09 3.497 2.6 4.108 2.6c.19 0 .378.05.545.145l14.407 8.29a1.085 1.085 0 0 1 0 1.93l-14.407 8.29a1.084 1.084 0 0 1-1.653-.94Z" />
+                            </svg>
+                            Google Play
+                        </button>
+                        <button type="button" class="tx-ob-btn" id="txObAppStoreBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(255,255,255,0.08); background: #0f172a; color: #fff; cursor: pointer;">
+                            <svg style="width: 14px; height: 14px;" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.48C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.1 16.67C20.08 16.74 19.67 18.11 18.71 19.5M15.97 4.17C16.63 3.37 17.07 2.28 16.95 1C15.85 1.04 14.51 1.73 13.73 2.64C13.07 3.41 12.49 4.52 12.64 5.78C13.87 5.87 15.12 5.17 15.97 4.17Z" />
+                            </svg>
+                            App Store
+                        </button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 8px;">
+                        <button type="button" class="tx-ob-btn" id="txObBack" style="border: 0; background: transparent; color: #64748b; font-weight: 700; text-decoration: underline; width: auto; cursor: pointer;">
+                            Back
+                        </button>
+                        <button type="button" class="tx-ob-btn" id="txObMaybeLaterBtn" style="border: 0; background: transparent; color: #64748b; font-weight: 700; text-decoration: underline; width: auto; cursor: pointer;">
+                            Maybe later
+                        </button>
+                    </div>
+                </div>
             </div>`;
     }
 
@@ -204,19 +338,42 @@
         injectStyles();
         const step = stepNumber();
         const data = state.data || {};
+        
+        let title = "Choose your platform";
+        if (step === 2) title = "Install Mobile App";
+        else if (step === 3) title = "Choose your account plan";
+        else if (step === 4) title = "Activate your trading account";
+
+        let kicker = "Trading account setup";
+        if (step === 2) kicker = "STEP 2 / 4 · MOBILE APP";
+        else kicker = `STEP ${step} / 4 · ${step === 1 ? "PLATFORM" : step === 3 ? "PLAN" : "ACTIVATION"}`;
+
+        let headerIconHtml = "";
+        if (step === 2) {
+            headerIconHtml = `
+                <div style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #eab308; display: grid; place-items: center; background: rgba(234,179,8,0.1); color: #eab308; margin-right: 14px; flex-shrink: 0; margin-top: 6px;">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                </div>
+            `;
+        }
+
         root().innerHTML = `
             <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Trading account setup">
-                <div class="tx-ob-card">
-                    <div class="tx-ob-head">
-                        <div>
-                            <div class="tx-ob-kicker">Trading account setup</div>
-                            <h2 class="tx-ob-title">${step === 1 ? "Choose your platform" : step === 2 ? "Choose your account plan" : "Activate your trading account"}</h2>
+                <div class="tx-ob-card ${step === 2 ? "tx-narrow" : ""}">
+                    <div class="tx-ob-head" style="display: flex; align-items: flex-start;">
+                        ${headerIconHtml}
+                        <div style="flex-grow: 1;">
+                            <div class="tx-ob-kicker">${kicker}</div>
+                            <h2 class="tx-ob-title">${title}</h2>
                             <p class="tx-ob-sub">Deposit and trading do not require KYC. KYC is checked only when you submit a withdrawal request.</p>
                         </div>
                         <button type="button" id="txObClose" class="tx-ob-close" aria-label="Close modal">&times;</button>
                     </div>
                     ${progress(step)}
-                    <div id="txObBody">${step === 1 ? platformHtml(data) : step === 2 ? plansHtml(data) : activationHtml(data)}</div>
+                    <div id="txObBody">${step === 1 ? platformHtml(data) : step === 2 ? mobileAppHtml() : step === 3 ? plansHtml(data) : activationHtml(data)}</div>
                     <div id="txObMessage"></div>
                     ${actionsHtml(step)}
                 </div>
@@ -293,7 +450,8 @@
 
     function actionsHtml(step) {
         if (step === 1) return `<div class="tx-ob-actions"><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlatform ? "" : "disabled"}>Continue</button></div>`;
-        if (step === 2) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
+        if (step === 2) return ``; // Step 2 (Mobile App) renders its own actions inside the mockup body
+        if (step === 3) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
         const data = state.data || {};
         const needsFunding = !!data.funding_required || (state.selectedPlatform === "mt5" && data.provisioning_balance_eligible === false);
         return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html?action=deposit">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObFinish">Open ${state.selectedPlatform === "mt5" ? "Trading Account" : "Futures"}</button>`}</div>`;
@@ -320,6 +478,31 @@
 
     function bind(step) {
         document.getElementById("txObClose")?.addEventListener("click", hide);
+
+        if (step === 2) {
+            const handleNextStep = () => {
+                state.mobileAppStepCompleted = true;
+                render();
+            };
+            
+            document.getElementById("txObMaybeLaterBtn")?.addEventListener("click", handleNextStep);
+            
+            document.getElementById("txObInstallBtn")?.addEventListener("click", () => {
+                message("TraidiumX Mobile App is coming soon! Press 'Maybe later' to continue.", "success");
+            });
+            document.getElementById("txObGooglePlayBtn")?.addEventListener("click", () => {
+                message("Google Play App is coming soon!", "success");
+            });
+            document.getElementById("txObAppStoreBtn")?.addEventListener("click", () => {
+                message("App Store App is coming soon!", "success");
+            });
+            document.getElementById("txObBack")?.addEventListener("click", () => {
+                state.selectedPlatform = "";
+                render();
+            });
+            return;
+        }
+
         document.querySelectorAll("[data-platform]").forEach((button) => button.addEventListener("click", () => {
             state.selectedPlatform = button.dataset.platform || "";
             document.querySelectorAll("[data-platform]").forEach((item) => item.classList.toggle("selected", item === button));
@@ -331,8 +514,12 @@
             const next = document.getElementById("txObNext"); if (next) next.disabled = false;
         }));
         document.getElementById("txObBack")?.addEventListener("click", () => {
-            if (step === 2) state.selectedPlatform = "";
-            if (step === 3) state.selectedPlan = "";
+            if (step === 3) {
+                state.mobileAppStepCompleted = false;
+            }
+            if (step === 4) {
+                state.selectedPlan = "";
+            }
             render();
         });
         document.getElementById("txObNext")?.addEventListener("click", async () => {
@@ -344,7 +531,7 @@
                 state.data = response.data || state.data;
                 setUserCache(state.data);
                 
-                if (step === 2 && state.selectedPlatform === "mt5") {
+                if (step === 3 && state.selectedPlatform === "mt5") {
                     const plans = Array.isArray(state.data.plans) ? state.data.plans : [];
                     const selectedPlanObj = plans.find(p => p.key === state.selectedPlan) || { name: state.selectedPlan.toUpperCase() };
                     const planName = selectedPlanObj.name;
