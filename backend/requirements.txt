@@ -23,3 +23,5 @@ pymupdf
 opencv-python-headless
 cryptography>=42.0.0
 gunicorn
+razorpay
+

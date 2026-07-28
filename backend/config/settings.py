@@ -163,6 +163,10 @@ class Settings:
     DIGIO_TEMPLATE_NAME = os.getenv("DIGIO_TEMPLATE_NAME", "DEFAULT_DIGILOCKER_TEMPLATE").strip()
     DIGIO_ENVIRONMENT = os.getenv("DIGIO_ENVIRONMENT", "sandbox").strip()
 
+    RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+    RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "").strip()
+
     @property
     def DIGIO_BASE_URL(self):
         if self.DIGIO_ENVIRONMENT.lower() == "production":

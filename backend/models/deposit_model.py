@@ -35,6 +35,11 @@ def find_deposit_by_tx_hash(tx_hash):
     return get_deposits_collection().find_one({"tx_hash": str(tx_hash)})
 
 
+def find_deposit_by_gateway_order_id(gateway_order_id):
+    return get_deposits_collection().find_one({"gateway_order_id": str(gateway_order_id)})
+
+
+
 def find_completed_deposit_by_tx_hash(tx_hash):
     return get_deposits_collection().find_one({"tx_hash": str(tx_hash), "status": "completed"})
 

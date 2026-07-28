@@ -1596,9 +1596,15 @@ async function loadCryptoDepositAddresses() {
     WALLET_STATE.cryptoDeposit.minAmount = Number(response.data?.min_amount || 10);
     WALLET_STATE.cryptoDeposit.maxAmount = Number(response.data?.max_amount || 1000000);
     if (walletElements.depositAmount) {
-        walletElements.depositAmount.min = String(WALLET_STATE.cryptoDeposit.minAmount || 0);
+        const activeCurrency = (WALLET_STATE.activeDepositCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+        if (activeCurrency === "INR") {
+            walletElements.depositAmount.min = "10";
+            walletElements.depositAmount.placeholder = "Minimum ₹10";
+        } else {
+            walletElements.depositAmount.min = String(WALLET_STATE.cryptoDeposit.minAmount || 10);
+            walletElements.depositAmount.placeholder = `Minimum ${WALLET_STATE.cryptoDeposit.minAmount || 10} USDT`;
+        }
         walletElements.depositAmount.max = String(WALLET_STATE.cryptoDeposit.maxAmount || 1000000);
-        walletElements.depositAmount.placeholder = `Minimum ${WALLET_STATE.cryptoDeposit.minAmount || 0} USDT`;
     }
     updateCryptoDepositAddressUI();
 }
@@ -2215,17 +2221,120 @@ async function handleDepositSubmit(event) {
         return;
     }
 
-    try {
-        walletSetButtonLoading(walletElements.createDepositBtn, true);
-        const payload = isINR
-            ? {
-                amount: walletNumber(formData.get("amount"), 0),
-                payment_method: "inr_deposit",
-                crypto_asset: "INR",
-                crypto_network: "UPI/BANK",
-                inr_utr_number: String(formData.get("inr_utr_number") || "").trim()
+    if (isINR) {
+        try {
+            walletSetButtonLoading(walletElements.createDepositBtn, true);
+            const amount = walletNumber(formData.get("amount"), 0);
+            
+            // 1. Create Razorpay order on backend
+            const orderResponse = await apiRequest("/deposit/razorpay/create-order", {
+                method: "POST",
+                body: JSON.stringify({ amount })
+            });
+
+            if (!orderResponse || !orderResponse.success || !orderResponse.data) {
+                throw new Error(orderResponse?.message || "Failed to create order on server.");
             }
-            : {
+
+            const orderData = orderResponse.data;
+            
+            // Check if backend used sandbox test mode (meaning keys are not configured yet)
+            if (orderData.is_sandbox_fallback) {
+                // For sandbox fallback, we can simulate the successful payment directly to make testing easier
+                const confirmed = await showWalletConfirm({
+                    title: "Razorpay Sandbox Simulation",
+                    message: `Razorpay API Keys are not set in the backend .env. Would you like to simulate a successful payment of ₹${amount}?`,
+                    confirmText: "Simulate Success",
+                    cancelText: "Simulate Failure",
+                    danger: false
+                });
+
+                if (confirmed) {
+                    const verifyResponse = await apiRequest("/deposit/razorpay/verify-payment", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            razorpay_order_id: orderData.razorpay_order_id,
+                            razorpay_payment_id: "pay_sandbox_simulated_" + Math.random().toString(36).substring(7)
+                        })
+                    });
+                    
+                    form.reset();
+                    await loadWalletData({ silent: true });
+                    await refreshWalletBalanceOnly();
+                    closeWalletActionModal();
+                    showWalletAlert(verifyResponse.message || "Simulated payment successfully verified!", "success");
+                } else {
+                    showWalletActionMessage("Simulated payment failed or cancelled.", "error");
+                }
+                return;
+            }
+
+            // 2. Launch real Razorpay Checkout
+            if (typeof Razorpay === "undefined") {
+                showWalletActionMessage("Razorpay SDK is not loaded. Please refresh the page.", "error");
+                return;
+            }
+
+            const user = getAuthUser() || {};
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount_paise,
+                currency: "INR",
+                name: "TraidiumX",
+                description: `Wallet Deposit - Ref: ${orderData.deposit_reference}`,
+                order_id: orderData.razorpay_order_id,
+                handler: async function (response) {
+                    try {
+                        walletSetButtonLoading(walletElements.createDepositBtn, true);
+                        showWalletActionMessage("Verifying payment...", "info");
+                        
+                        const verifyResponse = await apiRequest("/deposit/razorpay/verify-payment", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        form.reset();
+                        await loadWalletData({ silent: true });
+                        await refreshWalletBalanceOnly();
+                        closeWalletActionModal();
+                        showWalletAlert(verifyResponse.message || "Payment verified successfully!", "success");
+                    } catch (verifyError) {
+                        showWalletActionMessage(verifyError.message || "Payment verification failed. Please contact support.", "error");
+                    } finally {
+                        walletSetButtonLoading(walletElements.createDepositBtn, false);
+                    }
+                },
+                prefill: {
+                    name: user.name || "",
+                    email: user.email || "",
+                    contact: user.phone || user.contact || ""
+                },
+                theme: {
+                    color: "#10b981" // matches TraidiumX emerald colors
+                },
+                modal: {
+                    ondismiss: function () {
+                        showWalletActionMessage("Payment cancelled by user.", "error");
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            showWalletActionMessage(error.message || "Unable to initiate payment.", "error");
+        } finally {
+            walletSetButtonLoading(walletElements.createDepositBtn, false);
+        }
+    } else {
+        // Crypto USDT Deposit flow
+        try {
+            walletSetButtonLoading(walletElements.createDepositBtn, true);
+            const payload = {
                 amount: walletNumber(formData.get("amount"), 0),
                 payment_method: "crypto_deposit",
                 crypto_asset: String(formData.get("crypto_asset") || "USDT").trim().toUpperCase(),
@@ -2233,26 +2342,27 @@ async function handleDepositSubmit(event) {
                 deposit_address_confirmation: String(formData.get("deposit_address_confirmation") || "").trim()
             };
 
-        const response = await apiRequest("/deposit/create", {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
+            const response = await apiRequest("/deposit/create", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
 
-        form.reset();
+            form.reset();
 
-        if (walletElements.cryptoNetwork) {
-            walletElements.cryptoNetwork.value = "TRC20";
+            if (walletElements.cryptoNetwork) {
+                walletElements.cryptoNetwork.value = "TRC20";
+            }
+
+            await loadWalletData({ silent: true });
+            updateCryptoDepositAddressUI();
+            updateWalletActionModalBalances();
+            const tone = response?.data?.deposit?.status === "completed" ? "success" : "info";
+            showWalletActionMessage(response.message || "Deposit submitted successfully.", tone);
+        } catch (error) {
+            checkKycRedirect(error, "Unable to create deposit.", "deposit");
+        } finally {
+            walletSetButtonLoading(walletElements.createDepositBtn, false);
         }
-
-        await loadWalletData({ silent: true });
-        updateCryptoDepositAddressUI();
-        updateWalletActionModalBalances();
-        const tone = response?.data?.deposit?.status === "completed" ? "success" : "info";
-        showWalletActionMessage(response.message || "Deposit submitted successfully.", tone);
-    } catch (error) {
-        checkKycRedirect(error, "Unable to create deposit.", "deposit");
-    } finally {
-        walletSetButtonLoading(walletElements.createDepositBtn, false);
     }
 }
 
@@ -3198,12 +3308,18 @@ function updateDepositModalUIByCurrency(currency) {
 
     if (amountLabel) amountLabel.textContent = isINR ? "Amount (INR)" : "Amount (USD)";
     if (depositAmountInput) {
-        depositAmountInput.placeholder = isINR ? "1000.00" : "100.00";
+        if (isINR) {
+            depositAmountInput.min = "10";
+            depositAmountInput.placeholder = "Minimum ₹10";
+        } else {
+            depositAmountInput.min = String(WALLET_STATE.cryptoDeposit.minAmount || 10);
+            depositAmountInput.placeholder = `Minimum ${WALLET_STATE.cryptoDeposit.minAmount || 10} USDT`;
+        }
     }
 
     if (txDepositSubtitle) {
         txDepositSubtitle.textContent = isINR
-            ? "Pay via UPI / Bank Transfer to the company details below, enter your payment UTR / Ref ID and submit. Funds credit to Main Wallet."
+            ? "Pay instantly via UPI, GPay, PhonePe, Cards, Netbanking or Wallet using Razorpay Payment Gateway. Your wallet credits automatically."
             : "Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.";
     }
 
@@ -3213,7 +3329,7 @@ function updateDepositModalUIByCurrency(currency) {
 
     if (footerSubtext) {
         footerSubtext.textContent = isINR
-            ? "Send payment to company details above. Balance credits on submit."
+            ? "Wallet credits automatically after payment completion."
             : "Send USDT to the address above. Balance credits on submit.";
     }
 

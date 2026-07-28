@@ -787,34 +787,14 @@
 
                         <!-- INR Mode Fields -->
                         <div id="inrDepositBox" class="grid gap-4 hidden">
-                            <div class="rounded-2xl border border-cyan-400/30 bg-slate-950/90 p-4">
-                                <div class="mb-3 flex items-center justify-between">
-                                    <span class="text-xs font-black uppercase tracking-wider text-cyan-300">Company Bank / UPI Gateway</span>
-                                    <button id="copyInrUpiBtn" type="button" class="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-200 transition hover:bg-cyan-400/20">📋 Copy UPI ID</button>
+                            <div class="rounded-2xl border border-cyan-400/30 bg-cyan-950/20 p-5 text-center">
+                                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 text-2xl text-cyan-300">
+                                    💳
                                 </div>
-                                <div class="grid gap-3 sm:grid-cols-2">
-                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
-                                        <p class="text-[10px] font-bold uppercase text-slate-400">Company UPI ID</p>
-                                        <p id="inrUpiId" class="mt-1 font-mono text-xs font-black text-cyan-300">traidiumx@upi</p>
-                                    </div>
-                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
-                                        <p class="text-[10px] font-bold uppercase text-slate-400">Account Name</p>
-                                        <p id="inrAccountName" class="mt-1 font-mono text-xs font-bold text-slate-200">TraidiumX Trading Services Ltd</p>
-                                    </div>
-                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
-                                        <p class="text-[10px] font-bold uppercase text-slate-400">Bank & Account No.</p>
-                                        <p id="inrBankDetails" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC Bank • 50100498765432</p>
-                                    </div>
-                                    <div class="rounded-xl border border-white/10 bg-slate-900/90 p-3">
-                                        <p class="text-[10px] font-bold uppercase text-slate-400">IFSC Code</p>
-                                        <p id="inrIfscCode" class="mt-1 font-mono text-xs font-bold text-slate-200">HDFC0000128</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label for="inrUtrNumber" class="tx-form-label">Payment Ref / UTR Number</label>
-                                <input id="inrUtrNumber" name="inr_utr_number" type="text" placeholder="Enter 12-digit UTR or Transaction Ref ID" class="tx-form-input font-mono" />
+                                <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300">Razorpay Payment Gateway</h3>
+                                <p class="mt-2 text-xs leading-relaxed text-slate-400">
+                                    Instant deposits using UPI, GPay, PhonePe, Cards, Netbanking or Wallet. Wallet balance credits automatically upon successful payment.
+                                </p>
                             </div>
                         </div>
 
@@ -948,6 +928,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
     <script src="../js/auth-state.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="../js/wallet.js?v=22"></script>
     <script src="../js/responsive.js"></script>
 </body>

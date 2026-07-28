@@ -594,3 +594,176 @@ def complete_deposit_for_development(user_id, deposit_id):
         "data": {"deposit": format_deposit(updated)},
         "status_code": 200,
     }
+
+
+def create_razorpay_order_service(user_id, amount):
+    from services.kyc_status_service import require_kyc_approved
+    kyc_restriction = require_kyc_approved(user_id, "deposit")
+    if kyc_restriction:
+        return kyc_restriction
+
+    try:
+        amount = float(amount)
+    except (ValueError, TypeError):
+        return {"success": False, "message": "Invalid amount.", "status_code": 400}
+
+    if amount < 10:
+        return {"success": False, "message": "Minimum INR deposit amount is ₹10.", "status_code": 400}
+
+    deposit_reference = f"TXD-{uuid.uuid4().hex[:12].upper()}"
+    gateway_order_id = f"order_{uuid.uuid4().hex[:14]}" # Fallback order ID if Razorpay is not configured/fails
+
+    key_id = settings.RAZORPAY_KEY_ID
+    key_secret = settings.RAZORPAY_KEY_SECRET
+
+    use_sandbox_fallback = False
+    if not key_id or not key_secret:
+        # Fallback to local sandbox testing if keys are not set
+        use_sandbox_fallback = True
+        key_id = "rzp_test_placeholder_key"
+        print("Warning: Razorpay keys not set. Falling back to sandbox test mode.")
+
+    amount_paise = int(amount * 100)
+
+    if not use_sandbox_fallback:
+        import razorpay
+        try:
+            client = razorpay.Client(auth=(key_id, key_secret))
+            razorpay_order = client.order.create({
+                "amount": amount_paise,
+                "currency": "INR",
+                "receipt": deposit_reference,
+                "payment_capture": 1
+            })
+            gateway_order_id = razorpay_order["id"]
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to create Razorpay order: {str(e)}",
+                "status_code": 500
+            }
+
+    deposit_id = create_deposit(
+        {
+            "user_id": str(user_id),
+            "deposit_reference": deposit_reference,
+            "gateway_order_id": gateway_order_id,
+            "amount": amount,
+            "currency": "INR",
+            "status": "pending_payment",
+            "payment_method": "razorpay_deposit",
+            "gateway": "razorpay",
+            "gateway_payment_id": "",
+            "crypto_asset": "INR",
+            "crypto_network": "UPI/BANK",
+            "deposit_address": "Razorpay Gateway",
+            "tx_hash": "",
+            "is_demo": use_sandbox_fallback,
+            "explorer_url": "",
+            "verification_status": "pending_payment",
+            "verification_message": "Razorpay Sandbox Mode: Payment Pending" if use_sandbox_fallback else "Razorpay order created. Payment pending.",
+            "confirmations": 0,
+            "required_confirmations": 1,
+            "verified_amount": 0.0,
+            "verified_to_address": "Razorpay Merchant Account",
+            "remark": "Razorpay order initiated.",
+            "risk_note": "Razorpay Deposit.",
+        }
+    )
+
+    return {
+        "success": True,
+        "message": "Razorpay order initiated successfully.",
+        "data": {
+            "deposit_id": str(deposit_id),
+            "deposit_reference": deposit_reference,
+            "razorpay_order_id": gateway_order_id,
+            "amount": amount,
+            "amount_paise": amount_paise,
+            "key_id": key_id,
+            "currency": "INR",
+            "is_sandbox_fallback": use_sandbox_fallback
+        },
+        "status_code": 200
+    }
+
+
+def verify_razorpay_payment_service(user_id, data):
+    from models.deposit_model import find_deposit_by_gateway_order_id
+    
+    razorpay_order_id = data.get("razorpay_order_id")
+    razorpay_payment_id = data.get("razorpay_payment_id")
+    razorpay_signature = data.get("razorpay_signature")
+
+    if not razorpay_order_id or not razorpay_payment_id:
+        return {"success": False, "message": "Missing payment signature details.", "status_code": 400}
+
+    deposit = find_deposit_by_gateway_order_id(razorpay_order_id)
+    if not deposit:
+        return {"success": False, "message": "Deposit request not found for this order.", "status_code": 404}
+
+    if deposit.get("status") == "completed":
+        return {
+            "success": True,
+            "message": "Payment verified and credited already.",
+            "data": {"deposit": format_deposit(deposit)},
+            "status_code": 200
+        }
+
+    # If it's sandbox demo fallback (meaning keys were empty during order creation), bypass real verification
+    is_sandbox = deposit.get("is_demo") or settings.RAZORPAY_KEY_ID == ""
+
+    if not is_sandbox:
+        if not razorpay_signature:
+            return {"success": False, "message": "Missing payment signature.", "status_code": 400}
+        import razorpay
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+        except Exception as e:
+            update_deposit_status(str(deposit["_id"]), "failed", {
+                "verification_status": "signature_verification_failed",
+                "verification_message": f"Signature verification failed: {str(e)}",
+                "remark": "Invalid payment signature."
+            })
+            return {"success": False, "message": "Signature verification failed.", "status_code": 400}
+
+    # Credit user's wallet
+    amount = float(deposit["amount"])
+    wallet = credit_main_wallet(
+        user_id=deposit["user_id"],
+        amount=amount,
+        transaction_type="inr_deposit_credit",
+        reference_id=str(deposit["_id"]),
+        description=f"INR deposit credited to Main Wallet via Razorpay. Reference {deposit['deposit_reference']}",
+        currency="INR"
+    )
+
+    updated = update_deposit_status(str(deposit["_id"]), "completed", {
+        "gateway_payment_id": razorpay_payment_id,
+        "tx_hash": razorpay_payment_id,
+        "verification_status": "verified",
+        "verification_message": f"Payment verified successfully (Sandbox)" if is_sandbox else f"Payment verified successfully. Payment ID: {razorpay_payment_id}",
+        "credited_at": now_utc(),
+        "verified_amount": amount,
+        "confirmations": 1,
+        "remark": "Deposited via Razorpay Payment Gateway.",
+        "wallet_after_credit": {
+            "available_balance": (wallet.get("main_wallet_inr") or {}).get("available_balance", 0.0),
+            "locked_balance": (wallet.get("main_wallet_inr") or {}).get("locked_balance", 0.0),
+            "total_balance": (wallet.get("main_wallet_inr") or {}).get("total_balance", 0.0),
+            "wallet_type": "main_wallet_inr"
+        }
+    })
+
+    return {
+        "success": True,
+        "message": "Payment verified and credited to Main Wallet successfully.",
+        "data": {"deposit": format_deposit(updated)},
+        "status_code": 200
+    }
+
