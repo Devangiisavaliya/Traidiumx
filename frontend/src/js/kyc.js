@@ -91,6 +91,7 @@ const kycEl = {
     submittedDoc: document.getElementById("kycSubmittedDoc"),
     approvedMessagePanel: document.getElementById("kycApprovedMessagePanel"),
     pendingMessagePanel: document.getElementById("kycPendingMessagePanel"),
+    selfiePanel: document.getElementById("kycSelfiePanel"),
 
     badgeText: document.getElementById("kycBadgeText"),
     mainTitle: document.getElementById("kycMainTitle"),
@@ -343,14 +344,19 @@ function retakeWebcamSnap() {
 async function startMobileSelfieFlow() {
     const qrContainer = document.getElementById("kycMobileQrContainer");
     if (qrContainer) {
-        qrContainer.innerHTML = "";
+        qrContainer.innerHTML = `<div class="text-xs text-slate-400 animate-pulse">Generating secure QR code...</div>`;
         try {
             const statusResponse = await apiRequest("/kyc/status");
             const localIp = statusResponse?.data?.local_ip || window.location.hostname;
             const port = statusResponse?.data?.server_port || "5000";
-            const token = getAuthToken();
-            const mobileUrl = `http://${localIp}:${port}/src/pages/mobile-selfie.html?token=${encodeURIComponent(token)}`;
             
+            const shortCodeResponse = await apiRequest("/kyc/short-code", { method: "POST" });
+            const shortCode = shortCodeResponse?.data?.code;
+            if (!shortCode) throw new Error("Could not generate short code.");
+            
+            const mobileUrl = `http://${localIp}:${port}/src/pages/mobile-selfie.html?code=${encodeURIComponent(shortCode)}`;
+            
+            qrContainer.innerHTML = "";
             new QRCode(qrContainer, {
                 text: mobileUrl,
                 width: 156,
@@ -368,23 +374,12 @@ async function startMobileSelfieFlow() {
             startSelfieTimer();
         } catch (err) {
             console.error("Failed to render QR Code with local IP:", err);
-            qrContainer.innerHTML = "";
-            const token = getAuthToken();
-            const mobileUrl = `${window.location.origin}/src/pages/mobile-selfie.html?token=${encodeURIComponent(token)}`;
-            
-            new QRCode(qrContainer, {
-                text: mobileUrl,
-                width: 156,
-                height: 156,
-                colorDark: "#020617",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            
-            const qrImgElement = qrContainer.querySelector("img");
-            if (qrImgElement) {
-                qrImgElement.className = "w-full h-full object-contain";
-            }
+            qrContainer.innerHTML = `
+                <div class="text-center p-2 text-slate-700">
+                    <p class="text-[10px] font-bold leading-relaxed text-red-500">Connection Error</p>
+                    <button type="button" onclick="startMobileSelfieFlow()" class="mt-2 rounded-lg bg-slate-900 border border-white/10 px-3 py-1 text-[10px] font-black text-slate-300 hover:text-white transition">Retry</button>
+                </div>
+            `;
         }
     }
 
@@ -725,6 +720,7 @@ function setFinalPanels(status) {
     if (approved || pending) {
         if (kycEl.mobilePanel) kycEl.mobilePanel.classList.add("hidden");
         if (kycEl.form) kycEl.form.classList.add("hidden");
+        if (kycEl.selfiePanel) kycEl.selfiePanel.classList.add("hidden");
     }
 }
 

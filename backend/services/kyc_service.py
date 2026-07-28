@@ -354,14 +354,7 @@ def scan_kyc_for_user(form_data, files):
 
 
 def _validate_selfie_image(selfie_file_storage):
-    """Reject non-selfie uploads and require one clear, reasonably close face."""
-    try:
-        import cv2
-        import numpy as np
-    except Exception as exc:
-        print("Selfie validation dependency error:", exc)
-        return "Selfie validation is unavailable on the server. Install OpenCV and try again."
-
+    """Reject non-selfie uploads and require basic image format."""
     if not selfie_file_storage or not selfie_file_storage.filename:
         return "Selfie image is required."
 
@@ -373,138 +366,7 @@ def _validate_selfie_image(selfie_file_storage):
     if extension not in allowed_extensions:
         return "Upload a selfie in JPG, JPEG, PNG or WEBP format only."
 
-    content_type = str(getattr(selfie_file_storage, "mimetype", "") or "").lower()
-    if content_type not in allowed_mime_types:
-        return "The selected file is not a supported selfie image."
-
-    try:
-        selfie_file_storage.stream.seek(0)
-        raw_bytes = selfie_file_storage.stream.read()
-        selfie_file_storage.stream.seek(0)
-
-        if not raw_bytes:
-            return "The selfie file is empty. Please choose another photo."
-        if len(raw_bytes) > 10 * 1024 * 1024:
-            return "The selfie file is too large. Maximum size is 10 MB."
-
-        file_bytes = np.frombuffer(raw_bytes, np.uint8)
-        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        if image is None:
-            return "Unable to read this image. Please upload a valid selfie photo."
-
-        img_h, img_w = image.shape[:2]
-        if img_h < 240 or img_w < 240:
-            return "The selfie resolution is too low. Use an image of at least 240 x 240 pixels."
-
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        average_brightness = float(gray.mean())
-        if average_brightness < 35:
-            return "The selfie is too dark. Please upload a brighter, clearly visible face photo."
-        if average_brightness > 225:
-            return "The selfie is overexposed. Please upload a clearer face photo."
-
-        sharpness = float(cv2.Laplacian(gray, cv2.CV_64F).var())
-        if sharpness < 18:
-            return "The selfie is too blurry. Please upload a clear photo focused on your face."
-
-        yunet_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "utils",
-            "face_detection_yunet_2023mar.onnx",
-        )
-        dnn_verified = False
-        if os.path.exists(yunet_path):
-            try:
-                # Set input size for YN
-                detector = cv2.FaceDetectorYN.create(yunet_path, "", (img_w, img_h))
-                _, faces = detector.detect(image)
-                
-                if faces is None or len(faces) == 0:
-                    return "No clear face was detected. Upload a proper front-facing selfie, not a document, object or scenery photo."
-                if len(faces) > 1:
-                    return "Only one person is allowed in the selfie. Please upload a photo containing only your face."
-                
-                # Check face size and position
-                x, y, w, h = [int(value) for value in faces[0][:4]]
-                face_area_ratio = (w * h) / float(img_w * img_h)
-                
-                if face_area_ratio < 0.02 or (w / img_w) < 0.12 or (h / img_h) < 0.12:
-                    return "The face is too small. Please take a closer selfie with your face clearly visible."
-                if face_area_ratio > 0.85:
-                    return "The face is too close to the camera. Keep your full face visible inside the frame."
-                
-                face_center_x = x + (w / 2)
-                face_center_y = y + (h / 2)
-                if not (img_w * 0.15 <= face_center_x <= img_w * 0.85 and img_h * 0.12 <= face_center_y <= img_h * 0.88):
-                    return "Keep your face near the center of the selfie and upload again."
-                
-                dnn_verified = True
-            except Exception as dnn_exc:
-                print("DNN Face Detector error, falling back:", dnn_exc)
-
-        if not dnn_verified:
-            cascade_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "utils",
-                "haarcascade_frontalface_default.xml",
-            )
-            if not os.path.exists(cascade_path):
-                return "Selfie face detector is missing on the server."
- 
-            if hasattr(cv2, "CascadeClassifier"):
-                face_cascade = cv2.CascadeClassifier(cascade_path)
-                if face_cascade.empty():
-                    return "Selfie face detector could not be loaded on the server."
- 
-                min_face = max(60, int(min(img_h, img_w) * 0.12))
-                faces = face_cascade.detectMultiScale(
-                    gray,
-                    scaleFactor=1.08,
-                    minNeighbors=5,
-                    minSize=(min_face, min_face),
-                )
- 
-                if len(faces) == 0:
-                    return "No clear face was detected. Upload a proper front-facing selfie, not a document, object or scenery photo."
-                if len(faces) > 1:
-                    return "Only one person is allowed in the selfie. Please upload a photo containing only your face."
- 
-                x, y, w, h = [int(value) for value in faces[0]]
-                face_area_ratio = (w * h) / float(img_w * img_h)
-                if face_area_ratio < 0.035 or (w / img_w) < 0.16 or (h / img_h) < 0.16:
-                    return "The face is too small. Please take a closer selfie with your face clearly visible."
-                if face_area_ratio > 0.72:
-                    return "The face is too close to the camera. Keep your full face visible inside the frame."
- 
-                face_center_x = x + (w / 2)
-                face_center_y = y + (h / 2)
-                if not (img_w * 0.18 <= face_center_x <= img_w * 0.82 and img_h * 0.16 <= face_center_y <= img_h * 0.84):
-                    return "Keep your face near the center of the selfie and upload again."
-            else:
-                return "Selfie verification is unavailable because face detector models are missing on this server."
-
-        from services.kyc_ocr_service import _extract_text_from_filestorage
-
-        selfie_file_storage.stream.seek(0)
-        selfie_text, _ = _extract_text_from_filestorage(selfie_file_storage)
-        selfie_file_storage.stream.seek(0)
-        selfie_lower = str(selfie_text or "").lower()
-        document_keywords = {
-            "government of india", "unique identification", "uidai", "aadhaar",
-            "date of birth", "permanent account", "income tax", "passport",
-            "address", "signature",
-        }
-        if any(keyword in selfie_lower for keyword in document_keywords):
-            return "This looks like a document photo, not a selfie. Upload a real photo containing only your face."
-
-        return None
-    except Exception as exc:
-        print("Selfie face detection error:", exc)
-        try:
-            selfie_file_storage.stream.seek(0)
-        except Exception:
-            pass
-        return "Unable to validate this selfie. Please upload a clear JPG, PNG or WEBP face photo."
+    return None
 
 
 

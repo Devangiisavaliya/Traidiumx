@@ -570,3 +570,56 @@ def complete_digio():
             "pan_number": updated_user.get("kyc_draft_pan_number")
         }
     )
+
+import random
+import string
+import datetime
+
+@kyc_api.post("/short-code")
+@auth_required
+def create_short_code():
+    db = get_database()
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.split(" ")[1] if " " in auth_header else auth_header
+    
+    code = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    
+    db.kyc_short_codes.update_one(
+        {"user_id": str(g.current_user_id)},
+        {"$set": {
+            "code": code,
+            "token": token,
+            "expires_at": datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+        }},
+        upsert=True
+    )
+    
+    return success_response(
+        message="Short code generated successfully.",
+        data={"code": code}
+    )
+
+@kyc_api.get("/resolve-code/<code>")
+def resolve_short_code(code):
+    db = get_database()
+    record = db.kyc_short_codes.find_one({"code": code.upper()})
+    
+    if not record:
+        return error_response(
+            message="Invalid or expired session code.",
+            errors={"code": "Session code not found."},
+            status_code=404
+        )
+        
+    expires_at = record.get("expires_at")
+    if expires_at and expires_at < datetime.datetime.utcnow():
+        return error_response(
+            message="Session code has expired.",
+            errors={"code": "Expired session code."},
+            status_code=410
+        )
+        
+    return success_response(
+        message="Session code resolved successfully.",
+        data={"token": record.get("token")}
+    )

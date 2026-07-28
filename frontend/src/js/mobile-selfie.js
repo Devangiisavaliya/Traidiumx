@@ -20,20 +20,45 @@
     let capturedBlob = null;
     let isFallbackMode = false;
 
-    // 1. Process Authentication Token from URL Query Params
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (token) {
-        localStorage.setItem("traidiumx_auth_token", token);
-    }
+    // 1. Process Authentication Token from URL Query Params or Short Code
+    async function initAuthentication() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        if (token) {
+            localStorage.setItem("traidiumx_auth_token", token);
+            return true;
+        }
+        
+        const code = urlParams.get("code");
+        if (code) {
+            try {
+                if (loading) {
+                    loading.classList.remove("hidden");
+                    if (loadingMsg) loadingMsg.textContent = "Resolving session...";
+                }
+                const response = await apiRequest(`/kyc/resolve-code/${encodeURIComponent(code)}`);
+                const resolvedToken = response?.data?.token;
+                if (resolvedToken) {
+                    localStorage.setItem("traidiumx_auth_token", resolvedToken);
+                    return true;
+                }
+            } catch (err) {
+                console.error("Failed to resolve session code:", err);
+                showError("Session code has expired or is invalid. Please scan again.");
+                if (loading) loading.classList.add("hidden");
+                return false;
+            }
+        }
 
-    // Check if token exists
-    const authToken = localStorage.getItem("traidiumx_auth_token");
-    if (!authToken) {
+        const authToken = localStorage.getItem("traidiumx_auth_token");
+        if (authToken) {
+            return true;
+        }
+
         showError("Authentication token is missing. Please scan the QR code again.");
         if (loading) loading.classList.add("hidden");
         if (captureBtn) captureBtn.disabled = true;
-        return;
+        return false;
     }
 
     // 2. Start Mobile Camera or Switch to Insecure Context Fallback
@@ -234,5 +259,10 @@
     if (submitBtn) submitBtn.addEventListener("click", submitSelfie);
 
     // Initialize Camera on load
-    window.addEventListener("DOMContentLoaded", startCamera);
+    window.addEventListener("DOMContentLoaded", async () => {
+        const authenticated = await initAuthentication();
+        if (authenticated) {
+            startCamera();
+        }
+    });
 })();
