@@ -6271,15 +6271,20 @@ async function refreshBackendFuturesData(force = false) {
             return res;
         });
 
+        const activeTab = state.activeBottomTab;
+        const loadOrders = (activeTab === "orderHistory" || firstLoad);
+        const loadTrades = (activeTab === "tradeHistory" || firstLoad);
+        const loadLedger = (activeTab === "transactionHistory" || firstLoad);
+
         const results = await Promise.allSettled([
             walletPromise,
             txApiRequestWithTimeout("/trading/open-orders"),
-            txApiRequestWithTimeout("/trading/orders"),
+            loadOrders ? txApiRequestWithTimeout("/trading/orders") : Promise.resolve({ data: { orders: TX_BACKEND_FUTURES.orders || [] } }),
             txApiRequestWithTimeout("/trading/positions"),
-            txApiRequestWithTimeout("/trading/trades"),
+            loadTrades ? txApiRequestWithTimeout("/trading/trades") : Promise.resolve({ data: { trades: TX_BACKEND_FUTURES.trades || [] } }),
             txApiRequestWithTimeout("/trading/pnl-summary"),
             txApiRequestWithTimeout("/trading/risk-summary"),
-            txApiRequestWithTimeout("/wallet/ledger")
+            loadLedger ? txApiRequestWithTimeout("/wallet/ledger") : Promise.resolve({ data: { ledger: TX_BACKEND_FUTURES.ledger || [] } })
         ]);
 
         const [walletResult, openOrdersResult, ordersResult, positionsResult, tradesResult, pnlResult, riskResult, ledgerResult] = results;
