@@ -368,7 +368,7 @@
                         <div style="flex-grow: 1;">
                             <div class="tx-ob-kicker">${kicker}</div>
                             <h2 class="tx-ob-title">${title}</h2>
-                            <p class="tx-ob-sub">Deposit and trading do not require KYC. KYC is checked only when you submit a withdrawal request.</p>
+                            <p class="tx-ob-sub">KYC verification is compulsory for deposits, trading, and withdrawals. Complete identity verification to unlock full account capabilities.</p>
                         </div>
                         <button type="button" id="txObClose" class="tx-ob-close" aria-label="Close modal">&times;</button>
                     </div>

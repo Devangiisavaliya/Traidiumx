@@ -983,7 +983,7 @@ def send_trading_platform_selected_email(to_email, platform_name):
         lines=[
             f"Selected platform: {platform_name}",
             "You can change the platform later from Trading Account settings when there are no open positions or pending orders.",
-            "KYC is not required for deposit or trading. KYC is required before withdrawal.",
+            "KYC approval is required before you can deposit, trade, or withdraw.",
         ],
         email_type="trading-platform-selected",
     )
@@ -1018,7 +1018,7 @@ def send_mt5_funding_completed_email(to_email, amount, login_id, server, balance
             f"Server: {server}",
             f"MT5 balance: {float(balance):,.2f}",
             f"Reference: {reference_id or '--'}",
-            "KYC was not required for this deposit/funding transfer. KYC is required only before withdrawal.",
+            "KYC approval is required for all deposits and withdrawals.",
         ],
         email_type="mt5-funding-completed",
     )
@@ -1085,7 +1085,7 @@ def send_welcome_email(to_email, user_name=""):
         lines=[
             f"Hello {safe_name},",
             "We are thrilled to welcome you to TraidiumX—your advanced platform for trading, futures, and secure options.",
-            "To get started and unlock full trading capabilities including withdrawals, please complete your profile identity verification (KYC).",
+            "To get started and unlock full trading capabilities including deposits and withdrawals, please complete your profile identity verification (KYC).",
             "KYC verification is fast, secure, and requires only your mobile OTP and DigiLocker / Aadhaar verification details.",
         ],
         email_type="welcome-email",
@@ -1110,7 +1110,7 @@ def send_kyc_required_email(to_email, user_name=""):
         lines=[
             f"Hello {safe_name},",
             "To comply with financial regulations and secure your account, you must verify your identity.",
-            "KYC verification is mandatory before you can perform withdrawals.",
+            "KYC verification is mandatory before you can perform deposits or withdrawals.",
             "It only takes a few minutes using your Aadhaar card and mobile OTP.",
         ],
         email_type="kyc-required",

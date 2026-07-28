@@ -350,7 +350,7 @@ function renderProfileKycNotice(statusValue) {
 
     if (approved) {
         if (profileEl.kycNoticeTitle) profileEl.kycNoticeTitle.textContent = "KYC verification complete";
-        if (profileEl.kycNoticeText) profileEl.kycNoticeText.textContent = "Your Aadhaar OCR KYC is approved. Withdrawals are now enabled; deposit, transfer and trading were already available without KYC.";
+        if (profileEl.kycNoticeText) profileEl.kycNoticeText.textContent = "Your Aadhaar OCR KYC is approved. Deposits, transfers, trading, and withdrawals are fully enabled.";
         if (profileEl.kycNoticeBtn) profileEl.kycNoticeBtn.textContent = "View KYC Details";
         return;
     }
@@ -362,8 +362,8 @@ function renderProfileKycNotice(statusValue) {
         return;
     }
 
-    if (profileEl.kycNoticeTitle) profileEl.kycNoticeTitle.textContent = "Complete KYC before your first withdrawal";
-    if (profileEl.kycNoticeText) profileEl.kycNoticeText.textContent = "Verify mobile OTP, Aadhaar number and matching front/back Aadhaar photos to enable withdrawals. Deposit, transfer and trading do not require KYC.";
+    if (profileEl.kycNoticeTitle) profileEl.kycNoticeTitle.textContent = "Complete KYC Verification";
+    if (profileEl.kycNoticeText) profileEl.kycNoticeText.textContent = "Verify mobile OTP, Aadhaar number and matching front/back Aadhaar photos to enable deposits, transfers, trading, and withdrawals.";
     if (profileEl.kycNoticeBtn) profileEl.kycNoticeBtn.textContent = "Complete KYC";
 }
 

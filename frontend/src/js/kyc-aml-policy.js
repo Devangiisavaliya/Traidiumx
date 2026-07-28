@@ -356,13 +356,13 @@ function setVerificationStatusUI(status, message = "", canSubmit = true) {
         } else if (message) {
             kycVerificationMessage.textContent = message;
         } else if (approved) {
-            kycVerificationMessage.textContent = "Your KYC is approved. Withdrawal access is enabled; deposit, transfer and trading do not require KYC.";
+            kycVerificationMessage.textContent = "Your KYC is approved. Deposit, transfer, trading, and withdrawal access are fully enabled.";
         } else if (rejected) {
             kycVerificationMessage.textContent = "Your KYC was rejected. Please open KYC Verification and submit corrected documents.";
         } else if (pending) {
             kycVerificationMessage.textContent = "Your Aadhaar document verification is processing.";
         } else {
-            kycVerificationMessage.textContent = "Submit KYC documents before your first withdrawal. Deposit, transfer and trading remain available.";
+            kycVerificationMessage.textContent = "Please submit your KYC documents to unlock deposits, transfers, trading, and withdrawals.";
         }
     }
 

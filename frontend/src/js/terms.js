@@ -46,7 +46,7 @@ const termsSections = [
         summary: "Users must meet age, location and verification requirements.",
         content: [
             "Users must be legally eligible to use trading services in their jurisdiction and must not be restricted by applicable laws, sanctions or compliance rules.",
-            "The current TraidiumX product flow permits deposits, wallet transfers and trading without completed KYC. Approved KYC is required before submitting a withdrawal request, subject to any additional legal or risk controls.",
+            "The current TraidiumX product flow requires completed and approved KYC for deposits, wallet transfers, trading, and withdrawals, subject to any additional legal or risk controls.",
             "TraidiumX may refuse service, suspend access or request additional documents if eligibility or compliance requirements are not satisfied."
         ]
     },
@@ -65,7 +65,7 @@ const termsSections = [
         title: "4. KYC, AML & Compliance",
         summary: "Identity checks and transaction monitoring may be required.",
         content: [
-            "TraidiumX requires approved KYC before withdrawals. Deposits and trading are available without KYC under the current product flow, while AML, sanctions, fraud and risk monitoring may still apply to all activity.",
+            "TraidiumX requires approved KYC before deposits, trading, or withdrawals. Approved KYC is mandatory under the current product flow, while AML, sanctions, fraud and risk monitoring may still apply to all activity.",
             "Users agree to provide valid documents and information when requested for verification, compliance review, suspicious activity checks or regulatory requirements.",
             "Accounts may be restricted, reviewed or suspended if documents appear invalid, inconsistent, expired, altered or linked to suspicious activity."
         ]
@@ -105,7 +105,7 @@ const termsSections = [
         title: "8. Wallet, Deposits & Withdrawals",
         summary: "Wallet features require secure backend verification.",
         content: [
-            "Deposits do not require KYC under the current product flow. Withdrawals require approved KYC and may also require wallet verification, risk checks, transaction review and compliance monitoring.",
+            "Deposits, trading, and withdrawals require approved KYC, and may also require wallet verification, risk checks, transaction review and compliance monitoring.",
             "Withdrawal requests may be delayed, rejected or manually reviewed if suspicious activity, incorrect details, security alerts or compliance concerns are detected.",
             "Users are responsible for verifying wallet details, network selection, bank details and withdrawal information before submission."
         ]

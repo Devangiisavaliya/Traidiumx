@@ -127,8 +127,8 @@ function formatKycStatus(value) {
 }
 
 function getDefaultRemark(status) {
-    if (status === "approved") return "Your Aadhaar KYC is approved. Withdrawal access is enabled; deposit and trading never require KYC.";
-    if (["pending", "under_review", "review"].includes(status)) return "Your withdrawal KYC submission is under verification.";
+    if (status === "approved") return "Your Aadhaar KYC is approved. Deposits, trading, and withdrawal access are fully enabled.";
+    if (["pending", "under_review", "review"].includes(status)) return "Your KYC submission is under verification.";
     if (status === "rejected") return "Your KYC verification needs correction. Continue from the remaining step shown below.";
     return "Complete the current KYC step. Finished steps remain saved and will not reopen.";
 }
