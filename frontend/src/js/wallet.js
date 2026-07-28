@@ -2716,64 +2716,6 @@ async function handleDemoCreditSubmit(event) {
     return handleDemoDepositSubmit(event);
 }
 
-async function handleDepositSubmit(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-
-    if (!form) {
-        showWalletActionMessage("Wallet deposit form is not ready. Please refresh and try again.", "error");
-        return;
-    }
-
-    if (!isLoggedIn()) {
-        showWalletActionMessage("Please login first.", "error");
-        return;
-    }
-
-    if (isWalletRestrictedMode()) {
-        showWalletActionMessage("Deposit is disabled while account is restricted.", "error");
-        return;
-    }
-
-    const formData = new FormData(form);
-    const validationError = validateDepositForm(formData);
-
-    if (validationError) {
-        showWalletActionMessage(validationError, "error");
-        return;
-    }
-
-    try {
-        walletSetButtonLoading(walletElements.createDepositBtn, true);
-        const response = await apiRequest("/deposit/create", {
-            method: "POST",
-            body: JSON.stringify({
-                amount: walletNumber(formData.get("amount"), 0),
-                payment_method: "crypto_deposit",
-                crypto_asset: String(formData.get("crypto_asset") || "USDT").trim().toUpperCase(),
-                crypto_network: String(formData.get("crypto_network") || "").trim().toUpperCase(),
-                deposit_address_confirmation: String(formData.get("deposit_address_confirmation") || "").trim()
-            })
-        });
-
-        form.reset();
-
-        if (walletElements.cryptoNetwork) {
-            walletElements.cryptoNetwork.value = "TRC20";
-        }
-
-        await loadWalletData({ silent: true });
-        updateCryptoDepositAddressUI();
-        const depositStatus = String(response?.data?.deposit?.status || "").toLowerCase();
-        const tone = depositStatus === "completed" ? "success" : "info";
-        showWalletAlert(response.message || "Deposit submitted successfully.", tone);
-        closeWalletActionModal();
-    } catch (error) {
-        checkKycRedirect(error, "Unable to create deposit.", "deposit");
-    } finally {
-        walletSetButtonLoading(walletElements.createDepositBtn, false);
-    }
-}
 
 async function handleWithdrawalSubmit(event) {
     event.preventDefault();
