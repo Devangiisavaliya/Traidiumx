@@ -728,7 +728,7 @@
                                 <label for="walletTransferAmount" id="walletTransferAmountLabel" class="tx-form-label">Amount (INR)</label>
                                 <button id="txTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
                             </div>
-                            <input id="walletTransferAmount" name="amount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="tx-form-input text-lg font-extrabold text-white" required />
+                            <input id="walletTransferAmount" name="amount" type="number" min="0.00000001" step="any" placeholder="Transfer amount" class="tx-form-input text-lg font-extrabold text-white" required />
                         </div>
                         <div id="transferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
                             Enter amount to see live conversion
@@ -821,7 +821,7 @@
                         <!-- Amount Input -->
                         <div>
                             <label for="depositAmount" id="depositAmountLabel" class="tx-form-label">Amount (USD)</label>
-                            <input id="depositAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                            <input id="depositAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
                         </div>
 
                         <!-- Calculation Card (Exact match to reference image) -->
@@ -871,7 +871,7 @@
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div id="txWithdrawAmountBox">
                                 <label for="withdrawAmount" id="withdrawAmountLabel" class="tx-form-label">Amount (INR / ₹)</label>
-                                <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                                <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
                             </div>
                             <div id="txWithdrawNetworkBox">
                                 <label for="withdrawNetwork" class="tx-form-label">Network</label>

@@ -881,7 +881,7 @@
                             <label for="optionsTransferAmount" id="optionsTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR)</label>
                             <button id="optionsTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
                         </div>
-                        <input id="optionsTransferAmount" name="amount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                        <input id="optionsTransferAmount" name="amount" type="number" min="0.00000001" step="any" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
                     </div>
                     <div id="optionsTransferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
                         Enter amount to see live conversion
@@ -973,7 +973,7 @@
                     <!-- Amount Input -->
                     <div>
                         <label for="optionsDepositAmount" id="optionsDepositAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (USD)</label>
-                        <input id="optionsDepositAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                        <input id="optionsDepositAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
                     </div>
 
                     <!-- Calculation Card -->
@@ -1021,7 +1021,7 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div id="optionsWithdrawAmountBox">
                             <label for="optionsWithdrawAmount" id="optionsWithdrawAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount (INR / ₹)</label>
-                            <input id="optionsWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="0.000001" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-red-400" required />
+                            <input id="optionsWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-red-400" required />
                         </div>
                         <div id="optionsWithdrawNetworkBox">
                             <label for="optionsWithdrawNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
@@ -1130,7 +1130,7 @@
                                 <label for="subTransferAmount" id="subTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount</label>
                                 <button id="subTransferMaxBtn" type="button" class="text-xs font-black uppercase tracking-wider text-cyan-300 hover:text-cyan-200">MAX</button>
                             </div>
-                            <input id="subTransferAmount" type="number" min="0.000001" step="0.000001" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+                            <input id="subTransferAmount" type="number" min="0.00000001" step="any" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
                         </div>
 
                         <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">

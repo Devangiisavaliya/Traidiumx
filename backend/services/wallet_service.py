@@ -1179,12 +1179,13 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
                 "errors": {"amount": "Insufficient balance."},
                 "status_code": 422,
             }
-
         if currency == "INR":
             usdt_credit = round(amount / usdt_rate, 4)
             inc_data = {
                 "main_wallet_inr.available_balance": -amount,
                 "main_wallet_inr.total_balance": -amount,
+                "trading_wallet_inr.available_balance": usdt_credit,
+                "trading_wallet_inr.total_balance": usdt_credit,
                 "trading_wallet.available_balance": usdt_credit,
                 "trading_wallet.total_balance": usdt_credit,
                 "available_balance": usdt_credit,
@@ -1195,6 +1196,8 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
             inc_data = {
                 "main_wallet_usdt.available_balance": -amount,
                 "main_wallet_usdt.total_balance": -amount,
+                "trading_wallet_usdt.available_balance": amount,
+                "trading_wallet_usdt.total_balance": amount,
                 "trading_wallet.available_balance": amount,
                 "trading_wallet.total_balance": amount,
                 "available_balance": amount,
@@ -1205,13 +1208,14 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
         filter_extra = {f"{bucket_prefix}.available_balance": {"$gte": amount}}
         txn_type = "main_to_trading_transfer"
     else:
-        trading_wallet = wallet.get("trading_wallet") or {}
-        trading_available = _money(trading_wallet.get("available_balance", 0.0))
+        bucket_trading = "trading_wallet_inr" if currency == "INR" else "trading_wallet_usdt"
+        trading_bucket = wallet.get(bucket_trading) or {}
+        trading_available = _money(trading_bucket.get("available_balance", 0.0))
 
         if trading_available < amount:
             return {
                 "success": False,
-                "message": "Insufficient Trading Wallet (USDT) balance.",
+                "message": f"Insufficient Trading Wallet ({'INR' if currency == 'INR' else 'USDT'} Margin) balance.",
                 "errors": {"amount": "Insufficient balance."},
                 "status_code": 422,
             }
@@ -1219,6 +1223,8 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
         if currency == "INR":
             inr_credit = round(amount * usdt_rate, 2)
             inc_data = {
+                "trading_wallet_inr.available_balance": -amount,
+                "trading_wallet_inr.total_balance": -amount,
                 "trading_wallet.available_balance": -amount,
                 "trading_wallet.total_balance": -amount,
                 "main_wallet_inr.available_balance": inr_credit,
@@ -1229,6 +1235,8 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
             description = f"Transferred ${amount:g} USDT from Trading Wallet -> Received ₹{inr_credit:g} INR in Main Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
         else:
             inc_data = {
+                "trading_wallet_usdt.available_balance": -amount,
+                "trading_wallet_usdt.total_balance": -amount,
                 "trading_wallet.available_balance": -amount,
                 "trading_wallet.total_balance": -amount,
                 "main_wallet_usdt.available_balance": amount,
@@ -1238,7 +1246,7 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
             }
             description = f"Transferred ${amount:g} USDT from Trading Wallet -> Main Wallet."
 
-        filter_extra = {"trading_wallet.available_balance": {"$gte": amount}, "available_balance": {"$gte": amount}}
+        filter_extra = {f"{bucket_trading}.available_balance": {"$gte": amount}, "available_balance": {"$gte": amount}}
         txn_type = "trading_to_main_transfer"
 
     updated_wallet = _atomic_update_wallet(
