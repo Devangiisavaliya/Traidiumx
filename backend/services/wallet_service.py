@@ -969,6 +969,12 @@ def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, des
         currency=currency,
     )
 
+    try:
+        from services.trading_plan_service import reconcile_user_plan
+        reconcile_user_plan(user_id, send_notice=True)
+    except Exception as error:
+        print("PLAN RECONCILE AFTER CREDIT MAIN WALLET ERROR:", error)
+
     return ensure_user_wallet(user_id)
 
 
@@ -1086,6 +1092,12 @@ def complete_main_locked_withdrawal(user_id, amount, reference_id=None, descript
         description=finalized_description,
         currency=currency,
     )
+
+    try:
+        from services.trading_plan_service import reconcile_user_plan
+        reconcile_user_plan(user_id, send_notice=True)
+    except Exception as error:
+        print("PLAN RECONCILE AFTER WITHDRAWAL ERROR:", error)
 
     return {"success": True, "message": "Main wallet withdrawal completed successfully.", "wallet": ensure_user_wallet(user_id)}
 

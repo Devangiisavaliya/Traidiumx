@@ -28,6 +28,16 @@
         });
     }
 
+    function formatCurrencyValue(usdtVal) {
+        const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
+        const val = parseFloat(usdtVal || 0);
+        if (currency === "INR") {
+            const inrVal = val * (state.usdtRate || 88.50);
+            return `₹${inrVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+        }
+        return `${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
+    }
+
     function injectStyles() {
         if (document.getElementById("txTradingOnboardingStyles")) return;
         const style = document.createElement("style");
@@ -162,7 +172,7 @@
                         </div>
                     </div>
                     <p style="margin:10px 0;color:#cbd5e1;font-size:14px;line-height:1.6">
-                        Your trading balance of <strong style="color:#f87171">${money(data.trading_balance)} USDT</strong> is below the minimum required for the <strong style="color:#fff">${esc(data.preferred_plan_name || "Preferred Plan")}</strong> plan (<strong style="color:#67e8f9">${money(data.preferred_minimum_balance || data.minimum_balance)} USDT</strong>).
+                        Your main wallet balance of <strong style="color:#f87171">${formatCurrencyValue(data.trading_balance)}</strong> is below the minimum required for the <strong style="color:#fff">${esc(data.preferred_plan_name || "Preferred Plan")}</strong> plan (<strong style="color:#67e8f9">${formatCurrencyValue(data.preferred_minimum_balance || data.minimum_balance)}</strong>).
                     </p>
                     <p style="margin:10px 0;color:#94a3b8;font-size:12px;line-height:1.5">
                         Please deposit or transfer funds to maintain your plan level. If you dismiss this warning <strong>3 times</strong>, your account will be automatically downgraded to the highest eligible lower plan.
@@ -196,6 +206,15 @@
     async function loadStatus(forceOpen = false, startFromBeginning = false) {
         if (typeof isLoggedIn !== "function" || !isLoggedIn() || typeof apiRequest !== "function") return;
         try {
+            try {
+                const rateResponse = await apiRequest("/wallet/usdt-rate");
+                if (rateResponse && rateResponse.success) {
+                    state.usdtRate = parseFloat(rateResponse.data?.usdt_rate || 88.50);
+                }
+            } catch (e) {
+                console.warn("Failed to load usdt-rate for onboarding:", e);
+            }
+
             const response = await apiRequest("/onboarding/status");
             state.data = response.data || {};
             state.selectedPlatform = startFromBeginning ? "" : (state.data.selected_platform || "");
@@ -434,15 +453,15 @@
                 <div class="tx-ob-box"><span>Platform</span><strong>${esc(selectedName)}</strong></div>
                 <div class="tx-ob-box"><span>Preferred plan</span><strong>${esc(data.preferred_plan_name || state.selectedPlan)}</strong></div>
                 <div class="tx-ob-box"><span>Active plan</span><strong>${esc(data.active_plan_name || "Basic")} · ${formatSpread(data.active_spread_value, data.active_spread_type)}</strong></div>
-                <div class="tx-ob-box"><span>${state.selectedPlatform === "mt5" ? "MT5 balance" : "Trading balance"}</span><strong>${money(data.trading_balance)} USDT</strong></div>
-                ${state.selectedPlatform === "mt5" ? `<div class="tx-ob-box"><span>TraidiumX Trading Wallet</span><strong>${money(data.source_trading_wallet_balance)} USDT</strong></div>` : ""}
+                <div class="tx-ob-box"><span>${state.selectedPlatform === "mt5" ? "MT5 balance" : "Main Wallet balance"}</span><strong>${formatCurrencyValue(data.trading_balance)}</strong></div>
+                ${state.selectedPlatform === "mt5" ? `<div class="tx-ob-box"><span>TraidiumX Trading Wallet</span><strong>${formatCurrencyValue(data.source_trading_wallet_balance)}</strong></div>` : ""}
             </div>
             <div class="tx-ob-notice ${funding ? "" : preferredEligible ? "success" : ""}">
                 ${funding
-                    ? `Funding required. Deposit and transfer enough funds to meet the Basic plan minimum of ${money(data.active_minimum_balance)} USDT.`
+                    ? `Funding required. Deposit and transfer enough funds to meet the Basic plan minimum of ${formatCurrencyValue(data.active_minimum_balance)}.`
                     : preferredEligible
                         ? "Your preferred plan is active. KYC is not required for deposit or trading."
-                        : `Your preferred ${esc(data.preferred_plan_name || state.selectedPlan)} plan needs ${money(data.preferred_minimum_balance || data.minimum_balance)} USDT. You can trade now on the automatically selected ${esc(data.active_plan_name || "Basic")} plan.`}
+                        : `Your preferred ${esc(data.preferred_plan_name || state.selectedPlan)} plan needs ${formatCurrencyValue(data.preferred_minimum_balance || data.minimum_balance)}. You can trade now on the automatically selected ${esc(data.active_plan_name || "Basic")} plan.`}
             </div>
             ${mt5Section}`;
     }

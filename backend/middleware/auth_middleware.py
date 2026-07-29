@@ -75,6 +75,17 @@ def _load_authenticated_user(enforce_active_status=True):
         except Exception:
             pass
 
+    # Update navbar currency if header is present
+    nav_curr = request.headers.get("X-Navbar-Currency")
+    if nav_curr and nav_curr in ("INR", "USDT"):
+        from config.database import get_database
+        db = get_database()
+        db.users.update_one(
+            {"_id": user["_id"]},
+            {"$set": {"last_navbar_currency": nav_curr}}
+        )
+        user["last_navbar_currency"] = nav_curr
+
     g.current_user = user
     g.current_user_id = str(user["_id"])
 

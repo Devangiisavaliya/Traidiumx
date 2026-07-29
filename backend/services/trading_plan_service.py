@@ -91,12 +91,42 @@ def get_trading_balance(user_id, platform="traidiumx"):
             return round(_number(mt5_balance), 8)
 
     wallet = normalize_wallet_currency(find_wallet_by_user_id(user_id)) or {}
-    trading_wallet = wallet.get("trading_wallet") or {}
-    balance = trading_wallet.get("total_balance")
-    if balance in (None, ""):
-        balance = _number(trading_wallet.get("available_balance")) + _number(trading_wallet.get("locked_balance"))
-    if balance in (None, ""):
-        balance = wallet.get("total_balance", 0.0)
+    
+    # Check plan eligibility based on the user's active currency mode
+    from flask import has_request_context, request
+    currency = "USDT"
+    if has_request_context():
+        currency = request.headers.get("X-Navbar-Currency", "USDT")
+    else:
+        db = get_database()
+        u = db.users.find_one({"_id": _safe_user_id(user_id)})
+        if u and u.get("last_navbar_currency"):
+            currency = u["last_navbar_currency"]
+            
+    currency = str(currency).upper()
+    if currency not in ("INR", "USDT"):
+        currency = "USDT"
+
+    from services.system_settings_service import get_usdt_inr_rate
+    usdt_inr_rate = float(get_usdt_inr_rate() or 88.50)
+    if usdt_inr_rate <= 0:
+        usdt_inr_rate = 88.50
+
+    if currency == "INR":
+        # Check ONLY Main INR wallet. Value returned in USDT equivalent for plan matching.
+        inr_w = wallet.get("main_wallet_inr") or {}
+        inr_bal = inr_w.get("total_balance")
+        if inr_bal in (None, ""):
+            inr_bal = _number(inr_w.get("available_balance")) + _number(inr_w.get("locked_balance"))
+        balance = _number(inr_bal) / usdt_inr_rate
+    else:
+        # Check ONLY Main USDT wallet.
+        usdt_w = wallet.get("main_wallet_usdt") or {}
+        usdt_bal = usdt_w.get("total_balance")
+        if usdt_bal in (None, ""):
+            usdt_bal = _number(usdt_w.get("available_balance")) + _number(usdt_w.get("locked_balance"))
+        balance = _number(usdt_bal)
+
     return round(_number(balance), 8)
 
 
@@ -136,11 +166,48 @@ def reconcile_user_plan(user_id, send_notice=False):
     if parent_user_id:
         parent_user = db.users.find_one({"_id": _safe_user_id(parent_user_id)})
         if parent_user:
+            # Reconcile parent plan first to ensure it has the latest balance/warnings/plan
+            reconcile_user_plan(parent_user_id, send_notice=send_notice)
+            parent_user = db.users.find_one({"_id": _safe_user_id(parent_user_id)})
+            
+            settings = get_onboarding_settings()
+            active = parent_user.get("active_plan") or "basic"
+            plan = settings["plans"].get(active) or settings["plans"]["basic"]
+            update = {
+                "selected_platform": parent_user.get("selected_platform"),
+                "selected_platform_name": parent_user.get("selected_platform_name"),
+                "preferred_plan": parent_user.get("preferred_plan"),
+                "preferred_plan_name": parent_user.get("preferred_plan_name"),
+                "active_plan": active,
+                "active_plan_name": plan["name"],
+                "active_spread_type": plan["spread_type"],
+                "active_spread_value": plan["spread_value"],
+                "active_spread_pips": plan["spread_value"],
+                "plan_minimum_balance": plan["minimum_balance"],
+                "plan_funding_required": parent_user.get("plan_funding_required", False),
+                "plan_balance_snapshot": parent_user.get("plan_balance_snapshot", 0.0),
+                "plan_checked_at": now_utc(),
+                "show_downgrade_warning": False,
+                "updated_at": now_utc(),
+            }
+            db.users.update_one({"_id": oid}, {"$set": update})
             user = dict(user)
-            user["selected_platform"] = parent_user.get("selected_platform")
-            user["selected_platform_name"] = parent_user.get("selected_platform_name")
-            user["preferred_plan"] = parent_user.get("preferred_plan")
-            user["preferred_plan_name"] = parent_user.get("preferred_plan_name")
+            user.update(update)
+
+            platform = normalize_platform(user.get("selected_platform")) or ""
+            if platform == "mt5":
+                try:
+                    from services.mt5_service import sync_mt5_plan
+                    sync_mt5_plan(user_id, active, plan["spread_value"], balance=parent_user.get("plan_balance_snapshot", 0.0))
+                except Exception as error:
+                    print("MT5 PLAN SYNC ERROR:", error)
+
+            return {
+                "success": True,
+                "message": "Sub-account plan synchronized with parent.",
+                "data": build_user_trading_profile(user, settings=settings),
+                "status_code": 200,
+            }
 
     settings = get_onboarding_settings()
     platform = normalize_platform(user.get("selected_platform")) or ""
@@ -237,7 +304,7 @@ def reconcile_user_plan(user_id, send_notice=False):
         except Exception as error:
             print("MT5 PLAN SYNC ERROR:", error)
 
-    if send_notice and previous_active and previous_active != active:
+    if previous_active and previous_active != active:
         spread_str = f"{plan['spread_value']:g}%" if plan['spread_type'] == "percentage" else f"{plan['spread_value']:g} USDT"
         try:
             from services.notification_service import create_user_notification

@@ -497,10 +497,16 @@ function renderProfile() {
 
     const onboarding = profileState.onboarding || {};
     const platformName = onboarding.selected_platform_name || (onboarding.selected_platform === "mt5" ? "MetaTrader 5" : onboarding.selected_platform === "traidiumx" ? "TraidiumX" : "Not selected");
-    const planName = onboarding.preferred_plan_name || (onboarding.preferred_plan ? onboarding.preferred_plan.toUpperCase() : "Not selected");
+    const prefPlan = onboarding.preferred_plan_name || (onboarding.preferred_plan ? onboarding.preferred_plan.toUpperCase() : "Not selected");
+    const activePlan = onboarding.active_plan_name || (onboarding.active_plan ? onboarding.active_plan.toUpperCase() : "");
+    
+    let planDisplayName = prefPlan;
+    if (activePlan && prefPlan && activePlan.toLowerCase() !== prefPlan.toLowerCase()) {
+        planDisplayName = `${prefPlan} (Active: ${activePlan})`;
+    }
     
     if (profileEl.platformText) profileEl.platformText.textContent = platformName;
-    if (profileEl.preferredPlanText) profileEl.preferredPlanText.textContent = planName;
+    if (profileEl.preferredPlanText) profileEl.preferredPlanText.textContent = planDisplayName;
 
     renderPrimaryCurrencyCard();
 
