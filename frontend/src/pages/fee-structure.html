@@ -209,23 +209,21 @@
                     <div class="rounded-[2.5rem] border border-cyan-400/20 bg-white/[0.06] p-6 backdrop-blur-xl tx-hover-lift">
                         <div class="mb-6 flex items-start justify-between gap-4">
                             <div>
-                                <p class="text-sm text-slate-400">Default Taker Fee</p>
+                                <p id="heroTakerFeeLabel" class="text-sm text-slate-400">Default Taker Fee</p>
                                 <h2 id="heroTakerFee" class="mt-2 text-4xl font-black text-white">Loading...</h2>
                             </div>
 
-                            <span id="feeSourceBadge" class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
-                                Backend
-                            </span>
+
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-2xl bg-slate-950/70 p-4">
-                                <p class="text-xs text-slate-500">Futures Maker</p>
+                             <div class="rounded-2xl bg-slate-950/70 p-4">
+                                <p id="heroMakerFeeLabel" class="text-xs text-slate-500">Futures Maker</p>
                                 <h3 id="heroMakerFee" class="mt-1 text-2xl font-black text-emerald-400">--</h3>
                             </div>
 
                             <div class="rounded-2xl bg-slate-950/70 p-4">
-                                <p class="text-xs text-slate-500">Options Taker</p>
+                                <p id="heroOptionsFeeLabel" class="text-xs text-slate-500">Options Taker</p>
                                 <h3 id="heroOptionsFee" class="mt-1 text-2xl font-black text-cyan-400">--</h3>
                             </div>
 
@@ -235,7 +233,7 @@
                             </div>
 
                             <div class="rounded-2xl bg-slate-950/70 p-4">
-                                <p class="text-xs text-slate-500">VIP Tiers</p>
+                                <p id="heroVipTiersLabel" class="text-xs text-slate-500">VIP Tiers</p>
                                 <h3 id="heroVipTiers" class="mt-1 text-2xl font-black text-cyan-300">--</h3>
                             </div>
                         </div>
@@ -290,7 +288,7 @@
             </div>
         </section>
 
-        <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <section id="vipTiersSection" class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <div class="mb-8 text-center">
                 <p class="text-sm font-black uppercase tracking-[0.25em] text-cyan-400">
                     VIP tiers
@@ -326,7 +324,7 @@
 
                     <div class="mt-6 grid gap-4 sm:grid-cols-2">
                         <div class="rounded-3xl border border-white/10 bg-slate-950/70 p-5">
-                            <p class="text-sm text-slate-400">Selected Tier</p>
+                            <p id="selectedTierTitle" class="text-sm text-slate-400">Selected Tier</p>
                             <h3 id="selectedTierLabel" class="mt-1 text-3xl font-black text-cyan-400">VIP 0</h3>
                         </div>
 
@@ -349,7 +347,7 @@
                             <select id="calculatorOrderType" class="fee-input"></select>
                         </div>
 
-                        <div>
+                        <div id="calculatorTierContainer">
                             <label class="mb-2 block text-sm font-semibold text-slate-300">VIP Tier</label>
                             <select id="calculatorTier" class="fee-input"></select>
                         </div>
@@ -399,9 +397,7 @@
 
             <div id="feePolicyNotes" class="space-y-4"></div>
 
-            <div class="mt-8 rounded-[2rem] border border-orange-400/20 bg-orange-400/10 p-5 text-sm leading-7 text-orange-100">
-                Fee rates shown here are public policy values. Actual order execution, margin lock, PnL settlement and wallet movements are still controlled by backend trading and wallet services.
-            </div>
+
         </section>
 
     </main>

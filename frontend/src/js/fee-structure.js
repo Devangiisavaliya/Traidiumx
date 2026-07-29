@@ -144,12 +144,76 @@ async function fetchFeeStructure() {
 
 function renderHeroSummary() {
     const summary = feeStructure?.summary || {};
+    const runtime = feeStructure?.runtime_settings || {};
+    const platformCharge = runtime.platform_charge || {};
+    
+    const isPlatformChargeActive = platformCharge.enabled;
 
-    if (heroTakerFee) heroTakerFee.textContent = formatFeeRate(summary.default_futures_taker_fee_percent);
-    if (heroMakerFee) heroMakerFee.textContent = formatFeeRate(summary.default_futures_maker_fee_percent);
-    if (heroOptionsFee) heroOptionsFee.textContent = formatFeeRate(summary.default_options_taker_fee_percent);
+    if (isPlatformChargeActive) {
+        const chargeType = platformCharge.type || "fixed";
+        const chargeValue = Number(platformCharge.value || 0);
+        let feeText = "";
+
+        if (chargeType === "percentage") {
+            feeText = `${chargeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
+        } else {
+            feeText = `${chargeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
+        }
+
+        const heroTakerFeeLabel = document.getElementById("heroTakerFeeLabel");
+        if (heroTakerFeeLabel) heroTakerFeeLabel.textContent = "Trading Fee (Flat)";
+        if (heroTakerFee) heroTakerFee.textContent = feeText;
+
+        const heroMakerFeeLabel = document.getElementById("heroMakerFeeLabel");
+        if (heroMakerFeeLabel) heroMakerFeeLabel.textContent = "Futures Fee";
+        if (heroMakerFee) heroMakerFee.textContent = platformCharge.apply_futures ? feeText : "Disabled";
+
+        const heroOptionsFeeLabel = document.getElementById("heroOptionsFeeLabel");
+        if (heroOptionsFeeLabel) heroOptionsFeeLabel.textContent = "Options Fee";
+        if (heroOptionsFee) heroOptionsFee.textContent = platformCharge.apply_options ? feeText : "Disabled";
+
+        const heroVipTiersLabel = document.getElementById("heroVipTiersLabel");
+        if (heroVipTiersLabel) heroVipTiersLabel.textContent = "Pricing Mode";
+        if (heroVipTiers) heroVipTiers.textContent = "Flat Rate";
+
+        // Hide VIP elements
+        const vipSection = document.getElementById("vipTiersSection");
+        if (vipSection) vipSection.classList.add("hidden");
+
+        const tierContainer = document.getElementById("calculatorTierContainer");
+        if (tierContainer) tierContainer.classList.add("hidden");
+
+        const selectedTierTitle = document.getElementById("selectedTierTitle");
+        if (selectedTierTitle) selectedTierTitle.textContent = "Fee Type";
+    } else {
+        const heroTakerFeeLabel = document.getElementById("heroTakerFeeLabel");
+        if (heroTakerFeeLabel) heroTakerFeeLabel.textContent = "Default Taker Fee";
+        if (heroTakerFee) heroTakerFee.textContent = formatFeeRate(summary.default_futures_taker_fee_percent);
+
+        const heroMakerFeeLabel = document.getElementById("heroMakerFeeLabel");
+        if (heroMakerFeeLabel) heroMakerFeeLabel.textContent = "Futures Maker";
+        if (heroMakerFee) heroMakerFee.textContent = formatFeeRate(summary.default_futures_maker_fee_percent);
+
+        const heroOptionsFeeLabel = document.getElementById("heroOptionsFeeLabel");
+        if (heroOptionsFeeLabel) heroOptionsFeeLabel.textContent = "Options Taker";
+        if (heroOptionsFee) heroOptionsFee.textContent = formatFeeRate(summary.default_options_taker_fee_percent);
+
+        const heroVipTiersLabel = document.getElementById("heroVipTiersLabel");
+        if (heroVipTiersLabel) heroVipTiersLabel.textContent = "VIP Tiers";
+        if (heroVipTiers) heroVipTiers.textContent = `${summary.vip_tier_count || 0} Levels`;
+
+        // Show VIP elements
+        const vipSection = document.getElementById("vipTiersSection");
+        if (vipSection) vipSection.classList.remove("hidden");
+
+        const tierContainer = document.getElementById("calculatorTierContainer");
+        if (tierContainer) tierContainer.classList.remove("hidden");
+
+        const selectedTierTitle = document.getElementById("selectedTierTitle");
+        if (selectedTierTitle) selectedTierTitle.textContent = "Selected Tier";
+    }
+
     if (heroDepositFee) heroDepositFee.textContent = summary.deposit_fee_label || "Free";
-    if (heroVipTiers) heroVipTiers.textContent = `${summary.vip_tier_count || 0} Levels`;
 
     if (feeSourceBadge) {
         feeSourceBadge.textContent = feeStructure?.source === "backend_fee_config" ? "Backend" : "Config";
@@ -206,6 +270,41 @@ function renderFeeTable() {
     }
 
     if (!feeTableBody) {
+        return;
+    }
+
+    const runtime = feeStructure?.runtime_settings || {};
+    const platformCharge = runtime.platform_charge || {};
+    const isPlatformChargeActive = platformCharge.enabled && (
+        (activeFeeTab === "futures" && platformCharge.apply_futures) ||
+        (activeFeeTab === "options" && platformCharge.apply_options)
+    );
+
+    if (isPlatformChargeActive) {
+        const chargeType = platformCharge.type || "fixed";
+        const chargeValue = Number(platformCharge.value || 0);
+        let feeDisplay = "";
+
+        if (chargeType === "percentage") {
+            feeDisplay = `${chargeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
+        } else {
+            feeDisplay = `${chargeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
+        }
+
+        feeTableBody.innerHTML = `
+            <tr class="bg-cyan-400/[0.07] transition">
+                <td class="px-5 py-5 font-black text-white">Flat Rate</td>
+                <td class="px-5 py-5 text-slate-300">All Trading Volumes</td>
+                <td class="px-5 py-5 font-black text-emerald-400">${feeDisplay}</td>
+                <td class="px-5 py-5 font-black text-cyan-400">${feeDisplay}</td>
+                <td class="px-5 py-5 text-slate-300">${activeFeeTab === "options" ? "N/A" : "Standard"}</td>
+                <td class="px-5 py-5">
+                    <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">
+                        Active
+                    </span>
+                </td>
+            </tr>
+        `;
         return;
     }
 
@@ -409,19 +508,47 @@ function calculateFee() {
         return;
     }
 
-    const rate = orderType === "maker" ? Number(row.maker_fee_percent || 0) : Number(row.taker_fee_percent || 0);
-    const fee = orderValue * (rate / 100);
-    const netAfterFee = Math.max(0, orderValue - fee);
+    const runtime = feeStructure?.runtime_settings || {};
+    const platformCharge = runtime.platform_charge || {};
+    const isPlatformChargeActive = platformCharge.enabled && (
+        (product === "futures" && platformCharge.apply_futures) ||
+        (product === "options" && platformCharge.apply_options)
+    );
 
-    if (selectedTierLabel) selectedTierLabel.textContent = row.tier || `VIP ${tier}`;
-    if (selectedProductLabel) selectedProductLabel.textContent = section.label || "Futures";
-    if (estimatedFeeAmount) estimatedFeeAmount.textContent = formatUSDT(fee);
+    let fee = 0;
+    let rateText = "";
+    let breakdownText = "";
 
-    if (feeBreakdown) {
-        feeBreakdown.textContent = `${formatUSDT(orderValue, 2)} × ${rate.toFixed(3)}% ${orderType} fee · Backend loaded rate`;
+    if (isPlatformChargeActive) {
+        const chargeType = platformCharge.type || "fixed";
+        const chargeValue = Number(platformCharge.value || 0);
+
+        if (chargeType === "percentage") {
+            fee = orderValue * (chargeValue / 100);
+            rateText = `${chargeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
+            breakdownText = `${formatUSDT(orderValue, 2)} × ${rateText} flat trading fee`;
+        } else {
+            fee = chargeValue;
+            rateText = `${chargeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
+            breakdownText = `Flat trading fee of ${rateText} per order`;
+        }
+    } else {
+        const rate = orderType === "maker" ? Number(row.maker_fee_percent || 0) : Number(row.taker_fee_percent || 0);
+        fee = orderValue * (rate / 100);
+        rateText = `${rate.toFixed(3)}%`;
+        breakdownText = `${formatUSDT(orderValue, 2)} × ${rateText} ${orderType} fee`;
     }
 
-    if (feeRatePreview) feeRatePreview.textContent = `${rate.toFixed(3)}%`;
+    const netAfterFee = Math.max(0, orderValue - fee);
+
+    if (selectedTierLabel) {
+        selectedTierLabel.textContent = isPlatformChargeActive ? (platformCharge.type === "percentage" ? "Percentage" : "Fixed USDT") : (row.tier || `VIP ${tier}`);
+    }
+    if (selectedProductLabel) selectedProductLabel.textContent = section.label || "Futures";
+    if (estimatedFeeAmount) estimatedFeeAmount.textContent = formatUSDT(fee);
+    if (feeBreakdown) feeBreakdown.textContent = breakdownText;
+
+    if (feeRatePreview) feeRatePreview.textContent = rateText;
     if (orderValuePreview) orderValuePreview.textContent = formatUSDT(orderValue, 2);
     if (netAfterFeePreview) netAfterFeePreview.textContent = formatUSDT(netAfterFee);
 

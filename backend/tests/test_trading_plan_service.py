@@ -57,6 +57,50 @@ class TradingPlanServiceTests(unittest.TestCase):
         self.assertEqual(sell["price"], 2349.82)
         self.assertEqual(buy["spread_price"], 0.18)
 
+    def test_xau_percentage_spread_applied_at_entry(self):
+        buy = apply_plan_spread_to_price(
+            "test", "XAUUSD", "buy", 2350, 
+            locked_plan="standard", locked_spread_pips=0.5, locked_spread_type="percentage"
+        )
+        sell = apply_plan_spread_to_price(
+            "test", "XAUUSD", "sell", 2350, 
+            locked_plan="standard", locked_spread_pips=0.5, locked_spread_type="percentage"
+        )
+        self.assertEqual(buy["price"], 2361.75)
+        self.assertEqual(sell["price"], 2338.25)
+        self.assertEqual(buy["spread_price"], 11.75)
+
+    def test_btc_percentage_spread_applied_at_entry(self):
+        buy = apply_plan_spread_to_price(
+            "test", "BTCUSDT", "buy", 60000, 
+            locked_plan="standard", locked_spread_pips=0.5, locked_spread_type="percentage"
+        )
+        sell = apply_plan_spread_to_price(
+            "test", "BTCUSDT", "sell", 60000, 
+            locked_plan="standard", locked_spread_pips=0.5, locked_spread_type="percentage"
+        )
+        self.assertEqual(buy["price"], 60300.0)
+        self.assertEqual(sell["price"], 59700.0)
+        self.assertEqual(buy["spread_price"], 300.0)
+
+    def test_admin_customized_plan_settings(self):
+        import sys
+        trading_plan_service = sys.modules.get("services.trading_plan_service")
+        original = trading_plan_service.get_runtime_system_settings
+        try:
+            trading_plan_service.get_runtime_system_settings = lambda: {
+                "standard_plan_spread_type": "percentage",
+                "standard_plan_spread_value": 0.75,
+                "standard_plan_minimum_balance": 1500.0
+            }
+            from services.trading_plan_service import get_plan_settings
+            settings = get_plan_settings()
+            self.assertEqual(settings["standard"]["spread_type"], "percentage")
+            self.assertEqual(settings["standard"]["spread_value"], 0.75)
+            self.assertEqual(settings["standard"]["minimum_balance"], 1500.0)
+        finally:
+            trading_plan_service.get_runtime_system_settings = original
+
 
 if __name__ == "__main__":
     unittest.main()

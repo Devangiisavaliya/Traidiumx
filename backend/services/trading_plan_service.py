@@ -485,10 +485,12 @@ def apply_plan_spread_to_price(user_id, symbol, side, base_price, price_precisio
         spread_type = locked_spread_type or "fixed"
         spread_value = max(0.0, _number(locked_spread_pips))
 
+    pip_size = pip_size_for_symbol(symbol, price_precision)
+
     if spread_type == "percentage":
         total_spread_price = base_price * (spread_value / 100.0)
     else:
-        total_spread_price = spread_value
+        total_spread_price = spread_value * pip_size
 
     side = str(side or "").strip().lower()
 
@@ -501,7 +503,6 @@ def apply_plan_spread_to_price(user_id, symbol, side, base_price, price_precisio
     else:
         effective = base_price
 
-    pip_size = pip_size_for_symbol(symbol, price_precision)
     decimals = max(2, len(str(pip_size).split(".")[-1].rstrip("0"))) if pip_size < 1 else 2
     return {
         "price": round(effective, min(decimals, 8)),

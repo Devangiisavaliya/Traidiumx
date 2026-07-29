@@ -678,6 +678,14 @@ def build_options_market_items(futures_items, board_timestamp=None):
             "pair": "ETH Options",
             "display_name": "ETH USDT Options · Calls / Puts",
             "sort_order": 102
+        },
+        {
+            "symbol": "SOL_OPTIONS",
+            "underlying": "SOL",
+            "provider_symbol": "SOLUSDT",
+            "pair": "SOL Options",
+            "display_name": "SOL USDT Options · Calls / Puts",
+            "sort_order": 103
         }
     ]
 

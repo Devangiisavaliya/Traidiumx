@@ -561,7 +561,7 @@ function renderProfile() {
 }
 
 function renderPrimaryCurrencyCard() {
-    const primaryCurrency = (profileState.wallet?.primary_currency || profileState.user?.primary_currency || "INR").toUpperCase();
+    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || profileState.wallet?.primary_currency || profileState.user?.primary_currency || "INR").toUpperCase();
     const primaryCurrencyText = primaryCurrency === "INR" ? "INR (₹)" : "USDT ($)";
     const textEl = document.getElementById("profilePrimaryCurrencyText");
     if (textEl) textEl.textContent = primaryCurrencyText;
@@ -1028,6 +1028,7 @@ function initProfilePage() {
         });
     }
 
+    window.addEventListener("traidiumx:currency-change", renderPrimaryCurrencyCard);
     loadProfile();
     loadWalletHistories();
 }

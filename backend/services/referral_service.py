@@ -192,6 +192,13 @@ def validate_referral_code(code):
     }
 
 
+def record_referral_registration(referral_code, referred_user_id):
+    referred_user = find_user_by_id(referred_user_id)
+    if not referred_user:
+        return None
+    return attach_referral_to_registered_user(referral_code, referred_user)
+
+
 def attach_referral_to_registered_user(referral_code, referred_user):
     clean_code = _sanitize_code(referral_code)
 

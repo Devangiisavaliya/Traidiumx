@@ -175,7 +175,7 @@
                     
                     <div class="tx-ob-actions" style="margin-top:20px;gap:8px">
                         <button type="button" class="tx-ob-btn" id="txObAcknowledgeWarning" style="border-color:rgba(148,163,184,0.3);background:rgba(148,163,184,0.06);color:#e2e8f0">Dismiss Warning</button>
-                        <a href="./wallet.html#deposit" class="tx-ob-btn primary" id="txObDepositNow" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-weight:950">Deposit Now</a>
+                        <a href="./wallet.html" class="tx-ob-btn primary" id="txObDepositNow" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-weight:950">Deposit / Transfer</a>
                     </div>
                 </div>
             </div>
@@ -186,10 +186,9 @@
             apiRequest("/onboarding/warning/acknowledge", { method: "POST", body: "{}" })
                 .catch(() => {});
             
-            if (window.location.pathname.includes("wallet.html") && typeof openWalletActionModal === "function") {
+            if (window.location.pathname.includes("wallet.html")) {
                 event.preventDefault();
                 hide();
-                openWalletActionModal("deposit");
             }
         });
     }
@@ -454,7 +453,7 @@
         if (step === 3) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
         const data = state.data || {};
         const needsFunding = !!data.funding_required || (state.selectedPlatform === "mt5" && data.provisioning_balance_eligible === false);
-        return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html?action=deposit">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObFinish">Open ${state.selectedPlatform === "mt5" ? "Trading Account" : "Futures"}</button>`}</div>`;
+        return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObFinish">Open ${state.selectedPlatform === "mt5" ? "Trading Account" : "Futures"}</button>`}</div>`;
     }
 
     function message(text, type = "") {

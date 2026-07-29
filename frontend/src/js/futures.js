@@ -4812,7 +4812,7 @@ const TX_BACKEND_FUTURES = {
 };
 
 const TX_BACKEND_DATA_REFRESH_MS = 5000;
-const TX_LIVE_ROW_REFRESH_MS = 650;
+const TX_LIVE_ROW_REFRESH_MS = 150;
 const TX_TICKER_STRIP_REFRESH_MS = 2000;
 const TX_PENDING_ORDER_PROCESS_MS = 700;
 const TX_BACKGROUND_BACKEND_REFRESH_MS = 1000;
@@ -5974,7 +5974,7 @@ function txGetLivePriceForSymbol(symbol, fallback = 0) {
 function txRefreshVisibleTradingRows(force = false) {
     const now = Date.now();
     const lastRenderAt = txToNumber(state.liveRowsLastRenderAt, 0);
-    const minDelay = Math.max(300, TX_LIVE_ROW_REFRESH_MS);
+    const minDelay = Math.max(100, TX_LIVE_ROW_REFRESH_MS);
 
     if (!force && lastRenderAt > 0 && now - lastRenderAt < minDelay) {
         if (!state.liveRowsScheduledTimer) {

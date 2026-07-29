@@ -203,9 +203,14 @@ function txHomeUpdateHero(markets) {
     const heroChange = document.getElementById("homeHeroChange");
     txHomeSetChangeClass(heroChange, change, true);
 
-    const status = document.getElementById("homeHeroStatus");
-    if (status) {
-        status.textContent = market.is_live ? "BACKEND LIVE" : "SYNCING";
+    const statusText = document.getElementById("homeHeroStatusText");
+    if (statusText) {
+        statusText.textContent = market.is_live ? "BACKEND LIVE" : "SYNCING";
+    } else {
+        const status = document.getElementById("homeHeroStatus");
+        if (status) {
+            status.textContent = market.is_live ? "BACKEND LIVE" : "SYNCING";
+        }
     }
 
     const longLink = document.getElementById("homeHeroLongLink");
@@ -284,6 +289,40 @@ function txHomeUpdateStats(markets, stats = {}) {
     }
 }
 
+async function txHomeLoadFeeConfig() {
+    try {
+        if (typeof apiRequest !== "function") return;
+        const response = await apiRequest("/fees/structure");
+        if (response && response.success && response.data) {
+            const runtime = response.data.runtime_settings || {};
+            const platformCharge = runtime.platform_charge || {};
+            
+            const isEnabled = platformCharge.enabled;
+            const feeType = platformCharge.type || "fixed";
+            const feeValue = Number(platformCharge.value || 0);
+
+            let feeText = "--";
+            let typeText = "Disabled";
+
+            if (isEnabled) {
+                if (feeType === "percentage") {
+                    feeText = `${feeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
+                    typeText = "Percentage";
+                } else {
+                    feeText = `${feeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
+                    typeText = "Fixed USDT";
+                }
+            }
+
+            txHomeSetText("homeHeroMakerFee", feeText);
+            txHomeSetText("homeBoxTradingFeeValue", feeText);
+            txHomeSetText("homeBoxTradingFeeType", typeText);
+        }
+    } catch (error) {
+        console.warn("Failed to load fee configuration for home page:", error);
+    }
+}
+
 async function txHomeLoadMarketBoard() {
     try {
         if (typeof apiRequest !== "function") {
@@ -301,6 +340,7 @@ async function txHomeLoadMarketBoard() {
         txHomeUpdateHero(markets);
         txHomeUpdateMiniMarkets(markets);
         txHomeUpdateStats(markets, board.stats || {});
+        await txHomeLoadFeeConfig();
     } catch (error) {
         console.error("Home market board failed:", error);
 
