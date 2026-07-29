@@ -3687,6 +3687,12 @@ async function txInitSubAccountsAndSelector() {
     try {
         const selector = document.getElementById("tradingAccountSelector");
         if (!selector) return;
+
+        const user = typeof getAuthUser === "function" ? getAuthUser() : null;
+        if (user && user.selected_platform === "mt5") {
+            selector.classList.add("hidden");
+            return;
+        }
         
         const response = await apiRequest("/user/sub-accounts");
         const subAccounts = response.data || [];

@@ -580,7 +580,7 @@
                     
                     document.getElementById("txObGotIt")?.addEventListener("click", () => {
                         hide();
-                        window.location.reload();
+                        window.location.href = resolveAppPath("src/pages/trading-account.html");
                     });
                 } else {
                     render();

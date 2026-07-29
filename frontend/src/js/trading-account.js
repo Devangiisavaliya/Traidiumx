@@ -6,6 +6,9 @@ const ta = {
     preferred: document.getElementById("taPreferredPlan"),
     active: document.getElementById("taActivePlan"),
     balance: document.getElementById("taBalance"),
+    balanceLabel: document.getElementById("taBalanceLabel"),
+    sourceCard: document.getElementById("taSourceCard"),
+    sourceBalanceLabel: document.getElementById("taSourceBalanceLabel"),
     sourceBalance: document.getElementById("taSourceBalance"),
     plans: document.getElementById("taPlans"),
     mt5Section: document.getElementById("taMt5Section"),
@@ -46,6 +49,18 @@ function renderTradingAccount() {
     ta.platform.textContent = data.selected_platform_name || "Not selected";
     ta.preferred.textContent = data.preferred_plan_name || "Not selected";
     ta.active.textContent = data.active_plan_name ? `${data.active_plan_name} · ${formatSpread(data.active_spread_value, data.active_spread_type)}` : "Not active";
+    
+    const isMt5 = data.selected_platform === "mt5";
+    if (ta.balanceLabel) {
+        ta.balanceLabel.textContent = isMt5 ? "MT5 Account Balance" : "TraidiumX Balance";
+    }
+    if (ta.sourceCard) {
+        ta.sourceCard.classList.toggle("hidden", !isMt5);
+    }
+    if (ta.sourceBalanceLabel) {
+        ta.sourceBalanceLabel.textContent = isMt5 ? "TraidiumX Wallet (Funding Source)" : "TraidiumX Trading Wallet";
+    }
+    
     ta.balance.textContent = `${taMoney(data.trading_balance)} USDT`;
     ta.sourceBalance.textContent = `${taMoney(data.source_trading_wallet_balance)} USDT`;
     document.querySelectorAll("[data-ta-platform]").forEach((button) => button.classList.toggle("active", button.dataset.taPlatform === data.selected_platform));

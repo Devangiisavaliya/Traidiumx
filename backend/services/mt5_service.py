@@ -28,7 +28,7 @@ def get_mt5_capabilities():
     return {
         "auto_provisioning_configured": _configured_auto_provisioning(),
         "existing_account_connection_enabled": bool(getattr(settings, "METAAPI_TOKEN", "")),
-        "funding_configured": bool(getattr(settings, "MT5_FUNDING_API_URL", "")),
+        "funding_configured": bool(getattr(settings, "MT5_FUNDING_API_URL", "")) or (getattr(settings, "APP_ENV", "development") == "development"),
         "group_sync_configured": bool(getattr(settings, "MT5_GROUP_API_URL", "")),
         "server_name": getattr(settings, "MT5_SERVER_NAME", "TraidiumX-Live"),
         "broker_name": getattr(settings, "MT5_BROKER_NAME", "TraidiumX Broker"),
@@ -209,7 +209,8 @@ def fund_mt5_account(user_id, data):
         return {"success": False, "message": "Create or connect an active MT5 account first.", "errors": {"mt5": "Active MT5 Login ID not found."}, "status_code": 409}
 
     funding_url = str(getattr(settings, "MT5_FUNDING_API_URL", "") or "").strip()
-    if not funding_url:
+    is_mock_mode = (funding_url.lower() == "mock") or (not funding_url and getattr(settings, "APP_ENV", "development") == "development")
+    if not funding_url and not is_mock_mode:
         return {"success": False, "message": "MT5 funding API is not configured.", "errors": {"mt5": "Add MT5_FUNDING_API_URL in backend .env."}, "status_code": 503}
 
     from services.wallet_service import complete_locked_trading_wallet_debit, lock_wallet_amount, release_locked_amount
@@ -236,15 +237,23 @@ def fund_mt5_account(user_id, data):
         "reference_id": reference_id,
     }
     try:
-        response = requests.post(
-            funding_url,
-            json=payload,
-            headers=_provider_headers(),
-            timeout=int(getattr(settings, "MT5_API_TIMEOUT_SECONDS", 15)),
-        )
-        body = response.json() if response.content else {}
-        if not response.ok:
-            raise RuntimeError(body.get("message") or f"Broker funding API returned HTTP {response.status_code}.")
+        if is_mock_mode:
+            body = {
+                "success": True,
+                "balance": round(float(account.get("balance") or 0.0) + amount, 8),
+                "equity": round(float(account.get("equity") or 0.0) + amount, 8),
+                "message": "MT5 account funded successfully (Mock Mode)."
+            }
+        else:
+            response = requests.post(
+                funding_url,
+                json=payload,
+                headers=_provider_headers(),
+                timeout=int(getattr(settings, "MT5_API_TIMEOUT_SECONDS", 15)),
+            )
+            body = response.json() if response.content else {}
+            if not response.ok:
+                raise RuntimeError(body.get("message") or f"Broker funding API returned HTTP {response.status_code}.")
 
         finalize = complete_locked_trading_wallet_debit(
             user_id,
