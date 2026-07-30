@@ -164,7 +164,11 @@ function showApiError(error, fallbackMessage = "Something went wrong.") {
         const firstErrorKey = Object.keys(error.errors)[0];
 
         if (firstErrorKey) {
-            return error.errors[firstErrorKey];
+            const errVal = error.errors[firstErrorKey];
+            if (firstErrorKey === "timeout" || errVal === true) {
+                return error.message || "Request timed out. Please check your connection.";
+            }
+            return errVal;
         }
     }
 

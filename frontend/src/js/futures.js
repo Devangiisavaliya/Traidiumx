@@ -6173,7 +6173,6 @@ async function loadBackendWalletBalance() {
         updateWalletUI();
     } catch (error) {
         console.error("Backend wallet balance error:", error);
-        showOrderMessage(showApiError(error, "Unable to load wallet balance."), "error");
     } finally {
         TX_BACKEND_FUTURES.walletLoading = false;
     }
