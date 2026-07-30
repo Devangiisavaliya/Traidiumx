@@ -10,6 +10,7 @@
         selectedPlan: "",
         loading: false,
         mobileAppStepCompleted: false,
+        onboardingCompleted: false,
     };
 
     function esc(value) {
@@ -220,6 +221,7 @@
             state.selectedPlatform = startFromBeginning ? "" : (state.data.selected_platform || "");
             state.selectedPlan = startFromBeginning ? "" : (state.data.preferred_plan || "");
             setUserCache(state.data);
+            window.dispatchEvent(new CustomEvent("traidiumx:notifications-sync"));
             if (forceOpen || !state.data.onboarding_complete) render();
             else if (state.data.show_downgrade_warning) renderDowngradeWarning();
             else hide();
@@ -235,8 +237,8 @@
 
     function stepNumber() {
         if (!state.selectedPlatform) return 1;
-        if (!state.mobileAppStepCompleted) return 2;
-        if (!state.selectedPlan) return 3;
+        if (!state.selectedPlan) return 2;
+        if (!state.onboardingCompleted) return 3;
         return 4;
     }
 
@@ -244,9 +246,9 @@
         return `
             <div class="tx-ob-progress" style="grid-template-columns: repeat(4, 1fr);">
                 <div class="tx-ob-step ${step === 1 ? "active" : "done"}">1. Platform</div>
-                <div class="tx-ob-step ${step === 2 ? "active" : step > 2 ? "done" : ""}">2. Mobile App</div>
-                <div class="tx-ob-step ${step === 3 ? "active" : step > 3 ? "done" : ""}">3. Choose plan</div>
-                <div class="tx-ob-step ${step === 4 ? "active" : ""}">4. Fund & activate</div>
+                <div class="tx-ob-step ${step === 2 ? "active" : step > 2 ? "done" : ""}">2. Choose plan</div>
+                <div class="tx-ob-step ${step === 3 ? "active" : step > 3 ? "done" : ""}">3. Fund & activate</div>
+                <div class="tx-ob-step ${step === 4 ? "active" : ""}">4. Mobile App</div>
             </div>`;
     }
 
@@ -358,16 +360,16 @@
         const data = state.data || {};
         
         let title = "Choose your platform";
-        if (step === 2) title = "Install Mobile App";
-        else if (step === 3) title = "Choose your account plan";
-        else if (step === 4) title = "Activate your trading account";
+        if (step === 2) title = "Choose your account plan";
+        else if (step === 3) title = "Activate your trading account";
+        else if (step === 4) title = "Install Mobile App";
 
         let kicker = "Trading account setup";
-        if (step === 2) kicker = "STEP 2 / 4 · MOBILE APP";
-        else kicker = `STEP ${step} / 4 · ${step === 1 ? "PLATFORM" : step === 3 ? "PLAN" : "ACTIVATION"}`;
+        if (step === 4) kicker = "STEP 4 / 4 · MOBILE APP";
+        else kicker = `STEP ${step} / 4 · ${step === 1 ? "PLATFORM" : step === 2 ? "PLAN" : "ACTIVATION"}`;
 
         let headerIconHtml = "";
-        if (step === 2) {
+        if (step === 4) {
             headerIconHtml = `
                 <div style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #eab308; display: grid; place-items: center; background: rgba(234,179,8,0.1); color: #eab308; margin-right: 14px; flex-shrink: 0; margin-top: 6px;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -380,7 +382,7 @@
 
         root().innerHTML = `
             <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Trading account setup">
-                <div class="tx-ob-card ${step === 2 ? "tx-narrow" : ""}">
+                <div class="tx-ob-card ${step === 4 ? "tx-narrow" : ""}">
                     <div class="tx-ob-head" style="display: flex; align-items: flex-start;">
                         ${headerIconHtml}
                         <div style="flex-grow: 1;">
@@ -391,7 +393,7 @@
                         <button type="button" id="txObClose" class="tx-ob-close" aria-label="Close modal">&times;</button>
                     </div>
                     ${progress(step)}
-                    <div id="txObBody">${step === 1 ? platformHtml(data) : step === 2 ? mobileAppHtml() : step === 3 ? plansHtml(data) : activationHtml(data)}</div>
+                    <div id="txObBody">${step === 1 ? platformHtml(data) : step === 2 ? plansHtml(data) : step === 3 ? activationHtml(data) : mobileAppHtml()}</div>
                     <div id="txObMessage"></div>
                     ${actionsHtml(step)}
                 </div>
@@ -453,7 +455,15 @@
                 <div class="tx-ob-box"><span>Platform</span><strong>${esc(selectedName)}</strong></div>
                 <div class="tx-ob-box"><span>Preferred plan</span><strong>${esc(data.preferred_plan_name || state.selectedPlan)}</strong></div>
                 <div class="tx-ob-box"><span>Active plan</span><strong>${esc(data.active_plan_name || "Basic")} · ${formatSpread(data.active_spread_value, data.active_spread_type)}</strong></div>
-                <div class="tx-ob-box"><span>${state.selectedPlatform === "mt5" ? "MT5 balance" : "Main Wallet balance"}</span><strong>${formatCurrencyValue(data.trading_balance)}</strong></div>
+                <div class="tx-ob-box">
+                    <span>${state.selectedPlatform === "mt5" ? "MT5 balance" : "Main Wallet balance"}</span>
+                    <strong>
+                        ${state.selectedPlatform === "mt5"
+                            ? formatCurrencyValue(data.trading_balance)
+                            : `${money(data.main_wallet_usdt_balance)} USDT | ₹${money(data.main_wallet_inr_balance)} INR`
+                        }
+                    </strong>
+                </div>
                 ${state.selectedPlatform === "mt5" ? `<div class="tx-ob-box"><span>TraidiumX Trading Wallet</span><strong>${formatCurrencyValue(data.source_trading_wallet_balance)}</strong></div>` : ""}
             </div>
             <div class="tx-ob-notice ${funding ? "" : preferredEligible ? "success" : ""}">
@@ -468,11 +478,11 @@
 
     function actionsHtml(step) {
         if (step === 1) return `<div class="tx-ob-actions"><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlatform ? "" : "disabled"}>Continue</button></div>`;
-        if (step === 2) return ``; // Step 2 (Mobile App) renders its own actions inside the mockup body
-        if (step === 3) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
+        if (step === 4) return ``; // Step 4 (Mobile App) renders its own actions inside the mockup body
+        if (step === 2) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
         const data = state.data || {};
         const needsFunding = !!data.funding_required || (state.selectedPlatform === "mt5" && data.provisioning_balance_eligible === false);
-        return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObFinish">Open ${state.selectedPlatform === "mt5" ? "Trading Account" : "Futures"}</button>`}</div>`;
+        return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObConfirm">Confirm</button>`}</div>`;
     }
 
     function message(text, type = "") {
@@ -497,17 +507,14 @@
     function bind(step) {
         document.getElementById("txObClose")?.addEventListener("click", hide);
 
-        if (step === 2) {
-            const handleNextStep = () => {
-                state.mobileAppStepCompleted = true;
-                render();
+        if (step === 4) {
+            const handleFinishOnboarding = () => {
+                window.location.href = state.selectedPlatform === "mt5" ? "/src/pages/trading-account.html" : "/src/pages/futures.html";
             };
             
-            document.getElementById("txObMaybeLaterBtn")?.addEventListener("click", handleNextStep);
+            document.getElementById("txObMaybeLaterBtn")?.addEventListener("click", handleFinishOnboarding);
+            document.getElementById("txObInstallBtn")?.addEventListener("click", handleFinishOnboarding);
             
-            document.getElementById("txObInstallBtn")?.addEventListener("click", () => {
-                message("TraidiumX Mobile App is coming soon! Press 'Maybe later' to continue.", "success");
-            });
             document.getElementById("txObGooglePlayBtn")?.addEventListener("click", () => {
                 message("Google Play App is coming soon!", "success");
             });
@@ -515,7 +522,7 @@
                 message("App Store App is coming soon!", "success");
             });
             document.getElementById("txObBack")?.addEventListener("click", () => {
-                state.selectedPlatform = "";
+                state.onboardingCompleted = false;
                 render();
             });
             return;
@@ -532,12 +539,16 @@
             const next = document.getElementById("txObNext"); if (next) next.disabled = false;
         }));
         document.getElementById("txObBack")?.addEventListener("click", () => {
-            if (step === 3) {
-                state.mobileAppStepCompleted = false;
+            if (step === 2) {
+                state.selectedPlatform = "";
             }
-            if (step === 4) {
+            if (step === 3) {
                 state.selectedPlan = "";
             }
+            render();
+        });
+        document.getElementById("txObConfirm")?.addEventListener("click", () => {
+            state.onboardingCompleted = true;
             render();
         });
         document.getElementById("txObNext")?.addEventListener("click", async () => {
@@ -548,8 +559,9 @@
                 const response = await apiRequest(endpoint, { method: "POST", body: JSON.stringify(body) });
                 state.data = response.data || state.data;
                 setUserCache(state.data);
+                window.dispatchEvent(new CustomEvent("traidiumx:notifications-sync"));
                 
-                if (step === 3 && state.selectedPlatform === "mt5") {
+                if (step === 2 && state.selectedPlatform === "mt5") {
                     const plans = Array.isArray(state.data.plans) ? state.data.plans : [];
                     const selectedPlanObj = plans.find(p => p.key === state.selectedPlan) || { name: state.selectedPlan.toUpperCase() };
                     const planName = selectedPlanObj.name;

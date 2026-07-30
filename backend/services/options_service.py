@@ -321,7 +321,8 @@ def place_option_order(user_id, data):
         amount=required_margin,
         transaction_type="option_order_margin_locked",
         reference_id=order_reference,
-        description=f"Locked {required_margin} USDT for {action} {contract} option order."
+        description=f"Locked {required_margin} USDT for {action} {contract} option order.",
+        currency="USDT"
     )
 
     if not lock_result.get("success"):
@@ -585,7 +586,8 @@ def close_option_position(user_id, position_id, data=None):
             margin_amount=locked_amount,
             realized_pnl=gross_realized_pnl,
             reference_id=str(position_id),
-            description=f"Settled option position {position.get('contract')} at {close_price}."
+            description=f"Settled option position {position.get('contract')} at {close_price}.",
+            currency="USDT"
         )
 
         if not settlement_result.get("success"):

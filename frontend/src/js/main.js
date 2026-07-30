@@ -309,8 +309,8 @@ async function txHomeLoadFeeConfig() {
                     feeText = `${feeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
                     typeText = "Percentage";
                 } else {
-                    feeText = `${feeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
-                    typeText = "Fixed USDT";
+                    feeText = `${feeValue.toFixed(2).replace(/\.?0+$/, "")} USD`;
+                    typeText = "Fixed USD";
                 }
             }
 

@@ -58,7 +58,8 @@ def format_trade(trade):
         "realized_pnl": trade.get("realized_pnl", 0.0),
         "net_realized_pnl": trade.get("net_realized_pnl", trade.get("realized_pnl", 0.0)),
         "close_reason": trade.get("close_reason"),
-        "created_at": trade.get("created_at").isoformat() if trade.get("created_at") else None
+        "created_at": trade.get("created_at").isoformat() if trade.get("created_at") else None,
+        "currency": trade.get("currency", "USDT"),
     }
 
 

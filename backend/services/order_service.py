@@ -359,6 +359,15 @@ def place_order(user_id, data):
     else:
         status = "open"
 
+    try:
+        from flask import request
+        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
+    except Exception:
+        active_currency = "USDT"
+
+    if active_currency not in ("INR", "USDT"):
+        active_currency = "USDT"
+
     order_id = create_order({
         "user_id": str(user_id),
         "order_reference": order_reference,
@@ -394,6 +403,7 @@ def place_order(user_id, data):
         "filled_quantity": 0.0,
         "average_fill_price": 0.0,
         "reduce_only": clean_data["reduce_only"],
+        "currency": active_currency,
         "remark": "Order placed. Margin locked from available balance."
     })
 
@@ -402,7 +412,8 @@ def place_order(user_id, data):
         amount=margin_data["margin_amount"],
         transaction_type="order_margin_lock",
         reference_id=str(order_id),
-        description=f"Margin locked for order {order_reference}"
+        description=f"Margin locked for order {order_reference}",
+        currency=active_currency
     )
 
     if not lock_result["success"]:

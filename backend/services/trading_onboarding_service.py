@@ -114,11 +114,24 @@ def _wallet_balances(user_id: str) -> dict:
     main_locked = _money(main.get("locked_balance"))
     trading_total = _money(trading.get("total_balance") or wallet.get("total_balance"))
     combined = _money(main_available + main_locked + trading_total)
+
+    # Retrieve individual main wallet balances (INR and USDT)
+    inr_wallet = wallet.get("main_wallet_inr") or {}
+    usdt_wallet = wallet.get("main_wallet_usdt") or {}
+    inr_balance = inr_wallet.get("total_balance")
+    if inr_balance in (None, ""):
+        inr_balance = _money(inr_wallet.get("available_balance")) + _money(inr_wallet.get("locked_balance"))
+    usdt_balance = usdt_wallet.get("total_balance")
+    if usdt_balance in (None, ""):
+        usdt_balance = _money(usdt_wallet.get("available_balance")) + _money(usdt_wallet.get("locked_balance"))
+
     return {
         "main_available": main_available,
         "main_locked": main_locked,
         "trading_total": trading_total,
         "combined_equity": combined,
+        "main_wallet_inr_balance": _money(inr_balance),
+        "main_wallet_usdt_balance": _money(usdt_balance),
     }
 
 

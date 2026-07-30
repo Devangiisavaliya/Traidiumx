@@ -359,6 +359,18 @@ def build_user_trading_profile(user, settings=None):
     source_trading_wallet_balance = get_trading_balance(str(user.get("_id")), "traidiumx") if user.get("_id") else 0.0
     active_plan_data = settings["plans"].get(active) if active else None
     preferred_plan_data = settings["plans"].get(preferred) if preferred else None
+
+    # Retrieve individual main wallet balances (INR and USDT)
+    wallet = normalize_wallet_currency(find_wallet_by_user_id(str(user.get("_id")))) if user.get("_id") else {}
+    inr_wallet = wallet.get("main_wallet_inr") or {}
+    usdt_wallet = wallet.get("main_wallet_usdt") or {}
+    inr_balance = inr_wallet.get("total_balance")
+    if inr_balance in (None, ""):
+        inr_balance = _number(inr_wallet.get("available_balance")) + _number(inr_wallet.get("locked_balance"))
+    usdt_balance = usdt_wallet.get("total_balance")
+    if usdt_balance in (None, ""):
+        usdt_balance = _number(usdt_wallet.get("available_balance")) + _number(usdt_wallet.get("locked_balance"))
+
     return {
         "onboarding_complete": bool(platform and preferred),
         "platform_selected": bool(platform),
@@ -379,6 +391,8 @@ def build_user_trading_profile(user, settings=None):
         "active_minimum_balance": _number((active_plan_data or {}).get("minimum_balance"), 0),
         "trading_balance": balance,
         "source_trading_wallet_balance": source_trading_wallet_balance,
+        "main_wallet_inr_balance": round(_number(inr_balance), 8),
+        "main_wallet_usdt_balance": round(_number(usdt_balance), 8),
         # A user may prefer Advanced while the current balance qualifies for
         # Standard/Basic. That is an automatic downgrade, not a trading block.
         # Funding is required only when even the Basic minimum is not met.

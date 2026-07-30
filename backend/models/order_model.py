@@ -151,7 +151,8 @@ def format_order(order):
         "cancelled_at": order.get("cancelled_at").isoformat() if order.get("cancelled_at") else None,
         "executed_at": order.get("executed_at").isoformat() if order.get("executed_at") else None,
         "liquidation_price": order.get("liquidation_price", 0.0),
-        "risk": order.get("risk", {})
+        "risk": order.get("risk", {}),
+        "currency": order.get("currency", "USDT"),
     }
 
 

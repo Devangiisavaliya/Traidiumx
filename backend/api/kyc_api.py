@@ -350,7 +350,6 @@ def start_digio():
         {"_id": user_id},
         {"$set": {
             "digio_request_id": kid,
-            "kyc_status": "under_review",
             "updated_at": now_utc()
         }}
     )

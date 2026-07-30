@@ -429,12 +429,12 @@
                     <div class="tx-fade-up">
                         <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black text-cyan-300">
                             <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
-                            Main wallet + Trading wallet
+                            <span id="walletBadgeText">Main wallet + Trading wallet</span>
                         </div>
-                        <h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+                        <h1 id="walletMainTitle" class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
                             Wallet flow built for crypto trading.
                         </h1>
-                        <p class="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+                        <p id="walletMainSubtitle" class="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
                             Deposits credit Main Wallet through the company deposit address. Trades use Trading Wallet only. Withdrawals use your external wallet address and complete after admin approval.
                         </p>
                     </div>
@@ -448,19 +448,19 @@
 
                         <div class="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
                             <div class="flex items-center justify-between gap-2">
-                                <p class="text-sm font-bold text-slate-400">Trading Wallet</p>
+                                <p id="walletLockedBalanceLabel" class="text-sm font-bold text-slate-400">Trading Wallet</p>
                                 <select id="tradingAccountSelector" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-bold text-white outline-none focus:border-cyan-400 cursor-pointer">
                                     <option value="main">Main Trading Account</option>
                                 </select>
                             </div>
                             <h3 id="walletLockedBalance" class="mt-2 text-3xl font-black text-cyan-400">--</h3>
-                            <p class="mt-2 text-xs text-slate-500">Trades use this balance</p>
+                            <p id="walletLockedBalanceNote" class="mt-2 text-xs text-slate-500">Trades use this balance</p>
                         </div>
 
                         <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-400">Trading Locked Margin</p>
+                            <p id="walletOpenMarginLabel" class="text-sm font-bold text-slate-400">Trading Locked Margin</p>
                             <h3 id="walletOpenMargin" class="mt-2 text-3xl font-black text-white">--</h3>
-                            <p class="mt-2 text-xs text-slate-500">Open position margin</p>
+                            <p id="walletOpenMarginNote" class="mt-2 text-xs text-slate-500">Open position margin</p>
                         </div>
 
                         <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">

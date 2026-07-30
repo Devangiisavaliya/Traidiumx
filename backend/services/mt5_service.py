@@ -77,11 +77,16 @@ def provision_mt5_account(user_id):
     profile = profile_result.get("data") or {}
     if profile.get("selected_platform") != "mt5":
         return {"success": False, "message": "Select MetaTrader 5 first.", "errors": {"platform": "MT5 is not selected."}, "status_code": 409}
-    if not profile.get("provisioning_balance_eligible"):
+    from services.wallet_service import ensure_user_wallet
+    wallet = ensure_user_wallet(user_id)
+    inr_total = float((wallet.get("main_wallet_inr") or {}).get("total_balance", 0.0))
+    usdt_total = float((wallet.get("main_wallet_usdt") or {}).get("total_balance", 0.0))
+
+    if usdt_total < 100.0 and inr_total < 8850.0:
         return {
             "success": False,
-            "message": f"Complete the selected {profile.get('preferred_plan_name') or 'plan'} minimum balance before MT5 account creation.",
-            "errors": {"balance": f"Minimum {profile.get('preferred_minimum_balance', 0):g} USDT required in the Trading Wallet."},
+            "message": "To open a MetaTrader 5 account, you must have a minimum deposit of $100 USDT or ₹8,850 INR in your Main Wallet first.",
+            "errors": {"balance": "Minimum deposit of $100 / ₹8,850 required."},
             "status_code": 422,
         }
 
@@ -185,140 +190,12 @@ def provision_mt5_account(user_id):
 
 
 def fund_mt5_account(user_id, data):
-    from services.kyc_status_service import require_kyc_approved
-    kyc_restriction = require_kyc_approved(user_id, "trading")
-    if kyc_restriction:
-        return kyc_restriction
-
-    try:
-        amount = round(float((data or {}).get("amount") or 0), 8)
-    except (TypeError, ValueError):
-        amount = 0.0
-    if amount <= 0:
-        return {"success": False, "message": "Enter a valid MT5 funding amount.", "errors": {"amount": "Amount must be greater than 0."}, "status_code": 422}
-
-    profile_result = reconcile_user_plan(user_id, send_notice=True)
-    if not profile_result.get("success"):
-        return profile_result
-    profile = profile_result.get("data") or {}
-    if profile.get("selected_platform") != "mt5":
-        return {"success": False, "message": "Select MetaTrader 5 before funding an MT5 account.", "errors": {"platform": "MT5 is not selected."}, "status_code": 409}
-
-    account = find_mt5_account_by_user_id(user_id)
-    if not account or account.get("status") not in {"active", "connected"} or not account.get("login_id"):
-        return {"success": False, "message": "Create or connect an active MT5 account first.", "errors": {"mt5": "Active MT5 Login ID not found."}, "status_code": 409}
-
-    funding_url = str(getattr(settings, "MT5_FUNDING_API_URL", "") or "").strip()
-    is_mock_mode = (funding_url.lower() == "mock") or (not funding_url and getattr(settings, "APP_ENV", "development") == "development")
-    if not funding_url and not is_mock_mode:
-        return {"success": False, "message": "MT5 funding API is not configured.", "errors": {"mt5": "Add MT5_FUNDING_API_URL in backend .env."}, "status_code": 503}
-
-    from services.wallet_service import complete_locked_trading_wallet_debit, lock_wallet_amount, release_locked_amount
-
-    reference_id = f"MT5F-{secrets.token_hex(6).upper()}"
-    lock_result = lock_wallet_amount(
-        user_id,
-        amount,
-        "mt5_funding_lock",
-        reference_id=reference_id,
-        description=f"Trading Wallet amount locked for MT5 account {str(account.get('login_id'))[-4:]} funding.",
-    )
-    if not lock_result.get("success"):
-        return {"success": False, "message": lock_result.get("message", "Insufficient Trading Wallet balance."), "errors": {"balance": lock_result.get("message", "Insufficient balance.")}, "status_code": 422}
-
-    payload = {
-        "operation": "credit",
-        "external_user_id": str(user_id),
-        "provider_account_id": account.get("provider_account_id"),
-        "login_id": account.get("login_id"),
-        "server": account.get("server"),
-        "amount": amount,
-        "currency": account.get("account_currency") or getattr(settings, "MT5_ACCOUNT_CURRENCY", "USD"),
-        "reference_id": reference_id,
+    return {
+        "success": False,
+        "message": "Direct wallet transfer is disabled. Please deposit directly to your MT5 account.",
+        "errors": {"transfer": "Direct wallet transfer is disabled."},
+        "status_code": 403
     }
-    try:
-        if is_mock_mode:
-            body = {
-                "success": True,
-                "balance": round(float(account.get("balance") or 0.0) + amount, 8),
-                "equity": round(float(account.get("equity") or 0.0) + amount, 8),
-                "message": "MT5 account funded successfully (Mock Mode)."
-            }
-        else:
-            response = requests.post(
-                funding_url,
-                json=payload,
-                headers=_provider_headers(),
-                timeout=int(getattr(settings, "MT5_API_TIMEOUT_SECONDS", 15)),
-            )
-            body = response.json() if response.content else {}
-            if not response.ok:
-                raise RuntimeError(body.get("message") or f"Broker funding API returned HTTP {response.status_code}.")
-
-        finalize = complete_locked_trading_wallet_debit(
-            user_id,
-            amount,
-            transaction_type="mt5_funding_completed",
-            reference_id=reference_id,
-            description=f"Transferred {amount:g} USDT from TraidiumX Trading Wallet to MT5.",
-        )
-        if not finalize.get("success"):
-            raise RuntimeError(finalize.get("message") or "Broker funded the account but local wallet finalization failed. Contact support immediately.")
-
-        current_balance = float(account.get("balance") or 0)
-        broker_balance = body.get("balance")
-        next_balance = float(broker_balance) if broker_balance not in (None, "") else round(current_balance + amount, 8)
-        next_equity = body.get("equity")
-        if next_equity in (None, ""):
-            next_equity = next_balance
-        account = upsert_mt5_account(user_id, {
-            "balance": next_balance,
-            "equity": float(next_equity),
-            "last_funding_amount": amount,
-            "last_funding_reference_id": reference_id,
-            "last_funded_at": now_utc(),
-            "funding_status": "completed",
-            "provisioning_note": body.get("message") or "MT5 account funded successfully.",
-        })
-        try:
-            user = get_database().users.find_one({"_id": ObjectId(str(user_id))}) or {}
-            from services.email_service import send_mt5_funding_completed_email
-            send_mt5_funding_completed_email(
-                user.get("email", ""), amount, account.get("login_id"), account.get("server"), next_balance, reference_id
-            )
-        except Exception as email_error:
-            print("MT5 FUNDING EMAIL ERROR:", email_error)
-        plan_result = reconcile_user_plan(user_id, send_notice=True)
-        return {
-            "success": True,
-            "message": body.get("message") or "MT5 account funded successfully.",
-            "data": {
-                "account": format_mt5_account(account),
-                "wallet": finalize.get("wallet"),
-                "trading_profile": plan_result.get("data", {}),
-                "reference_id": reference_id,
-            },
-            "status_code": 200,
-        }
-    except Exception as error:
-        # Release only when the provider did not confirm a successful response.
-        # If local finalization itself failed after provider success, retaining
-        # the lock is safer than refunding and double-crediting the user.
-        provider_confirmed = "body" in locals() and isinstance(body, dict) and response.ok
-        if not provider_confirmed:
-            release_locked_amount(
-                user_id,
-                amount,
-                "mt5_funding_reversal",
-                reference_id=reference_id,
-                description=f"MT5 funding failed; {amount:g} USDT returned to Trading Wallet.",
-            )
-        upsert_mt5_account(user_id, {
-            "funding_status": "manual_review" if provider_confirmed else "failed",
-            "last_funding_error": str(error),
-            "last_funding_reference_id": reference_id,
-        })
-        return {"success": False, "message": "MT5 funding could not be completed.", "errors": {"mt5": str(error)}, "status_code": 502}
 
 
 

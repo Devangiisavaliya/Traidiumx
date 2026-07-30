@@ -659,16 +659,19 @@ def update_wallet_balances(wallet_id, available_balance, locked_balance):
     )
 
 
-def _atomic_update_wallet(wallet_id, filter_extra, inc_data):
+def _atomic_update_wallet(wallet_id, filter_extra, inc_data, currency=None):
     filter_query = {"_id": wallet_id}
     filter_query.update(filter_extra or {})
 
     # Detect current active currency to sync sub-bucket increments
-    try:
-        from flask import request
-        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
-    except Exception:
-        active_currency = "USDT"
+    if not currency:
+        try:
+            from flask import request
+            active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
+        except Exception:
+            active_currency = "USDT"
+    else:
+        active_currency = str(currency).strip().upper()
 
     bucket_suffix = "inr" if active_currency == "INR" else "usdt"
     
@@ -727,22 +730,24 @@ def credit_wallet(user_id, amount, transaction_type, reference_id=None, descript
     return ensure_user_wallet(user_id)
 
 
-def lock_wallet_amount(user_id, amount, transaction_type, reference_id=None, description=""):
+def lock_wallet_amount(user_id, amount, transaction_type, reference_id=None, description="", currency=None):
     wallet = ensure_user_wallet(user_id)
     amount = _money(amount)
 
     if amount <= 0:
         return {"success": False, "message": "Amount must be greater than 0.", "wallet": wallet}
 
+    bucket_suffix = "inr" if str(currency or "USDT").strip().upper() == "INR" else "usdt"
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
-        filter_extra={"available_balance": {"$gte": amount}},
+        filter_extra={f"trading_wallet_{bucket_suffix}.available_balance": {"$gte": amount}},
         inc_data={
             "available_balance": -amount,
             "locked_balance": amount,
             "trading_wallet.available_balance": -amount,
             "trading_wallet.locked_balance": amount,
         },
+        currency=currency,
     )
 
     if not updated_wallet:
@@ -765,6 +770,7 @@ def lock_wallet_amount(user_id, amount, transaction_type, reference_id=None, des
         balance_after=balance_after,
         reference_id=reference_id,
         description=description,
+        currency=currency,
     )
 
     return {"success": True, "message": "Amount locked successfully.", "wallet": ensure_user_wallet(user_id)}
@@ -1364,7 +1370,7 @@ def credit_admin_profit_wallet(amount, transaction_type, reference_id=None, desc
     )
     return ensure_admin_profit_wallet()
 
-def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=None, description="", exit_trading_fee=0.0):
+def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=None, description="", exit_trading_fee=0.0, currency=None):
     wallet = ensure_user_wallet(user_id)
     margin_amount = _money(margin_amount)
     realized_pnl = _money(realized_pnl)
@@ -1378,9 +1384,13 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
     # lock are not perfectly synced yet.
     settlement_amount = _money(max(margin_amount + realized_pnl, 0.0))
 
-    locked_balance = _money(wallet.get("locked_balance", 0.0))
-    available_balance = _money(wallet.get("available_balance", 0.0))
-    total_balance = _money(wallet.get("total_balance", available_balance + locked_balance))
+    currency = str(currency or "USDT").strip().upper()
+    bucket_prefix = f"trading_wallet_{currency.lower()}"
+
+    trading_bucket = wallet.get(bucket_prefix) or {}
+    locked_balance = _money(trading_bucket.get("locked_balance", 0.0))
+    available_balance = _money(trading_bucket.get("available_balance", 0.0))
+    total_balance = _money(trading_bucket.get("total_balance", available_balance + locked_balance))
 
     # Floating values stored in Mongo can miss by tiny decimals. Clamp instead of
     # blocking close with "Unable to settle position margin safely".
@@ -1406,19 +1416,17 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
         forced_floor = True
         total_after = 0.0
 
+    # Build DB update fields for the specific sub-wallet
+    update_fields = {
+        f"{bucket_prefix}.available_balance": available_after,
+        f"{bucket_prefix}.locked_balance": locked_after,
+        f"{bucket_prefix}.total_balance": total_after,
+        "updated_at": now_utc(),
+    }
+
     updated_wallet = get_wallets_collection().find_one_and_update(
         {"_id": wallet["_id"]},
-        {
-            "$set": {
-                "available_balance": available_after,
-                "locked_balance": locked_after,
-                "total_balance": total_after,
-                "trading_wallet.available_balance": available_after,
-                "trading_wallet.locked_balance": locked_after,
-                "trading_wallet.total_balance": total_after,
-                "updated_at": now_utc(),
-            }
-        },
+        {"$set": update_fields},
         return_document=ReturnDocument.AFTER,
     )
 
@@ -1428,6 +1436,9 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
             "message": "Wallet not found for position settlement.",
             "wallet": ensure_user_wallet(user_id),
         }
+
+    # Normalize wallet currency to mirror changes to top-level if matches active currency
+    normalized_wallet = normalize_wallet_currency(updated_wallet)
 
     ledger_description = description or "Position closed."
     if locked_to_release < margin_amount:
@@ -1442,7 +1453,7 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
         ).strip()
 
     balance_before = available_balance
-    balance_after = _money(updated_wallet.get("available_balance", 0.0))
+    balance_after = available_after
 
     exit_trading_fee = _money(exit_trading_fee)
     if exit_trading_fee > 0:
@@ -1462,6 +1473,7 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
         balance_after=balance_after_gross,
         reference_id=reference_id,
         description=ledger_description,
+        currency=currency,
     )
 
     if exit_trading_fee > 0:
@@ -1475,6 +1487,7 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
             balance_after=balance_after,
             reference_id=reference_id,
             description=f"Trading fee for futures close position {reference_id}",
+            currency=currency,
         )
 
     return {
@@ -1482,6 +1495,6 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
         "message": "Position margin settled successfully.",
         "settlement_amount": settlement_amount,
         "realized_pnl": realized_pnl,
-        "wallet": ensure_user_wallet(user_id),
+        "wallet": normalized_wallet,
     }
 

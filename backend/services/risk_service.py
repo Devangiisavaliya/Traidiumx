@@ -191,7 +191,28 @@ def calculate_liquidation_distance(position, current_price):
 
 def get_user_risk_summary(user_id):
     wallet = ensure_user_wallet(user_id)
+    
+    try:
+        from flask import request
+        active_currency = request.headers.get("X-Navbar-Currency")
+        if not active_currency:
+            from config.database import get_database
+            from bson import ObjectId
+            db = get_database()
+            user = db.users.find_one({"_id": ObjectId(user_id)})
+            active_currency = user.get("last_navbar_currency") if user else "USDT"
+    except Exception:
+        active_currency = "USDT"
+
+    active_currency = str(active_currency or "USDT").strip().upper()
+    if active_currency not in ("INR", "USDT"):
+        active_currency = "USDT"
+
     positions = get_user_open_positions(user_id)
+    if active_currency == "INR":
+        positions = [p for p in positions if p.get("currency") == "INR"]
+    else:
+        positions = [p for p in positions if p.get("currency") in ("USDT", None, "")]
 
     trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
     available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)

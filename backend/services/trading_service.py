@@ -431,6 +431,7 @@ def create_or_update_position_from_order(user_id, order, execution_price):
         "trigger_price_type": "mark_price",
         "realized_pnl": 0.0,
         "unrealized_pnl": 0.0,
+        "currency": order.get("currency", "USDT"),
         "status": "open"
     })
 
@@ -456,7 +457,8 @@ def create_open_trade(user_id, order, position, execution_price):
         "notional_value": round(notional_value, 8),
         "fee_amount": float(order.get("platform_fee", 0.0) or 0.0),
         "fee_type": "trading_fee" if float(order.get("platform_fee", 0.0) or 0.0) > 0 else "none",
-        "realized_pnl": 0.0
+        "realized_pnl": 0.0,
+        "currency": order.get("currency", "USDT")
     })
 
     return find_trade_by_id(str(trade_id))
@@ -700,7 +702,27 @@ def format_position_with_live_pnl(position):
 
 
 def get_trading_positions(user_id):
+    try:
+        from flask import request
+        active_currency = request.headers.get("X-Navbar-Currency")
+        if not active_currency:
+            from config.database import get_database
+            from bson import ObjectId
+            db = get_database()
+            user = db.users.find_one({"_id": ObjectId(user_id)})
+            active_currency = user.get("last_navbar_currency") if user else "USDT"
+    except Exception:
+        active_currency = "USDT"
+
+    active_currency = str(active_currency or "USDT").strip().upper()
+    if active_currency not in ("INR", "USDT"):
+        active_currency = "USDT"
+
     positions = get_user_open_positions(user_id)
+    if active_currency == "INR":
+        positions = [p for p in positions if p.get("currency") == "INR"]
+    else:
+        positions = [p for p in positions if p.get("currency") in ("USDT", None, "")]
 
     formatted_positions = []
     total_unrealized_pnl = 0.0
@@ -728,7 +750,27 @@ def get_trading_positions(user_id):
 
 
 def get_trading_trades(user_id):
+    try:
+        from flask import request
+        active_currency = request.headers.get("X-Navbar-Currency")
+        if not active_currency:
+            from config.database import get_database
+            from bson import ObjectId
+            db = get_database()
+            user = db.users.find_one({"_id": ObjectId(user_id)})
+            active_currency = user.get("last_navbar_currency") if user else "USDT"
+    except Exception:
+        active_currency = "USDT"
+
+    active_currency = str(active_currency or "USDT").strip().upper()
+    if active_currency not in ("INR", "USDT"):
+        active_currency = "USDT"
+
     trades = get_user_trades(user_id)
+    if active_currency == "INR":
+        trades = [t for t in trades if t.get("currency") == "INR"]
+    else:
+        trades = [t for t in trades if t.get("currency") in ("USDT", None, "")]
 
     return {
         "success": True,
@@ -846,6 +888,7 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
     # Margin + net P&L + exit fee are settled in one wallet write. This avoids
     # the temporary wrong wallet balance and removes the fee-after-close race.
     net_realized_pnl = round(gross_realized_pnl - exit_trading_fee, 8)
+    position_currency = position.get("currency", "USDT")
     wallet_result = settle_position_margin(
         user_id=user_id,
         margin_amount=margin_amount,
@@ -853,6 +896,7 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
         reference_id=position_id,
         description=f"Position closed for {position.get('symbol')} ({close_reason})",
         exit_trading_fee=exit_trading_fee,
+        currency=position_currency,
     )
 
     if not wallet_result.get("success"):
@@ -945,6 +989,7 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
         "realized_pnl": net_realized_pnl,
         "net_realized_pnl": net_realized_pnl,
         "close_reason": close_reason,
+        "currency": position.get("currency", "USDT")
     })
     close_trade = find_trade_by_id(str(trade_id))
     reconcile_user_plan(user_id, send_notice=True)

@@ -148,6 +148,7 @@ def _sync_user_kyc_status(db, user_id, status, extra=None):
     if status == "rejected":
         update_op["$unset"] = {
             "kyc_draft_aadhaar_number": "",
+            "kyc_draft_document_type": "",
             "kyc_draft_document_front": "",
             "kyc_draft_document_back": "",
             "kyc_draft_ocr_result": "",
@@ -155,6 +156,14 @@ def _sync_user_kyc_status(db, user_id, status, extra=None):
             "kyc_documents_verified": "",
             "kyc_documents_verified_at": "",
             "kyc_progress_step": "",
+            "kyc_mobile_verified": "",
+            "kyc_mobile_verified_number": "",
+            "kyc_mobile_verified_at": "",
+            "kyc_digio_completed": "",
+            "digio_request_id": "",
+            "kyc_draft_driving_license_number": "",
+            "kyc_draft_pan_number": "",
+            "kyc_photo": "",
         }
 
     db.users.update_one({"_id": user_object_id}, update_op)

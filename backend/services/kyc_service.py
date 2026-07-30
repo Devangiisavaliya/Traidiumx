@@ -67,6 +67,14 @@ def _sync_user_kyc_status(user_id, status, extra=None):
             "kyc_documents_verified": "",
             "kyc_documents_verified_at": "",
             "kyc_progress_step": "",
+            "kyc_mobile_verified": "",
+            "kyc_mobile_verified_number": "",
+            "kyc_mobile_verified_at": "",
+            "kyc_digio_completed": "",
+            "digio_request_id": "",
+            "kyc_draft_driving_license_number": "",
+            "kyc_draft_pan_number": "",
+            "kyc_photo": "",
         }
 
     get_users_collection().update_one({"_id": user_object_id}, update_op)

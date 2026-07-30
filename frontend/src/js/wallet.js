@@ -120,6 +120,13 @@ const walletElements = {
     openMargin: document.getElementById("walletOpenMargin"),
     unrealizedPnl: document.getElementById("walletUnrealizedPnl"),
     ledgerCount: document.getElementById("walletLedgerCount"),
+    badgeText: document.getElementById("walletBadgeText"),
+    mainTitle: document.getElementById("walletMainTitle"),
+    mainSubtitle: document.getElementById("walletMainSubtitle"),
+    lockedBalanceLabel: document.getElementById("walletLockedBalanceLabel"),
+    lockedBalanceNote: document.getElementById("walletLockedBalanceNote"),
+    openMarginLabel: document.getElementById("walletOpenMarginLabel"),
+    openMarginNote: document.getElementById("walletOpenMarginNote"),
     ledgerBody: document.getElementById("ledgerTableBody"),
     depositBody: document.getElementById("depositTableBody"),
     withdrawalBody: document.getElementById("withdrawalTableBody"),
@@ -1745,14 +1752,15 @@ async function loadWalletData(options = {}) {
             apiRequest("/deposit/history"),
             apiRequest("/withdrawal/history"),
             getOptionalApi("/trading/pnl-summary", {}),
-            getOptionalApi("/trading/positions", {})
+            getOptionalApi("/trading/positions", {}),
+            getOptionalApi("/onboarding/mt5/status", {})
         ]);
 
         if (requestSeq !== WALLET_STATE.walletLoadRequestSeq) {
             return;
         }
 
-        const [walletResult, ledgerResult, depositResult, withdrawalResult, pnlResult, positionsResult] = results;
+        const [walletResult, ledgerResult, depositResult, withdrawalResult, pnlResult, positionsResult, mt5Result] = results;
 
         if (walletResult.status === "fulfilled") {
             WALLET_STATE.wallet = walletResult.value.data.wallet || walletResult.value.data || null;
@@ -1781,6 +1789,10 @@ async function loadWalletData(options = {}) {
 
         if (positionsResult.status === "fulfilled") {
             WALLET_STATE.positionSummary = positionsResult.value.data?.summary || null;
+        }
+
+        if (mt5Result.status === "fulfilled") {
+            WALLET_STATE.mt5 = mt5Result.value.data || null;
         }
 
         renderWalletPage();
@@ -1815,22 +1827,67 @@ function renderWalletPage() {
     const mainAvailable = walletNumber(mainWallet.available_balance, 0);
     const mainLocked = walletNumber(mainWallet.locked_balance, 0);
     const mainTotal = walletNumber(mainWallet.total_balance, mainAvailable + mainLocked);
-    const tradingAvailable = walletNumber(tradingWallet.available_balance, 0);
-    const tradingLocked = walletNumber(tradingWallet.locked_balance, 0);
-    const totalMargin = walletNumber(WALLET_STATE.pnlSummary?.total_margin ?? WALLET_STATE.positionSummary?.total_margin, tradingLocked);
-    const unrealizedPnl = walletNumber(WALLET_STATE.pnlSummary?.total_unrealized_pnl ?? WALLET_STATE.positionSummary?.total_unrealized_pnl, 0);
+
+    const user = typeof getAuthUser === "function" ? getAuthUser() : null;
+    const isMt5 = user && user.selected_platform === "mt5";
+
+    let tradingAvailable = walletNumber(tradingWallet.available_balance, 0);
+    let totalMargin = walletNumber(WALLET_STATE.pnlSummary?.total_margin ?? WALLET_STATE.positionSummary?.total_margin, mainLocked);
+    let unrealizedPnl = walletNumber(WALLET_STATE.pnlSummary?.total_unrealized_pnl ?? WALLET_STATE.positionSummary?.total_unrealized_pnl, 0);
+
+    if (isMt5) {
+        const mt5Account = WALLET_STATE.mt5?.account || {};
+        const mt5Curr = mt5Account.account_currency || "USD";
+        const mt5Bal = walletNumber(mt5Account.balance, 0);
+        const mt5Eq = walletNumber(mt5Account.equity, mt5Bal);
+
+        tradingAvailable = mt5Bal;
+        totalMargin = mt5Eq;
+        unrealizedPnl = Math.round((mt5Eq - mt5Bal) * 100000000) / 100000000;
+
+        if (walletElements.badgeText) walletElements.badgeText.textContent = "Main wallet + MetaTrader 5";
+        if (walletElements.mainTitle) walletElements.mainTitle.textContent = "Wallet flow built for MetaTrader 5 trading.";
+        if (walletElements.mainSubtitle) walletElements.mainSubtitle.textContent = "Deposits credit Main Wallet through the company deposit address. MetaTrader 5 uses its own separate trading account. Withdrawals are processed from your Main Wallet.";
+
+        if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "MT5 Account Balance";
+        if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "MetaTrader 5 server balance";
+
+        if (walletElements.openMarginLabel) walletElements.openMarginLabel.textContent = "MT5 Account Equity";
+        if (walletElements.openMarginNote) walletElements.openMarginNote.textContent = "MetaTrader 5 server equity";
+
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
+        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoney(totalMargin, mt5Curr);
+
+        if (walletElements.unrealizedPnl) {
+            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoney(unrealizedPnl, mt5Curr)}`;
+            walletElements.unrealizedPnl.className = unrealizedPnl >= 0
+                ? "mt-3 text-3xl font-black text-emerald-400"
+                : "mt-3 text-3xl font-black text-red-400";
+        }
+    } else {
+        if (walletElements.badgeText) walletElements.badgeText.textContent = "Main wallet + Trading wallet";
+        if (walletElements.mainTitle) walletElements.mainTitle.textContent = "Wallet flow built for crypto trading.";
+        if (walletElements.mainSubtitle) walletElements.mainSubtitle.textContent = "Deposits credit Main Wallet through the company deposit address. Trades use Trading Wallet only. Withdrawals use your external wallet address and complete after admin approval.";
+
+        if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "Trading Wallet";
+        if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "Trades use this balance";
+
+        if (walletElements.openMarginLabel) walletElements.openMarginLabel.textContent = "Trading Locked Margin";
+        if (walletElements.openMarginNote) walletElements.openMarginNote.textContent = "Open position margin";
+
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
+        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoney(totalMargin, tradingCurrency);
+
+        if (walletElements.unrealizedPnl) {
+            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoney(unrealizedPnl, tradingCurrency)}`;
+            walletElements.unrealizedPnl.className = unrealizedPnl >= 0
+                ? "mt-3 text-3xl font-black text-emerald-400"
+                : "mt-3 text-3xl font-black text-red-400";
+        }
+    }
 
     if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoney(mainAvailable, mainCurrency);
-    if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
     if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoney(mainTotal, mainCurrency);
-    if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoney(totalMargin, tradingCurrency);
-
-    if (walletElements.unrealizedPnl) {
-        walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoney(unrealizedPnl, tradingCurrency)}`;
-        walletElements.unrealizedPnl.className = unrealizedPnl >= 0
-            ? "mt-3 text-3xl font-black text-emerald-400"
-            : "mt-3 text-3xl font-black text-red-400";
-    }
 
     if (walletElements.ledgerCount) walletElements.ledgerCount.textContent = String(getDisplayLedgerRows(WALLET_STATE.ledger).length);
 
@@ -1855,15 +1912,28 @@ function renderWalletBalanceCardsOnly() {
     const tradingCurrency = "USDT";
 
     const mainAvailable = walletNumber(mainWallet.available_balance, 0);
-    const tradingAvailable = walletNumber(tradingWallet.available_balance, 0);
+    let tradingAvailable = walletNumber(tradingWallet.available_balance, 0);
     const mainTotal = walletNumber(mainWallet.total_balance, mainAvailable + walletNumber(mainWallet.locked_balance, 0));
+
+    const user = typeof getAuthUser === "function" ? getAuthUser() : null;
+    const isMt5 = user && user.selected_platform === "mt5";
+
+    if (isMt5) {
+        const mt5Account = WALLET_STATE.mt5?.account || {};
+        const mt5Curr = mt5Account.account_currency || "USD";
+        tradingAvailable = walletNumber(mt5Account.balance, 0);
+
+        if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "MT5 Account Balance";
+        if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "MetaTrader 5 server balance";
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
+    } else {
+        if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "Trading Wallet";
+        if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "Trades use this balance";
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
+    }
 
     if (walletElements.availableBalance) {
         walletElements.availableBalance.textContent = formatWalletMoney(mainAvailable, mainCurrency);
-    }
-
-    if (walletElements.lockedBalance) {
-        walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
     }
 
     if (walletElements.totalBalance) {

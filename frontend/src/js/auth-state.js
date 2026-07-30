@@ -185,7 +185,7 @@ function renderLoggedInDesktop(container, user) {
                 <span class="text-[10px]">₹</span> INR
             </button>
             <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="USDT">
-                <span class="text-[10px]">$</span> USDT
+                <span class="text-[10px]">$</span> USD
             </button>
         </div>
 
@@ -256,7 +256,7 @@ function renderLoggedInMobile(container, user) {
                     <span class="text-[10px]">₹</span> INR
                 </button>
                 <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="USDT">
-                    <span class="text-[10px]">$</span> USDT
+                    <span class="text-[10px]">$</span> USD
                 </button>
             </div>
         </div>
@@ -553,6 +553,11 @@ function escapeHtml(value) {
             notificationTimer = window.setInterval(function () {
                 loadUserNotifications({ showToasts: false });
             }, NOTIFICATION_POLL_MS);
+
+            // Listen for custom sync events to reload notifications instantly
+            window.addEventListener("traidiumx:notifications-sync", function () {
+                loadUserNotifications({ showToasts: false });
+            });
         } else {
             loadUserNotifications({ showToasts: false });
         }

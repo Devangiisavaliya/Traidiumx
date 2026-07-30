@@ -141,6 +141,8 @@ def normalize_wallet_currency(wallet):
         if (
             main_inr.get("currency") != "INR"
             or main_inr.get("wallet_type") != "main_wallet_inr"
+            or _money(main_inr.get("available_balance", 0.0)) != inr_avail
+            or _money(main_inr.get("locked_balance", 0.0)) != inr_locked
             or _money(main_inr.get("total_balance", 0.0)) != inr_total
         ):
             main_inr = {
@@ -159,6 +161,8 @@ def normalize_wallet_currency(wallet):
         if (
             main_usdt.get("currency") != "USDT"
             or main_usdt.get("wallet_type") != "main_wallet_usdt"
+            or _money(main_usdt.get("available_balance", 0.0)) != usdt_avail
+            or _money(main_usdt.get("locked_balance", 0.0)) != usdt_locked
             or _money(main_usdt.get("total_balance", 0.0)) != usdt_total
             or not main_usdt.get("addresses")
         ):
@@ -187,12 +191,20 @@ def normalize_wallet_currency(wallet):
     ):
         updates["main_wallet"] = legacy_main
 
-    # Dynamic Trading Wallet Selection (USDT vs INR)
-    # Check current active navbar currency from the request headers
     try:
         from flask import request
-        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
+        active_currency = request.headers.get("X-Navbar-Currency")
+        if not active_currency:
+            from config.database import get_database
+            from bson import ObjectId
+            db = get_database()
+            user = db.users.find_one({"_id": ObjectId(wallet.get("user_id"))})
+            active_currency = user.get("last_navbar_currency") if user else "USDT"
     except Exception:
+        active_currency = "USDT"
+
+    active_currency = str(active_currency or "USDT").strip().upper()
+    if active_currency not in ("INR", "USDT"):
         active_currency = "USDT"
 
     # Initialize sub-buckets if missing
@@ -226,6 +238,8 @@ def normalize_wallet_currency(wallet):
         if (
             trading_inr.get("currency") != "USDT"
             or trading_inr.get("wallet_type") != "trading_wallet_inr"
+            or _money(trading_inr.get("available_balance", 0.0)) != inr_avail
+            or _money(trading_inr.get("locked_balance", 0.0)) != inr_locked
             or _money(trading_inr.get("total_balance", 0.0)) != inr_total
         ):
             trading_inr = {
@@ -244,6 +258,8 @@ def normalize_wallet_currency(wallet):
         if (
             trading_usdt.get("currency") != "USDT"
             or trading_usdt.get("wallet_type") != "trading_wallet_usdt"
+            or _money(trading_usdt.get("available_balance", 0.0)) != usdt_avail
+            or _money(trading_usdt.get("locked_balance", 0.0)) != usdt_locked
             or _money(trading_usdt.get("total_balance", 0.0)) != usdt_total
         ):
             trading_usdt = {

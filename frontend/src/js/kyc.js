@@ -1113,6 +1113,12 @@ async function loadKycStatus() {
         kycState.mobileVerified = data.mobile_verified === true;
         kycState.mobileNumber = data.mobile_number || "";
         kycState.aadhaarSaved = data.aadhaar_number_saved === true;
+
+        const floatingBar = document.getElementById("kycFloatingContinueBar");
+        if (floatingBar) {
+            floatingBar.classList.add("hidden");
+            floatingBar.style.display = "none";
+        }
         kycState.documentsVerified = data.documents_verified === true;
         kycState.draftScan = data.draft_scan || null;
 
@@ -1257,13 +1263,27 @@ async function handleOpenDigioKyc() {
         
         await loadDigioScript(environment);
         
+        setTimeout(() => {
+            const floatingBar = document.getElementById("kycFloatingContinueBar");
+            if (floatingBar && openBtn && openBtn.disabled) {
+                floatingBar.classList.remove("hidden");
+                floatingBar.style.display = "flex";
+            }
+        }, 15000);
+
         if (openBtn) {
             openBtn.textContent = "Connecting to DigiLocker...";
         }
         
         const options = {
             environment: environment,
+            is_iframe: true,
             callback: async function(res) {
+                const floatingBar = document.getElementById("kycFloatingContinueBar");
+                if (floatingBar) {
+                    floatingBar.classList.add("hidden");
+                    floatingBar.style.display = "none";
+                }
                 if (res.hasOwnProperty("error_code")) {
                     if (openBtn) {
                         openBtn.textContent = "Checking completed steps...";
@@ -1327,8 +1347,44 @@ function initKycPage() {
 
     kycEl.sendOtpBtn?.addEventListener("click", handleSendOtp);
     kycEl.verifyOtpBtn?.addEventListener("click", handleVerifyOtp);
-    document.getElementById("kycOpenDigioBtn")?.addEventListener("click", handleOpenDigioKyc);
+    document.getElementById("kycOpenDigioBtn")?.addEventListener("click", handleOpenDigioKyc);    document.getElementById("kycFloatingContinueBtn")?.addEventListener("click", async () => {
+        const checkBtn = document.getElementById("kycFloatingContinueBtn");
+        if (checkBtn) {
+            checkBtn.disabled = true;
+            checkBtn.innerHTML = `Checking details...`;
+        }
+        try {
+            const response = await apiRequest("/kyc/complete-digio", {
+                method: "POST"
+            });
+            showKycMessage(response?.message || "Verification completed successfully!", "success");
+            
+            // Close and remove the Digio iframe popup overlay
+            document.querySelectorAll("iframe").forEach(iframe => {
+                if (iframe.src.includes("digio.in")) {
+                    const parent = iframe.parentElement;
+                    if (parent && parent !== document.body) {
+                        parent.remove();
+                    } else {
+                        iframe.remove();
+                    }
+                }
+            });
 
+            const floatingBar = document.getElementById("kycFloatingContinueBar");
+            if (floatingBar) {
+                floatingBar.classList.add("hidden");
+                floatingBar.style.display = "none";
+            }
+            await loadKycStatus();
+        } catch (err) {
+            showKycMessage(showApiError(err, "Verification check failed. Make sure Aadhaar & PAN are completed in DigiLocker."), "error");
+            if (checkBtn) {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = `Continue to Selfie Step <span style="font-size: 0.9rem;">&rsaquo;</span>`;
+            }
+        }
+    });
     kycEl.mobileNumber?.addEventListener("input", () => {
         kycEl.mobileNumber.value = kycEl.mobileNumber.value.replace(/\D/g, "").slice(0, 10);
         if (kycEl.mobileNumberError) kycEl.mobileNumberError.textContent = "";

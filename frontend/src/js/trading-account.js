@@ -55,7 +55,7 @@ function renderTradingAccount() {
         ta.balanceLabel.textContent = isMt5 ? "MT5 Account Balance" : "TraidiumX Balance";
     }
     if (ta.sourceCard) {
-        ta.sourceCard.classList.toggle("hidden", !isMt5);
+        ta.sourceCard.classList.toggle("hidden", true);
     }
     if (ta.sourceBalanceLabel) {
         ta.sourceBalanceLabel.textContent = isMt5 ? "TraidiumX Wallet (Funding Source)" : "TraidiumX Trading Wallet";

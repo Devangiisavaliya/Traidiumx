@@ -275,11 +275,17 @@ function setMarketStatus(status, type = "loading", detail = "") {
         if (type === "loading") {
             marketStatusText.innerHTML = getMarketSyncMarkup();
             marketStatusText.className = "mt-2 flex min-h-8 items-center text-cyan-300";
+        } else if (type === "live") {
+            marketStatusText.innerHTML = `
+                <span class="flex items-center gap-2.5">
+                    <span class="inline-block h-3.5 w-3.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#34d399]"></span>
+                    <span>${status}</span>
+                </span>
+            `;
+            marketStatusText.className = "mt-2 text-3xl font-black text-emerald-400";
         } else {
             marketStatusText.textContent = status;
-            marketStatusText.className = type === "live"
-                ? "mt-2 text-3xl font-black text-emerald-400"
-                : "mt-2 text-3xl font-black text-red-400";
+            marketStatusText.className = "mt-2 text-3xl font-black text-red-400";
         }
     }
 
