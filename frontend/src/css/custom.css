@@ -7517,3 +7517,154 @@ details[open] {
 .rt-book-mid.hidden {
     display: none !important;
 }
+
+/* ========================================================================
+   STRETCH EQUAL HEIGHT LAYOUT
+   ======================================================================== */
+.rt-terminal-3col,
+.rt-terminal-focused.rt-terminal-3col,
+body .rt-terminal-3col {
+    align-items: stretch !important;
+}
+
+.rt-left-terminal,
+.rt-middle-orderbook,
+.rt-right-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    position: relative !important;
+    top: auto !important;
+    min-height: 100% !important;
+}
+
+.rt-chart-card {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+}
+
+.rt-chart-layout,
+.rt-chart-area {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+}
+
+.rt-chart-container.rt-tv-chart-container.rt-perfect-tv-container {
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+.rt-ob-card,
+.rt-order-panel-card {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.rt-ob-card {
+    overflow: hidden !important;
+}
+
+#orderBookPanel:not(.hidden),
+#tradesPanel:not(.hidden) {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+#orderBookAsks,
+#orderBookBids,
+#recentTradesList {
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+/* ========================================================================
+   COMPACT RIGHT PANEL HEIGHT REDUCTION OVERRIDES
+   ======================================================================== */
+.rt-terminal-focused .rt-label {
+    padding: 3px 12px 2px !important;
+}
+
+.rt-terminal-focused .rt-label + .rt-input,
+.rt-terminal-focused #limitPriceWrap .rt-input,
+.rt-terminal-focused #stopPriceWrap .rt-input,
+.rt-terminal-focused #leverageSelect {
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+}
+
+.rt-terminal-focused .rt-side-tabs,
+.rt-terminal-focused .rt-order-type-tabs,
+.rt-terminal-focused .rt-percent-row {
+    padding: 4px 12px 0 !important;
+    gap: 4px !important;
+}
+
+.rt-terminal-focused .rt-side-tabs button,
+.rt-terminal-focused .rt-order-type-tabs button,
+.rt-terminal-focused .rt-percent-row button {
+    padding: 5px 8px !important;
+    font-size: 10.5px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini-grid {
+    margin-top: 4px !important;
+    gap: 4px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini {
+    padding: 4px 8px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini span {
+    font-size: 9.5px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini strong {
+    font-size: 10.5px !important;
+}
+
+.rt-terminal-focused .rt-est-margin-row {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+}
+
+.rt-terminal-focused .rt-place-order-btn {
+    margin: 6px 12px !important;
+    padding: 6px !important;
+    font-size: 11.5px !important;
+}
+
+.rt-terminal-focused .rt-margin-head {
+    padding: 8px 12px !important;
+}
+
+.rt-terminal-focused .rt-margin-head h3 {
+    font-size: 13px !important;
+}
+
+.rt-terminal-focused #walletPnl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+}
+
+.rt-terminal-focused #marginAssetBadge {
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+}
+
+.rt-terminal-focused .px-4.py-4 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+.rt-terminal-focused .mt-5.grid-cols-2 {
+    margin-top: 8px !important;
+    gap: 8px !important;
+}

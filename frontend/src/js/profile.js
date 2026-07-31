@@ -123,7 +123,8 @@ function formatDateTime(value) {
 
 function formatAmount(value, currency = "USDT") {
     const amount = Number(value || 0);
-    return `${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${currency || "USDT"}`;
+    const dispCurrency = (currency === "USDT") ? "USD" : currency;
+    return `${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 8 })} ${dispCurrency || "USD"}`;
 }
 
 function shortText(value, start = 10, end = 6) {
@@ -568,7 +569,7 @@ function renderProfile() {
 
 function renderPrimaryCurrencyCard() {
     const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || profileState.wallet?.primary_currency || profileState.user?.primary_currency || "INR").toUpperCase();
-    const primaryCurrencyText = primaryCurrency === "INR" ? "INR (₹)" : "USDT ($)";
+    const primaryCurrencyText = primaryCurrency === "INR" ? "INR (₹)" : "USD ($)";
     const textEl = document.getElementById("profilePrimaryCurrencyText");
     if (textEl) textEl.textContent = primaryCurrencyText;
 }
@@ -1078,15 +1079,15 @@ async function txInitProfileSubAccounts() {
                         <div class="flex gap-4 text-right">
                             <div>
                                 <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Available</span>
-                                <strong class="text-cyan-300 font-black text-sm">${w.available_balance.toFixed(2)} USDT</strong>
+                                <strong class="text-cyan-300 font-black text-sm">${w.available_balance.toFixed(2)} USD</strong>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Locked</span>
-                                <strong class="text-slate-400 font-black text-sm">${w.locked_balance.toFixed(2)} USDT</strong>
+                                <strong class="text-slate-400 font-black text-sm">${w.locked_balance.toFixed(2)} USD</strong>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Total</span>
-                                <strong class="text-white font-black text-sm">${w.total_balance.toFixed(2)} USDT</strong>
+                                <strong class="text-white font-black text-sm">${w.total_balance.toFixed(2)} USD</strong>
                             </div>
                         </div>
                     </div>

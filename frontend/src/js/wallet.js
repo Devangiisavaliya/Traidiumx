@@ -3134,7 +3134,7 @@ async function updateLiveUsdtRate() {
     } catch (err) {
         WALLET_STATE.usdtRate = 88.50;
     }
-    const rateText = `1 USDT = ₹${WALLET_STATE.usdtRate || 88.50} INR`;
+    const rateText = `1 USD = ₹${WALLET_STATE.usdtRate || 88.50} INR`;
     const depBadge = document.getElementById("txDepositUsdtRateText");
     if (depBadge) depBadge.textContent = rateText;
     const withBadge = document.getElementById("txWithdrawUsdtRateText");
@@ -3161,7 +3161,7 @@ function bindRealtimeConversionCalculator() {
                 if (walletCreditEl) {
                     if (val > 0) {
                         const usdtEq = (val / rate).toFixed(4);
-                        walletCreditEl.innerHTML = `₹${val.toLocaleString()} INR <span class="text-xs font-normal text-slate-400">(≈ ${usdtEq} USDT)</span>`;
+                        walletCreditEl.innerHTML = `₹${val.toLocaleString()} INR <span class="text-xs font-normal text-slate-400">(≈ ${usdtEq} USD)</span>`;
                     } else {
                         walletCreditEl.textContent = "₹0.00 INR";
                     }
@@ -3169,7 +3169,7 @@ function bindRealtimeConversionCalculator() {
                 if (rateNoteEl) rateNoteEl.textContent = `Min ₹100 · $1 = ₹${rate.toFixed(2)}`;
             } else {
                 if (youDepEl) youDepEl.textContent = val > 0 ? `$${val.toFixed(2)}` : "$0.00";
-                if (walletCreditEl) walletCreditEl.textContent = val > 0 ? `$${val.toFixed(2)} USDT` : "$0.00 USDT";
+                if (walletCreditEl) walletCreditEl.textContent = val > 0 ? `$${val.toFixed(2)} USD` : "$0.00 USD";
                 const minUsdt = WALLET_STATE.cryptoDeposit.minAmount || 10;
                 const minInr = (minUsdt * rate).toFixed(0);
                 if (rateNoteEl) rateNoteEl.textContent = `Min $${minUsdt} / ₹${minInr} · $1 = ₹${rate.toFixed(2)}`;
@@ -3192,7 +3192,7 @@ function bindRealtimeConversionCalculator() {
                 if (isINR) {
                     withPrev.innerHTML = `₹${val.toLocaleString()} INR → net payout ≈ <span class="text-white font-extrabold text-sm">₹${val.toLocaleString()} INR</span>`;
                 } else {
-                    withPrev.innerHTML = `$${val} USDT → net payout <span class="text-white font-extrabold text-sm">$${val} USDT</span>`;
+                    withPrev.innerHTML = `$${val} USD → net payout <span class="text-white font-extrabold text-sm">$${val} USD</span>`;
                 }
             } else {
                 withPrev.innerHTML = `Enter withdrawal amount to see live calculation`;
@@ -3217,22 +3217,22 @@ function bindRealtimeConversionCalculator() {
             const isINR = selectedCurrency === "INR";
 
             if (trfLabel) {
-                trfLabel.textContent = (dir === "main_to_trading" && isINR) ? "Amount (INR / ₹)" : "Amount (USDT / $)";
+                trfLabel.textContent = (dir === "main_to_trading" && isINR) ? "Amount (INR / ₹)" : "Amount (USD / $)";
             }
             if (val > 0) {
                 if (dir === "main_to_trading") {
                     if (isINR) {
                         const usdtEq = (val / rate).toFixed(4);
-                        trfPrev.innerHTML = `₹${val.toLocaleString()} INR Main Wallet → <span class="text-white font-extrabold text-sm">${usdtEq} USDT</span> Trading Wallet`;
+                        trfPrev.innerHTML = `₹${val.toLocaleString()} INR Main Wallet → <span class="text-white font-extrabold text-sm">${usdtEq} USD</span> Trading Wallet`;
                     } else {
-                        trfPrev.innerHTML = `$${val} USDT Main Wallet → <span class="text-white font-extrabold text-sm">$${val} USDT</span> Trading Wallet`;
+                        trfPrev.innerHTML = `$${val} USD Main Wallet → <span class="text-white font-extrabold text-sm">$${val} USD</span> Trading Wallet`;
                     }
                 } else {
                     if (isINR) {
                         const inrEq = (val * rate).toFixed(2);
-                        trfPrev.innerHTML = `${val} USDT Trading Wallet → <span class="text-white font-extrabold text-sm">₹${Number(inrEq).toLocaleString()} INR</span> Main Wallet`;
+                        trfPrev.innerHTML = `${val} USD Trading Wallet → <span class="text-white font-extrabold text-sm">₹${Number(inrEq).toLocaleString()} INR</span> Main Wallet`;
                     } else {
-                        trfPrev.innerHTML = `$${val} USDT Trading Wallet → <span class="text-white font-extrabold text-sm">$${val} USDT</span> Main Wallet`;
+                        trfPrev.innerHTML = `$${val} USD Trading Wallet → <span class="text-white font-extrabold text-sm">$${val} USD</span> Main Wallet`;
                     }
                 }
             } else {

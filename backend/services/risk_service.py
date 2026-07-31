@@ -209,10 +209,6 @@ def get_user_risk_summary(user_id):
         active_currency = "USDT"
 
     positions = get_user_open_positions(user_id)
-    if active_currency == "INR":
-        positions = [p for p in positions if p.get("currency") == "INR"]
-    else:
-        positions = [p for p in positions if p.get("currency") in ("USDT", None, "")]
 
     trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
     available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)

@@ -719,10 +719,6 @@ def get_trading_positions(user_id):
         active_currency = "USDT"
 
     positions = get_user_open_positions(user_id)
-    if active_currency == "INR":
-        positions = [p for p in positions if p.get("currency") == "INR"]
-    else:
-        positions = [p for p in positions if p.get("currency") in ("USDT", None, "")]
 
     formatted_positions = []
     total_unrealized_pnl = 0.0

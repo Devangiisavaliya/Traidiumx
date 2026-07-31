@@ -384,7 +384,7 @@
                 <div class="tx-wallet-intro-mark">₮</div>
                 <div class="text-left">
                     <h1 class="tx-wallet-intro-title">TRAIDIUM<span>X</span></h1>
-                    <p class="tx-wallet-intro-kicker">Secure USDT Wallet Flow</p>
+                    <p class="tx-wallet-intro-kicker">Secure USD Wallet Flow</p>
                 </div>
             </div>
 
@@ -543,7 +543,7 @@
                             <select id="ledgerCurrencyFilter">
                                 <option value="all">All currencies</option>
                                 <option value="INR">INR (₹)</option>
-                                <option value="USDT">USDT ($)</option>
+                                <option value="USDT">USD ($)</option>
                             </select>
                             <select id="ledgerTypeFilter">
                                 <option value="all">All types</option>
@@ -590,7 +590,7 @@
                             <select id="depositCurrencyFilter">
                                 <option value="all">All currencies</option>
                                 <option value="INR">INR (₹)</option>
-                                <option value="USDT">USDT ($)</option>
+                                <option value="USDT">USD ($)</option>
                             </select>
                             <select id="depositStatusFilter">
                                 <option value="all">All status</option>
@@ -637,7 +637,7 @@
                             <select id="withdrawalCurrencyFilter">
                                 <option value="all">All currencies</option>
                                 <option value="INR">INR (₹)</option>
-                                <option value="USDT">USDT ($)</option>
+                                <option value="USDT">USD ($)</option>
                             </select>
                             <select id="withdrawalStatusFilter">
                                 <option value="all">All status</option>
@@ -714,13 +714,13 @@
                     <form id="walletTransferForm" class="grid gap-4">
                         <div id="txTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
                             <span>Market Exchange Rate:</span>
-                            <span id="txTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                            <span id="txTransferUsdtRateText" class="font-black text-cyan-300">1 USD = ₹88.50 INR</span>
                         </div>
                         <div>
                             <label for="walletTransferDirection" class="tx-form-label">Direction</label>
                             <select id="walletTransferDirection" name="direction" class="tx-form-input">
-                                <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
-                                <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                                <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USD)</option>
+                                <option value="trading_to_main">Trading Wallet (USD) → Main Wallet (INR)</option>
                             </select>
                         </div>
                         <div>
@@ -741,7 +741,7 @@
                     <!-- Top Currency Switcher Tabs (Sleek Pills) -->
                     <div id="txDepositCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="txSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="txSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -750,13 +750,13 @@
 
                     <!-- Dynamic Subtitle -->
                     <p id="txDepositSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
-                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                        Copy the USD address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
                     </p>
 
                     <form id="depositForm" class="grid gap-4">
                         <input id="cryptoAsset" name="crypto_asset" type="hidden" value="USDT" />
 
-                        <!-- USDT Crypto Mode Fields -->
+                        <!-- USD Crypto Mode Fields -->
                         <div id="cryptoDepositBox" class="grid gap-4">
                             <div>
                                 <label for="cryptoNetwork" class="tx-form-label">Network</label>
@@ -812,7 +812,7 @@
                             </div>
                             <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
                                 <span>Wallet credit</span>
-                                <span id="depCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                                <span id="depCalcWalletCredit" class="font-black text-emerald-400">$0.00 USD</span>
                             </div>
                             <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
                                 <span id="depCalcRateNote">Min $10 · $1 = ₹88.50</span>
@@ -821,11 +821,11 @@
 
                         <!-- Submit Button -->
                         <button id="createDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
-                            Deposit USDT
+                            Deposit USD
                         </button>
 
                         <p id="txDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
-                            Send USDT to the address above. Balance credits on submit.
+                            Send USD to the address above. Balance credits on submit.
                         </p>
                     </form>
                 </section>
@@ -833,7 +833,7 @@
                 <section data-wallet-action-panel="withdraw" class="hidden">
                     <div id="txWithdrawCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="txSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="txSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -867,7 +867,7 @@
                             Enter withdrawal amount to see live conversion
                         </div>
 
-                        <!-- Crypto Payout (USDT) -->
+                        <!-- Crypto Payout (USD) -->
                         <div id="txWithdrawCryptoAddressBox">
                             <label for="withdrawalAddress" id="withdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
                             <input id="withdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />

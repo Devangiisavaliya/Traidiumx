@@ -317,7 +317,8 @@ function normalizeMarketItem(item) {
     const symbol = normalizeSymbol(item.symbol || item.ui_symbol || "");
     const category = item.category || (item.market_type === "options" ? "Options" : "USDT Futures");
     const price = Number(item.last_price || item.lastPrice || item.price || 0);
-    const quoteAsset = item.quote_asset || item.quoteAsset || "USDT";
+    let quoteAsset = item.quote_asset || item.quoteAsset || "USDT";
+    if (quoteAsset === "USDT") quoteAsset = "USD";
     const providerSymbol = normalizeSymbol(item.provider_symbol || item.providerSymbol || symbol);
 
     return {
@@ -326,7 +327,7 @@ function normalizeMarketItem(item) {
         pair: item.pair || symbol,
         name: item.display_name || item.displayName || item.name || symbol,
         category,
-        leverage: category === "Options" ? "USDT Settled" : `${String(item.max_leverage || item.maxLeverage || 20).replace("x", "")}x`,
+        leverage: category === "Options" ? "USD Settled" : `${String(item.max_leverage || item.maxLeverage || 20).replace("x", "")}x`,
         ltp: price > 0 ? `${formatNumber(price, getPriceDecimals(price))} ${quoteAsset}` : "--",
         rawPrice: price,
         change: Number(item.price_change_percent || item.priceChangePercent || item.change || 0),
@@ -486,7 +487,10 @@ function renderSidePanels() {
 }
 
 function updateHeading() {
-    if (marketBoardTitle) marketBoardTitle.textContent = `${activeCategory} Markets`;
+    if (marketBoardTitle) {
+        const displayCategory = activeCategory === "USDT Futures" ? "USD Futures" : activeCategory;
+        marketBoardTitle.textContent = `${displayCategory} Markets`;
+    }
 
     if (!marketBoardSubtitle) return;
 

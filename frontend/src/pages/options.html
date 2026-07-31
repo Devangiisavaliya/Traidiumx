@@ -590,7 +590,7 @@
 
                         <div class="rt-pair-funds-item pnl">
                             <span>Trading P&amp;L</span>
-                            <strong id="optionsTradingPnl">+0.00 USDT</strong>
+                            <strong id="optionsTradingPnl">+0.00 USD</strong>
                         </div>
                     </div>
 
@@ -734,7 +734,7 @@
                             </div>
 
                             <div class="os-book-head">
-                                <span>Price (USDT)</span>
+                                <span>Price (USD)</span>
                                 <span id="optionBookSizeLabel">Size (BTC)</span>
                             </div>
 
@@ -756,7 +756,7 @@
                     <div class="os-contract-details">
                         <h3>Contract Details</h3>
                         <div><span>Contract Size</span><strong id="contractSizeText">0.001 BTC</strong></div>
-                        <div><span>Settlement</span><strong>USDT</strong></div>
+                        <div><span>Settlement</span><strong>USD</strong></div>
                         <div><span>Exercise</span><strong>European</strong></div>
                         <div><span>Maker / Taker</span><strong>0.016% / 0.040%</strong></div>
                     </div>
@@ -807,7 +807,7 @@
 
                         <div class="my-4 flex items-center justify-between px-1 text-sm font-black text-slate-400">
                             <span>Est. Margin</span>
-                            <span id="walletEstMargin" class="text-cyan-400">0.00 USDT</span>
+                            <span id="walletEstMargin" class="text-cyan-400">0.00 USD</span>
                         </div>
 
                         <button id="optionPlaceOrderBtn" class="os-trade-btn" type="button">Log In to Trade</button>
@@ -860,20 +860,20 @@
                     </div>
                     <div>
                         <p class="font-black uppercase tracking-wide text-slate-500">P&amp;L</p>
-                        <strong id="optionsModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USDT</strong>
+                        <strong id="optionsModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USD</strong>
                     </div>
                 </div>
 
                 <form id="optionsTransferForm" class="options-wallet-panel grid gap-4" data-options-wallet-panel="transfer">
                     <div id="optionsTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
                         <span>Market Exchange Rate:</span>
-                        <span id="optionsTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                        <span id="optionsTransferUsdtRateText" class="font-black text-cyan-300">1 USD = ₹88.50 INR</span>
                     </div>
                     <div>
                         <label for="optionsTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
                         <select id="optionsTransferDirection" name="direction" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
-                            <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USD)</option>
+                            <option value="trading_to_main">Trading Wallet (USD) → Main Wallet (INR)</option>
                         </select>
                     </div>
                     <div>
@@ -896,7 +896,7 @@
                     <!-- Top Currency Switcher Tabs (Sleek Pills) -->
                     <div id="optionsDepositCurrencyToggleBar" class="mb-2 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="optionsSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="optionsSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -905,10 +905,10 @@
 
                     <!-- Dynamic Subtitle -->
                     <p id="optionsDepositSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
-                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                        Copy the USD address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
                     </p>
 
-                    <!-- USDT Crypto Mode Fields -->
+                    <!-- USD Crypto Mode Fields -->
                     <div id="optionsCryptoDepositBox" class="grid gap-4">
                         <div>
                             <label for="optionsCryptoNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
@@ -984,7 +984,7 @@
                         </div>
                         <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
                             <span>Wallet credit</span>
-                            <span id="optionsDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                            <span id="optionsDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USD</span>
                         </div>
                         <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
                             <span id="optionsDepCalcRateNote">Min $10 · $1 = ₹88.50</span>
@@ -993,11 +993,11 @@
 
                     <!-- Submit Button -->
                     <button id="optionsCreateDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
-                        Deposit USDT
+                        Deposit USD
                     </button>
 
                     <p id="optionsDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
-                        Send USDT to the address above. Balance credits on submit.
+                        Send USD to the address above. Balance credits on submit.
                     </p>
                     <div id="optionsDepositMessage" class="options-wallet-panel-message hidden"></div>
                 </form>
@@ -1005,7 +1005,7 @@
                 <form id="optionsWithdrawForm" class="options-wallet-panel hidden grid gap-4" data-options-wallet-panel="withdraw">
                     <div id="txOptionsWithdrawCurrencyToggleBar" class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="txOptionsSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="txOptionsSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -1120,8 +1120,8 @@
                         <div>
                             <label for="subTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
                             <select id="subTransferDirection" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                                <option value="main_to_sub">Main Wallet → Target Trading Account (USDT)</option>
-                                <option value="sub_to_main">Target Trading Account (USDT) → Main Wallet</option>
+                                <option value="main_to_sub">Main Wallet → Target Trading Account (USD)</option>
+                                <option value="sub_to_main">Target Trading Account (USD) → Main Wallet</option>
                             </select>
                         </div>
 
@@ -1134,7 +1134,7 @@
                         </div>
 
                         <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
-                            Rate: 1 USDT = ₹88.50 INR. Enter amount to see preview.
+                            Rate: 1 USD = ₹88.50 INR. Enter amount to see preview.
                         </div>
 
                         <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Execute Transfer</button>

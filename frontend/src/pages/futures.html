@@ -1159,7 +1159,7 @@
 
                         <div class="rt-pair-funds-item pnl">
                             <span>Trading P&amp;L</span>
-                            <strong id="futuresTradingPnl">+0.00 USDT</strong>
+                            <strong id="futuresTradingPnl">+0.00 USD</strong>
                         </div>
                     </div>
 
@@ -1197,22 +1197,6 @@
             </div>
         </div>
 
-        <!-- POSITIONS / ORDERS TABLE -->
-        <div class="rt-card rt-positions-card">
-            <div class="rt-bottom-tabs">
-                <button class="active" type="button" data-terminal-tab="positions">Positions</button>
-                <button type="button" data-terminal-tab="openOrders">Open Orders</button>
-                <button type="button" data-terminal-tab="orderHistory">Order History</button>
-                <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
-                <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
-                <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
-            </div>
-
-            <div class="rt-table-wrap">
-                <div id="terminalTable"></div>
-            </div>
-        </div>
-
     </div>
 
     <!-- ================= MIDDLE: ORDER BOOK + RECENT TRADES ================= -->
@@ -1236,7 +1220,7 @@
             <!-- Orderbook Panel -->
             <div id="orderBookPanel" class="space-y-1">
                 <div class="rt-book-head compact">
-                    <span>Price (USDT)</span>
+                    <span>Price (USD)</span>
                     <span id="orderBookSizeLabel">Size</span>
                     <span id="orderBookSumLabel">Total</span>
                 </div>
@@ -1264,7 +1248,7 @@
             <!-- Recent Trades Panel -->
             <div id="tradesPanel" class="hidden space-y-1">
                 <div class="rt-book-head compact">
-                    <span>Price (USDT)</span>
+                    <span>Price (USD)</span>
                     <span>Size</span>
                     <span>Time</span>
                 </div>
@@ -1349,28 +1333,28 @@
             <div class="rt-wallet-mini-grid mt-4 grid grid-cols-2 gap-3 px-4 text-sm">
                 <div class="rt-wallet-mini">
                     <span>Trading Available</span>
-                    <strong id="walletAvailable">0.00 USDT</strong>
+                    <strong id="walletAvailable">0.00 USD</strong>
                 </div>
 
                 <div class="rt-wallet-mini">
                     <span>Used Margin</span>
-                    <strong id="walletUsed">0.00 USDT</strong>
+                    <strong id="walletUsed">0.00 USD</strong>
                 </div>
 
                 <div class="rt-wallet-mini">
                     <span>Total Profit</span>
-                    <strong id="walletTotalProfit" class="text-emerald-400">+0.00 USDT</strong>
+                    <strong id="walletTotalProfit" class="text-emerald-400">+0.00 USD</strong>
                 </div>
 
                 <div class="rt-wallet-mini">
                     <span>Total Loss</span>
-                    <strong id="walletTotalLoss" class="text-red-400">0.00 USDT</strong>
+                    <strong id="walletTotalLoss" class="text-red-400">0.00 USD</strong>
                 </div>
             </div>
 
             <div class="rt-est-margin-row mt-4 flex items-center justify-between px-5 text-sm font-black text-slate-400">
                 <span>Est. Margin</span>
-                <span id="walletEstMargin" class="text-cyan-400">0.00 USDT</span>
+                <span id="walletEstMargin" class="text-cyan-400">0.00 USD</span>
             </div>
 
             <button id="placeOrderBtn" type="button" class="rt-place-order-btn">
@@ -1383,35 +1367,36 @@
             </div>
 
             <p id="orderMessage" class="rt-order-message hidden"></p>
-        </div>
-
-        <!-- MARGIN -->
-        <div class="rt-card rt-margin-card p-4">
-            <div class="rt-margin-head">
-                <h3>Overall Profit / Loss</h3>
-                <span id="sessionStatus">Backend Controlled</span>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between">
-                <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USDT</h2>
-                <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
-                    BTC-USDT
-                </span>
-            </div>
-
-            <div class="mt-4 h-2 rounded-full bg-slate-800">
-                <div id="marginRatioBar" class="h-full w-0 rounded-full bg-cyan-400"></div>
-            </div>
-
-            <div class="mt-5 grid grid-cols-2 gap-4 text-xs">
-                <div>
-                    <p class="text-slate-500">Maintenance Margin</p>
-                    <strong id="maintenanceMarginValue" class="mt-1 block text-white">0.0000 USDT</strong>
+            <!-- Combined Margin Section -->
+            <div class="border-t border-slate-800/80 mt-4">
+                <div class="rt-margin-head" style="border-radius: 0; background: #0b111d;">
+                    <h3>Overall Profit / Loss</h3>
+                    <span id="sessionStatus" class="hidden">Backend Controlled</span>
                 </div>
 
-                <div>
-                    <p class="text-slate-500">Margin Balance</p>
-                    <strong id="marginBalanceValue" class="mt-1 block text-white">0.0000 USDT</strong>
+                <div class="px-4 py-4">
+                    <div class="flex items-center justify-between">
+                        <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USD</h2>
+                        <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
+                            BTC-USDT
+                        </span>
+                    </div>
+
+                    <div class="mt-4 h-2 rounded-full bg-slate-800">
+                        <div id="marginRatioBar" class="h-full w-0 rounded-full bg-cyan-400"></div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <p class="text-slate-500">Maintenance Margin</p>
+                            <strong id="maintenanceMarginValue" class="mt-1 block text-white">0.0000 USD</strong>
+                        </div>
+
+                        <div>
+                            <p class="text-slate-500">Margin Balance</p>
+                            <strong id="marginBalanceValue" class="mt-1 block text-white">0.0000 USD</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1419,6 +1404,25 @@
     </aside>
 
 </section>
+
+    <!-- POSITIONS / ORDERS TABLE (Full Width, matching grid max-width) -->
+    <div class="mx-auto mt-4 max-w-[1800px] px-4 pb-8">
+        <div class="rt-card rt-positions-card">
+            <div class="rt-bottom-tabs">
+                <button class="active" type="button" data-terminal-tab="positions">Positions</button>
+                <button type="button" data-terminal-tab="openOrders">Open Orders</button>
+                <button type="button" data-terminal-tab="orderHistory">Order History</button>
+                <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
+                <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
+                <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
+            </div>
+
+            <div class="rt-table-wrap">
+                <div id="terminalTable"></div>
+            </div>
+        </div>
+    </div>
+
     </main>
 
 
@@ -1447,20 +1451,20 @@
                     </div>
                     <div>
                         <p class="font-black uppercase tracking-wide text-slate-500">P&amp;L</p>
-                        <strong id="futuresModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USDT</strong>
+                        <strong id="futuresModalTradingPnl" class="mt-1 block text-emerald-300">+0.00 USD</strong>
                     </div>
                 </div>
 
                 <form id="futuresTransferForm" class="futures-wallet-panel grid gap-4" data-futures-wallet-panel="transfer">
                     <div id="futuresTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
                         <span>Market Exchange Rate:</span>
-                        <span id="futuresTransferUsdtRateText" class="font-black text-cyan-300">1 USDT = ₹88.50 INR</span>
+                        <span id="futuresTransferUsdtRateText" class="font-black text-cyan-300">1 USD = ₹88.50 INR</span>
                     </div>
                     <div>
                         <label for="futuresTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
                         <select id="futuresTransferDirection" name="direction" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USDT)</option>
-                            <option value="trading_to_main">Trading Wallet (USDT) → Main Wallet (INR)</option>
+                            <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USD)</option>
+                            <option value="trading_to_main">Trading Wallet (USD) → Main Wallet (INR)</option>
                         </select>
                     </div>
                     <div>
@@ -1483,7 +1487,7 @@
                     <!-- Top Currency Switcher Tabs (Sleek Pills) -->
                     <div id="futuresDepositCurrencyToggleBar" class="mb-2 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="futuresSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="futuresSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -1492,10 +1496,10 @@
 
                     <!-- Dynamic Subtitle -->
                     <p id="futuresDepositSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
-                        Copy the USDT address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
+                        Copy the USD address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
                     </p>
 
-                    <!-- USDT Crypto Mode Fields -->
+                    <!-- USD Crypto Mode Fields -->
                     <div id="futuresCryptoDepositBox" class="grid gap-4">
                         <div>
                             <label for="futuresCryptoNetwork" class="block text-xs font-black uppercase tracking-wide text-slate-400">Network</label>
@@ -1571,7 +1575,7 @@
                         </div>
                         <div class="mt-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
                             <span>Wallet credit</span>
-                            <span id="futuresDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USDT</span>
+                            <span id="futuresDepCalcWalletCredit" class="font-black text-emerald-400">$0.00 USD</span>
                         </div>
                         <div class="mt-3 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
                             <span id="futuresDepCalcRateNote">Min $10 · $1 = ₹88.50</span>
@@ -1580,11 +1584,11 @@
 
                     <!-- Submit Button -->
                     <button id="futuresCreateDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
-                        Deposit USDT
+                        Deposit USD
                     </button>
 
                     <p id="futuresDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
-                        Send USDT to the address above. Balance credits on submit.
+                        Send USD to the address above. Balance credits on submit.
                     </p>
                     <div id="futuresDepositMessage" class="futures-wallet-panel-message hidden"></div>
                 </form>
@@ -1592,7 +1596,7 @@
                 <form id="futuresWithdrawForm" class="futures-wallet-panel hidden grid gap-4" data-futures-wallet-panel="withdraw">
                     <div id="txFuturesWithdrawCurrencyToggleBar" class="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
                         <button id="txFuturesSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
-                            $ USD / USDT
+                            $ USD / USD
                         </button>
                         <button id="txFuturesSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
@@ -1707,8 +1711,8 @@
                         <div>
                             <label for="subTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
                             <select id="subTransferDirection" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                                <option value="main_to_sub">Main Wallet → Target Trading Account (USDT)</option>
-                                <option value="sub_to_main">Target Trading Account (USDT) → Main Wallet</option>
+                                <option value="main_to_sub">Main Wallet → Target Trading Account (USD)</option>
+                                <option value="sub_to_main">Target Trading Account (USD) → Main Wallet</option>
                             </select>
                         </div>
 
@@ -1721,7 +1725,7 @@
                         </div>
 
                         <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
-                            Rate: 1 USDT = ₹88.50 INR. Enter amount to see preview.
+                            Rate: 1 USD = ₹88.50 INR. Enter amount to see preview.
                         </div>
 
                         <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Execute Transfer</button>

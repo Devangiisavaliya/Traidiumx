@@ -407,9 +407,9 @@ function getPnlColorStyle(value) {
     return 'style="color:#f87171 !important;font-weight:900;"';
 }
 
-function formatPnlValue(value) {
+function formatPnlValue(value, currency = "USD") {
     const pnl = Number(value || 0);
-    const sign = pnl >= 0 ? "+" : "";
+    const sign = pnl >= 0 ? "+" : "-";
     const abs = Math.abs(pnl);
     let decimals = 2;
 
@@ -419,7 +419,12 @@ function formatPnlValue(value) {
         decimals = 4;
     }
 
-    return `${sign}${pnl.toFixed(decimals)} USDT`;
+    const absFormatted = abs.toFixed(decimals);
+
+    if (currency === "INR") {
+        return `${sign}₹${absFormatted}`;
+    }
+    return `${sign}${absFormatted} USD`;
 }
 function formatQty(value) {
     const number = Number(value);
@@ -1786,11 +1791,11 @@ function txOpenFuturesWalletModal(action = "transfer") {
     const transferDirSelect = document.getElementById("futuresTransferDirection");
     if (transferDirSelect) {
         if (isINR) {
-            transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USDT)`;
-            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (INR)`;
+            transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USD)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USD) → Main Wallet (INR)`;
         } else {
-            transferDirSelect.options[0].textContent = `Main Wallet (USDT) → ${activeText} (USDT)`;
-            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (USDT)`;
+            transferDirSelect.options[0].textContent = `Main Wallet (USD) → ${activeText} (USD)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USD) → Main Wallet (USD)`;
         }
     }
 
@@ -4785,6 +4790,15 @@ function startAllSymbolLivePriceSync() {
    This block only overrides demo wallet/orders/tables with Flask APIs.
 ===================================================== */
 
+let cachedPositionsInit = [];
+try {
+    const token = localStorage.getItem("traidiumx_auth_token") || "guest";
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "master";
+    const cacheKey = "tx_cached_positions_" + token.substring(0, 15) + "_" + activeSubId;
+    const raw = localStorage.getItem(cacheKey);
+    if (raw) cachedPositionsInit = JSON.parse(raw);
+} catch (e) {}
+
 const TX_BACKEND_FUTURES = {
     walletLoaded: false,
     walletLoading: false,
@@ -4794,7 +4808,7 @@ const TX_BACKEND_FUTURES = {
     wallet: null,
     orders: [],
     openOrders: [],
-    positions: [],
+    positions: cachedPositionsInit,
     trades: [],
     ledger: [],
     pnlSummary: null,
@@ -5050,48 +5064,73 @@ function txBuildPositionRowHtml(position) {
     const entryPrice = txToNumber(position.entry_price ?? position.entryPrice, 0);
     const backendMarkPrice = txToNumber(position.mark_price ?? position.current_price, 0);
     const markPrice = txGetLivePriceForSymbol(symbol, backendMarkPrice || entryPrice);
-    const marginAmount = txToNumber(position.margin_amount ?? position.margin, 0);
+    const rawMargin = txToNumber(position.margin_amount ?? position.margin, 0);
     const leverage = txToNumber(position.leverage, 1);
     const liquidationPrice = txToNumber(
         position.liquidation_price ?? position.liquidationPrice ?? position.liq_price ?? position.liqPrice,
         0
     ) || txEstimateLiquidationPrice(entryPrice || markPrice, side, leverage);
-    const pnl = calculatePositionPnl(position);
+    const rawPnl = calculatePositionPnl(position);
+
+    // Detect currency of the position
+    const posCurrency = String(position.currency || "USDT").toUpperCase();
+    const rate = posCurrency === "INR" ? (TX_FUTURES_USDT_RATE || 88.50) : 1.0;
+
+    const marginAmount = rawMargin * rate;
+    const pnl = rawPnl; // Always in USD/USDT
+
     const pnlColorStyle = getPnlColorStyle(pnl);
-    const pnlText = formatPnlValue(pnl);
+    const pnlText = formatPnlValue(pnl, "USD");
     const { takeProfit, stopLoss } = txGetTpSlNumbers(position);
     const tpText = takeProfit > 0 ? formatNumber(takeProfit) : "--";
     const slText = stopLoss > 0 ? formatNumber(stopLoss) : "--";
 
-    const pnlPercent = marginAmount > 0 ? (pnl / marginAmount) * 100 : 0;
+    const pnlPercent = rawMargin > 0 ? (pnl / rawMargin) * 100 : 0;
     const pnlPercentText = (pnlPercent >= 0 ? "+" : "") + pnlPercent.toFixed(2) + "%";
-    const sign = pnl >= 0 ? "+" : "";
-    const absPnlText = Math.abs(pnl).toFixed(2);
+    const sign = pnl >= 0 ? "+" : "-";
+    const absPnlText = `$${Math.abs(pnl).toFixed(2)}`;
     const tpValText = takeProfit > 0 ? formatNumber(takeProfit) : "-";
     const slValText = stopLoss > 0 ? formatNumber(stopLoss) : "-";
 
+    const badgeStyle = posCurrency === "INR"
+        ? "background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);"
+        : "background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35);";
+    const currencyBadgeHtml = `<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" style="margin-left: 8px; white-space: nowrap; ${badgeStyle}">${posCurrency === "USDT" || posCurrency === "USD" ? "USD" : "INR"}</span>`;
+
+    const marginDisplay = posCurrency === "INR"
+        ? `₹${formatNumber(marginAmount, 2)}`
+        : `${formatNumber(marginAmount, 2)} USD`;
+
     return `
         <tr data-position-row="${txEscapeHtml(positionId)}">
-            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">${txEscapeHtml(txFormatSymbol(symbol))}</td>
+            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
+                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                    <span>${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                    ${currencyBadgeHtml}
+                </div>
+            </td>
             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(side)}">${txEscapeHtml(displaySide)}</td>
             <td class="rt-desktop-only" data-label="Qty" data-mobile-field="qty">${formatQty(qty)}</td>
             <td class="rt-desktop-only" data-label="Avg" data-mobile-field="entry">${formatNumber(entryPrice)}</td>
             <td class="rt-desktop-only" data-label="LTP" data-mobile-field="mark" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</td>
-            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${formatNumber(marginAmount)} USDT</td>
+            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${marginDisplay}</td>
             <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x</td>
             <td class="rt-desktop-only" data-label="Liq. Price" data-mobile-field="liquidation">${liquidationPrice > 0 ? formatNumber(liquidationPrice) : "--"}</td>
             <td class="rt-desktop-only" data-label="TP / SL" data-mobile-field="tp_sl">${tpText} / ${slText}</td>
             <td class="rt-desktop-only" data-label="P&L" data-mobile-field="pnl" ${pnlColorStyle} data-live-position-pnl="${txEscapeHtml(positionId)}">${pnlText}</td>
             <td class="rt-desktop-only" data-label="Action" data-mobile-field="action">
                 <button class="rt-table-action" type="button" data-close-position="${txEscapeHtml(positionId)}">
-                    Close
+                     Close
                 </button>
             </td>
             
             <td class="rt-mobile-only rt-mobile-card-cell" colspan="11">
                 <div class="rt-mobile-position-card">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm font-black text-white">${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                        <span class="text-sm font-black text-white flex items-center gap-2">
+                            <span>${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                            ${currencyBadgeHtml}
+                        </span>
                         <span class="text-sm font-black animate-pulse" ${pnlColorStyle} data-live-position-mobile-pnl="${txEscapeHtml(positionId)}">${sign}${absPnlText} (${pnlPercentText})</span>
                     </div>
                     <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
@@ -6003,10 +6042,10 @@ function txFormatFastPrice(price) {
     return formatNumber(numeric, numeric < 1 ? 6 : 2);
 }
 
-function txApplyPnlCell(cell, pnl) {
+function txApplyPnlCell(cell, pnl, currency = "USDT") {
     if (!cell) return;
     const value = txToNumber(pnl, 0);
-    cell.textContent = formatPnlValue(value);
+    cell.textContent = formatPnlValue(value, currency === "INR" ? "INR" : "USD");
     cell.style.color = value >= 0 ? "#22c55e" : "#ff6b6b";
 }
 
@@ -6025,7 +6064,12 @@ function txUpdateVisibleRowsInPlace() {
         const entryPrice = txToNumber(position.entry_price ?? position.entryPrice, 0);
         const backendMarkPrice = txToNumber(position.mark_price ?? position.current_price, 0);
         const livePrice = txGetLivePriceForSymbol(symbol, backendMarkPrice || entryPrice);
-        const pnl = calculatePositionPnl(position);
+        const rawPnl = calculatePositionPnl(position);
+
+        // Detect currency of the position
+        const posCurrency = String(position.currency || "USDT").toUpperCase();
+        const rate = posCurrency === "INR" ? (TX_FUTURES_USDT_RATE || 88.50) : 1.0;
+        const pnl = rawPnl; // Always in USD/USDT
 
         const markCells = elements.terminalTable.querySelectorAll(`[data-live-position-mark="${txSafeCssId(positionId)}"]`);
         markCells.forEach(cell => {
@@ -6037,17 +6081,17 @@ function txUpdateVisibleRowsInPlace() {
 
         const pnlCell = elements.terminalTable.querySelector(`[data-live-position-pnl="${txSafeCssId(positionId)}"]`);
         if (pnlCell) {
-            txApplyPnlCell(pnlCell, pnl);
+            txApplyPnlCell(pnlCell, pnl, "USD");
             updated += 1;
         }
 
         const mobilePnlCells = elements.terminalTable.querySelectorAll(`[data-live-position-mobile-pnl="${txSafeCssId(positionId)}"]`);
         mobilePnlCells.forEach(cell => {
-            const marginAmount = txToNumber(position.margin_amount ?? position.margin, 0);
-            const pnlPercent = marginAmount > 0 ? (pnl / marginAmount) * 100 : 0;
+            const rawMargin = txToNumber(position.margin_amount ?? position.margin, 0);
+            const pnlPercent = rawMargin > 0 ? (pnl / rawMargin) * 100 : 0;
             const pnlPercentText = (pnlPercent >= 0 ? "+" : "") + pnlPercent.toFixed(2) + "%";
-            const sign = pnl >= 0 ? "+" : "";
-            const absPnlText = Math.abs(pnl).toFixed(2);
+            const sign = pnl >= 0 ? "+" : "-";
+            const absPnlText = `$${Math.abs(pnl).toFixed(2)}`;
             cell.textContent = `${sign}${absPnlText} (${pnlPercentText})`;
             cell.style.color = pnl >= 0 ? "#22c55e" : "#ff6b6b";
             updated += 1;
@@ -6166,7 +6210,7 @@ async function loadBackendWalletBalance() {
     try {
         TX_BACKEND_FUTURES.walletLoading = true;
 
-        const response = await txApiRequestWithTimeout("/wallet/balance", {}, 2500);
+        const response = await txApiRequestWithTimeout("/wallet/balance", {}, 6000);
         TX_BACKEND_FUTURES.wallet = response.data.wallet || response.data || null;
         TX_BACKEND_FUTURES.walletLoaded = true;
 
@@ -6331,6 +6375,13 @@ async function refreshBackendFuturesData(force = false) {
                         return !optimisticPositions.some((localPosition) => txGetId(localPosition) === id);
                     })
                 ];
+
+            try {
+                const token = localStorage.getItem("traidiumx_auth_token") || "guest";
+                const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "master";
+                const cacheKey = "tx_cached_positions_" + token.substring(0, 15) + "_" + activeSubId;
+                localStorage.setItem(cacheKey, JSON.stringify(serverPositions));
+            } catch (e) {}
         }
 
         if (tradesResult.status === "fulfilled") {
@@ -6377,20 +6428,20 @@ function updateWalletUI() {
         }
 
         if (elements.walletUsed) {
-            elements.walletUsed.textContent = "0.00 USDT";
+            elements.walletUsed.textContent = "0.00 USD";
         }
 
         if (elements.walletPnl) {
-            elements.walletPnl.textContent = "+0.00 USDT";
+            elements.walletPnl.textContent = "+0.00 USD";
             elements.walletPnl.className = "text-3xl font-black text-slate-400";
         }
 
         if (elements.walletTotalProfit) {
-            elements.walletTotalProfit.textContent = "+0.00 USDT";
+            elements.walletTotalProfit.textContent = "+0.00 USD";
         }
 
         if (elements.walletTotalLoss) {
-            elements.walletTotalLoss.textContent = "0.00 USDT";
+            elements.walletTotalLoss.textContent = "0.00 USD";
         }
 
         if (elements.futuresTotalBalance) {
@@ -6402,7 +6453,7 @@ function updateWalletUI() {
         }
 
         if (elements.futuresTradingPnl) {
-            elements.futuresTradingPnl.textContent = "+0.00 USDT";
+            elements.futuresTradingPnl.textContent = "+0.00 USD";
             txApplyMoneyCellColor(elements.futuresTradingPnl, 0);
         }
 
@@ -6421,44 +6472,76 @@ function updateWalletUI() {
     const wallet = getWallet();
     const pnlSummary = TX_BACKEND_FUTURES.pnlSummary || {};
     const livePositions = TX_BACKEND_FUTURES.positions || [];
-    const liveUnrealizedPnl = livePositions.reduce((total, position) => {
+
+    // Filter positions based on active navbar currency
+    const activeNavbarCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const filteredPositions = livePositions.filter((position) => {
+        const posCurr = (position.currency || "USDT").toUpperCase();
+        if (activeNavbarCurrency === "INR") {
+            return posCurr === "INR";
+        } else {
+            return posCurr === "USDT" || posCurr === "USD";
+        }
+    });
+
+    const liveUnrealizedPnl = filteredPositions.reduce((total, position) => {
         return total + calculatePositionPnl(position);
     }, 0);
-    const unrealizedPnl = livePositions.length
+    const unrealizedPnl = filteredPositions.length
         ? liveUnrealizedPnl
+        : 0;
+
+    // Calculate Overall P&L (USDT + INR combined) for the right-side Overall Profit / Loss card
+    const overallLiveUnrealizedPnl = livePositions.reduce((total, position) => {
+        return total + calculatePositionPnl(position);
+    }, 0);
+    const overallUnrealizedPnl = livePositions.length
+        ? overallLiveUnrealizedPnl
         : txToNumber(pnlSummary.total_unrealized_pnl, 0);
-    const usedMargin = txToNumber(pnlSummary.total_margin, wallet.usedMargin);
-    const pnlBreakdown = txGetOverallPnlBreakdown();
-    const totalProfit = livePositions.length
-        ? pnlBreakdown.totalProfit
+
+    const usedMargin = filteredPositions.length
+        ? filteredPositions.reduce((total, position) => total + txToNumber(position.margin_amount, 0), 0)
+        : 0;
+
+    const overallPnlBreakdown = txGetOverallPnlBreakdown(livePositions);
+    const overallTotalProfit = livePositions.length
+        ? overallPnlBreakdown.totalProfit
+        : Math.max(overallUnrealizedPnl, 0);
+    const overallTotalLoss = livePositions.length
+        ? overallPnlBreakdown.totalLoss
+        : Math.max(Math.abs(Math.min(overallUnrealizedPnl, 0)), 0);
+
+    const filteredPnlBreakdown = txGetOverallPnlBreakdown(filteredPositions);
+    const filteredTotalProfit = filteredPositions.length
+        ? filteredPnlBreakdown.totalProfit
         : Math.max(unrealizedPnl, 0);
-    const totalLoss = livePositions.length
-        ? pnlBreakdown.totalLoss
+    const filteredTotalLoss = filteredPositions.length
+        ? filteredPnlBreakdown.totalLoss
         : Math.max(Math.abs(Math.min(unrealizedPnl, 0)), 0);
 
     if (elements.walletAvailable) {
-        elements.walletAvailable.textContent = `${formatNumber(wallet.available, 2)} USDT`;
+        elements.walletAvailable.textContent = `${formatNumber(wallet.available, 2)} USD`;
     }
 
     if (elements.walletUsed) {
-        elements.walletUsed.textContent = `${formatNumber(usedMargin, 2)} USDT`;
+        elements.walletUsed.textContent = `${formatNumber(usedMargin, 2)} USD`;
     }
 
     if (elements.walletTotalProfit) {
-        elements.walletTotalProfit.textContent = `+${formatNumber(totalProfit, 2)} USDT`;
-        txApplyMoneyCellColor(elements.walletTotalProfit, totalProfit);
+        elements.walletTotalProfit.textContent = `+${formatNumber(filteredTotalProfit, 2)} USD`;
+        txApplyMoneyCellColor(elements.walletTotalProfit, filteredTotalProfit);
     }
 
     if (elements.walletTotalLoss) {
-        elements.walletTotalLoss.textContent = totalLoss > 0
-            ? `-${formatNumber(totalLoss, 2)} USDT`
-            : "0.00 USDT";
-        txApplyMoneyCellColor(elements.walletTotalLoss, totalLoss > 0 ? -totalLoss : 0);
+        elements.walletTotalLoss.textContent = filteredTotalLoss > 0
+            ? `-${formatNumber(filteredTotalLoss, 2)} USD`
+            : "0.00 USD";
+        txApplyMoneyCellColor(elements.walletTotalLoss, filteredTotalLoss > 0 ? -filteredTotalLoss : 0);
     }
 
     if (elements.walletPnl) {
-        elements.walletPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatNumber(unrealizedPnl, 2)} USDT`;
-        elements.walletPnl.className = unrealizedPnl >= 0
+        elements.walletPnl.textContent = `${overallUnrealizedPnl >= 0 ? "+" : ""}${formatNumber(overallUnrealizedPnl, 2)} USD`;
+        elements.walletPnl.className = overallUnrealizedPnl >= 0
             ? "text-3xl font-black text-emerald-400"
             : "text-3xl font-black text-red-400";
     }
@@ -6482,7 +6565,7 @@ function updateWalletUI() {
     }
 
     if (elements.futuresTradingPnl) {
-        elements.futuresTradingPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatNumber(unrealizedPnl, 2)} USDT`;
+        elements.futuresTradingPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatNumber(unrealizedPnl, 2)} USD`;
         elements.futuresTradingPnl.title = "Live P&L from open Futures positions. Close profit/loss settles back into Trading Wallet.";
         txApplyMoneyCellColor(elements.futuresTradingPnl, unrealizedPnl);
     }
@@ -6510,11 +6593,11 @@ function updateWalletUI() {
     );
 
     if (marginBalanceValue) {
-        marginBalanceValue.textContent = `${formatNumber(marginBalance, 4)} USDT`;
+        marginBalanceValue.textContent = `${formatNumber(marginBalance, 4)} USD`;
     }
 
     if (maintenanceMarginValue) {
-        maintenanceMarginValue.textContent = `${formatNumber(maintenanceMargin, 4)} USDT`;
+        maintenanceMarginValue.textContent = `${formatNumber(maintenanceMargin, 4)} USD`;
     }
 
     txUpdateFuturesWalletModalBalances();
@@ -6543,8 +6626,8 @@ function calculatePositionPnl(position) {
     return txToNumber(position.unrealized_pnl, 0);
 }
 
-function txGetOverallPnlBreakdown() {
-    const positions = TX_BACKEND_FUTURES.positions || [];
+function txGetOverallPnlBreakdown(customPositions) {
+    const positions = customPositions || TX_BACKEND_FUTURES.positions || [];
     let totalProfit = 0;
     let totalLoss = 0;
     let netPnl = 0;
@@ -6941,6 +7024,7 @@ function txBuildOptimisticOrder(payload = {}) {
         status: orderType === "market" ? "filled" : "open",
         created_at: nowIso,
         createdAt: nowIso,
+        currency: (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase(),
         __optimistic: true
     };
 }
@@ -7017,6 +7101,7 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
         status: "open",
         opened_at: nowIso,
         created_at: nowIso,
+        currency: (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase(),
         __optimistic: true
     };
 }
@@ -7967,6 +8052,10 @@ function initFuturesTerminal() {
     renderBottomTable();
     updateFundingCountdown();
     txRecordRecentSymbol(state.currentSymbol);
+
+    if (isLoggedIn()) {
+        refreshBackendFuturesData(true);
+    }
 
     window.setInterval(() => {
         if (!isLoggedIn()) {
@@ -8985,16 +9074,16 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const dir = directionSelect.value;
 
         if (amount <= 0) {
-            previewEl.textContent = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR. Enter amount to see preview.`;
+            previewEl.textContent = `Rate: 1 USD = ₹${rate.toFixed(2)} INR. Enter amount to see preview.`;
             return;
         }
 
         if (dir === "main_to_sub") {
             const usdtEq = (amount / rate).toFixed(4);
-            previewEl.innerHTML = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>₹${amount.toLocaleString()} INR</strong> will credit ≈ <strong>${usdtEq} USDT</strong> to target account.`;
+            previewEl.innerHTML = `Rate: 1 USD = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>₹${amount.toLocaleString()} INR</strong> will credit ≈ <strong>${usdtEq} USD</strong> to target account.`;
         } else {
             const inrEq = (amount * rate).toFixed(2);
-            previewEl.innerHTML = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>${amount.toFixed(4)} USDT</strong> will credit ≈ <strong>₹${parseFloat(inrEq).toLocaleString()} INR</strong> to Main Wallet.`;
+            previewEl.innerHTML = `Rate: 1 USD = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>${amount.toFixed(4)} USD</strong> will credit ≈ <strong>₹${parseFloat(inrEq).toLocaleString()} INR</strong> to Main Wallet.`;
         }
     }
 

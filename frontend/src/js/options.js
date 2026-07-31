@@ -636,7 +636,7 @@ function renderWalletBox() {
 
     const estMarginNode = document.getElementById("walletEstMargin");
     if (estMarginNode) {
-        estMarginNode.textContent = `${formatNumber(required, 2)} USDT`;
+        estMarginNode.textContent = `${formatNumber(required, 2)} USD`;
     }
 }
 
@@ -1328,7 +1328,7 @@ function renderSelectedContract() {
         el.costPreview.textContent = `$${formatNumber(required, 2)}`;
         const estMarginNode = document.getElementById("walletEstMargin");
         if (estMarginNode) {
-            estMarginNode.textContent = `${formatNumber(required, 2)} USDT`;
+            estMarginNode.textContent = `${formatNumber(required, 2)} USD`;
         }
     }
     if (el.greeksBadge) {
@@ -2760,11 +2760,11 @@ function openOptionsWalletModal(action = "transfer") {
     const transferDirSelect = document.getElementById("optionsTransferDirection");
     if (transferDirSelect) {
         if (isINR) {
-            transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USDT)`;
-            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (INR)`;
+            transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USD)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USD) → Main Wallet (INR)`;
         } else {
-            transferDirSelect.options[0].textContent = `Main Wallet (USDT) → ${activeText} (USDT)`;
-            transferDirSelect.options[1].textContent = `${activeText} (USDT) → Main Wallet (USDT)`;
+            transferDirSelect.options[0].textContent = `Main Wallet (USD) → ${activeText} (USD)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USD) → Main Wallet (USD)`;
         }
     }
 
@@ -2847,7 +2847,7 @@ function updateOptionsWalletModalBalances() {
 
         const pnlText = nodes.summaryPnl?.textContent || "+0.00";
         if (nodes.tradingPnl) {
-            nodes.tradingPnl.textContent = `${pnlText} USDT`;
+            nodes.tradingPnl.textContent = `${pnlText} USD`;
             nodes.tradingPnl.className = pnlText.includes("-") ? "mt-1 block text-red-300" : "mt-1 block text-emerald-300";
         }
     } catch (err) {
@@ -3659,16 +3659,16 @@ function txUpdateSubTransferPreview(rate) {
     const dir = directionSelect.value;
 
     if (amount <= 0) {
-        previewEl.textContent = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR. Enter amount to see preview.`;
+        previewEl.textContent = `Rate: 1 USD = ₹${rate.toFixed(2)} INR. Enter amount to see preview.`;
         return;
     }
 
     if (dir === "main_to_sub") {
         const usdtEq = (amount / rate).toFixed(4);
-        previewEl.innerHTML = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>₹${amount.toLocaleString()} INR</strong> will credit ≈ <strong>${usdtEq} USDT</strong> to target account.`;
+        previewEl.innerHTML = `Rate: 1 USD = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>₹${amount.toLocaleString()} INR</strong> will credit ≈ <strong>${usdtEq} USD</strong> to target account.`;
     } else {
         const inrEq = (amount * rate).toFixed(2);
-        previewEl.innerHTML = `Rate: 1 USDT = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>${amount.toFixed(4)} USDT</strong> will credit ≈ <strong>₹${parseFloat(inrEq).toLocaleString()} INR</strong> to Main Wallet.`;
+        previewEl.innerHTML = `Rate: 1 USD = ₹${rate.toFixed(2)} INR<br/>Transferring <strong>${amount.toFixed(4)} USD</strong> will credit ≈ <strong>₹${parseFloat(inrEq).toLocaleString()} INR</strong> to Main Wallet.`;
     }
 }
 
