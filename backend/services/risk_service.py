@@ -5,7 +5,7 @@ from services.pnl_service import calculate_position_pnl
 from services.wallet_service import ensure_user_wallet
 
 
-def calculate_liquidation_price(position_side, entry_price, leverage):
+def calculate_liquidation_price(position_side, entry_price, leverage, margin_mode="isolated", wallet_balance=None, quantity=None):
     entry_price = float(entry_price)
     leverage = int(leverage)
 
@@ -14,12 +14,26 @@ def calculate_liquidation_price(position_side, entry_price, leverage):
 
     maintenance_margin_rate = float(settings.MAINTENANCE_MARGIN_RATE)
 
-    if position_side == "long":
-        liquidation_price = entry_price * (1 - (1 / leverage) + maintenance_margin_rate)
-    elif position_side == "short":
-        liquidation_price = entry_price * (1 + (1 / leverage) - maintenance_margin_rate)
+    if margin_mode == "cross" and wallet_balance is not None and quantity is not None and quantity > 0:
+        wallet_balance = float(wallet_balance)
+        quantity = float(quantity)
+        if position_side == "long":
+            numerator = (quantity * entry_price) - wallet_balance
+            denominator = quantity * (1 - maintenance_margin_rate)
+            liquidation_price = numerator / denominator if denominator > 0 else 0.0
+        elif position_side == "short":
+            numerator = wallet_balance + (quantity * entry_price)
+            denominator = quantity * (1 + maintenance_margin_rate)
+            liquidation_price = numerator / denominator if denominator > 0 else 0.0
+        else:
+            liquidation_price = 0.0
     else:
-        liquidation_price = 0.0
+        if position_side == "long":
+            liquidation_price = entry_price * (1 - (1 / leverage) + maintenance_margin_rate)
+        elif position_side == "short":
+            liquidation_price = entry_price * (1 + (1 / leverage) - maintenance_margin_rate)
+        else:
+            liquidation_price = 0.0
 
     if liquidation_price < 0:
         liquidation_price = 0.0
@@ -94,10 +108,14 @@ def validate_order_risk(user_id, clean_data, estimated_price, margin_data):
                 f"After order, wallet must keep at least {settings.WALLET_SAFETY_BUFFER} USDT available balance."
             )
 
+    margin_mode = clean_data.get("margin_mode", "isolated")
     liquidation_price = calculate_liquidation_price(
         position_side=position_side,
         entry_price=estimated_price,
-        leverage=leverage
+        leverage=leverage,
+        margin_mode=margin_mode,
+        wallet_balance=total_balance,
+        quantity=float(clean_data["quantity"])
     )
 
     margin_usage_after_order = 0.0
@@ -144,6 +162,27 @@ def calculate_liquidation_distance(position, current_price):
     current_price = float(current_price)
 
     liquidation_price = position.get("liquidation_price")
+    margin_mode = position.get("margin_mode", "isolated")
+
+    if margin_mode == "cross":
+        try:
+            user_id = position.get("user_id")
+            wallet = ensure_user_wallet(user_id)
+            trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
+            available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)
+            margin_amount = float(position.get("margin_amount", 0.0))
+            wallet_balance = available_balance + margin_amount
+
+            liquidation_price = calculate_liquidation_price(
+                position_side=position.get("position_side"),
+                entry_price=position.get("entry_price", 0.0),
+                leverage=position.get("leverage", 1),
+                margin_mode="cross",
+                wallet_balance=wallet_balance,
+                quantity=float(position.get("quantity", 0.0))
+            )
+        except Exception:
+            pass
 
     if not liquidation_price:
         liquidation_price = calculate_liquidation_price(

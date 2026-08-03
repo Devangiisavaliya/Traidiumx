@@ -214,7 +214,9 @@ def _validate_deposit_input(user_id, data):
     if payment_method == "inr_deposit":
         cleaned_hash = inr_utr_number or f"INR-UTR-{uuid.uuid4().hex[:10].upper()}"
     elif deposit_address_confirmation:
-        if not deposit_address:
+        if not settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT:
+            errors["deposit_address_confirmation"] = "Direct credit simulation is disabled in this environment."
+        elif not deposit_address:
             errors["deposit_address_confirmation"] = "Company deposit address is not configured for this network."
         elif deposit_address_confirmation != deposit_address:
             errors["deposit_address_confirmation"] = "Deposit allowed only to the shown company wallet address. Copy the company address above and paste the exact same address here."
@@ -222,7 +224,7 @@ def _validate_deposit_input(user_id, data):
             address_confirmed_demo = True
             cleaned_hash = build_internal_address_confirmation_tx_hash()
     else:
-        allow_demo_reference = is_demo_deposit_context(deposit_address)
+        allow_demo_reference = bool(settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT)
         is_valid_hash, hash_error, cleaned_hash = validate_crypto_tx_hash(tx_hash, allow_demo_reference=allow_demo_reference)
         if not is_valid_hash:
             errors["tx_hash"] = hash_error

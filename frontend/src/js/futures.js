@@ -90,6 +90,7 @@ const state = {
     interval: "1m",
     side: "BUY",
     orderType: "MARKET",
+    marginMode: "isolated",
 
     currentPrice: 0,
     previousPrice: 0,
@@ -3523,6 +3524,42 @@ function initEvents() {
     if (elements.leverageSelect) {
         elements.leverageSelect.addEventListener("change", txUpdateEstimatedMargin);
     }
+    // Custom Margin Mode Dropdown Handler
+    const marginModeBtn = document.getElementById("marginModeBtn");
+    const marginModeMenu = document.getElementById("marginModeMenu");
+    const marginModeBtnText = document.getElementById("marginModeBtnText");
+
+    if (marginModeBtn && marginModeMenu && marginModeBtnText) {
+        marginModeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            marginModeMenu.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", () => {
+            marginModeMenu.classList.add("hidden");
+        });
+
+        document.querySelectorAll(".margin-mode-option").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const val = btn.getAttribute("data-value");
+                state.marginMode = val;
+
+                if (val === "isolated") {
+                    marginModeBtnText.textContent = "Isolated Margin";
+                    marginModeBtn.style.setProperty("color", "#22d3ee", "important");
+                    marginModeBtn.style.setProperty("border-color", "rgba(34, 211, 238, 0.2)", "important");
+                } else {
+                    marginModeBtnText.textContent = "Cross Margin";
+                    marginModeBtn.style.setProperty("color", "#fbbf24", "important");
+                    marginModeBtn.style.setProperty("border-color", "rgba(251, 191, 36, 0.2)", "important");
+                }
+
+                marginModeMenu.classList.add("hidden");
+                txUpdateEstimatedMargin();
+            });
+        });
+    }
 
     if (elements.pairSelect) {
         elements.pairSelect.addEventListener("change", () => {
@@ -5114,7 +5151,7 @@ function txBuildPositionRowHtml(position) {
             <td class="rt-desktop-only" data-label="Avg" data-mobile-field="entry">${formatNumber(entryPrice)}</td>
             <td class="rt-desktop-only" data-label="LTP" data-mobile-field="mark" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</td>
             <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${marginDisplay}</td>
-            <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x</td>
+            <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x<br/><span class="text-[10px] text-slate-500 uppercase font-black">${txEscapeHtml(position.margin_mode || "isolated")}</span></td>
             <td class="rt-desktop-only" data-label="Liq. Price" data-mobile-field="liquidation">${liquidationPrice > 0 ? formatNumber(liquidationPrice) : "--"}</td>
             <td class="rt-desktop-only" data-label="TP / SL" data-mobile-field="tp_sl">${tpText} / ${slText}</td>
             <td class="rt-desktop-only" data-label="P&L" data-mobile-field="pnl" ${pnlColorStyle} data-live-position-pnl="${txEscapeHtml(positionId)}">${pnlText}</td>
@@ -5134,7 +5171,7 @@ function txBuildPositionRowHtml(position) {
                         <span class="text-sm font-black animate-pulse" ${pnlColorStyle} data-live-position-mobile-pnl="${txEscapeHtml(positionId)}">${sign}${absPnlText} (${pnlPercentText})</span>
                     </div>
                     <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                        FUTURES | ${leverage}x · <span class="${txSideClass(side)}">${displaySide}</span>
+                        FUTURES | ${txEscapeHtml(position.margin_mode || "isolated").toUpperCase()} | ${leverage}x · <span class="${txSideClass(side)}">${displaySide}</span>
                     </div>
                     <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
                         <div>
@@ -6700,6 +6737,7 @@ function placeOrderPayload() {
         order_type: orderType,
         quantity: qty,
         leverage: leverage,
+        margin_mode: state.marginMode || "isolated",
         reduce_only: false,
         has_tp_sl: tpSlEnabled
     };

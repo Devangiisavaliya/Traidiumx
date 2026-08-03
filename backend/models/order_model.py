@@ -153,6 +153,7 @@ def format_order(order):
         "liquidation_price": order.get("liquidation_price", 0.0),
         "risk": order.get("risk", {}),
         "currency": order.get("currency", "USDT"),
+        "margin_mode": order.get("margin_mode", "isolated"),
     }
 
 

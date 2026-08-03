@@ -157,6 +157,7 @@ def format_position(position):
         "index_price": position.get("index_price", 0.0),
         "close_reason": position.get("close_reason"),
         "currency": position.get("currency", "USDT"),
+        "margin_mode": position.get("margin_mode", "isolated"),
     }
 
 

@@ -325,6 +325,29 @@
                                         </label>
                                     </div>
                                 </div>
+
+                                <!-- Binance API Settings -->
+                                <div class="admin-card p-6">
+                                    <h3 class="text-xl font-black text-white">Binance Futures API Integration</h3>
+                                    <p class="mt-1 text-sm text-slate-400">Configure Binance API credentials to mirror TradiumX trades to your Binance Futures account.</p>
+
+                                    <div class="mt-6 grid gap-5 lg:grid-cols-2">
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Binance API Key</span>
+                                            <input id="binanceApiKey" type="password" class="admin-input" placeholder="Enter Binance API Key" autocomplete="off" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Binance Secret Key</span>
+                                            <input id="binanceSecretKey" type="password" class="admin-input" placeholder="Enter Binance Secret Key" autocomplete="off" />
+                                        </label>
+
+                                        <label class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 lg:col-span-2">
+                                            <input id="binanceIsTestnet" type="checkbox" checked />
+                                            <span class="font-bold text-slate-300">Use Binance Futures Testnet (Demo Mode)</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- TAB 3: Fees & Wallet -->

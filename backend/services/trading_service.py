@@ -397,10 +397,20 @@ def create_or_update_position_from_order(user_id, order, execution_price):
     margin_amount = float(order.get("margin_amount", 0.0))
     notional_value = quantity * float(execution_price)
 
+    margin_mode = order.get("margin_mode", "isolated")
+    wallet = ensure_user_wallet(user_id)
+    trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
+    available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)
+    locked_balance = float(trading_wallet.get("locked_balance", wallet.get("locked_balance", 0.0)) or 0.0)
+    total_balance = available_balance + locked_balance
+
     liquidation_price = calculate_liquidation_price(
         position_side=position_side,
         entry_price=execution_price,
-        leverage=order.get("leverage", 1)
+        leverage=order.get("leverage", 1),
+        margin_mode=margin_mode,
+        wallet_balance=total_balance,
+        quantity=quantity
     )
 
     position_id = create_position({
@@ -423,6 +433,7 @@ def create_or_update_position_from_order(user_id, order, execution_price):
         "leverage": order.get("leverage", 1),
         "notional_value": round(notional_value, 8),
         "margin_amount": margin_amount,
+        "margin_mode": margin_mode,
         "liquidation_price": liquidation_price,
         "take_profit": order.get("take_profit"),
         "stop_loss": order.get("stop_loss"),
@@ -619,6 +630,79 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
         execution_price=execution_price
     )
 
+    binance_order_id = order.get("binance_order_id")
+    binance_status = order.get("binance_status")
+    binance_remark = ""
+
+    if settings.BINANCE_API_KEY:
+        try:
+            # If this order was already mirrored (e.g. as a LIMIT order) on Binance, we skip placing a new order!
+            if binance_order_id:
+                binance_remark = f" Mirrored to Binance as LIMIT. ID: {binance_order_id}"
+                
+                # Update position with Binance Order ID
+                update_position(str(position["_id"]), {
+                    "binance_order_id": binance_order_id
+                })
+                
+                # Mirror TP/SL to Binance if configured (since it's now filled, we can place TP/SL trigger orders!)
+                tp = order.get("take_profit")
+                sl = order.get("stop_loss")
+                if tp or sl:
+                    try:
+                        from services.binance_service import update_binance_tp_sl
+                        update_binance_tp_sl(
+                            symbol=order.get("symbol"),
+                            position_side=order.get("side"),
+                            quantity=order.get("quantity"),
+                            take_profit=tp,
+                            stop_loss=sl
+                        )
+                    except Exception as tp_sl_err:
+                        print(f"Failed to place initial TP/SL on Binance: {tp_sl_err}")
+            else:
+                # Standard path for MARKET orders: place it now!
+                from services.binance_service import place_binance_futures_order
+                binance_res = place_binance_futures_order(
+                    symbol=order.get("symbol"),
+                    side=order.get("side"),
+                    quantity=order.get("quantity"),
+                    leverage=order.get("leverage", 1),
+                    margin_mode=order.get("margin_mode", "isolated"),
+                    price=execution_price if order.get("order_type") == "limit" else None,
+                    order_type=order.get("order_type", "MARKET")
+                )
+                if binance_res.get("success"):
+                    binance_order_id = binance_res.get("binance_order_id")
+                    binance_status = binance_res.get("status")
+                    binance_remark = f" Mirrored to Binance. ID: {binance_order_id}"
+                    
+                    # Update position with Binance Order ID
+                    update_position(str(position["_id"]), {
+                        "binance_order_id": binance_order_id
+                    })
+                    
+                    # Mirror TP/SL to Binance if configured
+                    tp = order.get("take_profit")
+                    sl = order.get("stop_loss")
+                    if tp or sl:
+                        try:
+                            from services.binance_service import update_binance_tp_sl
+                            update_binance_tp_sl(
+                                symbol=order.get("symbol"),
+                                position_side=order.get("side"),
+                                quantity=order.get("quantity"),
+                                take_profit=tp,
+                                stop_loss=sl
+                            )
+                        except Exception as tp_sl_err:
+                            print(f"Failed to place initial TP/SL on Binance: {tp_sl_err}")
+                else:
+                    binance_remark = f" Binance Mirror Failed: {binance_res.get('message')}"
+        except Exception as e:
+            binance_remark = f" Binance Mirror Exception: {str(e)}"
+            print(f"Exception mirroring trade to Binance: {e}")
+
     updated_order = update_order(
         order_id=order_id,
         update_data={
@@ -642,8 +726,10 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
             "trading_fee_charged_at": now_utc() if platform_fee > 0 else None,
             "platform_fee_config": platform_charge,
             "trading_fee_config": platform_charge,
-            "remark": remark,
-            "executed_at": now_utc()
+            "remark": remark + binance_remark,
+            "executed_at": now_utc(),
+            "binance_order_id": binance_order_id,
+            "binance_status": binance_status
         }
     )
 
@@ -929,6 +1015,30 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
         except Exception as error:
             print(f"Warning: admin spread profit credit failed for {position_id}: {error}")
 
+    binance_close_order_id = None
+    binance_close_status = None
+    binance_close_remark = ""
+
+    if settings.BINANCE_API_KEY:
+        try:
+            from services.binance_service import close_binance_futures_position
+            binance_res = close_binance_futures_position(
+                symbol=position.get("symbol"),
+                side=position.get("position_side"),
+                quantity=position.get("quantity"),
+                leverage=position.get("leverage", 1),
+                margin_mode=position.get("margin_mode", "isolated")
+            )
+            if binance_res.get("success"):
+                binance_close_order_id = binance_res.get("binance_order_id")
+                binance_close_status = binance_res.get("status")
+                binance_close_remark = f" Binance Close Order ID: {binance_close_order_id}"
+            else:
+                binance_close_remark = f" Binance Close Failed: {binance_res.get('message')}"
+        except Exception as e:
+            binance_close_remark = f" Binance Close Exception: {str(e)}"
+            print(f"Exception closing Binance position: {e}")
+
     updated_position = update_position(
         position_id=position_id,
         update_data={
@@ -950,6 +1060,9 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
             "unrealized_pnl": 0.0,
             "closed_at": now_utc(),
             "close_reason": close_reason,
+            "binance_close_order_id": binance_close_order_id,
+            "binance_close_status": binance_close_status,
+            "binance_close_remark": binance_close_remark
         },
     )
 
@@ -985,7 +1098,10 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
         "realized_pnl": net_realized_pnl,
         "net_realized_pnl": net_realized_pnl,
         "close_reason": close_reason,
-        "currency": position.get("currency", "USDT")
+        "currency": position.get("currency", "USDT"),
+        "binance_order_id": binance_close_order_id,
+        "binance_status": binance_close_status,
+        "remark": f"Position closed.{binance_close_remark}"
     })
     close_trade = find_trade_by_id(str(trade_id))
     reconcile_user_plan(user_id, send_notice=True)
@@ -1141,6 +1257,21 @@ def update_position_protection(user_id, position_id, data):
         "sl_enabled": bool(stop_loss),
         "trigger_price_type": "mark_price",
     })
+
+    # Mirror updated TP/SL to Binance
+    try:
+        from services.binance_service import _get_binance_credentials, update_binance_tp_sl
+        api_key, _, _ = _get_binance_credentials()
+        if api_key:
+            update_binance_tp_sl(
+                symbol=position.get("symbol"),
+                position_side=position.get("position_side"),
+                quantity=position.get("quantity"),
+                take_profit=take_profit,
+                stop_loss=stop_loss
+            )
+    except Exception as tp_sl_err:
+        print(f"Error mirroring updated TP/SL to Binance: {tp_sl_err}")
 
     return {
         "success": True,

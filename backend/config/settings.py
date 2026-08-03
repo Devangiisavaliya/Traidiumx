@@ -148,6 +148,7 @@ class Settings:
     # Company-level crypto wallet automation configuration.
     # Keep real provider keys/RPC URLs only in backend/.env.
     CRYPTO_DEPOSIT_AUTO_VERIFY = os.getenv("CRYPTO_DEPOSIT_AUTO_VERIFY", "true").lower() == "true"
+    CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT = os.getenv("CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT", "true").lower() == "true"
     CRYPTO_WITHDRAWAL_PROCESSING_MODE = os.getenv("CRYPTO_WITHDRAWAL_PROCESSING_MODE", "backend_operations")
     CRYPTO_TRC20_REQUIRED_CONFIRMATIONS = int(os.getenv("CRYPTO_TRC20_REQUIRED_CONFIRMATIONS", 20))
     CRYPTO_ERC20_REQUIRED_CONFIRMATIONS = int(os.getenv("CRYPTO_ERC20_REQUIRED_CONFIRMATIONS", 12))
@@ -166,6 +167,11 @@ class Settings:
     RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
     RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
     RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "").strip()
+
+    # Binance Futures API Settings
+    BINANCE_API_KEY = os.getenv("BINANCE_API_KEY", "").strip()
+    BINANCE_SECRET_KEY = os.getenv("BINANCE_SECRET_KEY", "").strip()
+    BINANCE_IS_TESTNET = os.getenv("BINANCE_IS_TESTNET", "true").lower() == "true"
 
     @property
     def DIGIO_BASE_URL(self):

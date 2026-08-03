@@ -105,6 +105,10 @@ DEFAULT_SETTINGS = {
 
     "require_admin_2fa": True,
     "enable_audit_logging": True,
+
+    "binance_api_key": "",
+    "binance_secret_key": "",
+    "binance_is_testnet": True,
 }
 
 
@@ -493,6 +497,13 @@ def clean_settings_payload(data):
         "enable_audit_logging": to_bool(
             data.get("enable_audit_logging"),
             DEFAULT_SETTINGS["enable_audit_logging"]
+        ),
+
+        "binance_api_key": str(data.get("binance_api_key") or "").strip(),
+        "binance_secret_key": str(data.get("binance_secret_key") or "").strip(),
+        "binance_is_testnet": to_bool(
+            data.get("binance_is_testnet"),
+            DEFAULT_SETTINGS["binance_is_testnet"]
         ),
 
         "updated_at": datetime.now(timezone.utc).isoformat(),

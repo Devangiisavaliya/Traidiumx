@@ -918,7 +918,16 @@ function renderTickerStrip() {
         `;
     });
 
-    el.tickerStrip.innerHTML = rows.join("");
+    const tickerHtml = rows.join("");
+
+    el.tickerStrip.innerHTML = `
+        <div class="os-ticker-marquee">
+            <div class="os-ticker-track">
+                ${tickerHtml}
+                ${tickerHtml}
+            </div>
+        </div>
+    `;
 
     el.tickerStrip.querySelectorAll("[data-options-ticker-symbol]").forEach((item) => {
         const openSymbol = () => {

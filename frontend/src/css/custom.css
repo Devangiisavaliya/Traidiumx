@@ -7284,7 +7284,7 @@ details[open] {
 .rt-terminal-focused {
     grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
     gap: 10px !important;
-    align-items: start !important;
+    align-items: stretch !important;
 }
 
 .rt-terminal-focused .rt-left-terminal,
@@ -7294,8 +7294,8 @@ details[open] {
 }
 
 .rt-terminal-focused .rt-right-panel {
-    position: sticky !important;
-    top: 110px !important;
+    position: relative !important;
+    top: auto !important;
 }
 
 .rt-terminal-focused .rt-right-panel .rt-card {
@@ -7534,6 +7534,7 @@ body .rt-terminal-3col {
     flex-direction: column !important;
     position: relative !important;
     top: auto !important;
+    height: 100% !important;
     min-height: 100% !important;
 }
 
@@ -7667,4 +7668,96 @@ body .rt-terminal-3col {
 .rt-terminal-focused .mt-5.grid-cols-2 {
     margin-top: 8px !important;
     gap: 8px !important;
+}
+
+
+/* Custom Margin Mode Dropdown Styling */
+#marginModeDropdown {
+    position: relative;
+    display: inline-block;
+}
+
+#marginModeBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #22d3ee;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#marginModeBtn:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.15);
+}
+
+#marginModeMenu {
+    position: absolute;
+    left: 0;
+    margin-top: 6px;
+    width: 220px;
+    border-radius: 12px;
+    background: #0b0f19;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    overflow: hidden;
+}
+
+#marginModeMenu.hidden {
+    display: none;
+}
+
+.margin-mode-option {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: background 0.2s ease;
+}
+
+.margin-mode-option:last-child {
+    border-bottom: none;
+}
+
+.margin-mode-option:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.margin-mode-option .title-isolated {
+    color: #22d3ee;
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.margin-mode-option .title-cross {
+    color: #fbbf24;
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.margin-mode-option .desc {
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.3;
 }

@@ -155,6 +155,7 @@ const walletElements = {
     withdrawPreviewReceive: document.getElementById("withdrawPreviewReceive"),
     withdrawPreviewNote: document.getElementById("withdrawPreviewNote"),
     depositAmount: document.getElementById("depositAmount"),
+    depositTxHash: document.getElementById("depositTxHash"),
     demoCreditPanel: document.getElementById("demoWalletCreditPanel"),
     demoDepositForm: document.getElementById("demoDepositForm"),
     demoDepositAmount: document.getElementById("demoDepositAmount"),
@@ -2246,7 +2247,7 @@ function validateDepositForm(formData, isINR = false) {
     const network = String(formData.get("crypto_network") || "").trim().toUpperCase();
     const addressInfo = getSelectedCryptoAddressInfo();
     const companyAddress = String(addressInfo?.address || "").trim();
-    const confirmedAddress = String(formData.get("deposit_address_confirmation") || "").trim();
+    const txHash = String(formData.get("tx_hash") || "").trim();
 
     const minAmount = Number(WALLET_STATE.cryptoDeposit.minAmount || 0);
     const maxAmount = Number(WALLET_STATE.cryptoDeposit.maxAmount || 1000000);
@@ -2254,8 +2255,7 @@ function validateDepositForm(formData, isINR = false) {
     if (amount > maxAmount) return `Maximum crypto deposit amount is ${maxAmount} USDT.`;
     if (!["TRC20", "ERC20", "BEP20"].includes(network)) return "Please select a valid crypto network.";
     if (!addressInfo?.is_configured || !companyAddress) return `USDT ${network} company deposit address is not configured from Admin Settings.`;
-    if (!confirmedAddress) return "Copy the shown company deposit address and paste it in confirmation field.";
-    if (confirmedAddress !== companyAddress) return "Deposit rejected. Paste only the exact company deposit address shown above; other addresses are not allowed.";
+    if (!txHash) return "Transaction ID (TXID / Hash) is required after sending USDT deposit.";
 
     return "";
 }
@@ -2409,7 +2409,7 @@ async function handleDepositSubmit(event) {
                 payment_method: "crypto_deposit",
                 crypto_asset: String(formData.get("crypto_asset") || "USDT").trim().toUpperCase(),
                 crypto_network: String(formData.get("crypto_network") || "").trim().toUpperCase(),
-                deposit_address_confirmation: String(formData.get("deposit_address_confirmation") || "").trim()
+                tx_hash: String(formData.get("tx_hash") || "").trim()
             };
 
             const response = await apiRequest("/deposit/create", {

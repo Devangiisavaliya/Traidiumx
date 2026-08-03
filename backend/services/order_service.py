@@ -114,8 +114,9 @@ def validate_order_payload(data):
     else:
         stop_loss = None
 
-    if not isinstance(reduce_only, bool):
-        errors["reduce_only"] = "Reduce only must be true or false."
+    margin_mode = clean_string(data.get("margin_mode", "isolated")).lower()
+    if margin_mode not in ["isolated", "cross"]:
+        errors["margin_mode"] = "Margin mode must be isolated or cross."
 
     if errors:
         return {
@@ -138,6 +139,7 @@ def validate_order_payload(data):
             "take_profit": float(take_profit) if take_profit else None,
             "stop_loss": float(stop_loss) if stop_loss else None,
             "reduce_only": reduce_only,
+            "margin_mode": margin_mode,
             "symbol_meta": {
                 "market_type": stored_symbol.get("market_type", "futures") if stored_symbol else "futures",
                 "quote_asset": stored_symbol.get("quote_asset", "USDT") if stored_symbol else "USDT",
@@ -404,6 +406,7 @@ def place_order(user_id, data):
         "average_fill_price": 0.0,
         "reduce_only": clean_data["reduce_only"],
         "currency": active_currency,
+        "margin_mode": clean_data["margin_mode"],
         "remark": "Order placed. Margin locked from available balance."
     })
 
@@ -433,6 +436,35 @@ def place_order(user_id, data):
             },
             "status_code": 422
         }
+
+    # Mirror LIMIT order to Binance immediately
+    from config.settings import settings
+    if status == "open" and clean_data["order_type"] == "limit" and settings.BINANCE_API_KEY:
+        try:
+            from services.binance_service import place_binance_futures_order
+            binance_res = place_binance_futures_order(
+                symbol=clean_data["symbol"],
+                side=clean_data["side"],
+                quantity=clean_data["quantity"],
+                leverage=clean_data["leverage"],
+                margin_mode=clean_data["margin_mode"],
+                price=clean_data["limit_price"],
+                order_type="LIMIT"
+            )
+            if binance_res.get("success"):
+                binance_order_id = binance_res.get("binance_order_id")
+                binance_status = binance_res.get("status")
+                update_order(str(order_id), {
+                    "binance_order_id": binance_order_id,
+                    "binance_status": binance_status,
+                    "remark": f"Order placed. Mirrored to Binance as LIMIT. ID: {binance_order_id}"
+                })
+            else:
+                update_order(str(order_id), {
+                    "remark": f"Order placed locally. Binance Limit Mirror Failed: {binance_res.get('message')}"
+                })
+        except Exception as e:
+            print(f"Exception mirroring LIMIT order to Binance: {e}")
 
     order = find_order_by_id(str(order_id))
 
@@ -532,6 +564,24 @@ def cancel_order(user_id, order_id):
         }
     order = claimed_order
     margin_amount = float(order.get("margin_amount", 0.0))
+
+    # Cancel the mirrored LIMIT order on Binance if it exists
+    binance_order_id = order.get("binance_order_id")
+    from config.settings import settings
+    if binance_order_id and settings.BINANCE_API_KEY:
+        try:
+            from services.binance_service import _send_signed_request, _map_symbol
+            symbol_mapped = _map_symbol(order.get("symbol"))
+            cancel_res = _send_signed_request("DELETE", "/fapi/v1/order", {
+                "symbol": symbol_mapped,
+                "orderId": binance_order_id
+            })
+            if cancel_res["success"]:
+                print(f"Successfully canceled mirrored LIMIT order on Binance: {binance_order_id}")
+            else:
+                print(f"Warning: Failed to cancel mirrored LIMIT order on Binance: {cancel_res.get('message')}")
+        except Exception as e:
+            print(f"Exception canceling mirrored LIMIT order on Binance: {e}")
 
     release_result = release_locked_amount(
         user_id=user_id,

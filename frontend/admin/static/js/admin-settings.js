@@ -86,6 +86,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         admin_ip_allowlist: document.getElementById("adminIpAllowlist"),
         require_admin_2fa: document.getElementById("requireAdmin2fa"),
         enable_audit_logging: document.getElementById("enableAuditLogging"),
+
+        binance_api_key: document.getElementById("binanceApiKey"),
+        binance_secret_key: document.getElementById("binanceSecretKey"),
+        binance_is_testnet: document.getElementById("binanceIsTestnet"),
     };
 
     let isSaving = false;
@@ -166,6 +170,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         require_admin_2fa: true,
         enable_audit_logging: true,
+
+        binance_api_key: "",
+        binance_secret_key: "",
+        binance_is_testnet: true,
     };
 
     function injectConfirmModalStyles() {
@@ -545,6 +553,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         setVal(fields.require_admin_2fa, data.require_admin_2fa, true);
         setVal(fields.enable_audit_logging, data.enable_audit_logging, true);
 
+        setVal(fields.binance_api_key, data.binance_api_key);
+        setVal(fields.binance_secret_key, data.binance_secret_key);
+        setVal(fields.binance_is_testnet, data.binance_is_testnet, true);
+
         updateCards(data);
 
         if (typeof validateAddressLive === "function") {
@@ -637,6 +649,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             require_admin_2fa: getVal(fields.require_admin_2fa, true),
             enable_audit_logging: getVal(fields.enable_audit_logging, true),
+
+            binance_api_key: getVal(fields.binance_api_key),
+            binance_secret_key: getVal(fields.binance_secret_key),
+            binance_is_testnet: getVal(fields.binance_is_testnet, true),
         };
     }
 
