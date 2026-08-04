@@ -189,7 +189,7 @@
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="basicPlanSpreadType" class="admin-input">
-                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="fixed">Fixed Spread</option>
                                                         <option value="percentage">Percentage (%)</option>
                                                     </select>
                                                 </label>
@@ -209,7 +209,7 @@
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="standardPlanSpreadType" class="admin-input">
-                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="fixed">Fixed Spread</option>
                                                         <option value="percentage">Percentage (%)</option>
                                                     </select>
                                                 </label>
@@ -229,7 +229,7 @@
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="advancedPlanSpreadType" class="admin-input">
-                                                        <option value="fixed">Fixed USDT</option>
+                                                        <option value="fixed">Fixed Spread</option>
                                                         <option value="percentage">Percentage (%)</option>
                                                     </select>
                                                 </label>
@@ -572,6 +572,21 @@
                                         <label class="block">
                                             <span class="mb-2 block text-sm font-bold text-slate-300">Bank IFSC Code</span>
                                             <input id="inrDepositIfscCode" class="admin-input font-mono uppercase" placeholder="HDFC0000128" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Razorpay Key ID</span>
+                                            <input id="razorpayKeyId" class="admin-input font-mono" placeholder="rzp_live_..." autocomplete="off" spellcheck="false" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Razorpay Key Secret</span>
+                                            <input id="razorpayKeySecret" class="admin-input font-mono" placeholder="Key Secret" autocomplete="off" spellcheck="false" />
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Razorpay Webhook Secret</span>
+                                            <input id="razorpayWebhookSecret" class="admin-input font-mono" placeholder="Webhook Secret" autocomplete="off" spellcheck="false" />
                                         </label>
 
                                         <div class="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.04] p-4 text-xs font-semibold leading-6 text-slate-300 lg:col-span-3">

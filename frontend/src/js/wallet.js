@@ -882,8 +882,24 @@ function injectWalletPageStyles() {
         .tx-submit-btn.transfer { background: linear-gradient(135deg, #facc15, #f59e0b); }
         .tx-submit-btn.deposit { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
         .tx-submit-btn.withdraw { color: #fff; background: linear-gradient(135deg, #ef4444, #991b1b); box-shadow: 0 16px 36px rgba(127, 29, 29, .30); }
-        .tx-wallet-modal-scroll { scrollbar-width: none; }
-        .tx-wallet-modal-scroll::-webkit-scrollbar { display: none; }
+        .tx-wallet-modal-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(34, 211, 238, 0.3) rgba(2, 6, 23, 0.4);
+        }
+        .tx-wallet-modal-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .tx-wallet-modal-scroll::-webkit-scrollbar-track {
+            background: rgba(2, 6, 23, 0.4);
+            border-radius: 10px;
+        }
+        .tx-wallet-modal-scroll::-webkit-scrollbar-thumb {
+            background: rgba(34, 211, 238, 0.3);
+            border-radius: 10px;
+        }
+        .tx-wallet-modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 211, 238, 0.6);
+        }
         .tx-wallet-action-message { margin-bottom: 18px; border-radius: 18px; border: 1px solid; padding: 13px 15px; font-size: 13px; font-weight: 900; line-height: 1.45; }
         .tx-wallet-action-message.success { border-color: rgba(52,211,153,.34); background: rgba(16,185,129,.12); color: #bbf7d0; }
         .tx-wallet-action-message.error { border-color: rgba(248,113,113,.36); background: rgba(239,68,68,.12); color: #fecaca; }
@@ -2426,8 +2442,14 @@ async function handleDepositSubmit(event) {
             await loadWalletData({ silent: true });
             updateCryptoDepositAddressUI();
             updateWalletActionModalBalances();
-            const tone = response?.data?.deposit?.status === "completed" ? "success" : "info";
-            showWalletActionMessage(response.message || "Deposit submitted successfully.", tone);
+            
+            const isCompleted = response?.data?.deposit?.status === "completed";
+            if (isCompleted) {
+                closeWalletActionModal();
+                showWalletAlert(response.message || "Deposit credited successfully.", "success");
+            } else {
+                showWalletActionMessage(response.message || "Deposit submitted successfully.", "info");
+            }
         } catch (error) {
             checkKycRedirect(error, "Unable to create deposit.", "deposit");
         } finally {
@@ -2685,6 +2707,7 @@ async function handleDemoDepositSubmit(event) {
             body: JSON.stringify({ amount, crypto_network: cryptoNetwork })
         });
 
+        closeWalletActionModal();
         showWalletAlert(response.message || "Demo deposit added successfully.", "success");
         await loadWalletData();
         if (!isWalletRestrictedMode()) {
@@ -3186,8 +3209,8 @@ function bindRealtimeConversionCalculator() {
         const updateWith = () => {
             const val = parseFloat(withInput.value || 0);
             const rate = WALLET_STATE.usdtRate || 88.50;
-            const selectedCurrency = localStorage.getItem("tx_navbar_currency") || "USDT";
-            const isINR = selectedCurrency === "INR";
+            const activeCurrency = WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT";
+            const isINR = String(activeCurrency).toUpperCase() === "INR";
             if (val > 0) {
                 if (isINR) {
                     withPrev.innerHTML = `₹${val.toLocaleString()} INR → net payout ≈ <span class="text-white font-extrabold text-sm">₹${val.toLocaleString()} INR</span>`;
@@ -3478,6 +3501,7 @@ function initWalletEvents() {
 
     document.getElementById("txSelectWithdrawInrBtn")?.addEventListener("click", () => {
         updateWithdrawalModalUIByCurrency("INR");
+        txAutofillWithdrawBankDetails();
     });
     document.getElementById("txSelectWithdrawUsdtBtn")?.addEventListener("click", () => {
         updateWithdrawalModalUIByCurrency("USDT");

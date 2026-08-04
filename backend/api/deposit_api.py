@@ -142,12 +142,17 @@ def razorpay_webhook():
         
         payload = request.data
         signature = request.headers.get("X-Razorpay-Signature")
-        secret = settings.RAZORPAY_WEBHOOK_SECRET
+
+        from admin.settings_routes import get_final_settings
+        system_settings = get_final_settings()
+        key_id = system_settings.get("razorpay_key_id") or settings.RAZORPAY_KEY_ID
+        key_secret = system_settings.get("razorpay_key_secret") or settings.RAZORPAY_KEY_SECRET
+        secret = system_settings.get("razorpay_webhook_secret") or settings.RAZORPAY_WEBHOOK_SECRET
         
         # Verify the signature if we have a secret configured
         if secret and signature:
             import razorpay
-            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            client = razorpay.Client(auth=(key_id, key_secret))
             try:
                 client.utility.verify_webhook_signature(payload, signature, secret)
             except Exception as e:

@@ -615,8 +615,10 @@ def create_razorpay_order_service(user_id, amount):
     deposit_reference = f"TXD-{uuid.uuid4().hex[:12].upper()}"
     gateway_order_id = f"order_{uuid.uuid4().hex[:14]}" # Fallback order ID if Razorpay is not configured/fails
 
-    key_id = settings.RAZORPAY_KEY_ID
-    key_secret = settings.RAZORPAY_KEY_SECRET
+    from admin.settings_routes import get_final_settings
+    system_settings = get_final_settings()
+    key_id = system_settings.get("razorpay_key_id") or settings.RAZORPAY_KEY_ID
+    key_secret = system_settings.get("razorpay_key_secret") or settings.RAZORPAY_KEY_SECRET
 
     use_sandbox_fallback = False
     if not key_id or not key_secret:
@@ -712,14 +714,18 @@ def verify_razorpay_payment_service(user_id, data):
             "status_code": 200
         }
 
-    # If it's sandbox demo fallback (meaning keys were empty during order creation), bypass real verification
-    is_sandbox = deposit.get("is_demo") or settings.RAZORPAY_KEY_ID == ""
+    from admin.settings_routes import get_final_settings
+    system_settings = get_final_settings()
+    key_id = system_settings.get("razorpay_key_id") or settings.RAZORPAY_KEY_ID
+    key_secret = system_settings.get("razorpay_key_secret") or settings.RAZORPAY_KEY_SECRET
+
+    is_sandbox = deposit.get("is_demo") or key_id == ""
 
     if not is_sandbox:
         if not razorpay_signature:
             return {"success": False, "message": "Missing payment signature.", "status_code": 400}
         import razorpay
-        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        client = razorpay.Client(auth=(key_id, key_secret))
         try:
             client.utility.verify_payment_signature({
                 'razorpay_order_id': razorpay_order_id,

@@ -261,26 +261,7 @@ function renderLoggedInMobile(container, user) {
             </div>
         </div>
 
-        <div class="tx-mobile-auth-actions">
-            <div class="tx-navbar-notification-root tx-navbar-notification-root-mobile" data-notification-root>
-                <button
-                    type="button"
-                    class="tx-navbar-notification-btn tx-navbar-notification-btn-mobile"
-                    data-notification-toggle
-                    aria-label="Open notifications"
-                    aria-expanded="false"
-                >
-                    <span class="tx-navbar-notification-icon-wrap" aria-hidden="true">
-                        <svg class="tx-navbar-notification-icon" viewBox="0 0 24 24" focusable="false">
-                            <path d="M12 3.6a5.4 5.4 0 0 0-5.4 5.4v2.55c0 .92-.31 1.8-.88 2.52l-.72.9a1.05 1.05 0 0 0 .82 1.7h12.36a1.05 1.05 0 0 0 .82-1.7l-.72-.9a4.02 4.02 0 0 1-.88-2.52V9A5.4 5.4 0 0 0 12 3.6Z" />
-                            <path d="M9.65 18.25a2.55 2.55 0 0 0 4.7 0" />
-                        </svg>
-                    </span>
-                    <span class="tx-navbar-notification-label">Notifications</span>
-                    <span class="tx-navbar-notification-badge hidden" data-notification-badge>0</span>
-                </button>
-            </div>
-
+        <div class="tx-mobile-auth-actions" style="grid-template-columns: 1fr;">
             <button type="button" data-navbar-logout="true" class="tx-mobile-logout-btn" aria-label="Logout from TraidiumX">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M10 5H6.8A1.8 1.8 0 0 0 5 6.8v10.4A1.8 1.8 0 0 0 6.8 19H10"></path>
@@ -934,7 +915,7 @@ function escapeHtml(value) {
             .tx-user-notification-toast.is-leaving{opacity:0;transform:translateX(12px);transition:opacity .16s ease,transform .16s ease;}
             @keyframes txUserNotificationIn{from{opacity:0;transform:translateY(-8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
             @keyframes txNotificationModalIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-            @media(max-width:1023px){.tx-navbar-notification-list{max-height:calc(100vh - 260px);}.tx-navbar-notification-badge{right:calc(50% - 75px);top:7px;}}
+            @media(max-width:1023px){.tx-navbar-notification-list{max-height:calc(100vh - 260px);}}
             @media(max-width:640px){.tx-notification-modal-shell{width:100vw;max-width:100vw;}.tx-notification-modal-head{padding:17px 16px 14px}.tx-notification-modal-head h3{font-size:21px}.tx-notification-modal-actions{justify-content:space-between}.tx-notification-modal-actions button{padding:8px 10px;font-size:10px}.tx-user-notification-host{left:14px;right:14px;top:76px;width:auto}.tx-user-notification-toast{border-radius:20px}}
         `;
         document.head.appendChild(style);

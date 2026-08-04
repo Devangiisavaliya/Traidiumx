@@ -97,6 +97,10 @@ DEFAULT_SETTINGS = {
     "inr_deposit_account_number": "50100498765432",
     "inr_deposit_ifsc_code": "HDFC0000128",
 
+    "razorpay_key_id": getattr(app_settings, "RAZORPAY_KEY_ID", "") or "",
+    "razorpay_key_secret": getattr(app_settings, "RAZORPAY_KEY_SECRET", "") or "",
+    "razorpay_webhook_secret": getattr(app_settings, "RAZORPAY_WEBHOOK_SECRET", "") or "",
+
 
 
     "admin_session_timeout": 30,
@@ -477,6 +481,10 @@ def clean_settings_payload(data):
         "inr_deposit_bank_name": str(data.get("inr_deposit_bank_name") or "HDFC Bank").strip(),
         "inr_deposit_account_number": str(data.get("inr_deposit_account_number") or "50100498765432").strip(),
         "inr_deposit_ifsc_code": str(data.get("inr_deposit_ifsc_code") or "HDFC0000128").strip(),
+
+        "razorpay_key_id": str(data.get("razorpay_key_id") or "").strip(),
+        "razorpay_key_secret": str(data.get("razorpay_key_secret") or "").strip(),
+        "razorpay_webhook_secret": str(data.get("razorpay_webhook_secret") or "").strip(),
 
 
 

@@ -78,6 +78,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         inr_deposit_bank_name: document.getElementById("inrDepositBankName"),
         inr_deposit_account_number: document.getElementById("inrDepositAccountNumber"),
         inr_deposit_ifsc_code: document.getElementById("inrDepositIfscCode"),
+        razorpay_key_id: document.getElementById("razorpayKeyId"),
+        razorpay_key_secret: document.getElementById("razorpayKeySecret"),
+        razorpay_webhook_secret: document.getElementById("razorpayWebhookSecret"),
 
 
 
@@ -543,6 +546,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         setVal(fields.inr_deposit_bank_name, data.inr_deposit_bank_name || "HDFC Bank");
         setVal(fields.inr_deposit_account_number, data.inr_deposit_account_number || "50100498765432");
         setVal(fields.inr_deposit_ifsc_code, data.inr_deposit_ifsc_code || "HDFC0000128");
+        setVal(fields.razorpay_key_id, data.razorpay_key_id || "");
+        setVal(fields.razorpay_key_secret, data.razorpay_key_secret || "");
+        setVal(fields.razorpay_webhook_secret, data.razorpay_webhook_secret || "");
 
 
 
@@ -640,6 +646,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             inr_deposit_bank_name: getVal(fields.inr_deposit_bank_name) || "HDFC Bank",
             inr_deposit_account_number: getVal(fields.inr_deposit_account_number) || "50100498765432",
             inr_deposit_ifsc_code: getVal(fields.inr_deposit_ifsc_code) || "HDFC0000128",
+            razorpay_key_id: getVal(fields.razorpay_key_id) || "",
+            razorpay_key_secret: getVal(fields.razorpay_key_secret) || "",
+            razorpay_webhook_secret: getVal(fields.razorpay_webhook_secret) || "",
 
 
 

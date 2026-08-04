@@ -78,18 +78,6 @@ def get_onboarding_settings():
 
 
 def get_trading_balance(user_id, platform="traidiumx"):
-    platform = normalize_platform(platform) or "traidiumx"
-    if platform == "mt5":
-        try:
-            from services.mt5_service import refresh_mt5_balance
-            refresh_mt5_balance(user_id)
-        except Exception as error:
-            print(f"Failed to refresh remote MT5 balance in get_trading_balance: {error}")
-        account = get_database().mt5_accounts.find_one({"user_id": str(user_id)}) or {}
-        mt5_balance = account.get("balance")
-        if mt5_balance not in (None, ""):
-            return round(_number(mt5_balance), 8)
-
     wallet = normalize_wallet_currency(find_wallet_by_user_id(user_id)) or {}
     
     # Check plan eligibility based on the user's active currency mode
