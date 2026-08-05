@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Settings | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        :root {
+            --tx-settings-bg: #020617;
+            --tx-settings-card: rgba(11, 15, 26, 0.85);
+            --tx-settings-border: rgba(148, 163, 184, 0.1);
+            --tx-settings-text: #f8fafc;
+            --tx-settings-muted: #64748b;
+        }
+
+        body[data-page="settings"] {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 10%, rgba(34, 211, 238, 0.08), transparent 30rem),
+                radial-gradient(circle at 88% 20%, rgba(59, 130, 246, 0.08), transparent 30rem),
+                var(--tx-settings-bg);
+        }
+
+        .tx-settings-main {
+            padding-top: 7.5rem;
+            padding-bottom: 5rem;
+        }
+
+        .tx-settings-wrap {
+            width: min(100% - 2rem, 56rem);
+            margin: 0 auto;
+        }
+
+        .tx-settings-section-card {
+            background: var(--tx-settings-card);
+            border: 1px solid var(--tx-settings-border);
+            border-radius: 1.5rem;
+            backdrop-filter: blur(16px);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .tx-settings-section-header {
+            padding: 1.5rem 1.5rem 1.25rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+        }
+
+        .tx-settings-section-title {
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+        }
+
+        .tx-settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.06);
+            transition: background-color 0.2s ease;
+        }
+
+        .tx-settings-row:hover {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .tx-settings-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tx-settings-label {
+            color: #f8fafc;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .tx-settings-desc {
+            color: #64748b;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+
+        .tx-settings-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .tx-settings-value {
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tx-settings-btn {
+            background-color: #1e293b;
+            color: #f8fafc;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 4.5rem;
+            text-align: center;
+        }
+
+        .tx-settings-btn:hover {
+            background-color: #334155;
+        }
+
+        .tx-settings-btn-danger {
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .tx-settings-btn-danger:hover {
+            background-color: rgba(239, 68, 68, 0.16);
+        }
+
+        /* Toggle switch */
+        .tx-switch {
+            position: relative;
+            display: inline-block;
+            width: 2.75rem;
+            height: 1.5rem;
+            cursor: pointer;
+        }
+
+        .tx-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .tx-slider {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 9999px;
+        }
+
+        .tx-slider:before {
+            position: absolute;
+            content: "";
+            height: 1.15rem;
+            width: 1.15rem;
+            left: 0.18rem;
+            bottom: 0.18rem;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .tx-slider {
+            background-color: #10b981;
+        }
+
+        input:checked + .tx-slider:before {
+            transform: translateX(1.25rem);
+        }
+
+        /* Modal classes */
+        .tx-settings-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background-color: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .tx-settings-modal-card {
+            background: #0f172a;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 28rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Avatar styling */
+        .tx-settings-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: #7c3aed;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+        }
+
+        /* Cross/Status indicators */
+        .tx-status-icon-off {
+            color: #94a3b8;
+            background: rgba(148, 163, 184, 0.12);
+            border-radius: 50%;
+            width: 1.15rem;
+            height: 1.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .tx-status-icon-on {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.12);
+            border-radius: 50%;
+            width: 1.15rem;
+            height: 1.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white" data-page="settings">
+    <div data-component="navbar"></div>
+
+    <main class="tx-settings-main">
+        <section class="tx-settings-wrap">
+            
+            <!-- Page Title -->
+            <div class="mb-8">
+                <span class="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">ACCOUNT</span>
+                <h1 class="text-3xl font-black text-white mt-1">Settings</h1>
+            </div>
+
+            <!-- Profile -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Profile</h2>
+                </div>
+                
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Nickname & Avatar</h3>
+                        <p class="tx-settings-desc">Set up an avatar and nickname. Avoid using your real name or social account name as a nickname.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <div class="tx-settings-value">
+                            <span class="tx-settings-avatar" id="avatarCircle">P</span>
+                            <span id="nicknameDisplay">User</span>
+                        </div>
+                        <button type="button" class="tx-settings-btn" id="editNicknameBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Account Profile</h3>
+                        <p class="tx-settings-desc">View email, broker, KYC status, and manage your trading account details.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <div class="tx-settings-value">
+                            <span class="tx-settings-avatar" id="avatarCircle2">P</span>
+                            <span id="emailDisplay">user@email.com</span>
+                        </div>
+                        <button type="button" class="tx-settings-btn" id="editProfileBtn">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Notifications</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Notification Language</h3>
+                        <p class="tx-settings-desc">This will affect the language of email and in-app notifications.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="languageDisplay">English</span>
+                        <button type="button" class="tx-settings-btn" id="editLanguageBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Notification Preferences</h3>
+                        <p class="tx-settings-desc">Once configured, you will receive relevant on-site inbox notifications within the app and website.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value">
+                            <span class="tx-status-icon-off" id="notifPrefIcon">✕</span>
+                            <span id="notifPrefDisplay">OFF</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="manageNotifPrefBtn">Manage</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Auto Price Alert</h3>
+                        <p class="tx-settings-desc">Once configured, you will receive alerts on price changes of major and holding assets.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="priceAlertDisplay">Notification On, Sound On</span>
+                        <button type="button" class="tx-settings-btn" id="managePriceAlertBtn">Manage</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Preferences</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Color Preference</h3>
+                        <p class="tx-settings-desc">Choose chart price change colors.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value text-emerald-400">
+                            <span>↑↓</span>
+                            <span id="colorPrefDisplay">Green Up / Red Down</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="editColorPrefBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Style Settings</h3>
+                        <p class="tx-settings-desc">Adjust UI layout and styling accents.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value">
+                            <span class="w-3.5 h-3.5 rounded-sm bg-emerald-400 inline-block"></span>
+                            <span class="w-3.5 h-3.5 rounded-sm bg-red-400 inline-block -ml-1.5 mr-1.5"></span>
+                            <span id="stylePrefDisplay">Fresh</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="editStyleBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">UTC Time Zone</h3>
+                        <p class="tx-settings-desc">Set display time zone.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="timezoneDisplay">Last 24 hours</span>
+                        <button type="button" class="tx-settings-btn" id="editTimezoneBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Shortcuts</h3>
+                        <p class="tx-settings-desc">Enable quick keyboard hotkeys.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <label class="tx-switch">
+                            <input type="checkbox" id="shortcutsToggle" checked />
+                            <span class="tx-slider"></span>
+                        </label>
+                        <button type="button" class="tx-settings-btn" id="editShortcutsBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Theme</h3>
+                        <p class="tx-settings-desc">Switch between light and dark modes.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="themeValDisplay">Dark</span>
+                        <button type="button" class="tx-settings-btn" id="editThemeBtn">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Security</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Login Password</h3>
+                        <p class="tx-settings-desc">Change your password regularly to keep your account secure.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn" id="editPasswordBtn">Edit</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Two-Factor Authentication</h3>
+                        <p class="tx-settings-desc">Add an extra layer of security with authenticator app or OTP.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn" id="manage2faBtn">Manage</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdrawal -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Withdrawal</h2>
+                </div>
+
+                <div class="tx-settings-row flex-col sm:flex-row sm:items-center">
+                    <div class="tx-settings-left w-full">
+                        <h3 class="tx-settings-label">Withdrawal Whitelist</h3>
+                        <p class="tx-settings-desc">Once enabled, your account will only be able to withdraw to addresses on your whitelist.</p>
+                        <a href="#" class="text-xs font-black text-amber-500 hover:text-amber-400 mt-2 inline-block transition" id="addressManageLink">Address Management</a>
+                    </div>
+                    <div class="tx-settings-right mt-3 sm:mt-0">
+                        <span class="tx-settings-value mr-2">
+                            <span class="tx-status-icon-off" id="whitelistIcon">✕</span>
+                            <span id="whitelistDisplay">OFF</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="enableWhitelistBtn">Enable</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">One-step Withdrawal</h3>
+                        <p class="tx-settings-desc">When enabled, you can withdraw small amounts to whitelisted addresses without 2FA each time.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value">
+                            <span class="tx-status-icon-off" id="onestepIcon">✕</span>
+                            <span id="onestepDisplay">OFF</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="enableOnestepBtn">Enable</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Withdraw Setting</h3>
+                        <p class="tx-settings-desc">Choose on-chain or bank/off-chain transfer for applicable withdrawals.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="withdrawSettingDisplay">Off-Chain Withdrawal</span>
+                        <button type="button" class="tx-settings-btn" id="editWithdrawSettingBtn">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trade -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Trade</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Order Confirmation Reminders</h3>
+                        <p class="tx-settings-desc">If enabled, you will need to reconfirm every time an order is submitted.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value text-slate-400" id="orderConfirmDisplay">Market, Limit, Stop-Limit</span>
+                        <button type="button" class="tx-settings-btn" id="manageOrderConfirmBtn">Manage</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Close All Sound</h3>
+                        <p class="tx-settings-desc">Sound played when you close all positions from Futures.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="closeSoundDisplay">Default</span>
+                        <button type="button" class="tx-settings-btn" id="manageCloseSoundBtn">Manage</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Fee Deduction</h3>
+                        <p class="tx-settings-desc">How trading fees are settled on your account.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value" id="feeDeductionDisplay">Spot Fees</span>
+                        <button type="button" class="tx-settings-btn" id="manageFeeDeductionBtn">Manage</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Link Account -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Link Account</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Link X Account</h3>
+                        <p class="tx-settings-desc">Link your X account to NEXUS for updates.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <span class="tx-settings-value text-slate-400" id="linkXDisplay">Not Linked</span>
+                        <button type="button" class="tx-settings-btn" id="linkXBtn">Link</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="tx-settings-section-card">
+                <div class="tx-settings-section-header">
+                    <h2 class="tx-settings-section-title">Privacy</h2>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Download Personal Data</h3>
+                        <p class="tx-settings-desc">Includes profile, withdrawal, deposit, and trading history. For KYC documents, contact Support.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn" id="downloadDataBtn">Download</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Export Transaction Records</h3>
+                        <p class="tx-settings-desc">Download accounting statements.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn" id="exportRecordsBtn">Export</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Close Account</h3>
+                        <p class="tx-settings-desc">Request permanent closure of this TraidiumX account.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn tx-settings-btn-danger" id="closeAccountBtn">Delete</button>
+                    </div>
+                </div>
+
+                <div class="tx-settings-row">
+                    <div class="tx-settings-left">
+                        <h3 class="tx-settings-label">Privacy Portal</h3>
+                        <p class="tx-settings-desc">Manage third party permissions and cookies.</p>
+                    </div>
+                    <div class="tx-settings-right">
+                        <button type="button" class="tx-settings-btn" id="enterPrivacyPortalBtn">Enter</button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Modals Container -->
+    <div id="txSettingsModalContainer" class="hidden"></div>
+
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/api-config.js"></script>
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/settings.js"></script>
+</body>
+</html>

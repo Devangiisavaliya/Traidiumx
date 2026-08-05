@@ -97,6 +97,7 @@ function applyNavbarAuthState() {
         renderLoggedInDesktop(desktopAuthArea, user);
         renderLoggedInMobile(mobileAuthArea, user);
         initNavbarCurrencyToggle();
+        bindNavbarDropdown(user);
     } else {
         renderLoggedOutDesktop(desktopAuthArea);
         renderLoggedOutMobile(mobileAuthArea);
@@ -169,51 +170,155 @@ function renderLoggedInDesktop(container, user) {
         }
     }
     const userName = escapeHtml(displayName);
+    const fullName = escapeHtml(user.name || user.email || "User");
+    const userInitial = userName.charAt(0).toUpperCase() || "U";
 
     container.innerHTML = `
-        <a
-            href="/src/pages/profile.html"
-            title="Open account details"
-            class="hidden items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-4 py-2 text-sm font-black text-cyan-200 transition hover:border-cyan-300/60 hover:bg-cyan-400/15 hover:text-cyan-100 xl:flex"
-        >
-            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-            <span>${userName}</span>
-        </a>
-
-        <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none mr-3 shadow-inner shadow-black/40">
-            <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="INR">
-                <span class="text-[10px]">₹</span> INR
+        <div class="flex items-center gap-3 relative z-10">
+            <!-- Theme Toggle -->
+            <button id="txThemeToggleBtn" type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Toggle Theme">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
             </button>
-            <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="USDT">
-                <span class="text-[10px]">$</span> USD
-            </button>
-        </div>
 
-        <div class="tx-navbar-notification-root" data-notification-root>
-            <button
-                type="button"
-                class="tx-navbar-notification-btn"
-                data-notification-toggle
-                aria-label="Open notifications"
-                aria-expanded="false"
-            >
-                <span class="tx-navbar-notification-icon-wrap" aria-hidden="true">
-                    <svg class="tx-navbar-notification-icon" viewBox="0 0 24 24" focusable="false">
-                        <path d="M12 3.6a5.4 5.4 0 0 0-5.4 5.4v2.55c0 .92-.31 1.8-.88 2.52l-.72.9a1.05 1.05 0 0 0 .82 1.7h12.36a1.05 1.05 0 0 0 .82-1.7l-.72-.9a4.02 4.02 0 0 1-.88-2.52V9A5.4 5.4 0 0 0 12 3.6Z" />
-                        <path d="M9.65 18.25a2.55 2.55 0 0 0 4.7 0" />
+            <!-- Notifications -->
+            <div class="relative">
+                <button id="txNavbarNotificationBtn" type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Notifications">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
-                </span>
-                <span class="tx-navbar-notification-badge hidden" data-notification-badge>0</span>
-            </button>
-        </div>
+                </button>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse hidden" id="txNavbarNotificationDot"></span>
+            </div>
 
-        <button
-            type="button"
-            data-navbar-logout="true"
-            class="rounded-full border border-red-400/30 bg-red-500/10 px-5 py-3 text-sm font-black text-red-300 transition hover:bg-red-500/20"
-        >
-            Logout
-        </button>
+            <!-- Profile Avatar and Dropdown wrapper -->
+            <div class="relative ml-1">
+                <button id="txNavbarProfileBtn" type="button" class="w-10 h-10 rounded-full bg-[#7c3aed] text-white flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-purple-950/25">
+                    ${userInitial}
+                </button>
+
+                <!-- Dropdown Card -->
+                <div id="txProfileDropdown" class="hidden absolute right-0 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
+                        <div class="w-12 h-12 rounded-full bg-[#7c3aed] text-white flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-purple-900/30">
+                            ${userInitial}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-extrabold text-sm text-white truncate leading-snug">${fullName}</h4>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="text-xs font-semibold text-slate-400">ID:${user.client_id || "383939"}</span>
+                                <button type="button" id="txCopyIdBtn" class="text-slate-400 hover:text-white transition focus:outline-none cursor-pointer" title="Copy Client ID">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </button>
+                                <span id="txCopyFeedback" class="text-[10px] text-emerald-400 hidden">Copied!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="flex items-center gap-2 mt-4.5 mb-4">
+                        <span class="text-[10px] font-black text-slate-400 border border-slate-700/60 rounded-lg px-2.5 py-1 uppercase tracking-wider bg-slate-900/30">
+                            Regular User
+                        </span>
+                        ${user.kyc_status === 'approved' ? `
+                        <a href="/src/pages/profile.html" class="flex items-center gap-1 text-[10px] font-black text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-emerald-500/20 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <path d="m9 11 2 2 4-4"></path>
+                            </svg>
+                            <span>Verified</span>
+                            <span class="ml-0.5 text-emerald-400/80">›</span>
+                        </a>
+                        ` : `
+                        <a href="/src/pages/profile.html" class="flex items-center gap-1 text-[10px] font-black text-amber-400 border border-amber-500/20 bg-amber-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer">
+                            <span>Unverified</span>
+                            <span class="ml-0.5 text-amber-400/80">›</span>
+                        </a>
+                        `}
+                    </div>
+
+                    <!-- Create Account Link -->
+                    <div class="mb-4">
+                        <a href="/src/pages/trading-account.html" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition">
+                            <span class="text-sm font-black">+</span>
+                            <span>Create an Account</span>
+                        </a>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="space-y-1 py-1">
+                        <a href="/src/pages/wallet.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            <span>Assets</span>
+                        </a>
+                        <a href="/src/pages/orders.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="9" x2="15" y2="9"></line>
+                                <line x1="9" y1="13" x2="15" y2="13"></line>
+                                <line x1="9" y1="17" x2="15" y2="17"></line>
+                            </svg>
+                            <span>Orders</span>
+                        </a>
+                        <a href="/src/pages/profile.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Account</span>
+                        </a>
+                        <a href="/src/pages/contact.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+                                <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+                                <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+                                <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+                            </svg>
+                            <span>Support</span>
+                        </a>
+                        <a href="/src/pages/settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+
+                    <!-- Separator -->
+                    <div class="h-[1.5px] bg-slate-800/60 my-2"></div>
+
+                    <!-- Logout -->
+                    <button type="button" data-navbar-logout="true" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-300 transition text-xs font-black focus:outline-none cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Log Out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     `;
 }
 
@@ -252,16 +357,23 @@ function renderLoggedInMobile(container, user) {
         <div class="flex justify-between items-center my-3 px-1">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Display Currency</span>
             <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40">
-                <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="INR">
-                    <span class="text-[10px]">₹</span> INR
+                <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px]" data-currency="INR">
+                    ₹ INR
                 </button>
-                <button type="button" class="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 min-w-[72px]" data-currency="USDT">
-                    <span class="text-[10px]">$</span> USD
+                <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px]" data-currency="USDT">
+                    $ USD
                 </button>
             </div>
         </div>
 
-        <div class="tx-mobile-auth-actions" style="grid-template-columns: 1fr;">
+        <div class="tx-mobile-auth-actions" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; display: grid;">
+            <a href="/src/pages/settings.html" class="tx-mobile-logout-btn flex items-center justify-center gap-2 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Settings</span>
+            </a>
             <button type="button" data-navbar-logout="true" class="tx-mobile-logout-btn" aria-label="Logout from TraidiumX">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M10 5H6.8A1.8 1.8 0 0 0 5 6.8v10.4A1.8 1.8 0 0 0 6.8 19H10"></path>
@@ -984,9 +1096,81 @@ function updateNavbarToggleUI(currency) {
     buttons.forEach((btn) => {
         const btnCurrency = btn.getAttribute("data-currency");
         if (btnCurrency === currency) {
-            btn.className = "flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-black transition-all duration-300 bg-emerald-500 text-slate-950 shadow-[0_4px_15px_rgba(16,185,129,0.3)] scale-[1.03] min-w-[72px]";
+            btn.className = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-emerald-500 text-white shadow-[0_2px_10px_rgba(16,185,129,0.2)] min-w-[68px]";
         } else {
-            btn.className = "flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 bg-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 min-w-[72px]";
+            btn.className = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-transparent text-slate-300 hover:text-slate-100 hover:bg-slate-800/40 min-w-[68px]";
         }
     });
 }
+
+function bindNavbarDropdown(user) {
+    const profileBtn = document.getElementById("txNavbarProfileBtn");
+    const dropdown = document.getElementById("txProfileDropdown");
+    const themeBtn = document.getElementById("txThemeToggleBtn");
+    const copyBtn = document.getElementById("txCopyIdBtn");
+    const copyFeedback = document.getElementById("txCopyFeedback");
+
+    if (profileBtn && dropdown) {
+        profileBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!dropdown.classList.contains("hidden")) {
+                if (!dropdown.contains(e.target) && e.target !== profileBtn) {
+                    dropdown.classList.add("hidden");
+                }
+            }
+        });
+    }
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            toggleSiteTheme();
+        });
+    }
+
+    if (copyBtn && user.client_id) {
+        copyBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            navigator.clipboard.writeText(user.client_id).then(() => {
+                if (copyFeedback) {
+                    copyFeedback.classList.remove("hidden");
+                    setTimeout(() => {
+                        copyFeedback.classList.add("hidden");
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error("Failed to copy ID: ", err);
+            });
+        });
+    }
+}
+
+function toggleSiteTheme() {
+    const currentTheme = localStorage.getItem("traidiumx_theme") === "light" ? "light" : "dark";
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    localStorage.setItem("traidiumx_theme", newTheme);
+    applySiteTheme(newTheme);
+}
+
+function applySiteTheme(theme) {
+    if (theme === "light") {
+        document.documentElement.classList.add("light");
+        document.documentElement.classList.remove("dark");
+    } else {
+        document.documentElement.classList.add("dark");
+        document.documentElement.classList.remove("light");
+    }
+    // Update theme selectors if any settings page is open
+    const themeSelector = document.getElementById("themeSelector");
+    if (themeSelector) {
+        themeSelector.value = theme.charAt(0).toUpperCase() + theme.slice(1);
+    }
+}
+
+// Apply theme instantly on script parse to prevent flash of light/dark mode
+applySiteTheme(localStorage.getItem("traidiumx_theme") || "dark");
+

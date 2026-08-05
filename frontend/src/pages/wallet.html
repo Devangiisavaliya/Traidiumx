@@ -417,265 +417,506 @@
     <div data-component="navbar"></div>
 
     <main class="overflow-hidden pt-32">
-        <section class="relative">
-            <div class="absolute inset-0 -z-10">
-                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
-                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
-                <div class="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"></div>
+        <!-- Background Blurs -->
+        <div class="absolute inset-0 -z-10">
+            <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
+            <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
+            <div class="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"></div>
+        </div>
+
+        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <!-- Top Navigation Tab Bar -->
+            <div class="mb-8 flex gap-6 border-b border-white/10 pb-3">
+                <button id="mainTabOverview" class="px-2 py-1 text-sm font-bold border-b-2 border-cyan-400 text-cyan-300 transition">Overview</button>
+                <button id="mainTabTradingAccounts" class="px-2 py-1 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">Trading accounts</button>
+                <button id="mainTabWallet" class="px-2 py-1 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">Wallet</button>
             </div>
 
-            <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-                <div class="grid items-center gap-10 lg:grid-cols-[1fr_0.95fr]">
-                    <div class="tx-fade-up">
-                        <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-black text-cyan-300">
-                            <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
-                            <span id="walletBadgeText">Main wallet + Trading wallet</span>
-                        </div>
-                        <h1 id="walletMainTitle" class="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-                            Wallet flow built for crypto trading.
-                        </h1>
-                        <p id="walletMainSubtitle" class="mt-5 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-                            Deposits credit Main Wallet through the company deposit address. Trades use Trading Wallet only. Withdrawals use your external wallet address and complete after admin approval.
-                        </p>
+            <!-- Tab Content: Overview (Active by Default) -->
+            <div id="contentOverview" class="block">
+                <!-- Large Balance Display -->
+                <div class="mb-8">
+                    <span class="text-xs font-black uppercase tracking-wider text-slate-500">Total balance</span>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h2 class="text-5xl font-black text-white" id="portfolioTotalBalance">≈ $8,517.18 USD</h2>
+                        <span class="text-slate-500 cursor-pointer text-sm" title="Total consolidated asset worth.">ⓘ</span>
                     </div>
+                </div>
 
-                    <div id="walletBalanceCards" class="grid gap-4 sm:grid-cols-2">
-                        <div class="rounded-[2rem] border border-emerald-400/20 bg-emerald-400/[0.06] p-5 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-400">Main Wallet</p>
-                            <h3 id="walletAvailableBalance" class="mt-2 text-3xl font-black text-emerald-400">--</h3>
-                            <p class="mt-2 text-xs text-slate-500">Deposit / withdrawal wallet</p>
-                        </div>
+                <!-- Quick Action Buttons -->
+                <div class="flex flex-wrap gap-3 mb-8">
+                    <button id="quickDepositBtn" class="rounded-2xl bg-blue-600 hover:bg-blue-500 transition px-6 py-3 text-xs font-black text-white shadow-lg shadow-blue-600/20">Deposit</button>
+                    <button id="quickWithdrawBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Withdraw</button>
+                    <button id="quickTransferBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Transfer</button>
+                    <button id="quickExchangeBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Exchange</button>
+                </div>
 
-                        <div class="rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
-                            <div class="flex items-center justify-between gap-2">
-                                <p id="walletLockedBalanceLabel" class="text-sm font-bold text-slate-400">Trading Wallet</p>
-                                <select id="tradingAccountSelector" class="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs font-bold text-white outline-none focus:border-cyan-400 cursor-pointer">
-                                    <option value="main">Main Trading Account</option>
-                                </select>
+                <!-- Inner sub-navigation / search bar row -->
+                <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <!-- Search Input -->
+                    <div class="relative w-full max-w-sm">
+                        <input id="assetSearchInput" type="text" placeholder="Search" class="w-full rounded-2xl border border-white/10 bg-[#081122]/60 px-4 py-3 text-xs font-bold text-white outline-none focus:border-cyan-400 placeholder:text-slate-500" />
+                    </div>
+                    <!-- Checkbox -->
+                    <div class="flex items-center justify-between sm:justify-end gap-6 text-xs">
+                        <label class="flex items-center gap-2 text-slate-400 cursor-pointer">
+                            <input type="checkbox" id="hideEmptyBalancesCheck" class="rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-0 cursor-pointer" />
+                            <span class="font-semibold text-slate-400">Hide empty balances</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Money Listing Section -->
+                <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl mb-6">
+                    <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                        <h3 class="text-sm font-black text-slate-400">Money <span id="moneySubVal" class="text-xs text-slate-500 font-semibold ml-1">| ≈ $0 USD</span></h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead>
+                                <tr class="text-slate-500 border-b border-white/5 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="py-3 font-bold">Currency</th>
+                                    <th class="py-3 font-bold">Balance</th>
+                                    <th class="py-3 font-bold">Pending</th>
+                                    <th class="py-3 text-right font-bold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="moneyAssetsBody">
+                                <!-- Dynamic Money Row -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Crypto wallet Listing Section -->
+                <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                    <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                        <h3 class="text-sm font-black text-slate-400">Crypto wallet <span id="cryptoSubVal" class="text-xs text-slate-500 font-semibold ml-1">| ≈ $0 USD</span></h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead>
+                                <tr class="text-slate-500 border-b border-white/5 font-bold uppercase tracking-wider text-[10px]">
+                                    <th class="py-3 font-bold">Currency</th>
+                                    <th class="py-3 font-bold">Balance</th>
+                                    <th class="py-3 font-bold">Pending</th>
+                                    <th class="py-3 text-right font-bold">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cryptoAssetsBody">
+                                <!-- Dynamic Crypto Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Trading Accounts -->
+            <div id="contentTradingAccounts" class="hidden">
+                <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] mb-8">
+                    <!-- Left Side: List of Trading Accounts -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                        <div class="flex items-center justify-between mb-6 border-b border-white/5 pb-3">
+                            <div>
+                                <h3 class="text-xl font-black text-white">Trading accounts</h3>
+                                <p class="text-xs text-slate-400 mt-1">Select which trading account should be treated as active.</p>
                             </div>
-                            <h3 id="walletLockedBalance" class="mt-2 text-3xl font-black text-cyan-400">--</h3>
-                            <p id="walletLockedBalanceNote" class="mt-2 text-xs text-slate-500">Trades use this balance</p>
+                            <span class="rounded-full bg-slate-800 px-3 py-1 text-xs font-bold text-slate-400" id="taCountText">3 accounts</span>
                         </div>
-
-                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                            <p id="walletOpenMarginLabel" class="text-sm font-bold text-slate-400">Trading Locked Margin</p>
-                            <h3 id="walletOpenMargin" class="mt-2 text-3xl font-black text-white">--</h3>
-                            <p id="walletOpenMarginNote" class="mt-2 text-xs text-slate-500">Open position margin</p>
+                        
+                        <!-- List Container -->
+                        <div id="tradingAccountsList" class="grid gap-4 mb-6">
+                            <!-- Populated dynamically via JS -->
                         </div>
+                        
+                        <button id="tradingAccountTransferBtn" class="w-full rounded-2xl bg-[#6366f1] py-3.5 text-sm font-black text-white transition hover:bg-[#4f46e5] shadow-lg shadow-indigo-500/20">
+                            Transfer funds
+                        </button>
+                    </div>
 
-                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                            <p class="text-sm font-bold text-slate-400">Wallet Status</p>
-                            <h3 id="walletStatusText" class="mt-2 text-3xl font-black text-orange-300">Loading</h3>
-                            <p class="mt-2 text-xs text-slate-500">Backend ledger sync</p>
+                    <!-- Right Side: Info & split -->
+                    <div class="grid gap-4 content-start">
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                            <h4 class="text-sm font-bold text-white">Transfer between wallets</h4>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                Use the Transfer button on the trading wallet card to move funds between your main wallet and the selected trading account.
+                            </p>
+                            <div class="mt-4 rounded-2xl bg-slate-950/60 p-4 border border-white/5">
+                                <span class="text-xs font-bold text-cyan-400">⇄ Internal transfer</span>
+                                <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">Main wallet holds deposit funds. Trading accounts hold funds used for orders and margin.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                            <h4 class="text-sm font-bold text-white mb-4">Current funding split</h4>
+                            <div class="flex items-center justify-between border-b border-white/5 pb-3 mb-3">
+                                <span class="text-xs font-medium text-slate-400">Main wallet</span>
+                                <span class="text-sm font-black text-emerald-400" id="splitMainVal">$0.00</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-slate-400">Active trading account</span>
+                                <span class="text-sm font-black text-cyan-400" id="splitTradingVal">$0.00</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section class="mx-auto max-w-7xl px-4 pb-20 pt-2 sm:px-6 lg:px-8">
-            <div id="walletAlert" class="mb-6 hidden rounded-3xl border px-5 py-4 text-sm font-bold"></div>
+            <!-- Tab Content: Wallet -->
+            <div id="contentWallet" class="hidden">
+                <!-- Sub Tab Navigation -->
+                <div class="mb-8 flex gap-6 border-b border-white/10 pb-3 text-sm">
+                    <button id="subTabWithdraw" class="px-2 py-1 font-bold border-b-2 border-cyan-400 text-cyan-300 transition">Withdraw</button>
+                    <button id="subTabHistory" class="px-2 py-1 font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">Transfer history</button>
+                </div>
 
-            <div id="walletLoginRequired" class="mb-6 hidden rounded-[2rem] border border-orange-400/30 bg-orange-400/10 p-6 backdrop-blur-xl">
-                <h2 class="text-2xl font-black text-orange-300">Login required</h2>
-                <p class="mt-2 text-slate-300">Please login to view wallet balance, wallet actions and transaction history.</p>
-                <a href="./login.html" class="mt-5 inline-flex rounded-full bg-cyan-400 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300">Login Now</a>
+                <!-- Sub Content: Withdraw -->
+                <div id="walletSubContentWithdraw" class="block">
+                    <div class="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] mb-8">
+                        <!-- Left Column: Withdraw Form -->
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                            <div class="flex items-center justify-between mb-6 border-b border-white/5 pb-3">
+                                <div>
+                                    <h3 class="text-xl font-black text-white">Withdraw funds</h3>
+                                    <p class="text-xs text-slate-400 mt-1">Submit withdrawal request payout after Admin approval.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Payout Mode Selector Tab Bar -->
+                            <div id="txWithdrawCurrencyToggleBar" class="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                                <button id="txSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-[#22c55e] text-slate-950 shadow-lg shadow-emerald-500/20">
+                                    $ USD / Crypto
+                                </button>
+                                <button id="txSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                                    ₹ INR
+                                </button>
+                            </div>
+
+                            <p id="txWithdrawSubtitle" class="mb-5 text-xs font-semibold leading-relaxed text-slate-400">
+                                Submit your external crypto wallet address for USDT payout after Admin approval.
+                            </p>
+
+                            <form id="withdrawalForm" class="grid gap-4">
+                                <input id="withdrawMethodInput" name="withdrawal_method" type="hidden" value="crypto_withdrawal" />
+                                <input id="withdrawAsset" name="crypto_asset" type="hidden" value="USDT" />
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div id="txWithdrawAmountBox">
+                                        <label for="withdrawAmount" id="withdrawAmountLabel" class="tx-form-label">Amount (USD)</label>
+                                        <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                                    </div>
+                                    <div id="txWithdrawNetworkBox">
+                                        <label for="withdrawNetwork" class="tx-form-label">Network</label>
+                                        <select id="withdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
+                                            <option value="TRC20">TRON (TRC20)</option>
+                                            <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                                            <option value="ERC20">Ethereum (ERC20)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div id="withdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                                    Enter withdrawal amount to see live conversion
+                                </div>
+
+                                <!-- Crypto Payout (USD) -->
+                                <div id="txWithdrawCryptoAddressBox">
+                                    <label for="withdrawalAddress" id="withdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
+                                    <input id="withdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
+                                </div>
+
+                                <!-- INR Payout (Bank details & UPI) -->
+                                <div id="txWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label for="withdrawHolderName" class="tx-form-label">Account Holder Name</label>
+                                        <input id="withdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                    </div>
+                                    <div>
+                                        <label for="withdrawBankName" class="tx-form-label">Bank Name</label>
+                                        <input id="withdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                    </div>
+                                    <div>
+                                        <label for="withdrawAccountNumber" class="tx-form-label">Account Number</label>
+                                        <input id="withdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                    </div>
+                                    <div>
+                                        <label for="withdrawIfscCode" class="tx-form-label">IFSC Code</label>
+                                        <input id="withdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label for="withdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
+                                        <input id="withdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                    </div>
+                                </div>
+
+                                <div id="txWithdrawTagBox">
+                                    <label for="destinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                                    <input id="destinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
+                                </div>
+
+                                <div id="withdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-[#0b213b] p-4 text-xs leading-6 text-cyan-100 border">
+                                    <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
+                                    <div class="grid gap-2 sm:grid-cols-2">
+                                        <p>Withdraw amount: <b id="withdrawPreviewAmount">--</b></p>
+                                        <p>You will receive: <b id="withdrawPreviewReceive">--</b></p>
+                                        <p>Company fee: <b id="withdrawPreviewCompanyFee">--</b></p>
+                                        <p class="hidden">Network fee: <b id="withdrawPreviewNetworkFee">--</b></p>
+                                        <p class="hidden">Total fees: <b id="withdrawPreviewTotalFee">--</b></p>
+                                        <p>Total wallet debit: <b id="withdrawPreviewTotalDebit">--</b></p>
+                                    </div>
+                                    <p id="withdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                                </div>
+
+                                <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                                    Create Withdrawal Request
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Right Column: Sidebar -->
+                        <div class="grid gap-4 content-start">
+                            <!-- Related Questions -->
+                            <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                                <h4 class="text-sm font-black text-white flex items-center justify-between">
+                                    <span>Related questions</span>
+                                    <span class="text-xs text-blue-400 font-bold cursor-pointer">Support 24/7 ›</span>
+                                </h4>
+                                <div class="mt-4 grid gap-3 text-xs font-semibold text-slate-300">
+                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
+                                        <span>How to withdraw money?</span>
+                                        <span>›</span>
+                                    </div>
+                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
+                                        <span>How long does it take to withdraw money?</span>
+                                        <span>›</span>
+                                    </div>
+                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
+                                        <span>What are money withdrawal limits?</span>
+                                        <span>›</span>
+                                    </div>
+                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition">
+                                        <span>What are money withdrawal fees?</span>
+                                        <span>›</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Trade with Confidence -->
+                            <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
+                                <h4 class="text-sm font-black text-white mb-4">Trade with confidence</h4>
+                                <div class="grid gap-4 text-xs">
+                                    <div class="flex gap-3">
+                                        <span class="text-lg">🛡️</span>
+                                        <div>
+                                            <div class="font-bold text-white">Licensed & regulated</div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">TraidiumX is an authorized financial services provider.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <span class="text-lg">⚡</span>
+                                        <div>
+                                            <div class="font-bold text-white">Instant withdrawals</div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">92% of withdrawals are processed in less than 1 minute.</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-3">
+                                        <span class="text-lg">🔒</span>
+                                        <div>
+                                            <div class="font-bold text-white">100% backed & secure</div>
+                                            <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">Cold storage and multi-sig technology. Fully backed reserves.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub Content: History (Tables Container for Ledger, Deposit, Withdrawal History) -->
+                <div id="walletSubContentHistory" class="hidden">
+                    <div class="grid gap-6">
+                        <!-- Wallet Ledger Panel -->
+                        <div id="walletLedgerPanel" class="tx-history-card">
+                            <div class="tx-history-head">
+                                <div>
+                                    <h3>Wallet ledger</h3>
+                                    <p>Every backend wallet movement.</p>
+                                </div>
+                                <div class="tx-history-controls">
+                                    <select id="ledgerAccountFilter" class="hidden font-bold text-cyan-300" style="background-color:#020617; border-color: rgba(34, 211, 238, 0.2);">
+                                        <option value="main">Main Account</option>
+                                    </select>
+                                    <input id="ledgerSearchInput" type="search" placeholder="Search ledger" />
+                                    <select id="ledgerCurrencyFilter">
+                                        <option value="all">All currencies</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USDT">USD ($)</option>
+                                    </select>
+                                    <select id="ledgerTypeFilter">
+                                        <option value="all">All types</option>
+                                        <option value="credit">Credit</option>
+                                        <option value="debit">Debit</option>
+                                        <option value="deposit">Deposit</option>
+                                        <option value="withdrawal">Withdrawal</option>
+                                        <option value="transfer">Transfer</option>
+                                        <option value="fee">Fee</option>
+                                    </select>
+                                    <select id="ledgerPageSize">
+                                        <option value="5">5 / page</option>
+                                        <option value="10">10 / page</option>
+                                        <option value="20">20 / page</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="tx-history-table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Direction</th>
+                                            <th>Amount</th>
+                                            <th>After</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ledgerTableBody"></tbody>
+                                </table>
+                            </div>
+                            <div id="ledgerEmptyState" class="tx-history-empty hidden">No ledger entries found.</div>
+                            <div id="ledgerPagination" class="tx-pagination"></div>
+                        </div>
+
+                        <!-- Deposit History Panel -->
+                        <div id="walletDepositHistoryPanel" class="tx-history-card">
+                            <div class="tx-history-head">
+                                <div>
+                                    <h3>Deposit history</h3>
+                                    <p>Company-address deposit records and verification status.</p>
+                                </div>
+                                <div class="tx-history-controls">
+                                    <input id="depositSearchInput" type="search" placeholder="Search deposits" />
+                                    <select id="depositCurrencyFilter">
+                                        <option value="all">All currencies</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USDT">USD ($)</option>
+                                    </select>
+                                    <select id="depositStatusFilter">
+                                        <option value="all">All status</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="rejected">Rejected</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                    <select id="depositPageSize">
+                                        <option value="5">5 / page</option>
+                                        <option value="10">10 / page</option>
+                                        <option value="20">20 / page</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="tx-history-table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Reference</th>
+                                            <th>Network</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Verification</th>
+                                            <th class="text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="depositTableBody"></tbody>
+                                </table>
+                            </div>
+                            <div id="depositEmptyState" class="tx-history-empty hidden">No deposit requests found.</div>
+                            <div id="depositPagination" class="tx-pagination"></div>
+                        </div>
+
+                        <!-- Withdrawal History Panel -->
+                        <div class="tx-history-card">
+                            <div class="tx-history-head">
+                                <div>
+                                    <h3>Withdrawal history</h3>
+                                    <p>Pending requests lock balance. Admin approval finalizes payout.</p>
+                                </div>
+                                <div class="tx-history-controls">
+                                    <input id="withdrawalSearchInput" type="search" placeholder="Search withdrawals" />
+                                    <select id="withdrawalCurrencyFilter">
+                                        <option value="all">All currencies</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USDT">USD ($)</option>
+                                    </select>
+                                    <select id="withdrawalStatusFilter">
+                                        <option value="all">All status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="rejected">Rejected</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                    <select id="withdrawalPageSize">
+                                        <option value="5">5 / page</option>
+                                        <option value="10">10 / page</option>
+                                        <option value="20">20 / page</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="tx-history-table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Reference</th>
+                                            <th>Network</th>
+                                            <th>Address</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Remark</th>
+                                            <th class="text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="withdrawalTableBody"></tbody>
+                                </table>
+                            </div>
+                            <div id="withdrawalEmptyState" class="tx-history-empty hidden">No withdrawal requests found.</div>
+                            <div id="withdrawalPagination" class="tx-pagination"></div>
+                        </div>
+                    </div>
             </div>
+            
+            <script>
+                (function() {
+                    var savedTabId = localStorage.getItem("tx_active_main_tab");
+                    if (savedTabId && savedTabId !== "mainTabOverview") {
+                        var oTab = document.getElementById("mainTabOverview");
+                        var oCont = document.getElementById("contentOverview");
+                        if (oTab) {
+                            oTab.className = "px-2 py-1 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition";
+                        }
+                        if (oCont) {
+                            oCont.className = "hidden";
+                        }
 
-            <div id="walletRestrictedNotice" class="mb-6 hidden rounded-[2rem] border border-red-400/30 bg-red-400/10 p-6 backdrop-blur-xl">
-                <h2 class="text-2xl font-black text-red-300">Wallet amount hidden</h2>
-                <p class="mt-2 leading-7 text-slate-300">Your account is restricted, so balances are hidden. Withdrawal history remains available.</p>
-            </div>
-
-            <div id="walletStatsGrid" class="mb-6 grid gap-4 md:grid-cols-3">
-                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                    <p class="text-sm text-slate-400">Main Wallet Total</p>
-                    <h3 id="walletTotalBalance" class="mt-3 text-3xl font-black text-white">--</h3>
-                </div>
-                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                    <p class="text-sm text-slate-400">Unrealized P&L</p>
-                    <h3 id="walletUnrealizedPnl" class="mt-3 text-3xl font-black text-slate-300">--</h3>
-                </div>
-                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-                    <p class="text-sm text-slate-400">Ledger Entries</p>
-                    <h3 id="walletLedgerCount" class="mt-3 text-3xl font-black text-white">0</h3>
-                </div>
-            </div>
-
-            <div id="walletActionPanel" class="mb-6 rounded-[2rem] border border-cyan-400/20 bg-white/[0.05] p-5 backdrop-blur-xl">
-                <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <div class="mb-3 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Wallet Actions</div>
-                        <h2 class="text-2xl font-black">Transfer, deposit and withdraw</h2>
-                        <p id="walletEnvironmentText" class="mt-1 max-w-3xl text-sm leading-6 text-slate-400">Backend crypto wallet APIs are loading.</p>
-                    </div>
-                    <button id="refreshWalletBtn" type="button" class="w-fit rounded-full border border-cyan-400/30 bg-cyan-400/10 px-5 py-3 text-sm font-black text-cyan-300 transition hover:bg-cyan-400/20">Refresh Wallet</button>
-                </div>
-
-                <div class="grid gap-4 md:grid-cols-3">
-                    <button id="walletOpenTransferBtn" type="button" class="tx-wallet-action-btn transfer">
-                        <span>Transfer</span>
-                        <small>Main ⇄ Trading</small>
-                    </button>
-                    <button id="walletOpenDepositBtn" type="button" class="tx-wallet-action-btn deposit">
-                        <span>Deposit</span>
-                        <small>Company address</small>
-                    </button>
-                    <button id="walletOpenWithdrawBtn" type="button" class="tx-wallet-action-btn withdraw">
-                        <span>Withdraw</span>
-                        <small>Admin approval</small>
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid gap-6">
-                <div id="walletLedgerPanel" class="tx-history-card">
-                    <div class="tx-history-head">
-                        <div>
-                            <h3>Wallet ledger</h3>
-                            <p>Every backend wallet movement.</p>
-                        </div>
-                        <div class="tx-history-controls">
-                            <select id="ledgerAccountFilter" class="hidden font-bold text-cyan-300" style="background-color:#020617; border-color: rgba(34, 211, 238, 0.2);">
-                                <option value="main">Main Account</option>
-                            </select>
-                            <input id="ledgerSearchInput" type="search" placeholder="Search ledger" />
-                            <select id="ledgerCurrencyFilter">
-                                <option value="all">All currencies</option>
-                                <option value="INR">INR (₹)</option>
-                                <option value="USDT">USD ($)</option>
-                            </select>
-                            <select id="ledgerTypeFilter">
-                                <option value="all">All types</option>
-                                <option value="credit">Credit</option>
-                                <option value="debit">Debit</option>
-                                <option value="deposit">Deposit</option>
-                                <option value="withdrawal">Withdrawal</option>
-                                <option value="transfer">Transfer</option>
-                                <option value="fee">Fee</option>
-                            </select>
-                            <select id="ledgerPageSize">
-                                <option value="5">5 / page</option>
-                                <option value="10">10 / page</option>
-                                <option value="20">20 / page</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="tx-history-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Direction</th>
-                                    <th>Amount</th>
-                                    <th>After</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ledgerTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="ledgerEmptyState" class="tx-history-empty hidden">No ledger entries found.</div>
-                    <div id="ledgerPagination" class="tx-pagination"></div>
-                </div>
-
-                <div id="walletDepositHistoryPanel" class="tx-history-card">
-                    <div class="tx-history-head">
-                        <div>
-                            <h3>Deposit history</h3>
-                            <p>Company-address deposit records and verification status.</p>
-                        </div>
-                        <div class="tx-history-controls">
-                            <input id="depositSearchInput" type="search" placeholder="Search deposits" />
-                            <select id="depositCurrencyFilter">
-                                <option value="all">All currencies</option>
-                                <option value="INR">INR (₹)</option>
-                                <option value="USDT">USD ($)</option>
-                            </select>
-                            <select id="depositStatusFilter">
-                                <option value="all">All status</option>
-                                <option value="completed">Completed</option>
-                                <option value="pending">Pending</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="failed">Failed</option>
-                            </select>
-                            <select id="depositPageSize">
-                                <option value="5">5 / page</option>
-                                <option value="10">10 / page</option>
-                                <option value="20">20 / page</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="tx-history-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reference</th>
-                                    <th>Network</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Verification</th>
-                                    <th class="text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="depositTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="depositEmptyState" class="tx-history-empty hidden">No deposit requests found.</div>
-                    <div id="depositPagination" class="tx-pagination"></div>
-                </div>
-
-                <div class="tx-history-card">
-                    <div class="tx-history-head">
-                        <div>
-                            <h3>Withdrawal history</h3>
-                            <p>Pending requests lock balance. Admin approval finalizes payout.</p>
-                        </div>
-                        <div class="tx-history-controls">
-                            <input id="withdrawalSearchInput" type="search" placeholder="Search withdrawals" />
-                            <select id="withdrawalCurrencyFilter">
-                                <option value="all">All currencies</option>
-                                <option value="INR">INR (₹)</option>
-                                <option value="USDT">USD ($)</option>
-                            </select>
-                            <select id="withdrawalStatusFilter">
-                                <option value="all">All status</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="completed">Completed</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <select id="withdrawalPageSize">
-                                <option value="5">5 / page</option>
-                                <option value="10">10 / page</option>
-                                <option value="20">20 / page</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="tx-history-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reference</th>
-                                    <th>Network</th>
-                                    <th>Address</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Remark</th>
-                                    <th class="text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="withdrawalTableBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="withdrawalEmptyState" class="tx-history-empty hidden">No withdrawal requests found.</div>
-                    <div id="withdrawalPagination" class="tx-pagination"></div>
-                </div>
-            </div>
-        </section>
+                        var sTab = document.getElementById(savedTabId);
+                        if (sTab) {
+                            sTab.className = "px-2 py-1 text-sm font-bold border-b-2 border-cyan-400 text-cyan-300 transition";
+                        }
+                        var sContId = "";
+                        if (savedTabId === "mainTabTradingAccounts") sContId = "contentTradingAccounts";
+                        if (savedTabId === "mainTabWallet") sContId = "contentWallet";
+                        if (sContId) {
+                            var sCont = document.getElementById(sContId);
+                            if (sCont) {
+                                sCont.className = "block";
+                            }
+                        }
+                    }
+                })();
+            </script>
+        </div>
+    </main>
     </main>
 
     <div id="walletActionModal" class="fixed inset-0 z-[9999] hidden items-center justify-center px-4 py-6" aria-hidden="true">

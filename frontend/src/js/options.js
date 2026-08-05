@@ -251,7 +251,11 @@ function showMessage(message, type = "success") {
     }
 
     box.className = type === "error" ? "os-toast error" : "os-toast success";
-    box.textContent = message;
+    if (message.includes("<a") || message.includes("</")) {
+        box.innerHTML = message;
+    } else {
+        box.textContent = message;
+    }
     box.style.opacity = "1";
     box.style.transform = "translateY(0)";
 
@@ -259,7 +263,13 @@ function showMessage(message, type = "success") {
     showMessage._timer = window.setTimeout(() => {
         box.style.opacity = "0";
         box.style.transform = "translateY(14px)";
-    }, 2600);
+    }, type === "error" ? 6000 : 2600);
+}
+
+function isOptionsKycRequired(error) {
+    const errors = error?.errors || {};
+    const message = `${error?.message || ""} ${Object.values(errors).join(" ")}`.toLowerCase();
+    return Boolean(errors.kyc_required || errors.kyc || message.includes("kyc") || message.includes("identity verification"));
 }
 
 
@@ -2327,12 +2337,14 @@ function refreshOrderButton() {
         el.placeOrderBtn.textContent = "Log In to Trade";
         el.placeOrderBtn.disabled = false;
         if (registerBtn) {
+            registerBtn.style.display = "";
             registerBtn.classList.remove("hidden");
         }
         return;
     }
 
     if (registerBtn) {
+        registerBtn.style.display = "none";
         registerBtn.classList.add("hidden");
     }
 
@@ -3389,7 +3401,13 @@ async function handleOptionsDepositSubmit(event) {
             closeOptionsWalletModal();
             showMessage(response.message || "INR Deposit submitted. Main Wallet will be credited after verification.", "success");
         } catch (error) {
-            setOptionsWalletModalMessage(backendError(error, "Unable to create deposit."), "error");
+            if (isOptionsKycRequired(error)) {
+                clearOptionsWalletModalMessages();
+                closeOptionsWalletModal();
+                showMessage(`KYC is compulsory at deposit time. Please complete KYC first. <a href="./kyc.html" class="underline font-black text-cyan-300">Click here to complete KYC</a>`, "error");
+            } else {
+                setOptionsWalletModalMessage(backendError(error, "Unable to create deposit."), "error");
+            }
         } finally {
             if (button) button.disabled = false;
         }
@@ -3426,7 +3444,13 @@ async function handleOptionsDepositSubmit(event) {
         closeOptionsWalletModal();
         showMessage(message, tone);
     } catch (error) {
-        setOptionsWalletModalMessage(backendError(error, "Unable to create deposit."), "error");
+        if (isOptionsKycRequired(error)) {
+            clearOptionsWalletModalMessages();
+            closeOptionsWalletModal();
+            showMessage(`KYC is compulsory at deposit time. Please complete KYC first. <a href="./kyc.html" class="underline font-black text-cyan-300">Click here to complete KYC</a>`, "error");
+        } else {
+            setOptionsWalletModalMessage(backendError(error, "Unable to create deposit."), "error");
+        }
     } finally {
         if (button) button.disabled = false;
     }
@@ -3582,7 +3606,7 @@ async function txInitSubAccountsAndSelector() {
         if (!selector) return;
         
         const response = await apiRequest("/user/sub-accounts");
-        const subAccounts = response.data || [];
+        const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
         txSubAccountsLocalCache = subAccounts;
         
         selector.innerHTML = `<option value="main">Main Trading Account</option>`;
@@ -3620,7 +3644,7 @@ async function txRenderSubAccountsList() {
     if (!container) return;
     try {
         const response = await apiRequest("/user/sub-accounts");
-        const subAccounts = response.data || [];
+        const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
         txSubAccountsLocalCache = subAccounts;
         if (subAccounts.length === 0) {
             container.innerHTML = `<p class="text-xs text-slate-500 font-semibold py-2">No sub accounts created yet.</p>`;

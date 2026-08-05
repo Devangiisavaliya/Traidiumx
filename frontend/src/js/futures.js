@@ -533,7 +533,11 @@ function showOrderMessage(message, type = "success") {
     const stack = txGetSideToastStack();
     const toast = document.createElement("div");
     toast.className = `tx-side-toast ${type === "error" ? "error" : "success"}`;
-    toast.textContent = cleanMessage;
+    if (cleanMessage.includes("<a") || cleanMessage.includes("</")) {
+        toast.innerHTML = cleanMessage;
+    } else {
+        toast.textContent = cleanMessage;
+    }
     stack.appendChild(toast);
 
     window.requestAnimationFrame(() => toast.classList.add("show"));
@@ -541,7 +545,7 @@ function showOrderMessage(message, type = "success") {
     window.setTimeout(() => {
         toast.classList.remove("show");
         window.setTimeout(() => toast.remove(), 180);
-    }, type === "error" ? 3600 : 2200);
+    }, type === "error" ? 6000 : 2200);
 }
 
 /* =========================
@@ -601,6 +605,8 @@ function updatePairHeader() {
     if (elements.currentSymbolTitle) {
         elements.currentSymbolTitle.textContent = pair.label;
     }
+
+    
 
     if (elements.currentSymbolSub) {
         elements.currentSymbolSub.textContent = isCommoditySymbol() ? "Commodity CFD / Internal Futures" : "Perpetual Futures";
@@ -2469,7 +2475,13 @@ async function txHandleFuturesDepositSubmit(event) {
             txCloseFuturesWalletModal();
             showOrderMessage(response.message || "INR Deposit submitted. Main Wallet will be credited after verification.", "success");
         } catch (error) {
-            txSetFuturesWalletModalMessage(txGetFuturesWalletError(error, "Unable to create deposit."), "error");
+            if (txIsWithdrawalKycRequired(error)) {
+                txClearFuturesWalletModalMessages();
+                txCloseFuturesWalletModal();
+                showOrderMessage(`KYC is compulsory at deposit time. Please complete KYC first. <a href="./kyc.html" class="underline font-black text-cyan-300">Click here to complete KYC</a>`, "error");
+            } else {
+                txSetFuturesWalletModalMessage(txGetFuturesWalletError(error, "Unable to create deposit."), "error");
+            }
         } finally {
             txSetWalletButtonLoading(button, false);
         }
@@ -2505,7 +2517,13 @@ async function txHandleFuturesDepositSubmit(event) {
         txCloseFuturesWalletModal();
         showOrderMessage(message, tone);
     } catch (error) {
-        txSetFuturesWalletModalMessage(txGetFuturesWalletError(error, "Unable to create deposit."), "error");
+        if (txIsWithdrawalKycRequired(error)) {
+            txClearFuturesWalletModalMessages();
+            txCloseFuturesWalletModal();
+            showOrderMessage(`KYC is compulsory at deposit time. Please complete KYC first. <a href="./kyc.html" class="underline font-black text-cyan-300">Click here to complete KYC</a>`, "error");
+        } else {
+            txSetFuturesWalletModalMessage(txGetFuturesWalletError(error, "Unable to create deposit."), "error");
+        }
     } finally {
         txSetWalletButtonLoading(button, false);
     }
@@ -6071,6 +6089,8 @@ function txRefreshVisibleTradingRows(force = false) {
     }
 
     txCheckTpSlTriggers();
+
+    
 }
 
 function txFormatFastPrice(price) {
@@ -8538,6 +8558,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         renderActiveBackendTableFromCache();
         txRefreshVisibleTradingRows(true);
         updateWalletUI();
+        showOrderMessage("Order placed and executed successfully.", "success");
         if (elements.quantityInput) elements.quantityInput.value = "";
 
         // Reset TP/SL checkbox and inputs immediately on order placement
@@ -8570,7 +8591,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 txEndOptimisticAction();
                 renderActiveBackendTableFromCache();
                 txRefreshVisibleTradingRows(true);
-                showOrderMessage(response.message || "Order completed successfully.", "success");
             } catch (error) {
                 txRestoreFuturesState(optimistic.snapshot);
                 txEndOptimisticAction();
@@ -8641,6 +8661,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         // DOM selector cannot be matched.
         renderActiveBackendTableFromCache();
         txRefreshVisibleTradingRows(true);
+        showOrderMessage("Position closed successfully.", "success");
 
         txRunAfterImmediatePaint(async () => {
             try {
@@ -8657,7 +8678,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 renderActiveBackendTableFromCache();
                 updateWalletUI();
                 window.txPlayFuturesCloseSound();
-                showOrderMessage(response.message || "Position closed successfully.", "success");
             } catch (error) {
                 txSetPendingClose(positionId, false);
                 txRestoreFuturesState(optimistic.snapshot);
@@ -8688,6 +8708,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         txSetActiveBottomTab("positions", false);
         renderPositionsTable();
         updateWalletUI();
+        showOrderMessage("All positions closed successfully.", "success");
 
         // Local-only rows are already hidden. When no backend position exists,
         // complete immediately without opening a confirmation or waiting UI.
@@ -8722,10 +8743,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 renderActiveBackendTableFromCache();
                 updateWalletUI();
                 if (txToNumber(data.closed_count, 0) > 0) window.txPlayFuturesCloseSound();
-                showOrderMessage(
-                    response.message || "Close All request completed.",
-                    txToNumber(data.failed_count, 0) > 0 ? "error" : "success"
-                );
             } catch (error) {
                 TX_BACKEND_FUTURES.pendingCloseAll = false;
                 backendPositions.forEach((position) => txSetPendingClose(txGetId(position), false));
@@ -8786,235 +8803,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         return result;
     };
 
-    // ==========================================
-    // RICH SYMBOL PICKER & WISHLIST CONTROLLER
-    // ==========================================
-    const TX_FUTURES_SYMBOLS = [
-        { symbol: "BTCUSDT", label: "BTC-USDT", name: "Bitcoin", leverage: "Upto 150x", category: "Layer 1", quote: "USDT" },
-        { symbol: "ETHUSDT", label: "ETH-USDT", name: "Ethereum", leverage: "Upto 100x", category: "Layer 1", quote: "USDT" },
-        { symbol: "BNBUSDT", label: "BNB-USDT", name: "BNB", leverage: "Upto 75x", category: "Layer 1", quote: "USDT" },
-        { symbol: "SOLUSDT", label: "SOL-USDT", name: "Solana", leverage: "Upto 75x", category: "Layer 1", quote: "USDT" },
-        { symbol: "XRPUSDT", label: "XRP-USDT", name: "XRP", leverage: "Upto 75x", category: "Layer 1", quote: "USDT" },
-        { symbol: "DOGEUSDT", label: "DOGE-USDT", name: "Dogecoin", leverage: "Upto 75x", category: "Meme", quote: "USDT" },
-        { symbol: "ADAUSDT", label: "ADA-USDT", name: "Cardano", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "AVAXUSDT", label: "AVAX-USDT", name: "Avalanche", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "LINKUSDT", label: "LINK-USDT", name: "Chainlink", leverage: "Upto 50x", category: "AI", quote: "USDT" },
-        { symbol: "LTCUSDT", label: "LTC-USDT", name: "Litecoin", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "TRXUSDT", label: "TRX-USDT", name: "TRON", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "DOTUSDT", label: "DOT-USDT", name: "Polkadot", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "BCHUSDT", label: "BCH-USDT", name: "Bitcoin Cash", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "ATOMUSDT", label: "ATOM-USDT", name: "Cosmos", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "UNIUSDT", label: "UNI-USDT", name: "Uniswap", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "APTUSDT", label: "APT-USDT", name: "Aptos", leverage: "Upto 50x", category: "Layer 1", quote: "USDT" },
-        { symbol: "XAUUSD", label: "XAUUSD", name: "Gold Spot", leverage: "Upto 200x", category: "Metals", quote: "USD" }
-    ];
-
-    let TX_FUTURES_WISHLIST = new Set();
-    let txSymbolPickerActiveFilter = "all";
-    let txSymbolPickerSearchQuery = "";
-
-    function txLoadFuturesWishlist() {
-        try {
-            const saved = localStorage.getItem("tx_futures_wishlist");
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    TX_FUTURES_WISHLIST = new Set(parsed);
-                }
-            }
-        } catch (e) {}
-
-        if (isLoggedIn()) {
-            txApiRequestWithTimeout("/trading/recent-symbols", {}, 3000)
-                .then((res) => {
-                    const items = res?.data?.symbols || res?.data || [];
-                    if (Array.isArray(items)) {
-                        items.forEach((item) => {
-                            const sym = typeof item === "string" ? item : (item.symbol || item.label);
-                            if (sym) TX_FUTURES_WISHLIST.add(sym.toUpperCase().replace("-", ""));
-                        });
-                        txSaveFuturesWishlist();
-                    }
-                })
-                .catch(() => {});
-        }
-    }
-
-    function txSaveFuturesWishlist() {
-        try {
-            localStorage.setItem("tx_futures_wishlist", JSON.stringify(Array.from(TX_FUTURES_WISHLIST)));
-        } catch (e) {}
-        txUpdateWishlistCounts();
-    }
-
-    window.txToggleWishlistSymbol = function txToggleWishlistSymbol(symbol, event) {
-        if (event) event.stopPropagation();
-        const cleanSym = String(symbol || "").toUpperCase().replace("-", "");
-        if (TX_FUTURES_WISHLIST.has(cleanSym)) {
-            TX_FUTURES_WISHLIST.delete(cleanSym);
-        } else {
-            TX_FUTURES_WISHLIST.add(cleanSym);
-            if (isLoggedIn()) {
-                txApiRequestWithTimeout("/trading/recent-symbols", {
-                    method: "POST",
-                    body: JSON.stringify({ symbol: cleanSym, label: cleanSym })
-                }, 3000).catch(() => {});
-            }
-        }
-        txSaveFuturesWishlist();
-        txRenderSymbolPickerList();
-    };
-
-    function txUpdateWishlistCounts() {
-        const countEl = document.getElementById("symbolPickerWishlistCount");
-        if (countEl) countEl.textContent = TX_FUTURES_WISHLIST.size;
-    }
-
-    function txRenderSymbolPickerList() {
-        const listEl = document.getElementById("symbolPickerList");
-        if (!listEl) return;
-
-        txUpdateWishlistCounts();
-
-        const query = (txSymbolPickerSearchQuery || "").toLowerCase().trim();
-        const filter = txSymbolPickerActiveFilter;
-
-        const filtered = TX_FUTURES_SYMBOLS.filter((item) => {
-            const cleanSym = item.symbol.toUpperCase().replace("-", "");
-            const isFav = TX_FUTURES_WISHLIST.has(cleanSym);
-
-            if (filter === "wishlist" && !isFav) return false;
-            if (filter !== "all" && filter !== "wishlist" && item.category !== filter) return false;
-
-            if (query) {
-                const labelMatch = item.label.toLowerCase().includes(query);
-                const nameMatch = item.name.toLowerCase().includes(query);
-                const symbolMatch = item.symbol.toLowerCase().includes(query);
-                if (!labelMatch && !nameMatch && !symbolMatch) return false;
-            }
-
-            return true;
-        });
-
-        if (!filtered.length) {
-            listEl.innerHTML = `<div class="p-8 text-center text-xs font-bold text-slate-500">No contracts found matching your search.</div>`;
-            return;
-        }
-
-        listEl.innerHTML = filtered.map((item) => {
-            const cleanSym = item.symbol.toUpperCase().replace("-", "");
-            const isFav = TX_FUTURES_WISHLIST.has(cleanSym);
-            const isActive = state.currentSymbol === item.symbol;
-
-            const livePrice = Number(state.livePrices?.[item.symbol] || defaultPrices?.[item.symbol] || 0);
-            const ticker = state.tickers?.[item.symbol] || {};
-            const change24h = Number(ticker.P || ticker.priceChangePercent || 0);
-            const isUp = change24h >= 0;
-
-            const formattedPrice = livePrice > 0 ? (livePrice < 1 ? livePrice.toFixed(4) : livePrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : "--";
-            const formattedChange = livePrice > 0 ? `${isUp ? "+" : ""}${change24h.toFixed(2)}%` : "--";
-
-            return `
-                <div onclick="window.txSelectSymbolFromPicker('${item.symbol}')" class="symbol-picker-row ${isActive ? "is-active" : ""}">
-                    <div class="flex items-center justify-center">
-                        <button type="button" onclick="window.txToggleWishlistSymbol('${item.symbol}', event)" class="text-base transition hover:scale-125 focus:outline-none ${isFav ? "text-amber-400" : "text-slate-600 hover:text-slate-400"}">
-                            ${isFav ? "★" : "☆"}
-                        </button>
-                    </div>
-                    <div>
-                        <strong class="block text-sm font-extrabold text-white">${item.label}</strong>
-                        <span class="block text-[10px] font-bold text-slate-400">${item.quote} Perpetual</span>
-                    </div>
-                    <div>
-                        <span class="inline-block rounded-md bg-slate-800/80 px-2 py-0.5 text-[10px] font-extrabold text-slate-300 border border-slate-700/60">${item.leverage}</span>
-                    </div>
-                    <div class="text-right">
-                        <strong class="text-xs font-black text-white">$${formattedPrice}</strong>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs font-extrabold ${isUp ? "text-emerald-400" : "text-red-400"}">${formattedChange}</span>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-    function txOpenSymbolPickerModal() {
-        const modal = document.getElementById("symbolPickerModal");
-        if (!modal) return;
-        txLoadFuturesWishlist();
-        txRenderSymbolPickerList();
-        modal.classList.remove("hidden");
-        modal.classList.add("block");
-    }
-
-    function txCloseSymbolPickerModal() {
-        const modal = document.getElementById("symbolPickerModal");
-        if (!modal) return;
-        modal.classList.add("hidden");
-        modal.classList.remove("block");
-        modal.classList.remove("flex");
-    }
-
-    window.txSelectSymbolFromPicker = function txSelectSymbolFromPicker(symbol) {
-        txCloseSymbolPickerModal();
-        changeSymbol(symbol);
-    };
-
-    function txInitSymbolPickerModal() {
-        const openBtn = document.getElementById("openSymbolPickerBtn");
-        const closeBtn = document.getElementById("symbolPickerCloseBtn");
-        const modal = document.getElementById("symbolPickerModal");
-        const searchInput = document.getElementById("symbolPickerSearch");
-        const filterBtns = document.querySelectorAll("[data-symbol-filter]");
-
-        if (openBtn) {
-            openBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                if (modal?.classList.contains("block") || modal?.classList.contains("flex")) {
-                    txCloseSymbolPickerModal();
-                } else {
-                    txOpenSymbolPickerModal();
-                }
-            });
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                txCloseSymbolPickerModal();
-            });
-        }
-
-        document.addEventListener("click", (e) => {
-            if (modal && !modal.contains(e.target) && openBtn && !openBtn.contains(e.target)) {
-                txCloseSymbolPickerModal();
-            }
-        });
-
-        if (searchInput) {
-            searchInput.addEventListener("click", (e) => e.stopPropagation());
-            searchInput.addEventListener("input", (e) => {
-                txSymbolPickerSearchQuery = e.target.value;
-                txRenderSymbolPickerList();
-            });
-        }
-
-        filterBtns.forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                filterBtns.forEach((b) => {
-                    b.className = "symbol-filter-pill";
-                });
-                btn.className = "symbol-filter-pill active";
-                txSymbolPickerActiveFilter = btn.dataset.symbolFilter;
-                txRenderSymbolPickerList();
-            });
-        });
-
-        txLoadFuturesWishlist();
-    }
-
     let txSubAccountsLocalCache = [];
 
     async function txInitSubAccountsAndSelector() {
@@ -9026,7 +8814,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             if (!selector) return;
             
             const response = await apiRequest("/user/sub-accounts");
-            const subAccounts = response.data || [];
+            const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
             txSubAccountsLocalCache = subAccounts;
             
             selector.innerHTML = `<option value="main">Main Trading Account</option>`;
@@ -9064,7 +8852,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         if (!container) return;
         try {
             const response = await apiRequest("/user/sub-accounts");
-            const subAccounts = response.data || [];
+            const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
             txSubAccountsLocalCache = subAccounts;
             if (subAccounts.length === 0) {
                 container.innerHTML = `<p class="text-xs text-slate-500 font-semibold py-2">No sub accounts created yet.</p>`;
@@ -9292,8 +9080,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         txBindSubAccountEvents();
     }
 
-    document.addEventListener("DOMContentLoaded", txInitSymbolPickerModal);
-    txInitSymbolPickerModal();
+    
     document.addEventListener("DOMContentLoaded", txBindTpSlCheckbox, { once: true });
 
     window.addEventListener("traidiumx:currency-change", (event) => {

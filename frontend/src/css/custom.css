@@ -5234,7 +5234,7 @@ details[open] {
 .rt-terminal-3col {
     grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
     gap: 10px !important;
-    align-items: start !important;
+    align-items: stretch !important;
 }
 
 .rt-left-terminal,
@@ -5292,20 +5292,23 @@ details[open] {
 
 .rt-chart-layout.rt-tv-chart-layout.rt-tv-native-only,
 .rt-chart-area.rt-tv-chart-area.rt-tv-native-area {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     min-height: 0 !important;
-    height: calc(100vh - 305px) !important;
+    height: 100% !important;
     background: #050914 !important;
+    flex: 1 !important;
 }
 
 .rt-chart-container.rt-tv-chart-container.rt-perfect-tv-container {
-    height: calc(100vh - 305px) !important;
-    min-height: 620px !important;
+    height: 100% !important;
+    min-height: 0 !important;
     width: 100% !important;
     border: 0 !important;
     border-radius: 0 !important;
     background: #050914 !important;
     overflow: hidden !important;
+    flex: 1 !important;
 }
 
 .rt-perfect-tv-wrap,
@@ -7254,7 +7257,8 @@ details[open] {
     font-weight: 900;
     background: rgba(15, 23, 42, 0.72);
 }
-.os-demo-table td {
+
+.os-demo-table td {
     color: #e5e7eb;
     font-weight: 700;
 }
@@ -7554,9 +7558,204 @@ body .rt-terminal-3col {
     min-height: 0 !important;
 }
 
+.rt-chart-container,
 .rt-chart-container.rt-tv-chart-container.rt-perfect-tv-container {
     flex: 1 !important;
+    height: 100% !important;
     min-height: 0 !important;
+}
+
+.rt-ob-card,
+.rt-order-panel-card {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.rt-ob-card {
+    overflow: hidden !important;
+}
+
+#orderBookPanel:not(.hidden),
+#tradesPanel:not(.hidden) {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+#orderBookAsks,
+#orderBookBids,
+#recentTradesList {
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+/* ========================================================================
+   COMPACT RIGHT PANEL HEIGHT REDUCTION OVERRIDES
+   ======================================================================== */
+.rt-terminal-focused .rt-label {
+    padding: 3px 12px 2px !important;
+}
+
+.rt-terminal-focused .rt-label + .rt-input,
+.rt-terminal-focused #limitPriceWrap .rt-input,
+.rt-terminal-focused #stopPriceWrap .rt-input,
+.rt-terminal-focused #leverageSelect {
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+}
+
+.rt-terminal-focused .rt-side-tabs,
+.rt-terminal-focused .rt-order-type-tabs,
+.rt-terminal-focused .rt-percent-row {
+    padding: 4px 12px 0 !important;
+    gap: 4px !important;
+}
+
+.rt-terminal-focused .rt-side-tabs button,
+.rt-terminal-focused .rt-order-type-tabs button,
+.rt-terminal-focused .rt-percent-row button {
+    padding: 5px 8px !important;
+    font-size: 10.5px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini-grid {
+    margin-top: 4px !important;
+    gap: 4px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini {
+    padding: 4px 8px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini span {
+    font-size: 9.5px !important;
+}
+
+.rt-terminal-focused .rt-wallet-mini strong {
+    font-size: 10.5px !important;
+}
+
+.rt-terminal-focused .rt-est-margin-row {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+}
+
+.rt-terminal-focused .rt-place-order-btn {
+    margin: 6px 12px !important;
+    padding: 6px !important;
+    font-size: 11.5px !important;
+}
+
+.rt-terminal-focused .rt-margin-head {
+    padding: 8px 12px !important;
+}
+
+.rt-terminal-focused .rt-margin-head h3 {
+    font-size: 13px !important;
+}
+
+.rt-terminal-focused #walletPnl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+}
+
+.rt-terminal-focused #marginAssetBadge {
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+}
+
+.rt-terminal-focused .px-4.py-4 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+
+.rt-terminal-focused .mt-5.grid-cols-2 {
+    margin-top: 8px !important;
+    gap: 8px !important;
+}
+
+
+/* Custom Margin Mode Dropdown Styling */
+#marginModeDropdown {
+    position: relative;
+    display: inline-block;
+}
+
+#marginModeBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #22d3ee;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#marginModeBtn:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.15);
+}
+
+#marginModeMenu {
+    position: absolute;
+    left: 0;
+    margin-top: 6px;
+    width: 220px;
+    border-radius: 12px;
+    background: #0b0f19;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    overflow: hidden;
+}
+
+#marginModeMenu.hidden {
+    display: none;
+}
+
+.margin-mode-option {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: background 0.2s ease;
+}
+
+.margin-mode-option:last-child {
+    border-bottom: none;
+}
+
+.margin-mode-option:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.margin-mode-option .title-isolated {
+    color: #22d3ee;
+    font-size: 11px;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.margin-mode-option .title-cross {
+    color: #fbbf24;
+    font-size: 11px;
 }
 
 .rt-ob-card,
@@ -7760,4 +7959,37 @@ body .rt-terminal-3col {
     font-size: 9px;
     font-weight: 700;
     line-height: 1.3;
+}
+
+/* ================================
+   Light Mode & Profile UI Overrides
+================================ */
+html.light {
+    filter: invert(0.92) hue-rotate(180deg);
+}
+
+html.light img,
+html.light video,
+html.light iframe,
+html.light canvas,
+html.light [style*="background-image"],
+html.light #txNavbarProfileBtn,
+html.light #txProfileDropdown,
+html.light .tx-profile-avatar {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+#txProfileDropdown {
+    animation: txDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes txDropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

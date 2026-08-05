@@ -172,6 +172,8 @@ def _wallet_projection():
         "currency": 1,
         "updated_at": 1,
         "user_id": 1,
+        "main_wallet": 1,
+        "trading_wallet": 1,
     }
 
 
@@ -239,9 +241,20 @@ def _enrich_users(db, users):
 
         wallet = wallet_map.get(str(item.get("_id"))) or {}
         item["wallet"] = wallet
-        item["available_balance"] = _number(wallet.get("available_balance"))
-        item["locked_balance"] = _number(wallet.get("locked_balance"))
-        item["total_balance"] = round(_wallet_total(wallet), 8)
+        
+        main_w = wallet.get("main_wallet") or {}
+        trading_w = wallet.get("trading_wallet") or {}
+        
+        main_total = _number(main_w.get("total_balance") or (main_w.get("available_balance", 0.0) + main_w.get("locked_balance", 0.0)))
+        trading_total = _number(trading_w.get("total_balance") or (trading_w.get("available_balance", 0.0) + trading_w.get("locked_balance", 0.0)))
+        if not trading_total and not trading_w:
+            trading_total = _number(wallet.get("total_balance") or wallet.get("balance") or (wallet.get("available_balance", 0.0) + wallet.get("locked_balance", 0.0)))
+            
+        item["available_balance"] = _number(trading_w.get("available_balance") or wallet.get("available_balance"))
+        item["locked_balance"] = _number(trading_w.get("locked_balance") or wallet.get("locked_balance"))
+        item["main_balance"] = round(main_total, 8)
+        item["trading_balance"] = round(trading_total, 8)
+        item["total_balance"] = round(main_total + trading_total, 8)
         item["account_status"] = item.get("account_status") or item.get("status") or "active"
         item["kyc_status"] = item.get("kyc_status") or item.get("kyc") or "pending"
         enriched.append(item)
@@ -559,14 +572,23 @@ def _load_user_export_data(db, user_id):
     total_withdrawal = _sum_collection_amount(db, "withdrawals", user_id, ["approved", "completed", "APPROVED", "COMPLETED"], ["amount", "locked_amount", "withdrawal_amount"])
     futures_pnl = _positions_pnl(db, user_id)
 
+    main_w = wallet.get("main_wallet") or {} if wallet else {}
+    trading_w = wallet.get("trading_wallet") or {} if wallet else {}
+    main_total = _number(main_w.get("total_balance") or (main_w.get("available_balance", 0.0) + main_w.get("locked_balance", 0.0)))
+    trading_total = _number(trading_w.get("total_balance") or (trading_w.get("available_balance", 0.0) + trading_w.get("locked_balance", 0.0)))
+    if not trading_total and not trading_w and wallet:
+        trading_total = _number(wallet.get("total_balance") or wallet.get("balance") or (wallet.get("available_balance", 0.0) + wallet.get("locked_balance", 0.0)))
+
     return {
         "user": user,
         "wallet": wallet,
         "kyc": kyc,
         "summary": {
-            "wallet_total": round(_wallet_total(wallet), 8),
-            "available_balance": _number(wallet.get("available_balance") if wallet else 0),
-            "locked_balance": _number(wallet.get("locked_balance") if wallet else 0),
+            "wallet_total": round(main_total + trading_total, 8),
+            "available_balance": _number(trading_w.get("available_balance") or (wallet.get("available_balance") if wallet else 0)),
+            "locked_balance": _number(trading_w.get("locked_balance") or (wallet.get("locked_balance") if wallet else 0)),
+            "main_balance": round(main_total, 8),
+            "trading_balance": round(trading_total, 8),
             "open_orders": open_orders,
             "open_positions": open_positions,
             "total_deposit": total_deposit,
@@ -608,9 +630,9 @@ def _export_sections(payload):
     ]))
 
     sections.append(("Wallet Summary", [
-        ["Available Balance", _money_text(summary.get("available_balance"))],
-        ["Locked Balance", _money_text(summary.get("locked_balance"))],
-        ["Wallet Total", _money_text(summary.get("wallet_total"))],
+        ["Main Wallet Balance", _money_text(summary.get("main_balance"))],
+        ["Trading Wallet Balance", _money_text(summary.get("trading_balance"))],
+        ["Total Assets (Combined)", _money_text(summary.get("wallet_total"))],
         ["Total Deposit", _money_text(summary.get("total_deposit"))],
         ["Total Withdrawal", _money_text(summary.get("total_withdrawal"))],
         ["Futures P&L", _money_text(summary.get("futures_pnl"))],
@@ -1004,14 +1026,23 @@ def users_summary():
         {
             "$group": {
                 "_id": None,
-                "available_balance": {"$sum": {"$ifNull": ["$available_balance", 0]}},
-                "locked_balance": {"$sum": {"$ifNull": ["$locked_balance", 0]}},
+                "trading_avail": {"$sum": {"$ifNull": ["$trading_wallet.available_balance", "$available_balance"]}},
+                "trading_lock": {"$sum": {"$ifNull": ["$trading_wallet.locked_balance", "$locked_balance"]}},
+                "main_total": {"$sum": {"$ifNull": ["$main_wallet.total_balance", 0]}},
+                "trading_total": {"$sum": {"$ifNull": ["$trading_wallet.total_balance", "$total_balance"]}}
             }
         }
     ]))
-    wallet = wallet_pipeline[0] if wallet_pipeline else {"available_balance": 0, "locked_balance": 0}
-    available = _number(wallet.get("available_balance"))
-    locked = _number(wallet.get("locked_balance"))
+    wallet = wallet_pipeline[0] if wallet_pipeline else {
+        "trading_avail": 0.0,
+        "trading_lock": 0.0,
+        "main_total": 0.0,
+        "trading_total": 0.0
+    }
+    trading_avail = _number(wallet.get("trading_avail"))
+    trading_lock = _number(wallet.get("trading_lock"))
+    main_total = _number(wallet.get("main_total"))
+    trading_total = _number(wallet.get("trading_total"))
 
     return success_response(
         message="Users summary fetched successfully.",
@@ -1024,9 +1055,9 @@ def users_summary():
             "new_today": new_today,
             "pending_kyc": pending_kyc,
             "wallet": {
-                "available_balance": round(available, 8),
-                "locked_balance": round(locked, 8),
-                "total_balance": round(available + locked, 8),
+                "available_balance": round(trading_avail, 8),
+                "locked_balance": round(trading_lock, 8),
+                "total_balance": round(main_total + trading_total, 8),
             },
         },
     )
@@ -1086,7 +1117,7 @@ def export_users():
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["User ID", "Name", "Email", "Phone", "Country", "KYC", "Status", "Available", "Locked", "Total", "Joined"])
+    writer.writerow(["User ID", "Name", "Email", "Phone", "Country", "KYC", "Status", "Main Wallet", "Trading Wallet", "Total Wallet", "Joined"])
 
     for user in users:
         writer.writerow([
@@ -1097,8 +1128,8 @@ def export_users():
             user.get("country") or "",
             user.get("kyc_status") or "pending",
             user.get("account_status") or "active",
-            _number(user.get("available_balance")),
-            _number(user.get("locked_balance")),
+            _number(user.get("main_balance")),
+            _number(user.get("trading_balance")),
             _number(user.get("total_balance")),
             user.get("created_at") or "",
         ])
@@ -1239,6 +1270,13 @@ def user_detail(user_id):
     total_withdrawal = _sum_collection_amount(db, "withdrawals", user_id, ["approved", "completed", "APPROVED", "COMPLETED"], ["amount", "locked_amount", "withdrawal_amount"])
     futures_pnl = _positions_pnl(db, user_id)
 
+    main_w = wallet.get("main_wallet") or {} if wallet else {}
+    trading_w = wallet.get("trading_wallet") or {} if wallet else {}
+    main_total = _number(main_w.get("total_balance") or (main_w.get("available_balance", 0.0) + main_w.get("locked_balance", 0.0)))
+    trading_total = _number(trading_w.get("total_balance") or (trading_w.get("available_balance", 0.0) + trading_w.get("locked_balance", 0.0)))
+    if not trading_total and not trading_w and wallet:
+        trading_total = _number(wallet.get("total_balance") or wallet.get("balance") or (wallet.get("available_balance", 0.0) + wallet.get("locked_balance", 0.0)))
+
     return success_response(
         message="User detail fetched successfully.",
         data={
@@ -1249,9 +1287,9 @@ def user_detail(user_id):
             "kyc": serialize_document(kyc),
             "mt5_account": serialize_document(mt5_account),
             "summary": {
-                "wallet_total": round(_wallet_total(wallet), 8),
-                "available_balance": _number(wallet.get("available_balance") if wallet else 0),
-                "locked_balance": _number(wallet.get("locked_balance") if wallet else 0),
+                "wallet_total": round(main_total + trading_total, 8),
+                "available_balance": _number(trading_w.get("available_balance") or (wallet.get("available_balance") if wallet else 0)),
+                "locked_balance": _number(trading_w.get("locked_balance") or (wallet.get("locked_balance") if wallet else 0)),
                 "open_orders": open_orders,
                 "open_positions": open_positions,
                 "total_deposit": total_deposit,

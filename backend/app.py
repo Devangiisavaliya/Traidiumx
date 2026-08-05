@@ -312,6 +312,18 @@ def create_app():
     except Exception as error:
         print(f"Warning: Failed to start plan monitor: {error}")
 
+    import time
+    @app.before_request
+    def start_timer():
+        request.start_time = time.time()
+
+    @app.after_request
+    def log_request_time(response):
+        if hasattr(request, "start_time"):
+            duration = (time.time() - request.start_time) * 1000
+            print(f"Request: {request.method} {request.path} took {duration:.2f}ms (Status: {response.status_code})")
+        return response
+
     return app
 
 

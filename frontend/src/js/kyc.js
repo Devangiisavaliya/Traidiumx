@@ -129,7 +129,7 @@ function formatKycStatus(value) {
 function getDefaultRemark(status) {
     if (status === "approved") return "Your Aadhaar KYC is approved. Deposits, trading, and withdrawal access are fully enabled.";
     if (["pending", "under_review", "review"].includes(status)) return "Your KYC submission is under verification.";
-    if (status === "rejected") return "Your KYC verification needs correction. Continue from the remaining step shown below.";
+    if (status === "rejected") return "Your KYC verification was rejected by admin. Please complete the verification again from Step 1.";
     return "Complete the current KYC step. Finished steps remain saved and will not reopen.";
 }
 
@@ -1148,8 +1148,12 @@ async function loadKycStatus() {
         setFinalPanels(status);
 
         if (!finalStatus) {
-            setWizardStep(data.current_step || (kycState.mobileVerified ? 2 : 1), data.step_states || null);
-            if (kycState.documentsVerified && kycState.draftScan) setVerificationResult(kycState.draftScan, true, "documents");
+            if (status === "rejected" && !kycState.mobileVerified) {
+                setWizardStep(1, { "1": "current", "2": "locked", "3": "locked", "4": "locked" });
+            } else {
+                setWizardStep(data.current_step || (kycState.mobileVerified ? 2 : 1), data.step_states || null);
+                if (kycState.documentsVerified && kycState.draftScan) setVerificationResult(kycState.draftScan, true, "documents");
+            }
         } else {
             renderStepProgress(data.step_states || { "1": "verified", "2": "verified", "3": "verified", "4": "verified" });
             updateFormBadge();

@@ -687,21 +687,30 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         display: grid !important;
         grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
         gap: 12px !important;
-        align-items: start !important;
+        align-items: stretch !important;
     }
     
     html body[data-page="futures"] .rt-terminal-focused .rt-left-terminal {
         grid-column: auto !important;
-        display: block !important;
+        display: flex !important;
+        flex-direction: column !important;
         width: 100% !important;
+        height: auto !important;
+    }
+    
+    html body[data-page="futures"] .rt-terminal-focused .rt-middle-orderbook {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: auto !important;
     }
     
     html body[data-page="futures"] .rt-terminal-focused .rt-right-panel {
         grid-column: auto !important;
-        display: block !important;
-        position: sticky !important;
-        top: 110px !important;
+        display: flex !important;
+        flex-direction: column !important;
         width: 100% !important;
+        height: auto !important;
     }
 }
 

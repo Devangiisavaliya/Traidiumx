@@ -2,6 +2,7 @@ import re
 
 from models.futures_recent_symbol_model import (
     delete_expired_user_recent_symbols,
+    delete_user_recent_symbol,
     format_recent_symbol,
     format_recent_symbols,
     get_user_recent_symbols,
@@ -72,6 +73,23 @@ def get_user_recent_futures_symbols(user_id):
     return {
         "success": True,
         "message": "Recently viewed futures symbols loaded.",
+        "data": {
+            "symbols": format_recent_symbols(recent_symbols),
+            "retention_days": 7,
+        },
+        "status_code": 200,
+    }
+
+
+def remove_user_recent_futures_symbol(user_id, symbol):
+    normalized = normalize_futures_symbol(symbol)
+    delete_user_recent_symbol(user_id, normalized)
+    delete_expired_user_recent_symbols(user_id)
+    recent_symbols = get_user_recent_symbols(user_id)
+
+    return {
+        "success": True,
+        "message": "Recently viewed futures symbol removed.",
         "data": {
             "symbols": format_recent_symbols(recent_symbols),
             "retention_days": 7,

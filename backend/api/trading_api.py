@@ -4,6 +4,7 @@ from middleware.auth_middleware import auth_required
 from services.futures_recent_symbol_service import (
     get_user_recent_futures_symbols,
     record_user_recent_futures_symbol,
+    remove_user_recent_futures_symbol,
 )
 from services.trading_service import (
     cancel_trading_order,
@@ -55,6 +56,27 @@ def record_recent_symbol():
     return error_response(
         message=result["message"],
         errors=result.get("errors", {}),
+        status_code=result["status_code"]
+    )
+
+
+@trading_api.delete("/recent-symbols")
+@auth_required
+def delete_recent_symbol():
+    data = request.get_json(silent=True) or {}
+    symbol = data.get("symbol")
+
+    if not symbol:
+        return error_response(
+            message="Symbol is required.",
+            status_code=400
+        )
+
+    result = remove_user_recent_futures_symbol(g.current_user_id, symbol)
+
+    return success_response(
+        message=result["message"],
+        data=result["data"],
         status_code=result["status_code"]
     )
 

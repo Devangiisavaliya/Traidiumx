@@ -45,7 +45,7 @@
         body[data-page="options"] .os-terminal-grid {
             width: 100% !important;
             max-width: 100% !important;
-            grid-template-columns: minmax(0, 1fr) minmax(250px, 300px) minmax(270px, 330px) !important;
+            grid-template-columns: minmax(0, 1fr) 320px 320px !important;
             gap: 10px !important;
             overflow: hidden !important;
         }
@@ -140,18 +140,40 @@
 
         /* Options page only: remove empty stretched area under options chain */
         body[data-page="options"] .os-terminal-grid {
-            align-items: start !important;
+            align-items: stretch !important;
         }
 
         body[data-page="options"] .os-chain-card,
         body[data-page="options"] .os-side-market-card,
         body[data-page="options"] .os-order-card {
-            align-self: start !important;
+            align-self: stretch !important;
+            height: 100% !important;
         }
 
-        body[data-page="options"] .os-chain-card {
-            height: fit-content !important;
-            max-height: max-content !important;
+        body[data-page="options"] .os-side-market-card {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100% !important;
+        }
+
+        body[data-page="options"] .os-book-card {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+        }
+
+        body[data-page="options"] #optionsOrderBookPanel {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 0 !important;
+        }
+
+        body[data-page="options"] .os-book-list {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            min-height: 80px !important;
         }
 
         body[data-page="options"] .os-chain-scroll {
@@ -222,7 +244,7 @@
         @media (min-width: 1281px) {
             body[data-page="options"] .os-terminal-grid {
                 grid-template-rows: auto auto !important;
-                align-items: start !important;
+                align-items: stretch !important;
             }
 
             body[data-page="options"] .os-chain-card {
@@ -231,27 +253,27 @@
             }
 
             body[data-page="options"] .os-bottom-card {
-                grid-column: 1 / 2 !important;
+                grid-column: 1 / -1 !important;
                 grid-row: 2 / 3 !important;
-                margin-top: 0 !important;
-                align-self: start !important;
+                margin-top: 15px !important;
+                align-self: stretch !important;
                 width: 100% !important;
             }
 
             body[data-page="options"] .os-side-market-card {
                 grid-column: 2 / 3 !important;
-                grid-row: 1 / span 2 !important;
+                grid-row: 1 / 2 !important;
             }
 
             body[data-page="options"] .os-order-card {
                 grid-column: 3 / 4 !important;
-                grid-row: 1 / span 2 !important;
+                grid-row: 1 / 2 !important;
             }
         }
 
         @media (max-width: 1500px) {
             body[data-page="options"] .os-terminal-grid {
-                grid-template-columns: minmax(0, 1fr) minmax(230px, 280px) minmax(260px, 300px) !important;
+                grid-template-columns: minmax(0, 1fr) 280px 280px !important;
             }
         }
 
@@ -625,7 +647,7 @@
                             <p id="chainSubText" class="mt-1 text-xs font-semibold text-slate-500">BTC live options chain · select strike to trade</p>
                         </div>
 
-                        <div class="flex flex-col gap-3 xl:items-end">
+                        <div class="flex flex-wrap items-center gap-3">
                             <div id="expiryTabs" class="os-expiry-tabs">
                                 <button class="active" type="button" data-expiry-days="1">Today</button>
                                 <button type="button" data-expiry-days="7">7D</button>
@@ -633,7 +655,7 @@
                                 <button type="button" data-expiry-days="30">30D</button>
                             </div>
 
-                            <div class="flex flex-col gap-2 sm:flex-row">
+                            <div class="flex flex-row items-center gap-2">
                                 <input id="strikeSearchInput" type="search" class="os-search-input" placeholder="Search strike" />
 
                                 <button id="resetChainBtn" class="os-small-btn" type="button">Reset</button>
@@ -753,13 +775,6 @@
                         </div>
                     </div>
 
-                    <div class="os-contract-details">
-                        <h3>Contract Details</h3>
-                        <div><span>Contract Size</span><strong id="contractSizeText">0.001 BTC</strong></div>
-                        <div><span>Settlement</span><strong>USD</strong></div>
-                        <div><span>Exercise</span><strong>European</strong></div>
-                        <div><span>Maker / Taker</span><strong>0.016% / 0.040%</strong></div>
-                    </div>
                 </aside>
 
                 <!-- RIGHT: ORDER FORM -->
@@ -812,7 +827,15 @@
 
                         <button id="optionPlaceOrderBtn" class="os-trade-btn" type="button">Log In to Trade</button>
 
-                        <a href="./register.html" class="os-register-btn">Create Account</a>
+                        <a href="./register.html" class="os-register-btn" style="display: none;">Create Account</a>
+
+                        <div class="os-contract-details mt-4">
+                            <h3>Contract Details</h3>
+                            <div><span>Contract Size</span><strong id="contractSizeText">0.001 BTC</strong></div>
+                            <div><span>Settlement</span><strong>USD</strong></div>
+                            <div><span>Exercise</span><strong>European</strong></div>
+                            <div><span>Maker / Taker</span><strong>0.016% / 0.040%</strong></div>
+                        </div>
                     </div>
                 </aside>
 

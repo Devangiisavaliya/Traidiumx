@@ -316,8 +316,25 @@ def get_sub_accounts():
     }))
     
     sub_accounts_data = []
+
+    # Add parent account info as a special entry
+    parent_user = db.users.find_one({"_id": ObjectId(parent_user_id)})
+    if parent_user:
+        parent_wallet = find_wallet_by_user_id(parent_user_id)
+        formatted_parent_wallet = format_wallet(parent_wallet) if parent_wallet else None
+        sub_accounts_data.append({
+            "id": parent_user_id,
+            "name": parent_user.get("name") or "Main Trading Account",
+            "client_id": parent_user.get("client_id"),
+            "wallet": formatted_parent_wallet,
+            "is_parent": True,
+            "created_at": parent_user.get("created_at").isoformat() if parent_user.get("created_at") else None
+        })
+
     for sub in sub_users:
         sub_id = str(sub["_id"])
+        if sub_id == parent_user_id:
+            continue
         wallet = find_wallet_by_user_id(sub_id)
         formatted_wallet = format_wallet(wallet) if wallet else None
         sub_accounts_data.append({

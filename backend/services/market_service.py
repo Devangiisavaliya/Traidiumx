@@ -4,6 +4,9 @@ import time
 
 import requests
 
+# Connection pooling session
+_SESSION = requests.Session()
+
 from config.settings import settings
 from models.market_symbol_model import (
     find_market_symbol,
@@ -23,10 +26,13 @@ BINANCE_SYMBOL_ALIASES = {
 
 _PREMIUM_INDEX_CACHE = {}
 _PREMIUM_INDEX_CACHE_LOCK = threading.Lock()
-_PREMIUM_INDEX_CACHE_SECONDS = 0.2
+_PREMIUM_INDEX_CACHE_SECONDS = 2.0
 _TICKER_CACHE = {}
 _TICKER_CACHE_LOCK = threading.Lock()
-_TICKER_CACHE_SECONDS = 0.2
+_TICKER_CACHE_SECONDS = 2.0
+_ALL_TICKERS_CACHE = None
+_ALL_TICKERS_CACHE_LOCK = threading.Lock()
+_ALL_TICKERS_CACHE_SECONDS = 2.0
 
 
 DEFAULT_SYMBOLS = [
@@ -352,7 +358,7 @@ def binance_get(endpoint, params=None):
     url = f"{settings.BINANCE_FUTURES_BASE_URL}{endpoint}"
 
     try:
-        response = requests.get(
+        response = _SESSION.get(
             url,
             params=params or {},
             timeout=settings.MARKET_REQUEST_TIMEOUT
@@ -595,6 +601,12 @@ def get_all_binance_tickers():
     Fetch the full Binance Futures 24h ticker board once and map by provider symbol.
     This is safer for the Markets page than sending one HTTP request per row.
     """
+    global _ALL_TICKERS_CACHE
+    now = time.monotonic()
+    with _ALL_TICKERS_CACHE_LOCK:
+        if _ALL_TICKERS_CACHE and now - _ALL_TICKERS_CACHE["at"] <= _ALL_TICKERS_CACHE_SECONDS:
+            return _ALL_TICKERS_CACHE["result"]
+
     result = binance_get(endpoint="/fapi/v1/ticker/24hr")
 
     if not result["success"]:
@@ -608,10 +620,18 @@ def get_all_binance_tickers():
         if provider_symbol:
             ticker_map[provider_symbol] = ticker
 
-    return {
+    ret = {
         "success": True,
         "data": ticker_map
     }
+    
+    with _ALL_TICKERS_CACHE_LOCK:
+        _ALL_TICKERS_CACHE = {
+            "at": now,
+            "result": ret
+        }
+
+    return ret
 
 
 def build_market_board_item(stored_symbol, ticker=None, board_timestamp=None):

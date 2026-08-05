@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     function normalizeUser(item) {
         const id = api.getId(item);
         const wallet = item.wallet || {};
+        const main_bal = api.number(item.main_balance ?? wallet.main_wallet?.total_balance ?? 0);
+        const trading_bal = api.number(item.trading_balance ?? wallet.trading_wallet?.total_balance ?? wallet.total_balance ?? wallet.balance ?? 0);
         return {
             id,
             client_id: item.client_id || "",
@@ -54,9 +56,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             country: item.country || item.country_code || "-",
             kyc: item.kyc_status || item.kyc || "pending",
             status: item.account_status || item.status || "active",
-            available: api.number(item.available_balance ?? wallet.available_balance),
-            locked: api.number(item.locked_balance ?? wallet.locked_balance),
-            total: api.number(item.total_balance ?? wallet.total_balance ?? wallet.balance),
+            main_balance: main_bal,
+            trading_balance: trading_bal,
+            total: api.number(item.total_balance ?? (main_bal + trading_bal)),
             joined: api.fmtDate(item.created_at || item.joined_at),
             lastLogin: api.fmtDate(item.last_login_at || item.last_login)
         };
@@ -192,9 +194,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <td>${api.escapeHtml(u.email)}<div class="text-xs text-slate-500">${api.escapeHtml(u.mobile || "No phone")}</div></td>
                     <td>${detailStatusPill(u.kyc)}</td>
                     <td>${detailStatusPill(status)}</td>
-                    <td>${ui.money(u.available)}</td>
-                    <td>${ui.money(u.locked)}</td>
-                    <td class="font-black text-white">${ui.money(u.total || (u.available + u.locked))}</td>
+                    <td>${ui.money(u.main_balance)}</td>
+                    <td>${ui.money(u.trading_balance)}</td>
+                    <td class="font-black text-white">${ui.money(u.total)}</td>
                     <td>${api.escapeHtml(u.joined)}</td>
                     <td class="text-right admin-users-action-cell">
                         <div class="admin-users-actions">
@@ -1060,12 +1062,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const walletCard = document.getElementById("detailWalletCard");
             if (walletCard) {
+                const mainWallet = wallet.main_wallet || {};
+                const tradingWallet = wallet.trading_wallet || {};
+                
+                const mainAvail = api.number(mainWallet.available_balance ?? 0);
+                const mainLocked = api.number(mainWallet.locked_balance ?? 0);
+                const mainTotal = api.number(mainWallet.total_balance ?? (mainAvail + mainLocked));
+
+                const tradingAvail = api.number(tradingWallet.available_balance ?? wallet.available_balance ?? 0);
+                const tradingLocked = api.number(tradingWallet.locked_balance ?? wallet.locked_balance ?? 0);
+                const tradingTotal = api.number(tradingWallet.total_balance ?? (tradingAvail + tradingLocked));
+
                 walletCard.innerHTML = `
                     <h3 class="text-xl font-black text-white">Wallet Summary</h3>
                     <div class="mt-5 space-y-3">
-                        ${detailRow("Available", ui.money(summary.available_balance ?? wallet.available_balance))}
-                        ${detailRow("Locked", ui.money(summary.locked_balance ?? wallet.locked_balance))}
-                        ${detailRow("Total", ui.money(summary.wallet_total || u.total))}
+                        <div class="border-b border-white/5 pb-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Main Wallet</span>
+                            ${detailRow("Main Available", ui.money(mainAvail))}
+                            ${detailRow("Main Locked", ui.money(mainLocked))}
+                            ${detailRow("Main Total", ui.money(mainTotal))}
+                        </div>
+                        <div class="border-b border-white/5 pb-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-cyan-400">Trading Wallet</span>
+                            ${detailRow("Trading Available", ui.money(tradingAvail))}
+                            ${detailRow("Trading Locked", ui.money(tradingLocked))}
+                            ${detailRow("Trading Total", ui.money(tradingTotal))}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-purple-400">Combined Total</span>
+                            ${detailRow("Combined Total Assets", ui.money(mainTotal + tradingTotal))}
+                        </div>
                         ${detailRow("Wallet Updated", api.fmtDate(wallet.updated_at))}
                     </div>
                 `;

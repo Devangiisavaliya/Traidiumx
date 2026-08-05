@@ -78,6 +78,13 @@ def get_user_recent_symbols(user_id, limit=30):
     return list(cursor)
 
 
+def delete_user_recent_symbol(user_id, symbol):
+    return get_futures_recent_symbols_collection().delete_many({
+        "user_id": str(user_id),
+        "symbol": str(symbol).upper(),
+    }).deleted_count
+
+
 def format_recent_symbol(item):
     if not item:
         return None

@@ -5,6 +5,9 @@ import requests
 from config.settings import settings
 from models.market_symbol_model import find_market_symbol
 
+# Connection pooling session
+_SESSION = requests.Session()
+
 # Symbol mapping helper
 BINANCE_SYMBOL_ALIASES = {
     "XAUUSD": "XAUUSDT",
@@ -72,11 +75,11 @@ def _send_signed_request(method, endpoint, params=None):
     
     try:
         if method.upper() == "POST":
-            response = requests.post(url, headers=headers, timeout=10)
+            response = _SESSION.post(url, headers=headers, timeout=10)
         elif method.upper() == "DELETE":
-            response = requests.delete(url, headers=headers, timeout=10)
+            response = _SESSION.delete(url, headers=headers, timeout=10)
         elif method.upper() == "GET":
-            response = requests.get(url, headers=headers, timeout=10)
+            response = _SESSION.get(url, headers=headers, timeout=10)
         else:
             return {"success": False, "message": f"Unsupported HTTP method: {method}"}
             
@@ -95,11 +98,17 @@ def _send_signed_request(method, endpoint, params=None):
         print(f"Exception during Binance API request to {endpoint}: {e}")
         return {"success": False, "message": str(e)}
 
+_BINANCE_CONFIG_CACHE = {}
+
 def set_binance_leverage_and_margin(symbol, leverage, margin_mode):
     """Align leverage and margin type on Binance Futures for the given symbol."""
     symbol_mapped = _map_symbol(symbol)
     leverage = int(leverage)
     margin_type = str(margin_mode).upper().strip()  # ISOLATED or CROSS
+    
+    cache_key = (symbol_mapped, leverage, margin_type)
+    if _BINANCE_CONFIG_CACHE.get(cache_key):
+        return {"success": True}
     
     # 1. Set Margin Type
     # Note: Binance API throws an error -4046 if the margin type is already what we requested.
@@ -125,6 +134,7 @@ def set_binance_leverage_and_margin(symbol, leverage, margin_mode):
         return {"success": False, "message": lev_res.get("message")}
         
     print(f"Binance: Successfully configured {symbol_mapped} with {leverage}x leverage and {margin_type} margin mode.")
+    _BINANCE_CONFIG_CACHE[cache_key] = True
     return {"success": True}
 
 def place_binance_futures_order(symbol, side, quantity, leverage, margin_mode, price=None, order_type="MARKET", reduce_only=False):
@@ -137,10 +147,11 @@ def place_binance_futures_order(symbol, side, quantity, leverage, margin_mode, p
     side_upper = str(side).upper().strip()  # BUY or SELL
     type_upper = str(order_type).upper().strip()  # LIMIT or MARKET
     
-    # 1. Align risk configuration first
-    config_res = set_binance_leverage_and_margin(symbol, leverage, margin_mode)
-    if not config_res["success"]:
-        return {"success": False, "message": f"Failed to align risk settings on Binance: {config_res['message']}"}
+    # 1. Align risk configuration first (skip for close/reduce-only orders)
+    if not reduce_only:
+        config_res = set_binance_leverage_and_margin(symbol, leverage, margin_mode)
+        if not config_res["success"]:
+            return {"success": False, "message": f"Failed to align risk settings on Binance: {config_res['message']}"}
         
     # 2. Query symbol precision to format quantities and prices correctly
     price_precision = 2

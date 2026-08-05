@@ -158,13 +158,33 @@ def get_user_kyc_state(user_id, sync_user=True):
             "kyc_status_updated_at": now_utc(),
             "updated_at": now_utc(),
         }
+        update_op = {"$set": update_data}
         if status == "approved":
             update_data["kyc_verified_at"] = kyc.get("approved_at") or kyc.get("reviewed_at") or now_utc() if kyc else now_utc()
             update_data["kyc_reject_reason"] = ""
         elif status == "rejected":
             update_data["kyc_reject_reason"] = remark
             update_data["kyc_verified_at"] = None
-        db.users.update_one({"_id": user_object_id}, {"$set": update_data})
+            update_op["$unset"] = {
+                "kyc_draft_aadhaar_number": "",
+                "kyc_draft_document_type": "",
+                "kyc_draft_document_front": "",
+                "kyc_draft_document_back": "",
+                "kyc_draft_ocr_result": "",
+                "kyc_draft_full_name": "",
+                "kyc_documents_verified": "",
+                "kyc_documents_verified_at": "",
+                "kyc_progress_step": "",
+                "kyc_mobile_verified": "",
+                "kyc_mobile_verified_number": "",
+                "kyc_mobile_verified_at": "",
+                "kyc_digio_completed": "",
+                "digio_request_id": "",
+                "kyc_draft_driving_license_number": "",
+                "kyc_draft_pan_number": "",
+                "kyc_photo": "",
+            }
+        db.users.update_one({"_id": user_object_id}, update_op)
 
     return {
         "status": status,
