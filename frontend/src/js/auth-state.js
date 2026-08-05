@@ -175,6 +175,16 @@ function renderLoggedInDesktop(container, user) {
 
     container.innerHTML = `
         <div class="flex items-center gap-3 relative z-10">
+            <!-- Currency Switcher -->
+            <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40 mr-1">
+                <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer" data-currency="INR">
+                    ₹ INR
+                </button>
+                <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer" data-currency="USDT">
+                    $ USD
+                </button>
+            </div>
+
             <!-- Theme Toggle -->
             <button id="txThemeToggleBtn" type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Toggle Theme">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -191,19 +201,19 @@ function renderLoggedInDesktop(container, user) {
             </button>
 
             <!-- Notifications -->
-            <div class="relative">
-                <button id="txNavbarNotificationBtn" type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Notifications">
+            <div class="relative" data-notification-root>
+                <button data-notification-toggle type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Notifications">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
+                    <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-cyan-400 text-slate-950 font-black text-[9px] flex items-center justify-center rounded-full px-1 shadow-sm hidden animate-pulse" data-notification-badge>0</span>
                 </button>
-                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse hidden" id="txNavbarNotificationDot"></span>
             </div>
 
             <!-- Profile Avatar and Dropdown wrapper -->
             <div class="relative ml-1">
-                <button id="txNavbarProfileBtn" type="button" class="w-10 h-10 rounded-full bg-[#7c3aed] text-white flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-purple-950/25">
+                <button id="txNavbarProfileBtn" type="button" class="w-10 h-10 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-cyan-950/25">
                     ${userInitial}
                 </button>
 
@@ -211,7 +221,7 @@ function renderLoggedInDesktop(container, user) {
                 <div id="txProfileDropdown" class="hidden absolute right-0 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
                     <!-- Header -->
                     <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
-                        <div class="w-12 h-12 rounded-full bg-[#7c3aed] text-white flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-purple-900/30">
+                        <div class="w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
                             ${userInitial}
                         </div>
                         <div class="min-w-0 flex-1">
@@ -253,7 +263,7 @@ function renderLoggedInDesktop(container, user) {
 
                     <!-- Create Account Link -->
                     <div class="mb-4">
-                        <a href="/src/pages/trading-account.html" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition">
+                        <a href="#" id="txNavbarCreateSubAccountLink" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition">
                             <span class="text-sm font-black">+</span>
                             <span>Create an Account</span>
                         </a>
@@ -1096,7 +1106,7 @@ function updateNavbarToggleUI(currency) {
     buttons.forEach((btn) => {
         const btnCurrency = btn.getAttribute("data-currency");
         if (btnCurrency === currency) {
-            btn.className = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-emerald-500 text-white shadow-[0_2px_10px_rgba(16,185,129,0.2)] min-w-[68px]";
+            btn.className = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-[#22d3ee] text-[#0f172a] shadow-[0_2px_10px_rgba(34,211,238,0.3)] min-w-[68px]";
         } else {
             btn.className = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 bg-transparent text-slate-300 hover:text-slate-100 hover:bg-slate-800/40 min-w-[68px]";
         }
@@ -1109,6 +1119,7 @@ function bindNavbarDropdown(user) {
     const themeBtn = document.getElementById("txThemeToggleBtn");
     const copyBtn = document.getElementById("txCopyIdBtn");
     const copyFeedback = document.getElementById("txCopyFeedback");
+    const createSubLink = document.getElementById("txNavbarCreateSubAccountLink");
 
     if (profileBtn && dropdown) {
         profileBtn.addEventListener("click", function (e) {
@@ -1147,6 +1158,98 @@ function bindNavbarDropdown(user) {
             });
         });
     }
+
+    if (createSubLink) {
+        createSubLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (dropdown) dropdown.classList.add("hidden");
+            openNavbarCreateSubModal();
+        });
+    }
+}
+
+function openNavbarCreateSubModal() {
+    let container = document.getElementById("txNavbarModalContainer");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "txNavbarModalContainer";
+        document.body.appendChild(container);
+    }
+
+    container.innerHTML = `
+        <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md" id="txCreateSubBackdrop" style="animation: txModalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div class="bg-[#0f172a] border border-slate-800/80 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-800/60 p-4">
+                    <h3 class="font-extrabold text-sm text-white">Create a Sub Account</h3>
+                    <button type="button" class="text-slate-400 hover:text-white font-bold text-lg cursor-pointer focus:outline-none" id="txCreateSubCloseBtn">✕</button>
+                </div>
+                <!-- Body -->
+                <form id="txCreateSubForm" class="space-y-4 p-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Account Name</label>
+                        <input type="text" id="txNewSubNameInput" placeholder="e.g. Trading Account 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-400" required />
+                        <p id="txCreateSubMessage" class="text-[11px] font-bold mt-2 text-slate-400 hidden"></p>
+                    </div>
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer" id="txCreateSubCancelBtn">Cancel</button>
+                        <button type="submit" class="flex-1 bg-[#10b981] hover:bg-[#059669] text-slate-950 font-black py-2.5 rounded-xl text-xs transition cursor-pointer">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <style>
+            @keyframes txModalFade {
+                from { opacity: 0; transform: scale(0.96); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        </style>
+    `;
+
+    const closeBtn = document.getElementById("txCreateSubCloseBtn");
+    const cancelBtn = document.getElementById("txCreateSubCancelBtn");
+    const backdrop = document.getElementById("txCreateSubBackdrop");
+    const form = document.getElementById("txCreateSubForm");
+
+    const close = () => {
+        container.innerHTML = "";
+    };
+
+    closeBtn?.addEventListener("click", close);
+    cancelBtn?.addEventListener("click", close);
+    backdrop?.addEventListener("click", close);
+
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("txNewSubNameInput");
+        const msg = document.getElementById("txCreateSubMessage");
+        if (!input || !msg) return;
+
+        msg.classList.remove("hidden", "text-red-400", "text-emerald-400");
+        msg.className = "text-[11px] font-bold mt-2 text-slate-400";
+        msg.textContent = "Creating sub account...";
+
+        try {
+            if (typeof apiRequest !== "function") {
+                throw new Error("API module not loaded.");
+            }
+            await apiRequest("/user/sub-accounts", {
+                method: "POST",
+                body: JSON.stringify({ name: input.value.trim() })
+            });
+            msg.className = "text-[11px] font-bold mt-2 text-emerald-400";
+            msg.textContent = "Sub account created successfully!";
+            
+            setTimeout(() => {
+                close();
+                window.location.reload();
+            }, 1000);
+        } catch (err) {
+            msg.className = "text-[11px] font-bold mt-2 text-red-400";
+            msg.textContent = err.message || "Failed to create sub account.";
+        }
+    });
 }
 
 function toggleSiteTheme() {
@@ -1173,4 +1276,64 @@ function applySiteTheme(theme) {
 
 // Apply theme instantly on script parse to prevent flash of light/dark mode
 applySiteTheme(localStorage.getItem("traidiumx_theme") || "dark");
+
+// Google Translate Integration
+function initGlobalTranslation() {
+    const savedLang = localStorage.getItem("tx_language") || "English";
+    let langCode = "en";
+    if (savedLang === "Gujarati") langCode = "gu";
+    else if (savedLang === "Hindi") langCode = "hi";
+
+    setGoogleTranslateCookie(langCode);
+
+    if (langCode !== "en") {
+        let gtDiv = document.getElementById("google_translate_element");
+        if (!gtDiv) {
+            gtDiv = document.createElement("div");
+            gtDiv.id = "google_translate_element";
+            gtDiv.style.display = "none";
+            document.body.appendChild(gtDiv);
+        }
+
+        if (!document.getElementById("google-translate-script")) {
+            const script = document.createElement("script");
+            script.id = "google-translate-script";
+            script.type = "text/javascript";
+            script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+            document.body.appendChild(script);
+
+            window.googleTranslateElementInit = function () {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'en',
+                    includedLanguages: 'en,gu,hi',
+                    autoDisplay: true
+                }, 'google_translate_element');
+            };
+        }
+    }
+}
+
+function setGoogleTranslateCookie(langCode) {
+    const domain = window.location.hostname;
+    if (langCode === "en") {
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        if (domain !== "localhost" && domain !== "127.0.0.1") {
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." + domain + ";";
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + domain + ";";
+        }
+    } else {
+        document.cookie = `googtrans=/en/${langCode}; path=/;`;
+        if (domain !== "localhost" && domain !== "127.0.0.1") {
+            document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${domain};`;
+            document.cookie = `googtrans=/en/${langCode}; path=/; domain=${domain};`;
+        }
+    }
+}
+
+// Run translation check on load
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGlobalTranslation);
+} else {
+    initGlobalTranslation();
+}
 

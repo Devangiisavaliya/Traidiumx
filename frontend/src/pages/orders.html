@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Orders | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" href="data:," />
+
+    <style>
+        :root {
+            --tx-orders-bg: #020617;
+            --tx-orders-card: rgba(11, 15, 26, 0.85);
+            --tx-orders-border: rgba(148, 163, 184, 0.1);
+            --tx-orders-text: #f8fafc;
+            --tx-orders-muted: #64748b;
+        }
+
+        body[data-page="orders"] {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 10%, rgba(34, 211, 238, 0.08), transparent 30rem),
+                radial-gradient(circle at 88% 20%, rgba(59, 130, 246, 0.08), transparent 30rem),
+                var(--tx-orders-bg);
+        }
+
+        .tx-orders-main {
+            padding-top: 7.5rem;
+            padding-bottom: 5rem;
+        }
+
+        .tx-orders-wrap {
+            width: min(100% - 2rem, 64rem);
+            margin: 0 auto;
+        }
+
+        .tx-orders-card {
+            background: var(--tx-orders-card);
+            border: 1px solid var(--tx-orders-border);
+            border-radius: 1.5rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 1.5rem;
+        }
+
+        .tx-orders-tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .tx-orders-tab {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #64748b;
+            padding: 0.5rem 0.25rem;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .tx-orders-tab:hover {
+            color: #cbd5e1;
+        }
+
+        .tx-orders-tab.active {
+            color: #22d3ee;
+        }
+
+        .tx-orders-tab.active::after {
+            content: "";
+            position: absolute;
+            bottom: -0.6rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #22d3ee;
+            border-radius: 99px;
+        }
+
+        .tx-orders-table-container {
+            overflow-x: auto;
+        }
+
+        .tx-orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .tx-orders-table th {
+            color: #64748b;
+            font-weight: 700;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+        }
+
+        .tx-orders-table td {
+            color: #e2e8f0;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.04);
+            white-space: nowrap;
+        }
+
+        .tx-orders-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .tx-badge-buy {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .tx-badge-sell {
+            background-color: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 800;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .tx-orders-empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #64748b;
+        }
+
+        .tx-orders-empty svg {
+            width: 3.5rem;
+            height: 3.5rem;
+            margin: 0 auto 1rem;
+            opacity: 0.3;
+        }
+
+        .tx-orders-cancel-btn {
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.35rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tx-orders-cancel-btn:hover {
+            background-color: rgba(239, 68, 68, 0.16);
+        }
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white" data-page="orders">
+    <div data-component="navbar"></div>
+
+    <main class="tx-orders-main">
+        <section class="tx-orders-wrap">
+            
+            <!-- Page Title -->
+            <div class="mb-8">
+                <span class="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">TRADING</span>
+                <h1 class="text-3xl font-black text-white mt-1">Orders</h1>
+            </div>
+
+            <!-- Orders Table Card -->
+            <div class="tx-orders-card">
+                <!-- Tabs -->
+                <div class="tx-orders-tabs">
+                    <button type="button" class="tx-orders-tab active" id="tabOpenOrders">Open Orders</button>
+                    <button type="button" class="tx-orders-tab" id="tabOrderHistory">Order History</button>
+                </div>
+
+                <!-- Table Content -->
+                <div class="tx-orders-table-container">
+                    <table class="tx-orders-table" id="ordersTable">
+                        <thead>
+                            <tr id="tableHeaderRow">
+                                <th>Date</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Side</th>
+                                <th>Price</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Populated dynamically -->
+                            <tr>
+                                <td colspan="8" class="text-center py-8">
+                                    <span class="text-slate-400">Loading orders...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div class="tx-orders-empty hidden" id="ordersEmptyState">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
+                    </svg>
+                    <p class="font-bold text-sm text-slate-400">No orders found</p>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/api-config.js"></script>
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/orders.js"></script>
+</body>
+</html>

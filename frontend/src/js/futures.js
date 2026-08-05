@@ -3647,6 +3647,55 @@ function initEvents() {
         elements.futuresTransferBtn.addEventListener("click", () => goToFuturesWalletAction("transfer"));
     }
 
+    // Global Keyboard Shortcuts Integration
+    document.addEventListener("keydown", (event) => {
+        const shortcutsEnabled = localStorage.getItem("traidiumx_shortcuts") !== "false";
+        if (!shortcutsEnabled) return;
+
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) {
+            return;
+        }
+
+        if (event.altKey && (event.key === "b" || event.key === "B")) {
+            event.preventDefault();
+            if (typeof setOrderSide === "function") {
+                setOrderSide("BUY");
+            }
+            const inputEl = elements.limitPriceInput || elements.quantityInput;
+            if (inputEl) {
+                inputEl.focus();
+                inputEl.select();
+            }
+        } else if (event.altKey && (event.key === "s" || event.key === "S")) {
+            event.preventDefault();
+            if (typeof setOrderSide === "function") {
+                setOrderSide("SELL");
+            }
+            const inputEl = elements.limitPriceInput || elements.quantityInput;
+            if (inputEl) {
+                inputEl.focus();
+                inputEl.select();
+            }
+        } else if (event.altKey && (event.key === "c" || event.key === "C")) {
+            event.preventDefault();
+            const openOrders = TX_BACKEND_FUTURES.openOrders || [];
+            if (openOrders.length > 0) {
+                const lastOrder = openOrders[openOrders.length - 1];
+                const orderId = txGetId(lastOrder);
+                if (orderId && typeof cancelOrder === "function") {
+                    cancelOrder(orderId);
+                }
+            }
+        } else if (event.altKey && (event.key === "m" || event.key === "M")) {
+            event.preventDefault();
+            const nextType = state.orderType === "LIMIT" ? "MARKET" : "LIMIT";
+            if (typeof setOrderType === "function") {
+                setOrderType(nextType);
+            }
+        }
+    });
+
     initFuturesWalletQuickActions();
 }
 
@@ -5517,9 +5566,16 @@ function txShowFuturesConfirm({ title, message, confirmText = "Confirm", cancelT
 
         document.body.appendChild(modal);
 
-/* Removed legacy duplicate close implementation. */
+        function close(value) {
+            modal.remove();
+            document.removeEventListener("keydown", escHandler);
+            resolve(value);
+        }
 
-/* Removed legacy duplicate escHandler implementation. */
+        function escHandler(event) {
+            if (event.key === "Escape") close(false);
+            if (event.key === "Enter") close(true);
+        }
 
         document.addEventListener("keydown", escHandler);
         modal.querySelector("#txFuturesModalCancel")?.addEventListener("click", () => close(false));
@@ -7433,6 +7489,7 @@ function txCloseBackendPositionAfterLocalClose(positionId) {
 
 function txPlayFuturesCloseSound() {
     try {
+        if (localStorage.getItem("tx_close_sound") === "Mute") return;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         const context = new AudioContextClass();
@@ -8492,6 +8549,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
     window.txPlayFuturesCloseSound = function txPlayFuturesCloseSoundGlobal() {
         try {
+            if (localStorage.getItem("tx_close_sound") === "Mute") return;
             TX_CLOSE_SOUND.currentTime = 0;
             const playPromise = TX_CLOSE_SOUND.play();
             if (playPromise?.catch) playPromise.catch(() => {});
@@ -8552,62 +8610,83 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const tpSlError = txValidateTpSlPayload(payload);
         if (tpSlError) return showOrderMessage(tpSlError, "error");
 
-        // Insert the temporary backend-shaped row and update wallet immediately.
-        // No Processing label, no disabled button, and no page refresh.
-        const optimistic = txApplyOptimisticOrder(payload);
-        renderActiveBackendTableFromCache();
-        txRefreshVisibleTradingRows(true);
-        updateWalletUI();
-        showOrderMessage("Order placed and executed successfully.", "success");
-        if (elements.quantityInput) elements.quantityInput.value = "";
+        const runExecution = () => {
+            // Insert the temporary backend-shaped row and update wallet immediately.
+            // No Processing label, no disabled button, and no page refresh.
+            const optimistic = txApplyOptimisticOrder(payload);
+            renderActiveBackendTableFromCache();
+            txRefreshVisibleTradingRows(true);
+            updateWalletUI();
+            showOrderMessage("Order placed and executed successfully.", "success");
+            if (elements.quantityInput) elements.quantityInput.value = "";
 
-        // Reset TP/SL checkbox and inputs immediately on order placement
-        const checkbox = document.getElementById("tpSlCheckbox");
-        if (checkbox) {
-            checkbox.checked = false;
-        }
-        const fields = document.getElementById("tpSlFields");
-        if (fields) {
-            fields.classList.add("hidden");
-        }
-        const tpInput = document.getElementById("takeProfitInput");
-        if (tpInput) {
-            tpInput.value = "";
-        }
-        const slInput = document.getElementById("stopLossInput");
-        if (slInput) {
-            slInput.value = "";
-        }
-
-        txRunAfterImmediatePaint(async () => {
-            try {
-                const response = await txApiRequestWithTimeout("/trading/order", {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                }, TX_ACTION_TIMEOUT_MS);
-
-                txResolveOptimisticOrder(response, payload, optimistic);
-                txUpdateWalletFromResponse(response);
-                txEndOptimisticAction();
-                renderActiveBackendTableFromCache();
-                txRefreshVisibleTradingRows(true);
-            } catch (error) {
-                txRestoreFuturesState(optimistic.snapshot);
-                txEndOptimisticAction();
-                
-                const errors = error?.errors || {};
-                const message = `${error?.message || ""} ${Object.values(errors).join(" ")}`.toLowerCase();
-                if (errors.kyc_required || errors.kyc || message.includes("kyc") || message.includes("identity verification")) {
-                    showOrderMessage("KYC verification is required. Redirecting to KYC...", "error");
-                    window.setTimeout(() => {
-                        window.location.href = `./kyc.html?next=${encodeURIComponent("./futures.html")}&reason=trading`;
-                    }, 1200);
-                    return;
-                }
-                
-                showOrderMessage(showApiError(error, "Order failed."), "error");
+            // Reset TP/SL checkbox and inputs immediately on order placement
+            const checkbox = document.getElementById("tpSlCheckbox");
+            if (checkbox) {
+                checkbox.checked = false;
             }
-        });
+            const fields = document.getElementById("tpSlFields");
+            if (fields) {
+                fields.classList.add("hidden");
+            }
+            const tpInput = document.getElementById("takeProfitInput");
+            if (tpInput) {
+                tpInput.value = "";
+            }
+            const slInput = document.getElementById("stopLossInput");
+            if (slInput) {
+                slInput.value = "";
+            }
+
+            txRunAfterImmediatePaint(async () => {
+                try {
+                    const response = await txApiRequestWithTimeout("/trading/order", {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    }, TX_ACTION_TIMEOUT_MS);
+
+                    txResolveOptimisticOrder(response, payload, optimistic);
+                    txUpdateWalletFromResponse(response);
+                    txEndOptimisticAction();
+                    renderActiveBackendTableFromCache();
+                    txRefreshVisibleTradingRows(true);
+                } catch (error) {
+                    txRestoreFuturesState(optimistic.snapshot);
+                    txEndOptimisticAction();
+                    
+                    const errors = error?.errors || {};
+                    const message = `${error?.message || ""} ${Object.values(errors).join(" ")}`.toLowerCase();
+                    if (errors.kyc_required || errors.kyc || message.includes("kyc") || message.includes("identity verification")) {
+                        showOrderMessage("KYC verification is required. Redirecting to KYC...", "error");
+                        window.setTimeout(() => {
+                            window.location.href = `./kyc.html?next=${encodeURIComponent("./futures.html")}&reason=trading`;
+                        }, 1200);
+                        return;
+                    }
+                    
+                    showOrderMessage(showApiError(error, "Order failed."), "error");
+                }
+            });
+        };
+
+        const reminders = localStorage.getItem("tx_confirm_reminders") || "Market, Limit, Stop-Limit";
+        const reminderList = reminders.split(",").map(s => s.trim());
+        const orderTypeLabel = orderType === "LIMIT" ? "Limit" : orderType === "MARKET" ? "Market" : "Stop-Limit";
+
+        if (reminderList.includes(orderTypeLabel)) {
+            txShowFuturesConfirm({
+                title: "Confirm Order Placement",
+                message: `Are you sure you want to submit a ${orderTypeLabel} ${payload.side.toUpperCase()} order for ${qty} ${pair.label}?`,
+                confirmText: "Submit Order",
+                cancelText: "Cancel"
+            }).then((confirmed) => {
+                if (confirmed) {
+                    runExecution();
+                }
+            });
+        } else {
+            runExecution();
+        }
     };
 
     cancelOrder = function txCancelOrderInstant(orderId) {

@@ -7993,3 +7993,30 @@ html.light .tx-profile-avatar {
         transform: translateY(0);
     }
 }
+
+/* Hide Google Translate top bar/iframe globally */
+.goog-te-banner-frame,
+.goog-te-banner,
+iframe.goog-te-banner-frame,
+.skiptranslate iframe,
+#google_translate_element {
+    display: none !important;
+}
+
+body {
+    top: 0px !important;
+}
+
+/* Hide Google Translate suggestion tooltip on hover */
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover {
+    display: none !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}

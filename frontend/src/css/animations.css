@@ -89,7 +89,7 @@
 /* Main navbar pill */
 .tx-pill-navbar {
     min-height: 82px;
-    overflow: hidden;
+    overflow: visible;
     isolation: isolate;
     box-shadow:
         0 0 0 1px rgba(34, 211, 238, 0.06),

@@ -10,6 +10,7 @@ const kycState = {
     mobileNumber: "",
     otpTimer: null,
     draftScan: null,
+    digioPollInterval: null,
 };
 
 function getKycReturnPath() {
@@ -1267,13 +1268,7 @@ async function handleOpenDigioKyc() {
         
         await loadDigioScript(environment);
         
-        setTimeout(() => {
-            const floatingBar = document.getElementById("kycFloatingContinueBar");
-            if (floatingBar && openBtn && openBtn.disabled) {
-                floatingBar.classList.remove("hidden");
-                floatingBar.style.display = "flex";
-            }
-        }, 15000);
+
 
         if (openBtn) {
             openBtn.textContent = "Connecting to DigiLocker...";
@@ -1283,6 +1278,22 @@ async function handleOpenDigioKyc() {
             environment: environment,
             is_iframe: true,
             callback: async function(res) {
+                if (kycState.digioPollInterval) {
+                    clearInterval(kycState.digioPollInterval);
+                    kycState.digioPollInterval = null;
+                }
+                // Close and remove the Digio iframe popup overlay
+                document.querySelectorAll("iframe").forEach(iframe => {
+                    if (iframe.src.includes("digio.in")) {
+                        const parent = iframe.parentElement;
+                        if (parent && parent !== document.body) {
+                            parent.remove();
+                        } else {
+                            iframe.remove();
+                        }
+                    }
+                });
+
                 const floatingBar = document.getElementById("kycFloatingContinueBar");
                 if (floatingBar) {
                     floatingBar.classList.add("hidden");
@@ -1337,6 +1348,57 @@ async function handleOpenDigioKyc() {
         const digioObj = new Digio(options);
         digioObj.init();
         digioObj.submit(kid, customerIdentifier, accessToken);
+
+        // Silent background polling to detect completion when callback is stuck or delayed in Sandbox
+        if (kycState.digioPollInterval) clearInterval(kycState.digioPollInterval);
+        let checkCount = 0;
+        kycState.digioPollInterval = setInterval(async () => {
+            checkCount++;
+            if (checkCount > 60) { // 3 minutes max polling
+                clearInterval(kycState.digioPollInterval);
+                kycState.digioPollInterval = null;
+                return;
+            }
+
+            // Check if Digio iframe is still in DOM
+            let hasIframe = false;
+            document.querySelectorAll("iframe").forEach(iframe => {
+                if (iframe.src.includes("digio.in")) {
+                    hasIframe = true;
+                }
+            });
+            if (!hasIframe) {
+                clearInterval(kycState.digioPollInterval);
+                kycState.digioPollInterval = null;
+                return;
+            }
+
+            try {
+                const response = await apiRequest("/kyc/complete-digio", {
+                    method: "POST"
+                });
+                if (response && (response.success === true || response.message?.includes("successfully"))) {
+                    clearInterval(kycState.digioPollInterval);
+                    kycState.digioPollInterval = null;
+
+                    document.querySelectorAll("iframe").forEach(iframe => {
+                        if (iframe.src.includes("digio.in")) {
+                            const parent = iframe.parentElement;
+                            if (parent && parent !== document.body) {
+                                parent.remove();
+                            } else {
+                                iframe.remove();
+                            }
+                        }
+                    });
+
+                    showKycMessage("KYC verification completed successfully!", "success");
+                    await loadKycStatus();
+                }
+            } catch (err) {
+                // Ignore silent API check errors while processing is incomplete
+            }
+        }, 3000);
     } catch (error) {
         showKycMessage(showApiError(error, "Failed to initiate DigiLocker session."), "error");
         if (openBtn) {
@@ -1351,44 +1413,7 @@ function initKycPage() {
 
     kycEl.sendOtpBtn?.addEventListener("click", handleSendOtp);
     kycEl.verifyOtpBtn?.addEventListener("click", handleVerifyOtp);
-    document.getElementById("kycOpenDigioBtn")?.addEventListener("click", handleOpenDigioKyc);    document.getElementById("kycFloatingContinueBtn")?.addEventListener("click", async () => {
-        const checkBtn = document.getElementById("kycFloatingContinueBtn");
-        if (checkBtn) {
-            checkBtn.disabled = true;
-            checkBtn.innerHTML = `Checking details...`;
-        }
-        try {
-            const response = await apiRequest("/kyc/complete-digio", {
-                method: "POST"
-            });
-            showKycMessage(response?.message || "Verification completed successfully!", "success");
-            
-            // Close and remove the Digio iframe popup overlay
-            document.querySelectorAll("iframe").forEach(iframe => {
-                if (iframe.src.includes("digio.in")) {
-                    const parent = iframe.parentElement;
-                    if (parent && parent !== document.body) {
-                        parent.remove();
-                    } else {
-                        iframe.remove();
-                    }
-                }
-            });
-
-            const floatingBar = document.getElementById("kycFloatingContinueBar");
-            if (floatingBar) {
-                floatingBar.classList.add("hidden");
-                floatingBar.style.display = "none";
-            }
-            await loadKycStatus();
-        } catch (err) {
-            showKycMessage(showApiError(err, "Verification check failed. Make sure Aadhaar & PAN are completed in DigiLocker."), "error");
-            if (checkBtn) {
-                checkBtn.disabled = false;
-                checkBtn.innerHTML = `Continue to Selfie Step <span style="font-size: 0.9rem;">&rsaquo;</span>`;
-            }
-        }
-    });
+    document.getElementById("kycOpenDigioBtn")?.addEventListener("click", handleOpenDigioKyc);
     kycEl.mobileNumber?.addEventListener("input", () => {
         kycEl.mobileNumber.value = kycEl.mobileNumber.value.replace(/\D/g, "").slice(0, 10);
         if (kycEl.mobileNumberError) kycEl.mobileNumberError.textContent = "";
