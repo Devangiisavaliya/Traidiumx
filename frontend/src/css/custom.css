@@ -1422,6 +1422,14 @@ details[open] {
     transition: all 0.30s ease;
 }
 
+.contact-channel-card {
+    display: flex;
+    flex-direction: column;
+}
+.contact-channel-card p {
+    flex-grow: 1;
+}
+
 .contact-channel-card:hover,
 .contact-info-row:hover,
 .contact-route-item:hover {

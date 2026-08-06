@@ -17,7 +17,8 @@ REQUIRED_COLLECTIONS = [
     "option_positions",
     "option_fills",
     "mt5_accounts",
-    "mt5_password_setup_tokens"
+    "mt5_password_setup_tokens",
+    "support_tickets"
 ]
 
 
@@ -128,3 +129,8 @@ def create_indexes(db):
     db.option_fills.create_index("contract")
     db.option_fills.create_index("created_at")
     db.option_fills.create_index("fill_reference", unique=True, sparse=True)
+
+    # Support Tickets
+    db.support_tickets.create_index("user_id")
+    db.support_tickets.create_index("ticket_id", unique=True)
+    db.support_tickets.create_index("created_at")

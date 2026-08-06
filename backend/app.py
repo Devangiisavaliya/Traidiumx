@@ -15,6 +15,7 @@ from api.options_api import options_api
 from api.blog_api import blog_api
 from api.system_api import system_api
 from api.onboarding_api import onboarding_api
+from api.support_api import support_api
 
 from admin.routes import admin_api
 
@@ -76,6 +77,7 @@ def create_app():
     app.register_blueprint(blog_api)
     app.register_blueprint(system_api)
     app.register_blueprint(onboarding_api)
+    app.register_blueprint(support_api)
 
     if admin_api is not None:
         app.register_blueprint(admin_api)
@@ -176,6 +178,10 @@ def create_app():
     @app.get("/admin/notifications")
     def admin_notifications_page():
         return serve_admin_page("notifications/notifications.html")
+
+    @app.get("/admin/support")
+    def admin_support_page():
+        return serve_admin_page("support/support-list.html")
 
     # Frontend Home
     @app.get("/")

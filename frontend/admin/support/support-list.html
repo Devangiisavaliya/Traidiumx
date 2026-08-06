@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+        window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+    <link rel="icon" href="data:," />
+    <title>Support Tickets | TraidiumX Admin</title>
+</head>
+<body data-admin-page="support" data-page-title="Support Tickets" data-page-subtitle="Manage and resolve user support ticket inquiries.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <!-- Statistics Cards -->
+    <div class="grid gap-4 md:grid-cols-4">
+        <div class="admin-card p-5 tx-fade-up">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Total Tickets</p>
+            <h2 id="totalTicketsCount" class="mt-2 text-3xl font-black text-white">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">All submissions</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Open</p>
+            <h2 id="openTicketsCount" class="mt-2 text-3xl font-black text-cyan-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Awaiting response</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-2">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">In Progress</p>
+            <h2 id="progressTicketsCount" class="mt-2 text-3xl font-black text-amber-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Under investigation</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-3">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Resolved</p>
+            <h2 id="resolvedTicketsCount" class="mt-2 text-3xl font-black text-emerald-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Closed issues</p>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="admin-card p-5 tx-fade-up">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-black text-white">Support Directory</h2>
+                <p class="mt-1 text-sm text-slate-400">View and update user support tickets. Resolve complaints, check logs, and audit responses.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="ticketStatusFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                    <option value="all">All Status</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+                <button id="supportRefreshBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="overflow-hidden rounded-3xl border border-white/10">
+            <table class="admin-table w-full table-fixed">
+                <thead>
+                    <tr>
+                        <th class="w-[15%]">Ticket ID</th>
+                        <th class="w-[20%]">User</th>
+                        <th class="w-[15%]">Issue Type</th>
+                        <th class="w-[25%]">Subject</th>
+                        <th class="w-[10%]">Priority</th>
+                        <th class="w-[15%]">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="adminSupportTableBody">
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-sm font-semibold text-slate-500">
+                            Loading support tickets...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Detail Modal -->
+<div id="ticketDetailModal" class="admin-modal">
+    <div class="admin-modal-panel p-6 space-y-6" style="width: min(650px, 100%); max-width: min(650px, 100%);">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-4">
+            <div>
+                <span class="rounded-full bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-cyan-400" id="modalTicketPriority">High</span>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mt-1.5" id="modalTicketId">TX-SUPPORT-0000</h3>
+            </div>
+            <button type="button" onclick="closeTicketModal()" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition text-xl font-bold">&times;</button>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 text-sm">
+            <div>
+                <label class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">User Details</label>
+                <p class="font-extrabold text-slate-800 dark:text-white mt-1" id="modalTicketUser">Name</p>
+                <p class="text-slate-600 dark:text-slate-400 mt-0.5" id="modalTicketEmail">email@domain.com</p>
+                <p class="text-slate-600 dark:text-slate-400 mt-0.5" id="modalTicketMobile">Mobile: -</p>
+            </div>
+            <div>
+                <label class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Issue Information</label>
+                <p class="font-extrabold text-slate-800 dark:text-white mt-1" id="modalTicketIssue">Issue Type</p>
+                <p class="text-slate-600 dark:text-slate-400 mt-0.5" id="modalTicketDate">Date: -</p>
+            </div>
+        </div>
+
+        <div class="space-y-2 border-t border-slate-100 dark:border-white/5 pt-4">
+            <label class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Subject</label>
+            <p class="font-bold text-slate-800 dark:text-white text-base" id="modalTicketSubject">Ticket Subject</p>
+        </div>
+
+        <div class="space-y-2 border-t border-slate-100 dark:border-white/5 pt-4">
+            <label class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">User Message</label>
+            <div class="rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/40 p-4 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed max-h-44 overflow-y-auto" id="modalTicketMessage">
+                Ticket Message Body...
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 pt-4">
+            <div class="flex items-center gap-2">
+                <label class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Update Status</label>
+                <select id="modalTicketStatusSelect" class="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-cyan-400">
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" onclick="closeTicketModal()" class="rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/[0.04] px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white transition">
+                    Close
+                </button>
+                <button type="button" id="saveTicketStatusBtn" class="rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-black text-slate-950 hover:bg-cyan-300 transition">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/admin/static/js/admin-api.js"></script>
+<script src="/admin/static/js/admin-layout.js"></script>
+<script src="/admin/static/js/admin-support.js"></script>
+            </main>
+        </section>
+    </div>
+</body>
+</html>

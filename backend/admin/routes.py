@@ -11,6 +11,7 @@ from .wallet_routes import admin_wallet_api
 from .withdrawal_routes import admin_withdrawal_api
 from .settings_routes import admin_settings_api
 from .notification_routes import admin_notification_api
+from .support_routes import admin_support_api
 
 admin_api = Blueprint("admin_api", __name__, url_prefix="/api/admin")
 
@@ -25,6 +26,7 @@ admin_api.register_blueprint(admin_market_api)
 admin_api.register_blueprint(admin_audit_api)
 admin_api.register_blueprint(admin_settings_api)
 admin_api.register_blueprint(admin_notification_api)
+admin_api.register_blueprint(admin_support_api)
 
 
 @admin_api.get("/ping")
