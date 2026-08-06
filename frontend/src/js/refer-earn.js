@@ -79,7 +79,7 @@ function formatUsdt(amount, decimals = 2) {
     return `${number.toLocaleString("en-US", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
-    })} USDT`;
+    })} USD`;
 }
 
 function sanitizeCode(value) {
@@ -169,7 +169,8 @@ function updateReferralUi(data) {
     }
 
     if (refreshReferralBtn) {
-        refreshReferralBtn.textContent = `Refresh Referral Data${policy.currency ? ` (${policy.currency})` : ""}`;
+        const currencyLabel = (policy.currency === "USDT") ? "USD" : (policy.currency || "");
+        refreshReferralBtn.textContent = `Refresh Referral Data${currencyLabel ? ` (${currencyLabel})` : ""}`;
     }
 
     calculateRewards();

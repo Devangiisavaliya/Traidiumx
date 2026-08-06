@@ -884,10 +884,11 @@
         .tx-refer-button {
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(103, 232, 249, 0.2);
-            background: rgba(2, 6, 23, 0.88) !important;
-            box-shadow: 0 14px 30px rgba(2, 6, 23, 0.30);
-            font-weight: 650 !important;
+            border: 1px solid #22d3ee;
+            background: #22d3ee !important;
+            color: #020617 !important;
+            box-shadow: 0 14px 30px rgba(34, 211, 238, 0.22);
+            font-weight: 900 !important;
             transition: transform 190ms ease, border-color 190ms ease, color 190ms ease, background 190ms ease;
         }
 
@@ -964,8 +965,9 @@
 
             .tx-refer-button:hover {
                 transform: translateY(-2px) scale(1.015);
-                border-color: rgba(103, 232, 249, 0.48);
-                color: #67e8f9;
+                border-color: #67e8f9;
+                background: #67e8f9 !important;
+                color: #020617 !important;
             }
 
             .tx-refer-button:hover::after { transform: translateX(130%); }
@@ -1248,7 +1250,7 @@
 
             <div class="grid gap-6 lg:grid-cols-2">
 
-                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
+                <div class="flex flex-col rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
                     <div class="mb-6 flex items-center justify-between">
                         <p class="text-sm font-black uppercase text-slate-400">Market Sync</p>
 
@@ -1281,12 +1283,12 @@
                         </div>
                     </div>
 
-                    <a href="./src/pages/markets.html" class="mt-6 inline-flex w-full items-center justify-center rounded-full border border-cyan-400/30 px-5 py-3 text-sm font-black text-cyan-300 hover:bg-cyan-400 hover:text-slate-950">
+                    <a href="./src/pages/markets.html" class="mt-auto inline-flex w-full items-center justify-center rounded-full border border-cyan-400/30 px-5 py-3 text-sm font-black text-cyan-300 hover:bg-cyan-400 hover:text-slate-950">
                         View Live Markets
                     </a>
                 </div>
 
-                <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
+                <div class="flex flex-col rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl tx-hover-lift">
                     <div class="mb-6 flex items-center justify-between">
                         <p class="text-sm font-black uppercase text-slate-400">Trading Fees</p>
 
@@ -1314,7 +1316,7 @@
                         Fee values are displayed from the approved frontend fee configuration. Company policy can be updated later without changing the trading terminals.
                     </p>
 
-                    <a href="./src/pages/fee-structure.html" class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300">
+                    <a href="./src/pages/fee-structure.html" class="mt-auto inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300">
                         View Fee Structure
                     </a>
                 </div>
@@ -1720,34 +1722,7 @@
         <!-- ================= REFER END ================= -->
 
 
-        <!-- ================= AFFILIATE CTA START ================= -->
-        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-6 text-center sm:p-10">
-                <p class="text-sm font-black uppercase tracking-[0.25em] text-cyan-400">
-                    Affiliate Program
-                </p>
 
-                <h2 class="mx-auto mt-4 max-w-3xl text-3xl font-black sm:text-5xl">
-                    Become a TraidiumX partner and grow your network.
-                </h2>
-
-                <p class="mx-auto mt-5 max-w-2xl leading-8 text-slate-400">
-                    Create a professional affiliate program page for influencers,
-                    educators and trading communities.
-                </p>
-
-                <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-                    <a href="./src/pages/contact.html" class="rounded-full bg-cyan-400 px-8 py-4 text-sm font-black text-slate-950 hover:bg-cyan-300">
-                        Join Now
-                    </a>
-
-                    <a href="./src/pages/about.html" class="rounded-full border border-white/10 px-8 py-4 text-sm font-black hover:border-cyan-400 hover:text-cyan-400">
-                        Know More
-                    </a>
-                </div>
-            </div>
-        </section>
-        <!-- ================= AFFILIATE CTA END ================= -->
 
     </main>
     <!-- ================= MAIN END ================= -->
