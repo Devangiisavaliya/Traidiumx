@@ -56,7 +56,7 @@ function initSettings() {
 
     // Bind event listeners
     bindButtonListeners(user);
-    initToggles();
+    initToggles(user);
 }
 
 function updateProfileDisplay(user) {
@@ -254,7 +254,8 @@ function bindButtonListeners(user) {
                 localStorage.setItem("tx_price_alerts_sound", nextSound ? "ON" : "OFF");
 
                 const statusStr = `Notification ${nextAlerts ? 'On' : 'Off'}, Sound ${nextSound ? 'On' : 'Off'}`;
-                document.getElementById("priceAlertDisplay").textContent = statusStr;
+                const displayEl = document.getElementById("priceAlertDisplay");
+                if (displayEl) displayEl.textContent = statusStr;
                 closeSettingsModal();
             });
         });
@@ -314,11 +315,11 @@ function bindButtonListeners(user) {
         `);
     });
 
-    // Theme Edit
-    document.getElementById("editThemeBtn")?.addEventListener("click", () => {
+    // Theme Toggle Switch Event
+    document.getElementById("themeToggleBtn")?.addEventListener("click", () => {
         toggleSiteTheme();
-        const cur = localStorage.getItem("traidiumx_theme") === "light" ? "Light" : "Dark";
-        document.getElementById("themeValDisplay").textContent = cur;
+        const nextTheme = localStorage.getItem("traidiumx_theme") || "dark";
+        updateThemeToggleUI(nextTheme);
     });
 
     // Shortcuts Edit Modal
@@ -429,21 +430,137 @@ function bindButtonListeners(user) {
             });
         });
     });
+    // Two Factor Enable/Disable Toggle via Email Verification
+    document.getElementById("enableTwoFactorBtn")?.addEventListener("click", () => {
+        const active = user.two_factor_enabled === true;
+        const action = active ? "disable" : "enable";
+        const actionLabel = active ? "Disable" : "Enable";
 
-    // Two Factor Authentication
-    document.getElementById("manage2faBtn")?.addEventListener("click", () => {
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/TraidiumX:${encodeURIComponent(user.email || 'user')}?secret=MOCKKEY123456&issuer=TraidiumX`;
-        showModal("Two-Factor Authentication", `
-            <div class="space-y-4 p-5 text-sm text-center">
-                <p class="text-slate-400 text-xs">Two-Factor Authentication adds an extra layer of security. Please configure the Authenticator App below.</p>
-                <div class="bg-white p-3 rounded-2xl inline-block shadow-lg">
-                    <img src="${qrUrl}" alt="2FA QR Code" class="w-32 h-32" />
-                </div>
-                <p class="text-slate-300 font-bold text-xs">Secret Key: <code class="bg-slate-900 px-2 py-1 rounded text-cyan-400">MOCKKEY123456</code></p>
-                <button type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition mt-2 cursor-pointer" onclick="closeSettingsModal()">Close</button>
+        // Open modal instantly with spinner loader
+        showModal(`Confirm ${actionLabel} 2FA`, `
+            <div id="modal2faLoadingContainer" class="p-6 text-center space-y-4">
+                <div class="inline-block w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Requesting Verification Code...</p>
             </div>
-        `);
+            
+            <form id="tx2faToggleForm" class="space-y-4 p-5 text-sm text-center hidden">
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    We have sent a 6-digit confirmation code to your email <span class="font-bold text-white" id="modal2faMaskedEmail"></span>.
+                    Enter it below to authorize this action.
+                </p>
+
+                <!-- Modal error message -->
+                <div id="modal2faToggleMessage" class="hidden rounded-xl border border-red-400/20 bg-red-400/[0.06] px-4 py-2.5 text-xs font-bold text-red-400"></div>
+
+                <div>
+                    <input
+                        type="text"
+                        id="modal2faToggleCode"
+                        placeholder="000000"
+                        maxlength="6"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center text-xl tracking-[0.4em] font-black focus:outline-none focus:border-cyan-400"
+                        required
+                    />
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer" onclick="closeSettingsModal()">Cancel</button>
+                    <button type="submit" id="modal2faToggleSubmitBtn" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black py-2.5 rounded-xl text-xs transition cursor-pointer">Confirm</button>
+                </div>
+            </form>
+        `, async (modalEl) => {
+            const loadingContainer = document.getElementById("modal2faLoadingContainer");
+            const form = document.getElementById("tx2faToggleForm");
+            const maskedEmailSpan = document.getElementById("modal2faMaskedEmail");
+            const codeInput = document.getElementById("modal2faToggleCode");
+
+            try {
+                const response = await apiRequest("/user/two-factor/request", {
+                    method: "POST",
+                    body: JSON.stringify({ action: action })
+                });
+
+                if (response && response.success) {
+                    const data = response.data;
+                    if (maskedEmailSpan) maskedEmailSpan.textContent = data.masked_email;
+
+                    // Show form and hide loading spinner
+                    loadingContainer?.classList.add("hidden");
+                    form?.classList.remove("hidden");
+                    codeInput?.focus();
+
+                    // Format input to numbers only
+                    codeInput?.addEventListener("input", function () {
+                        codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 6);
+                    });
+
+                    // Submit form verify handler
+                    form.addEventListener("submit", async (e) => {
+                        e.preventDefault();
+                        const code = codeInput?.value.trim() || "";
+                        const errorMsg = document.getElementById("modal2faToggleMessage");
+                        const submitBtn = document.getElementById("modal2faToggleSubmitBtn");
+
+                        if (errorMsg) {
+                            errorMsg.textContent = "";
+                            errorMsg.classList.add("hidden");
+                        }
+
+                        if (!code || code.length !== 6) {
+                            if (errorMsg) {
+                                errorMsg.textContent = "Please enter a valid 6-digit code.";
+                                errorMsg.classList.remove("hidden");
+                            }
+                            return;
+                        }
+
+                        try {
+                            setButtonLoading(submitBtn, true, "Verifying...");
+
+                            const verifyResponse = await apiRequest("/user/two-factor/verify", {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    code: code,
+                                    pending_id: data.pending_id,
+                                    action: action
+                                })
+                            });
+
+                            if (verifyResponse && verifyResponse.success) {
+                                const nextState = (action === "enable");
+                                user.two_factor_enabled = nextState;
+                                saveAuthData(getAuthToken(), user);
+                                updateTwoFactorUI(user);
+                                closeSettingsModal();
+                                showToast(`Two-Factor Authentication ${nextState ? "enabled" : "disabled"} successfully!`, "success");
+                            } else {
+                                if (errorMsg) {
+                                    errorMsg.textContent = verifyResponse.message || "Verification failed.";
+                                    errorMsg.classList.remove("hidden");
+                                }
+                            }
+                        } catch (err) {
+                            const errMsg = showApiError(err, "Incorrect verification code or expired session.");
+                            if (errorMsg) {
+                                errorMsg.textContent = errMsg;
+                                errorMsg.classList.remove("hidden");
+                            }
+                        } finally {
+                            setButtonLoading(submitBtn, false);
+                        }
+                    });
+                } else {
+                    closeSettingsModal();
+                    showToast(response.message || "Failed to initiate Two-Factor Authentication request.", "error");
+                }
+            } catch (err) {
+                closeSettingsModal();
+                showToast(err.message || "An error occurred while initiating Two-Factor Authentication.", "error");
+            }
+        });
     });
+
+    // (Manage button for QR/Key authentication removed per user request)
 
     // Whitelist toggle
     document.getElementById("enableWhitelistBtn")?.addEventListener("click", () => {
@@ -780,15 +897,15 @@ function bindButtonListeners(user) {
     });
 }
 
-function initToggles() {
+function initToggles(user) {
     updateNotifPrefUI();
     updateWhitelistUI();
     updateOnestepUI();
+    updateTwoFactorUI(user);
 
-    // Theme label init
-    const curTheme = localStorage.getItem("traidiumx_theme") === "light" ? "Light" : "Dark";
-    const themeValDisplay = document.getElementById("themeValDisplay");
-    if (themeValDisplay) themeValDisplay.textContent = curTheme;
+    // Theme toggle switcher init
+    const curTheme = localStorage.getItem("traidiumx_theme") || "dark";
+    updateThemeToggleUI(curTheme);
 
     // Shortcuts toggle
     const shortcutsToggle = document.getElementById("shortcutsToggle");
@@ -835,6 +952,28 @@ function updateWhitelistUI() {
     const icon = document.getElementById("whitelistIcon");
     const text = document.getElementById("whitelistDisplay");
     const btn = document.getElementById("enableWhitelistBtn");
+
+    if (icon && text && btn) {
+        if (active) {
+            icon.className = "tx-status-icon-on";
+            icon.textContent = "✓";
+            text.textContent = "ON";
+            btn.textContent = "Disable";
+        } else {
+            icon.className = "tx-status-icon-off";
+            icon.textContent = "✕";
+            text.textContent = "OFF";
+            btn.textContent = "Enable";
+        }
+    }
+}
+
+function updateTwoFactorUI(user) {
+    if (!user) return;
+    const active = user.two_factor_enabled === true;
+    const icon = document.getElementById("twoFactorIcon");
+    const text = document.getElementById("twoFactorDisplay");
+    const btn = document.getElementById("enableTwoFactorBtn");
 
     if (icon && text && btn) {
         if (active) {
@@ -1150,3 +1289,53 @@ function openAddressManagementModal() {
         }
     };
 }
+
+function updateThemeToggleUI(theme) {
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const themeToggleThumb = document.getElementById("themeToggleThumb");
+    const themeStatusText = document.getElementById("themeStatusText");
+    const sunIcon = document.getElementById("themeToggleSun");
+    const moonIcon = document.getElementById("themeToggleMoon");
+
+    if (!themeToggleBtn || !themeToggleThumb || !themeStatusText || !sunIcon || !moonIcon) return;
+
+    if (theme === "light") {
+        themeToggleBtn.style.backgroundColor = "#22d3ee"; // cyan-400
+        themeToggleThumb.style.transform = "translateX(22px)";
+        themeToggleThumb.style.backgroundColor = "#ffffff";
+        themeToggleThumb.style.color = "#0f172a";
+        
+        sunIcon.classList.remove("hidden");
+        moonIcon.classList.add("hidden");
+
+        themeStatusText.textContent = "Light";
+        themeToggleBtn.setAttribute("aria-checked", "true");
+    } else {
+        themeToggleBtn.style.backgroundColor = "#1e293b"; // slate-800
+        themeToggleThumb.style.transform = "translateX(0px)";
+        themeToggleThumb.style.backgroundColor = "#64748b"; // slate-500
+        themeToggleThumb.style.color = "#0f172a";
+        
+        sunIcon.classList.add("hidden");
+        moonIcon.classList.remove("hidden");
+
+        themeStatusText.textContent = "Dark";
+        themeToggleBtn.setAttribute("aria-checked", "false");
+    }
+}
+
+function setButtonLoading(button, isLoading, loadingText = "Please wait...") {
+    if (!button) return;
+
+    if (isLoading) {
+        button.dataset.originalText = button.textContent.trim();
+        button.textContent = loadingText;
+        button.disabled = true;
+        button.classList.add("opacity-80", "cursor-not-allowed");
+    } else {
+        button.textContent = button.dataset.originalText || button.textContent;
+        button.disabled = false;
+        button.classList.remove("opacity-80", "cursor-not-allowed");
+    }
+}
+

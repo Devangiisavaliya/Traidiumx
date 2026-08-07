@@ -20,6 +20,8 @@ from models.referral_model import (
     format_relationship,
     get_relationships_for_referrer,
     update_referral_profile,
+    update_referral_relationship,
+    increment_referral_stats,
 )
 from models.user_model import find_user_by_id
 from utils.security import sanitize_text
@@ -302,3 +304,94 @@ def submit_affiliate_application(user, data):
         },
         "status_code": 201,
     }
+
+
+def mark_referral_as_verified(referred_user_id):
+    """
+    Marks the referral relationship status as 'verified' when the referred user gets KYC approved.
+    """
+    relation = find_relationship_by_referred_user_id(referred_user_id)
+    if not relation:
+        return
+
+    current_status = relation.get("status")
+    if current_status == RELATION_STATUS_REGISTERED:  # 'registered'
+        update_referral_relationship(relation["_id"], {"status": "verified"})
+        
+        # Increment verified_referrals in referrer's profile
+        increment_referral_stats(
+            user_id=relation["referrer_user_id"],
+            invites_delta=0,
+            verified_delta=1,
+            rewards_delta=0.0
+        )
+
+
+def distribute_referral_commission(referred_user_id, fee_amount, reference_id, description):
+    """
+    Distributes referral commission to the referrer if eligible.
+    """
+    fee_amount = float(fee_amount or 0.0)
+    if fee_amount <= 0:
+        return
+
+    # 1. Find referral relationship
+    relation = find_relationship_by_referred_user_id(referred_user_id)
+    if not relation:
+        return
+
+    referrer_user_id = relation.get("referrer_user_id")
+    if not referrer_user_id:
+        return
+
+    # 2. Get referrer user
+    referrer_user = find_user_by_id(referrer_user_id)
+    if not referrer_user:
+        return
+
+    # 3. Check if referrer has approved KYC
+    referrer_kyc_status = referrer_user.get("kyc_status", "").lower()
+    if referrer_kyc_status != "approved":
+        print(f"Referral commission skipped: Referrer {referrer_user_id} KYC status is {referrer_kyc_status}")
+        return
+
+    # 4. Get the reward rate from referrer profile
+    referrer_profile = find_profile_by_user_id(referrer_user_id)
+    if not referrer_profile or referrer_profile.get("status") != "active":
+        return
+
+    reward_rate_percent = float(referrer_profile.get("reward_rate_percent", DEFAULT_REWARD_RATE_PERCENT))
+    
+    # 5. Calculate commission amount
+    commission_amount = round(fee_amount * (reward_rate_percent / 100.0), 8)
+    if commission_amount <= 0:
+        return
+
+    # 6. Credit the referrer's main wallet
+    try:
+        from services.wallet_service import credit_main_wallet
+        credit_main_wallet(
+            user_id=referrer_user_id,
+            amount=commission_amount,
+            transaction_type="referral_commission",
+            reference_id=str(reference_id),
+            description=f"Referral commission from friend trade ({description})",
+            currency="USDT"
+        )
+    except Exception as wallet_err:
+        print(f"Failed to credit main wallet for referral commission: {wallet_err}")
+        return
+
+    # 7. Update referral stats in profile
+    increment_referral_stats(
+        user_id=referrer_user_id,
+        invites_delta=0,
+        verified_delta=0,
+        rewards_delta=commission_amount
+    )
+
+    # 8. Update relationship status to "rewarded"
+    current_status = relation.get("status")
+    if current_status not in ["trading", "rewarded"]:
+        update_referral_relationship(relation["_id"], {"status": "rewarded"})
+

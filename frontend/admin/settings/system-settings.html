@@ -529,6 +529,48 @@
                                         </label>
 
                                         <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Bitcoin (BTC) Address</span>
+                                            <input id="cryptoDepositBtcAddress" class="admin-input font-mono" placeholder="Bitcoin address starts with 1, 3, or bc1" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositBtcAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Solana (SOL) Address</span>
+                                            <input id="cryptoDepositSolAddress" class="admin-input font-mono" placeholder="Solana address base58 format" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositSolAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Ripple (XRP) Address</span>
+                                            <input id="cryptoDepositXrpAddress" class="admin-input font-mono" placeholder="Ripple address starts with r" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositXrpAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Cardano (ADA) Address</span>
+                                            <input id="cryptoDepositAdaAddress" class="admin-input font-mono" placeholder="Cardano address starts with addr1" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositAdaAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">Ethereum (ETH) Address</span>
+                                            <input id="cryptoDepositEthAddress" class="admin-input font-mono" placeholder="Ethereum address starts with 0x" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositEthAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">USD Coin (USDC) Address</span>
+                                            <input id="cryptoDepositUsdcAddress" class="admin-input font-mono" placeholder="USDC address starts with 0x" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositUsdcAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
+                                            <span class="mb-2 block text-sm font-bold text-slate-300">BNB Address</span>
+                                            <input id="cryptoDepositBnbAddress" class="admin-input font-mono" placeholder="BNB address starts with 0x" autocomplete="off" spellcheck="false" />
+                                            <span id="cryptoDepositBnbAddressErr" class="mt-1.5 block text-[11px] text-rose-400 font-bold leading-tight" style="display: none;"></span>
+                                        </label>
+
+                                        <label class="block">
                                             <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Deposit Amount</span>
                                             <input id="cryptoDepositMinUsdt" type="number" min="0" step="0.000001" class="admin-input" placeholder="Example: 10" />
                                         </label>
@@ -548,6 +590,41 @@
                                             <input id="usdtInrRate" type="number" min="0.01" step="0.01" class="admin-input font-black text-cyan-300" placeholder="Example: 88.50" />
                                             <span class="mt-1.5 block text-[11px] font-semibold text-slate-400">1 USDT value in INR for user deposit, withdraw & wallet transfer conversion.</span>
                                         </label>
+
+                                        <div class="col-span-full border-t border-white/10 my-4 pt-4">
+                                            <h4 class="text-sm font-black text-cyan-300 uppercase tracking-wider mb-2">Crypto Exchange Rate Overrides (USD)</h4>
+                                            <p class="text-xs text-slate-400 mb-4 font-semibold">Set a fixed price (in USD) for each coin to override live market prices. Set to 0 to use live Binance market rates.</p>
+                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">BTC Price Override ($)</span>
+                                                    <input id="rateOverrideBtc" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">ETH Price Override ($)</span>
+                                                    <input id="rateOverrideEth" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">SOL Price Override ($)</span>
+                                                    <input id="rateOverrideSol" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">ADA Price Override ($)</span>
+                                                    <input id="rateOverrideAda" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">XRP Price Override ($)</span>
+                                                    <input id="rateOverrideXrp" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">BNB Price Override ($)</span>
+                                                    <input id="rateOverrideBnb" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-1.5 block text-[11px] font-bold text-slate-400">USDC Price Override ($)</span>
+                                                    <input id="rateOverrideUsdc" type="number" min="0" step="any" class="admin-input font-mono" placeholder="Live (0)" />
+                                                </label>
+                                            </div>
+                                        </div>
 
                                         <label class="block">
                                             <span class="mb-2 block text-sm font-bold text-slate-300">Company UPI ID</span>

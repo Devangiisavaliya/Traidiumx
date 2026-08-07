@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initForgotPasswordPage();
 
     if (loginForm) {
+        window.txOriginalLoginFormHtml = loginForm.innerHTML;
         loginForm.addEventListener("submit", handleLogin);
     }
 
@@ -442,8 +443,93 @@ function getSafePostLoginRedirect() {
 }
 
 
+let login2faState = null;
+
+function cancelLogin2fa() {
+    login2faState = null;
+    const loginForm = document.getElementById("loginForm");
+    if (loginForm && window.txOriginalLoginFormHtml) {
+        loginForm.innerHTML = window.txOriginalLoginFormHtml;
+        initPasswordToggles();
+    }
+}
+
+async function handleLoginOtpVerify() {
+    const otpInput = document.getElementById("loginOtpCode");
+    const code = otpInput?.value.trim() || "";
+    const otpError = document.getElementById("loginOtpError");
+    const otpMessage = document.getElementById("otpAuthMessage");
+    const submitButton = document.getElementById("loginOtpSubmitBtn");
+
+    if (otpError) otpError.textContent = "";
+    if (otpMessage) {
+        otpMessage.textContent = "";
+        otpMessage.classList.add("hidden");
+    }
+
+    if (!code || code.length !== 6 || /\D/.test(code)) {
+        if (otpError) otpError.textContent = "Please enter a valid 6-digit code.";
+        return;
+    }
+
+    try {
+        setButtonLoading(submitButton, true, "Verifying...");
+
+        const response = await apiRequest("/auth/login/verify", {
+            method: "POST",
+            body: JSON.stringify({
+                email: login2faState.email,
+                code: code,
+                pending_id: login2faState.pendingId
+            })
+        });
+
+        const token = response?.data?.token;
+        const user = response?.data?.user;
+
+        if (!token || !user) {
+            throw {
+                message: "Verification succeeded but response is missing session data."
+            };
+        }
+
+        saveAuthData(token, user);
+
+        if (login2faState.rememberMe) {
+            localStorage.setItem("traidiumx_remembered_email", login2faState.email);
+        } else {
+            localStorage.removeItem("traidiumx_remembered_email");
+        }
+
+        if (otpMessage) {
+            otpMessage.textContent = "Verification successful! Redirecting...";
+            otpMessage.className = "rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-bold text-emerald-200 text-center";
+            otpMessage.classList.remove("hidden");
+        }
+
+        setTimeout(function () {
+            window.location.href = getSafePostLoginRedirect();
+        }, 650);
+
+    } catch (error) {
+        const errorMessage = showApiError(error, "Incorrect verification code or expired session.");
+        if (otpMessage) {
+            otpMessage.textContent = errorMessage;
+            otpMessage.classList.remove("hidden");
+        }
+    } finally {
+        setButtonLoading(submitButton, false);
+    }
+}
+
 async function handleLogin(event) {
     event.preventDefault();
+
+    if (login2faState) {
+        await handleLoginOtpVerify();
+        return;
+    }
+
     clearLoginErrors();
 
     const form = event.target;
@@ -484,6 +570,61 @@ async function handleLogin(event) {
                 password: password
             })
         });
+
+        if (response?.data?.two_factor_required) {
+            const data = response.data;
+            login2faState = {
+                email: data.email,
+                pendingId: data.pending_id,
+                rememberMe: rememberMe
+            };
+
+            // Switch to OTP UI
+            loginForm.innerHTML = `
+                <div class="space-y-4">
+                    <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4 text-center">
+                        <p class="text-sm font-black text-cyan-300">Security Verification</p>
+                        <p class="mt-1.5 text-xs text-slate-300 leading-relaxed">We sent a 6-digit security code to your email <span class="font-bold text-white">${data.masked_email}</span>. Please enter it below to complete your login.</p>
+                    </div>
+
+                    <!-- Backend API message -->
+                    <div id="otpAuthMessage" class="hidden rounded-2xl border border-red-400/20 bg-red-400/[0.06] px-4 py-3 text-sm font-bold text-red-400"></div>
+
+                    <div>
+                        <label for="loginOtpCode" class="auth-label text-center block">6-Digit Code</label>
+                        <input
+                            id="loginOtpCode"
+                            name="otp_code"
+                            type="text"
+                            placeholder="000000"
+                            maxlength="6"
+                            class="auth-input text-center text-2xl tracking-[0.4em] font-black text-cyan-400"
+                            required
+                            autofocus
+                        />
+                        <p id="loginOtpError" class="auth-error text-center"></p>
+                    </div>
+
+                    <button id="loginOtpSubmitBtn" type="submit" class="auth-primary-btn">
+                        Verify and Login
+                    </button>
+
+                    <button id="loginOtpCancelBtn" type="button" class="w-full rounded-2xl border border-white/10 hover:border-red-400/30 hover:bg-red-400/5 py-4 text-center font-black text-slate-400 hover:text-red-300 transition-colors shadow-lg cursor-pointer">
+                        Cancel
+                    </button>
+                </div>
+            `;
+
+            // Bind input formatting to numeric only
+            const otpInput = document.getElementById("loginOtpCode");
+            otpInput?.addEventListener("input", function () {
+                otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+            });
+
+            // Bind Cancel button
+            document.getElementById("loginOtpCancelBtn")?.addEventListener("click", cancelLogin2fa);
+            return;
+        }
 
         const token = response?.data?.token;
         const user = response?.data?.user;

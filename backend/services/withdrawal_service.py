@@ -27,11 +27,15 @@ from utils.validators import clean_string, validate_positive_number
 
 
 ALLOWED_WITHDRAWAL_METHODS = ["crypto_withdrawal", "inr_withdrawal"]
-SUPPORTED_CRYPTO_ASSETS = ["USDT", "INR"]
-SUPPORTED_CRYPTO_NETWORKS = ["TRC20", "ERC20", "BEP20", "UPI/BANK"]
+SUPPORTED_CRYPTO_ASSETS = ["USDT", "INR", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+SUPPORTED_CRYPTO_NETWORKS = ["TRC20", "ERC20", "BEP20", "BITCOIN", "SOLANA", "RIPPLE", "CARDANO", "UPI/BANK"]
 
 TRON_ADDRESS_PATTERN = re.compile(r"^T[1-9A-HJ-NP-Za-km-z]{33}$")
 EVM_ADDRESS_PATTERN = re.compile(r"^0x[a-fA-F0-9]{40}$")
+BTC_ADDRESS_PATTERN = re.compile(r"^(1|3|bc1)[a-zA-Z0-9]{25,90}$", re.IGNORECASE)
+SOL_ADDRESS_PATTERN = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$")
+XRP_ADDRESS_PATTERN = re.compile(r"^r[1-9A-HJ-NP-Za-km-z]{24,34}$")
+ADA_ADDRESS_PATTERN = re.compile(r"^(addr1|Ae2|Ddz)[a-zA-Z0-9]{25,110}$", re.IGNORECASE)
 
 SETTINGS_KEY = "main"
 
@@ -106,6 +110,26 @@ def validate_crypto_withdrawal_address(network, address):
         if EVM_ADDRESS_PATTERN.match(address):
             return True, ""
         return False, f"Please enter a valid {network} EVM wallet address starting with 0x."
+
+    if network == "BITCOIN":
+        if BTC_ADDRESS_PATTERN.match(address):
+            return True, ""
+        return False, "Please enter a valid Bitcoin address (starting with 1, 3, or bc1)."
+
+    if network == "SOLANA":
+        if SOL_ADDRESS_PATTERN.match(address):
+            return True, ""
+        return False, "Please enter a valid Solana base58 wallet address."
+
+    if network == "RIPPLE":
+        if XRP_ADDRESS_PATTERN.match(address):
+            return True, ""
+        return False, "Please enter a valid Ripple wallet address starting with r."
+
+    if network == "CARDANO":
+        if ADA_ADDRESS_PATTERN.match(address):
+            return True, ""
+        return False, "Please enter a valid Cardano wallet address starting with addr1."
 
     return False, "Unsupported withdrawal network."
 

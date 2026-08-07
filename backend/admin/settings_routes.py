@@ -113,6 +113,14 @@ DEFAULT_SETTINGS = {
     "binance_api_key": "",
     "binance_secret_key": "",
     "binance_is_testnet": True,
+
+    "rate_override_btc": 0.0,
+    "rate_override_eth": 0.0,
+    "rate_override_sol": 0.0,
+    "rate_override_ada": 0.0,
+    "rate_override_xrp": 0.0,
+    "rate_override_bnb": 0.0,
+    "rate_override_usdc": 0.0,
 }
 
 
@@ -513,6 +521,14 @@ def clean_settings_payload(data):
             data.get("binance_is_testnet"),
             DEFAULT_SETTINGS["binance_is_testnet"]
         ),
+
+        "rate_override_btc": max(0.0, to_number(data.get("rate_override_btc"), 0.0)),
+        "rate_override_eth": max(0.0, to_number(data.get("rate_override_eth"), 0.0)),
+        "rate_override_sol": max(0.0, to_number(data.get("rate_override_sol"), 0.0)),
+        "rate_override_ada": max(0.0, to_number(data.get("rate_override_ada"), 0.0)),
+        "rate_override_xrp": max(0.0, to_number(data.get("rate_override_xrp"), 0.0)),
+        "rate_override_bnb": max(0.0, to_number(data.get("rate_override_bnb"), 0.0)),
+        "rate_override_usdc": max(0.0, to_number(data.get("rate_override_usdc"), 0.0)),
 
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }

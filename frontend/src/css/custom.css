@@ -114,6 +114,10 @@ h3 {
 
 /* Keep important branding and CTA strong */
 .tx-pill-brand h1,
+.tx-pill-brand p {
+    font-weight: 900 !important;
+}
+
 .tx-pill-trade-btn,
 .tx-pill-mobile-trade,
 .tx-section-pill,

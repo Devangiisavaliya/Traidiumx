@@ -69,6 +69,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         crypto_deposit_usdt_trc20_address: document.getElementById("cryptoDepositTrc20Address"),
         crypto_deposit_usdt_erc20_address: document.getElementById("cryptoDepositErc20Address"),
         crypto_deposit_usdt_bep20_address: document.getElementById("cryptoDepositBep20Address"),
+        crypto_deposit_btc_address: document.getElementById("cryptoDepositBtcAddress"),
+        crypto_deposit_sol_address: document.getElementById("cryptoDepositSolAddress"),
+        crypto_deposit_xrp_address: document.getElementById("cryptoDepositXrpAddress"),
+        crypto_deposit_ada_address: document.getElementById("cryptoDepositAdaAddress"),
+        crypto_deposit_eth_address: document.getElementById("cryptoDepositEthAddress"),
+        crypto_deposit_usdc_address: document.getElementById("cryptoDepositUsdcAddress"),
+        crypto_deposit_bnb_address: document.getElementById("cryptoDepositBnbAddress"),
         crypto_deposit_min_usdt: document.getElementById("cryptoDepositMinUsdt"),
         crypto_deposit_max_usdt: document.getElementById("cryptoDepositMaxUsdt"),
         min_main_wallet_balance: document.getElementById("minMainWalletBalance"),
@@ -93,6 +100,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         binance_api_key: document.getElementById("binanceApiKey"),
         binance_secret_key: document.getElementById("binanceSecretKey"),
         binance_is_testnet: document.getElementById("binanceIsTestnet"),
+
+        rate_override_btc: document.getElementById("rateOverrideBtc"),
+        rate_override_eth: document.getElementById("rateOverrideEth"),
+        rate_override_sol: document.getElementById("rateOverrideSol"),
+        rate_override_ada: document.getElementById("rateOverrideAda"),
+        rate_override_xrp: document.getElementById("rateOverrideXrp"),
+        rate_override_bnb: document.getElementById("rateOverrideBnb"),
+        rate_override_usdc: document.getElementById("rateOverrideUsdc"),
     };
 
     let isSaving = false;
@@ -537,10 +552,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         setVal(fields.crypto_deposit_usdt_trc20_address, data.crypto_deposit_usdt_trc20_address);
         setVal(fields.crypto_deposit_usdt_erc20_address, data.crypto_deposit_usdt_erc20_address);
         setVal(fields.crypto_deposit_usdt_bep20_address, data.crypto_deposit_usdt_bep20_address);
+        setVal(fields.crypto_deposit_btc_address, data.crypto_deposit_btc_address);
+        setVal(fields.crypto_deposit_sol_address, data.crypto_deposit_sol_address);
+        setVal(fields.crypto_deposit_xrp_address, data.crypto_deposit_xrp_address);
+        setVal(fields.crypto_deposit_ada_address, data.crypto_deposit_ada_address);
+        setVal(fields.crypto_deposit_eth_address, data.crypto_deposit_eth_address);
+        setVal(fields.crypto_deposit_usdc_address, data.crypto_deposit_usdc_address);
+        setVal(fields.crypto_deposit_bnb_address, data.crypto_deposit_bnb_address);
         setVal(fields.crypto_deposit_min_usdt, data.crypto_deposit_min_usdt);
         setVal(fields.crypto_deposit_max_usdt, data.crypto_deposit_max_usdt);
         setVal(fields.min_main_wallet_balance, data.min_main_wallet_balance);
         setVal(fields.usdt_inr_rate, data.usdt_inr_rate || 88.50);
+
+        setVal(fields.rate_override_btc, (data.rate_override_btc && data.rate_override_btc > 0) ? data.rate_override_btc : "");
+        setVal(fields.rate_override_eth, (data.rate_override_eth && data.rate_override_eth > 0) ? data.rate_override_eth : "");
+        setVal(fields.rate_override_sol, (data.rate_override_sol && data.rate_override_sol > 0) ? data.rate_override_sol : "");
+        setVal(fields.rate_override_ada, (data.rate_override_ada && data.rate_override_ada > 0) ? data.rate_override_ada : "");
+        setVal(fields.rate_override_xrp, (data.rate_override_xrp && data.rate_override_xrp > 0) ? data.rate_override_xrp : "");
+        setVal(fields.rate_override_bnb, (data.rate_override_bnb && data.rate_override_bnb > 0) ? data.rate_override_bnb : "");
+        setVal(fields.rate_override_usdc, (data.rate_override_usdc && data.rate_override_usdc > 0) ? data.rate_override_usdc : "");
         setVal(fields.inr_deposit_upi_id, data.inr_deposit_upi_id || "traidiumx@upi");
         setVal(fields.inr_deposit_account_name, data.inr_deposit_account_name || "TraidiumX Trading Services Ltd");
         setVal(fields.inr_deposit_bank_name, data.inr_deposit_bank_name || "HDFC Bank");
@@ -569,6 +599,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             validateAddressLive("cryptoDepositTrc20Address", "TRC20");
             validateAddressLive("cryptoDepositErc20Address", "ERC20");
             validateAddressLive("cryptoDepositBep20Address", "BEP20");
+            validateAddressLive("cryptoDepositBtcAddress", "BITCOIN");
+            validateAddressLive("cryptoDepositSolAddress", "SOLANA");
+            validateAddressLive("cryptoDepositXrpAddress", "RIPPLE");
+            validateAddressLive("cryptoDepositAdaAddress", "CARDANO");
+            validateAddressLive("cryptoDepositEthAddress", "ERC20");
+            validateAddressLive("cryptoDepositUsdcAddress", "ERC20");
+            validateAddressLive("cryptoDepositBnbAddress", "BEP20");
         }
     }
 
@@ -637,10 +674,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             crypto_deposit_usdt_trc20_address: getVal(fields.crypto_deposit_usdt_trc20_address).replace(/\s/g, ""),
             crypto_deposit_usdt_erc20_address: getVal(fields.crypto_deposit_usdt_erc20_address).replace(/\s/g, ""),
             crypto_deposit_usdt_bep20_address: getVal(fields.crypto_deposit_usdt_bep20_address).replace(/\s/g, ""),
+            crypto_deposit_btc_address: getVal(fields.crypto_deposit_btc_address).replace(/\s/g, ""),
+            crypto_deposit_sol_address: getVal(fields.crypto_deposit_sol_address).replace(/\s/g, ""),
+            crypto_deposit_xrp_address: getVal(fields.crypto_deposit_xrp_address).replace(/\s/g, ""),
+            crypto_deposit_ada_address: getVal(fields.crypto_deposit_ada_address).replace(/\s/g, ""),
+            crypto_deposit_eth_address: getVal(fields.crypto_deposit_eth_address).replace(/\s/g, ""),
+            crypto_deposit_usdc_address: getVal(fields.crypto_deposit_usdc_address).replace(/\s/g, ""),
+            crypto_deposit_bnb_address: getVal(fields.crypto_deposit_bnb_address).replace(/\s/g, ""),
             crypto_deposit_min_usdt: numberValue(fields.crypto_deposit_min_usdt),
             crypto_deposit_max_usdt: numberValue(fields.crypto_deposit_max_usdt),
             min_main_wallet_balance: numberValue(fields.min_main_wallet_balance),
             usdt_inr_rate: numberValue(fields.usdt_inr_rate),
+
+            rate_override_btc: numberValue(fields.rate_override_btc),
+            rate_override_eth: numberValue(fields.rate_override_eth),
+            rate_override_sol: numberValue(fields.rate_override_sol),
+            rate_override_ada: numberValue(fields.rate_override_ada),
+            rate_override_xrp: numberValue(fields.rate_override_xrp),
+            rate_override_bnb: numberValue(fields.rate_override_bnb),
+            rate_override_usdc: numberValue(fields.rate_override_usdc),
             inr_deposit_upi_id: getVal(fields.inr_deposit_upi_id) || "traidiumx@upi",
             inr_deposit_account_name: getVal(fields.inr_deposit_account_name) || "TraidiumX Trading Services Ltd",
             inr_deposit_bank_name: getVal(fields.inr_deposit_bank_name) || "HDFC Bank",
@@ -683,7 +735,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    async function loadLiveCryptoPricesForPlaceholders() {
+        try {
+            const symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT", "BNBUSDT", "USDCUSDT"];
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`);
+            if (!res.ok) return;
+            const prices = await res.json();
+            
+            const priceMap = {};
+            prices.forEach(item => {
+                const asset = item.symbol.replace("USDT", "").toLowerCase();
+                priceMap[asset] = parseFloat(item.price);
+            });
+
+            const inputs = {
+                btc: document.getElementById("rateOverrideBtc"),
+                eth: document.getElementById("rateOverrideEth"),
+                sol: document.getElementById("rateOverrideSol"),
+                ada: document.getElementById("rateOverrideAda"),
+                xrp: document.getElementById("rateOverrideXrp"),
+                bnb: document.getElementById("rateOverrideBnb"),
+                usdc: document.getElementById("rateOverrideUsdc")
+            };
+
+            for (const [coin, input] of Object.entries(inputs)) {
+                if (input && priceMap[coin]) {
+                    const formatted = priceMap[coin] >= 1.0 
+                        ? priceMap[coin].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : priceMap[coin].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                    input.placeholder = `Live ($${formatted})`;
+                }
+            }
+        } catch (err) {
+            console.error("Failed to load live prices for admin placeholders:", err);
+        }
+    }
+
     async function loadSettings(showToast = false) {
+        loadLiveCryptoPricesForPlaceholders();
         if (isLoading) return;
 
         try {
@@ -852,6 +941,33 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else if (val.length !== 42) {
                 errMsg = `${networkType} Address must be exactly 42 characters (currently ${val.length})`;
             }
+        } else if (networkType === "BITCOIN") {
+            const startsOk = val.startsWith("1") || val.startsWith("3") || val.toLowerCase().startsWith("bc1");
+            if (!startsOk) {
+                errMsg = "Bitcoin Address must start with '1', '3', or 'bc1'";
+            } else if (val.length < 26 || val.length > 90) {
+                errMsg = `Bitcoin Address length must be between 26 and 90 characters (currently ${val.length})`;
+            }
+        } else if (networkType === "SOLANA") {
+            const solRegex = /^[1-9A-HJ-NP-Za-km-z]+$/;
+            if (!solRegex.test(val)) {
+                errMsg = "Solana Address must be a valid Base58 string (no 0, O, I, l)";
+            } else if (val.length < 32 || val.length > 44) {
+                errMsg = `Solana Address length must be between 32 and 44 characters (currently ${val.length})`;
+            }
+        } else if (networkType === "RIPPLE") {
+            if (!val.startsWith("r")) {
+                errMsg = "Ripple Address must start with 'r'";
+            } else if (val.length < 25 || val.length > 35) {
+                errMsg = `Ripple Address length must be between 25 and 35 characters (currently ${val.length})`;
+            }
+        } else if (networkType === "CARDANO") {
+            const startsOk = val.toLowerCase().startsWith("addr1") || val.startsWith("Ae2") || val.startsWith("Ddz");
+            if (!startsOk) {
+                errMsg = "Cardano Address must start with 'addr1', 'Ae2', or 'Ddz'";
+            } else if (val.length < 25 || val.length > 110) {
+                errMsg = `Cardano Address length must be between 25 and 110 characters (currently ${val.length})`;
+            }
         }
 
         if (errMsg) {
@@ -868,6 +984,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         { field: fields.crypto_deposit_usdt_trc20_address, type: "TRC20", id: "cryptoDepositTrc20Address" },
         { field: fields.crypto_deposit_usdt_erc20_address, type: "ERC20", id: "cryptoDepositErc20Address" },
         { field: fields.crypto_deposit_usdt_bep20_address, type: "BEP20", id: "cryptoDepositBep20Address" },
+        { field: fields.crypto_deposit_btc_address, type: "BITCOIN", id: "cryptoDepositBtcAddress" },
+        { field: fields.crypto_deposit_sol_address, type: "SOLANA", id: "cryptoDepositSolAddress" },
+        { field: fields.crypto_deposit_xrp_address, type: "RIPPLE", id: "cryptoDepositXrpAddress" },
+        { field: fields.crypto_deposit_ada_address, type: "CARDANO", id: "cryptoDepositAdaAddress" },
+        { field: fields.crypto_deposit_eth_address, type: "ERC20", id: "cryptoDepositEthAddress" },
+        { field: fields.crypto_deposit_usdc_address, type: "ERC20", id: "cryptoDepositUsdcAddress" },
+        { field: fields.crypto_deposit_bnb_address, type: "BEP20", id: "cryptoDepositBnbAddress" },
     ].forEach(({ field, type, id }) => {
         if (!field) return;
 
@@ -882,4 +1005,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     await loadSettings(false);
+
+    // Fetch and update live placeholders in real-time every 10 seconds
+    const pricePlaceholderInterval = setInterval(() => {
+        // If settings inputs are no longer in the DOM (page changed), clear the interval
+        if (!document.getElementById("rateOverrideBtc")) {
+            clearInterval(pricePlaceholderInterval);
+            return;
+        }
+        loadLiveCryptoPricesForPlaceholders();
+    }, 10000);
 });

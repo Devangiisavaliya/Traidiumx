@@ -241,6 +241,141 @@ def send_signup_verification_code_email(to_email, code, expires_minutes=None, ex
     return result
 
 
+def send_login_2fa_code_email(to_email, code, expires_seconds=None):
+    """Send a secure transactional code for login Two-Factor Authentication (2FA)."""
+
+    if not is_email_delivery_configured():
+        return {
+            "sent": False,
+            "reason": "SMTP email delivery is not configured."
+        }
+
+    safe_code = html.escape(str(code or "").strip(), quote=True)
+    safe_seconds = int(expires_seconds or 0)
+    if safe_seconds <= 0:
+        safe_seconds = 120
+    safe_minutes = max(1, (safe_seconds + 59) // 60)
+    expiry_text = f"{safe_seconds} seconds" if safe_seconds < 120 else f"{safe_minutes} minutes"
+
+    message = EmailMessage()
+    message["Subject"] = "Your TraidiumX Two-Factor Authentication (2FA) Code"
+    message["To"] = to_email
+    _apply_transactional_email_headers(message, "account-login-2fa")
+
+    text_body = (
+        "Hello,\n\n"
+        "A login attempt was made on your TraidiumX account. "
+        "Enter this security code to complete your login:\n\n"
+        f"{safe_code}\n\n"
+        f"This code expires in {expiry_text} and can be used only once.\n"
+        "If you did not initiate this login request, please change your password immediately.\n\n"
+        "TraidiumX Security Team\n"
+        "This is an automated account-security email. No promotions are included."
+    )
+
+    html_body = f"""
+    <!doctype html>
+    <html>
+      <body style="margin:0;background:#020617;color:#e5e7eb;font-family:Arial,sans-serif;">
+        <div style="max-width:620px;margin:0 auto;padding:32px 18px;">
+          <div style="border:1px solid rgba(34,211,238,.25);border-radius:22px;background:#0f172a;padding:28px;">
+            <p style="margin:0 0 10px;color:#22d3ee;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">TraidiumX Security</p>
+            <h1 style="margin:0 0 14px;color:#ffffff;font-size:26px;line-height:1.25;">Two-Factor Verification</h1>
+            <p style="margin:0 0 20px;color:#cbd5e1;font-size:15px;line-height:1.7;">A login attempt was made on your TraidiumX account. Enter this code to verify your identity and complete the login.</p>
+            <div style="margin:0 0 22px;border-radius:18px;background:#020617;border:1px solid rgba(34,211,238,.18);padding:18px 22px;text-align:center;">
+              <p style="margin:0;color:#67e8f9;font-size:34px;line-height:1.2;font-weight:900;letter-spacing:.22em;">{safe_code}</p>
+            </div>
+            <p style="margin:0 0 12px;color:#94a3b8;font-size:13px;line-height:1.7;">This code expires in {expiry_text} and can be used only once.</p>
+            <p style="margin:0 0 12px;color:#94a3b8;font-size:13px;line-height:1.7;">If you did not request this login, please secure your account by changing your password immediately.</p>
+            <p style="margin:0;color:#64748b;font-size:12px;line-height:1.6;">This is an automated account-security email from TraidiumX. No promotions are included.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    message.set_content(text_body)
+    message.add_alternative(html_body, subtype="html")
+    
+    if is_email_delivery_configured():
+        import threading
+        threading.Thread(target=_send_email_message, args=(message,)).start()
+        result = {"sent": True, "reason": "Two-Factor code email sent."}
+    else:
+        result = {"sent": False, "reason": "SMTP email delivery is not configured."}
+
+    return result
+
+
+def send_2fa_toggle_code_email(to_email, code, action, expires_seconds=None):
+    """Send a secure code to confirm enabling or disabling Two-Factor Authentication (2FA)."""
+
+    if not is_email_delivery_configured():
+        return {
+            "sent": False,
+            "reason": "SMTP email delivery is not configured."
+        }
+
+    safe_code = html.escape(str(code or "").strip(), quote=True)
+    safe_seconds = int(expires_seconds or 0)
+    if safe_seconds <= 0:
+        safe_seconds = 120
+    safe_minutes = max(1, (safe_seconds + 59) // 60)
+    expiry_text = f"{safe_seconds} seconds" if safe_seconds < 120 else f"{safe_minutes} minutes"
+
+    action_label = "Enable" if action == "enable" else "Disable"
+    action_text = "enable" if action == "enable" else "disable"
+
+    message = EmailMessage()
+    message["Subject"] = f"Confirm {action_label} Two-Factor Authentication (2FA)"
+    message["To"] = to_email
+    _apply_transactional_email_headers(message, "account-2fa-toggle")
+
+    text_body = (
+        "Hello,\n\n"
+        f"We received a request to {action_text} Two-Factor Authentication (2FA) on your TraidiumX account. "
+        "Enter this security code to authorize this action:\n\n"
+        f"{safe_code}\n\n"
+        f"This code expires in {expiry_text} and can be used only once.\n"
+        "If you did not request this, you can safely ignore this email.\n\n"
+        "TraidiumX Security Team\n"
+        "This is an automated account-security email. No promotions are included."
+    )
+
+    html_body = f"""
+    <!doctype html>
+    <html>
+      <body style="margin:0;background:#020617;color:#e5e7eb;font-family:Arial,sans-serif;">
+        <div style="max-width:620px;margin:0 auto;padding:32px 18px;">
+          <div style="border:1px solid rgba(34,211,238,.25);border-radius:22px;background:#0f172a;padding:28px;">
+            <p style="margin:0 0 10px;color:#22d3ee;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">TraidiumX Security</p>
+            <h1 style="margin:0 0 14px;color:#ffffff;font-size:26px;line-height:1.25;">2FA Configuration Change</h1>
+            <p style="margin:0 0 20px;color:#cbd5e1;font-size:15px;line-height:1.7;">We received a request to {action_text} Two-Factor Authentication (2FA) on your TraidiumX account. Enter this code to authorize this action.</p>
+            <div style="margin:0 0 22px;border-radius:18px;background:#020617;border:1px solid rgba(34,211,238,.18);padding:18px 22px;text-align:center;">
+              <p style="margin:0;color:#67e8f9;font-size:34px;line-height:1.2;font-weight:900;letter-spacing:.22em;">{safe_code}</p>
+            </div>
+            <p style="margin:0 0 12px;color:#94a3b8;font-size:13px;line-height:1.7;">This code expires in {expiry_text} and can be used only once.</p>
+            <p style="margin:0 0 12px;color:#94a3b8;font-size:13px;line-height:1.7;">If you did not request this change, you can safely ignore this email.</p>
+            <p style="margin:0;color:#64748b;font-size:12px;line-height:1.6;">This is an automated account-security email from TraidiumX. No promotions are included.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+
+    message.set_content(text_body)
+    message.add_alternative(html_body, subtype="html")
+    
+    if is_email_delivery_configured():
+        import threading
+        threading.Thread(target=_send_email_message, args=(message,)).start()
+        result = {"sent": True, "reason": f"Two-Factor {action_text} code email sent."}
+    else:
+        result = {"sent": False, "reason": "SMTP email delivery is not configured."}
+
+    return result
+
+
 
 def send_admin_registration_code_email(to_email, code, expires_seconds=None, expires_minutes=None):
     """Send an admin registration verification code email."""

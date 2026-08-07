@@ -944,7 +944,7 @@ def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, des
         return wallet
 
     currency = str(currency or "USDT").strip().upper()
-    bucket_prefix = "main_wallet_inr" if currency == "INR" else "main_wallet_usdt"
+    bucket_prefix = f"main_wallet_{currency.lower()}"
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
@@ -996,7 +996,7 @@ def lock_main_wallet_amount(user_id, amount, transaction_type, reference_id=None
     if amount <= 0:
         return {"success": False, "message": "Amount must be greater than 0.", "wallet": wallet}
 
-    bucket_prefix = "main_wallet_inr" if currency == "INR" else "main_wallet_usdt"
+    bucket_prefix = f"main_wallet_{currency.lower()}"
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
@@ -1055,7 +1055,7 @@ def complete_main_locked_withdrawal(user_id, amount, reference_id=None, descript
     if amount <= 0:
         return {"success": False, "message": "Amount must be greater than 0.", "wallet": wallet}
 
-    bucket_prefix = "main_wallet_inr" if currency == "INR" else "main_wallet_usdt"
+    bucket_prefix = f"main_wallet_{currency.lower()}"
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
@@ -1125,7 +1125,7 @@ def release_main_locked_amount(user_id, amount, transaction_type, reference_id=N
     if amount <= 0:
         return {"success": False, "message": "Amount must be greater than 0.", "wallet": wallet}
 
-    bucket_prefix = "main_wallet_inr" if currency == "INR" else "main_wallet_usdt"
+    bucket_prefix = f"main_wallet_{currency.lower()}"
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
@@ -1496,5 +1496,181 @@ def settle_position_margin(user_id, margin_amount, realized_pnl, reference_id=No
         "settlement_amount": settlement_amount,
         "realized_pnl": realized_pnl,
         "wallet": normalized_wallet,
+    }
+
+
+def exchange_user_assets(user_id, from_asset, to_asset, amount, execute=False):
+    from_asset = str(from_asset or "").strip().upper()
+    to_asset = str(to_asset or "").strip().upper()
+    
+    if from_asset == to_asset:
+        return {"success": False, "message": "Cannot exchange same currency.", "status_code": 400}
+        
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            return {"success": False, "message": "Amount must be greater than zero.", "status_code": 400}
+    except (ValueError, TypeError):
+        return {"success": False, "message": "Invalid amount.", "status_code": 400}
+
+    # Fetch wallet
+    wallet = ensure_user_wallet(user_id)
+    if not wallet:
+        return {"success": False, "message": "Wallet not found.", "status_code": 404}
+
+    # Verify 'from_asset' has enough balance
+    from_key = f"main_wallet_{from_asset.lower()}"
+    from_bucket = wallet.get(from_key)
+    if not from_bucket:
+        return {"success": False, "message": f"Asset bucket for {from_asset} not initialized.", "status_code": 400}
+
+    available_balance = float(from_bucket.get("available_balance", 0.0))
+    if available_balance < amount:
+        return {"success": False, "message": f"Insufficient {from_asset} balance. Available: {available_balance:g} {from_asset}.", "status_code": 400}
+
+    # Fetch rates
+    from services.system_settings_service import get_usdt_inr_rate
+    usdt_inr_rate = float(get_usdt_inr_rate() or 88.50)
+    
+    from services.market_service import get_symbol_execution_price
+
+    def get_crypto_price_in_usdt(asset):
+        if asset == "USDT":
+            return 1.0
+        if asset == "INR":
+            return 1.0 / usdt_inr_rate
+        
+        # Check for admin manual rate override
+        try:
+            from admin.settings_routes import get_final_settings
+            sys_settings = get_final_settings()
+            override_val = sys_settings.get(f"rate_override_{asset.lower()}")
+            if override_val is not None and float(override_val) > 0.0:
+                return float(override_val)
+        except Exception:
+            pass
+
+        # For other cryptos, get execution price of symbol asset + USDT
+        res = get_symbol_execution_price(f"{asset}USDT")
+        if res.get("success"):
+            return float(res.get("price", 0.0))
+        # Fallback to get_symbol_ticker if get_symbol_execution_price fails
+        from services.market_service import get_symbol_ticker
+        res_ticker = get_symbol_ticker(f"{asset}USDT")
+        if res_ticker.get("success"):
+            return float((res_ticker.get("data") or {}).get("last_price", 0.0))
+        return 0.0
+
+    price_from_usdt = get_crypto_price_in_usdt(from_asset)
+    price_to_usdt = get_crypto_price_in_usdt(to_asset)
+
+    if price_from_usdt <= 0 or price_to_usdt <= 0:
+        return {"success": False, "message": "Could not fetch exchange rate. Please try again later.", "status_code": 500}
+
+    rate = price_from_usdt / price_to_usdt
+    receive_amount = round(amount * rate, 8)
+
+    if not execute:
+        return {
+            "success": True,
+            "data": {
+                "from_asset": from_asset,
+                "to_asset": to_asset,
+                "amount": amount,
+                "rate": rate,
+                "receive_amount": receive_amount,
+            },
+            "status_code": 200,
+        }
+
+    # Execute conversion using atomic db update
+    from config.database import get_database
+    db = get_database()
+    to_key = f"main_wallet_{to_asset.lower()}"
+    to_bucket = wallet.get(to_key)
+    if not to_bucket:
+        # Normalize first to ensure all sub-buckets are created
+        wallet = normalize_wallet_currency(wallet)
+        to_bucket = wallet.get(to_key)
+        if not to_bucket:
+            return {"success": False, "message": f"Asset bucket for {to_asset} not initialized.", "status_code": 400}
+
+    # Atomic debit from from_asset and credit to to_asset
+    from pymongo import ReturnDocument
+    
+    # We must construct a find filter ensuring from_asset has >= amount
+    filter_query = {
+        "_id": wallet["_id"],
+        f"{from_key}.available_balance": {"$gte": amount}
+    }
+    
+    update_query = {
+        "$inc": {
+            f"{from_key}.available_balance": -amount,
+            f"{from_key}.total_balance": -amount,
+            f"{to_key}.available_balance": receive_amount,
+            f"{to_key}.total_balance": receive_amount,
+        },
+        "$set": {
+            "updated_at": now_utc()
+        }
+    }
+
+    updated_wallet = db.wallets.find_one_and_update(
+        filter_query,
+        update_query,
+        return_document=ReturnDocument.AFTER
+    )
+
+    if not updated_wallet:
+        return {"success": False, "message": "Transaction failed. Insufficient funds or wallet update collision.", "status_code": 400}
+
+    # Create double-entry ledger logs
+    from services.wallet_service import create_ledger_entry
+    
+    # Debit entry
+    create_ledger_entry(
+        user_id=user_id,
+        wallet_id=wallet["_id"],
+        transaction_type="exchange_debit",
+        direction="debit",
+        amount=amount,
+        balance_before=available_balance,
+        balance_after=round(available_balance - amount, 8),
+        reference_id=None,
+        description=f"Exchanged {amount:g} {from_asset} to {to_asset} at rate {rate:g}",
+        currency=from_asset,
+    )
+
+    # Credit entry
+    to_avail_before = float(to_bucket.get("available_balance", 0.0))
+    create_ledger_entry(
+        user_id=user_id,
+        wallet_id=wallet["_id"],
+        transaction_type="exchange_credit",
+        direction="credit",
+        amount=receive_amount,
+        balance_before=to_avail_before,
+        balance_after=round(to_avail_before + receive_amount, 8),
+        reference_id=None,
+        description=f"Received {receive_amount:g} {to_asset} from exchanging {from_asset} at rate {rate:g}",
+        currency=to_asset,
+    )
+
+    # Re-normalize to sync mirrors
+    normalize_wallet_currency(updated_wallet)
+
+    return {
+        "success": True,
+        "message": f"Successfully exchanged {amount:g} {from_asset} to {receive_amount:g} {to_asset}.",
+        "data": {
+            "from_asset": from_asset,
+            "to_asset": to_asset,
+            "amount": amount,
+            "rate": rate,
+            "receive_amount": receive_amount,
+            "wallet": format_wallet(find_wallet_by_user_id(user_id)),
+        },
+        "status_code": 200,
     }
 

@@ -115,9 +115,6 @@
                         <div class="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-300">Admin Panel</div>
                     </div>
                 </div>
-                <div class="mx-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs font-bold text-emerald-100">
-                    API Connected<br><span class="text-slate-400">backend/admin + MongoDB Atlas</span>
-                </div>
                 <nav class="admin-nav">${groupsHtml}</nav>
                 <div class="border-t border-white/10 p-4">
                     <button id="adminLogoutBtn" class="admin-btn admin-btn-ghost w-full justify-start">↩ Logout</button>

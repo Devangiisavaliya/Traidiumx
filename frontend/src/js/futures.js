@@ -8875,8 +8875,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         if (newTrades.length) {
             window.txPlayFuturesCloseSound();
-            const reason = String(newTrades[0].close_reason || "system_close").replace(/_/g, " ");
-            showOrderMessage(`${newTrades.length} position(s) closed by ${reason}.`, "success");
             txRenderCurrentTableInstantly();
         }
         return result;

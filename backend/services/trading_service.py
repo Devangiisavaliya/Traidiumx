@@ -608,6 +608,17 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
                 reference_id=order_id,
                 description=f"Entry trading fee for futures {str(order.get('side') or '').upper()} order {order.get('order_reference')}",
             )
+            # Distribute referral commission if applicable
+            try:
+                from services.referral_service import distribute_referral_commission
+                distribute_referral_commission(
+                    referred_user_id=str(user_id),
+                    fee_amount=platform_fee,
+                    reference_id=order_id,
+                    description=f"Futures order entry fee"
+                )
+            except Exception as ref_err:
+                print(f"Error distributing referral commission for futures order {order_id}: {ref_err}")
         except Exception as error:
             print(f"Warning: admin entry-fee credit failed for order {order_id}: {error}")
 
@@ -1012,6 +1023,17 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
                 reference_id=position_id,
                 description=f"Exit trading fee for futures {position.get('symbol')} position {position_id}",
             )
+            # Distribute referral commission if applicable
+            try:
+                from services.referral_service import distribute_referral_commission
+                distribute_referral_commission(
+                    referred_user_id=str(user_id),
+                    fee_amount=exit_trading_fee,
+                    reference_id=position_id,
+                    description=f"Futures position close fee"
+                )
+            except Exception as ref_err:
+                print(f"Error distributing referral commission for futures exit position {position_id}: {ref_err}")
         except Exception as error:
             # User settlement must not be rolled back after it has succeeded.
             print(f"Warning: admin exit-fee credit failed for {position_id}: {error}")

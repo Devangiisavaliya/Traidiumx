@@ -371,9 +371,162 @@
             .tx-wallet-intro-bars span {
                 animation: none !important;
             }
-        }
     </style>
 
+    <style>
+        /* Premium Font & Layout Scaling to optimize Wallet readability on high-res screens */
+        #mainTabOverview, #mainTabTradingAccounts, #mainTabWallet {
+            font-size: 0.95rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        #portfolioTotalBalance {
+            font-size: 3.5rem !important; /* Scale up balance displaying */
+        }
+
+        #quickDepositBtn, #quickWithdrawBtn, #quickTransferBtn, #quickExchangeBtn {
+            font-size: 0.825rem !important;
+            padding: 0.85rem 1.65rem !important;
+            border-radius: 1rem !important;
+        }
+
+        #assetSearchInput {
+            font-size: 0.825rem !important;
+            padding: 0.8rem 1.2rem !important;
+            border-radius: 1rem !important;
+        }
+
+        /* Checkbox text scaling */
+        #hideEmptyBalancesCheck + span {
+            font-size: 0.825rem !important;
+        }
+
+        /* Sections Headers */
+        h3.text-slate-400, h3.text-xl.font-black.text-white {
+            font-size: 1.15rem !important;
+        }
+
+        #moneySubVal, #cryptoSubVal {
+            font-size: 0.85rem !important;
+        }
+
+        /* Tables & Typography Enhancements */
+        table.w-full {
+            font-size: 0.875rem !important; /* text-sm equivalent */
+        }
+
+        table thead tr th {
+            font-size: 0.75rem !important;
+            letter-spacing: 0.1em !important;
+            font-weight: 800 !important;
+            color: #64748b !important;
+            padding-top: 0.85rem !important;
+            padding-bottom: 0.85rem !important;
+        }
+
+        table tbody tr td {
+            padding-top: 1.15rem !important;
+            padding-bottom: 1.15rem !important;
+        }
+
+        /* Action buttons inside rows */
+        table tbody tr td .flex.justify-end {
+            font-size: 0.85rem !important;
+            gap: 1.1rem !important;
+        }
+
+        table tbody tr td .flex.justify-end button {
+            font-size: 0.85rem !important;
+            cursor: pointer;
+        }
+
+        /* Styling Inputs for Withdraw Forms */
+        .tx-form-label {
+            font-size: 0.8rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.05em !important;
+        }
+
+        .tx-form-input {
+            font-size: 0.875rem !important;
+            padding: 0.75rem 1.15rem !important;
+            border-radius: 1rem !important;
+        }
+
+        /* Related Questions Accordion Styling */
+        #txFaqAccordion {
+            font-size: 0.85rem !important; /* Scale up from text-xs */
+        }
+        
+        #txFaqAccordion button {
+            font-size: 0.85rem !important;
+            font-weight: 800 !important;
+        }
+
+        #txFaqAccordion div[id^="faqAns_"] {
+            font-size: 0.825rem !important; /* Scale up description answers */
+            color: #94a3b8 !important; /* Make it more legible */
+        }
+
+        /* Trade with Confidence styling */
+        .grid.gap-4.text-xs {
+            font-size: 0.85rem !important;
+        }
+
+        .grid.gap-4.text-xs div.font-bold {
+            font-size: 0.875rem !important; /* text-sm equivalent */
+            font-weight: 800 !important;
+        }
+
+        .grid.gap-4.text-xs p.text-\[10px\] {
+            font-size: 0.825rem !important; /* Scale up details from 10px */
+            color: #94a3b8 !important;
+        }
+
+        /* Trading Accounts List & Sidebar Sizing Overrides */
+        #tradingAccountsList .font-bold.text-sm.text-white {
+            font-size: 0.95rem !important;
+        }
+        
+        #tradingAccountsList span[class*="text-[9px]"],
+        #tradingAccountsList span[class*="text-[10px]"],
+        #tradingAccountsList div[class*="text-[10px]"],
+        #tradingAccountsList span[class*="tracking-wider"] {
+            font-size: 0.78rem !important;
+            letter-spacing: 0.05em !important;
+        }
+        
+        #tradingAccountsList strong.text-sm {
+            font-size: 0.95rem !important;
+        }
+        
+        #tradingAccountsList > div {
+            padding: 1.15rem 1.25rem !important;
+        }
+
+        #contentTradingAccounts h4 {
+            font-size: 1rem !important;
+            font-weight: 800 !important;
+        }
+        
+        #contentTradingAccounts p.text-xs,
+        #contentTradingAccounts span.text-xs {
+            font-size: 0.85rem !important; /* Scale from text-xs */
+        }
+        
+        #contentTradingAccounts p.text-\[11px\] {
+            font-size: 0.78rem !important; /* Scale from text-[11px] */
+            color: #94a3b8 !important;
+        }
+        
+        #contentTradingAccounts span.text-sm {
+            font-size: 0.95rem !important;
+        }
+        
+        #contentTradingAccounts .rounded-3xl {
+            padding: 1.5rem !important; /* More breathing room */
+        }
+    </style>
 </head>
 
 <body class="tx-wallet-intro-active bg-[#020617] text-white" data-page="wallet">
@@ -445,7 +598,7 @@
 
                 <!-- Quick Action Buttons -->
                 <div class="flex flex-wrap gap-3 mb-8">
-                    <button id="quickDepositBtn" class="rounded-2xl bg-blue-600 hover:bg-blue-500 transition px-6 py-3 text-xs font-black text-white shadow-lg shadow-blue-600/20">Deposit</button>
+                    <button id="quickDepositBtn" class="rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 transition px-6 py-3 text-xs font-black shadow-lg shadow-cyan-400/20">Deposit</button>
                     <button id="quickWithdrawBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Withdraw</button>
                     <button id="quickTransferBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Transfer</button>
                     <button id="quickExchangeBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Exchange</button>
@@ -529,7 +682,7 @@
                             <!-- Populated dynamically via JS -->
                         </div>
                         
-                        <button id="tradingAccountTransferBtn" class="w-full rounded-2xl bg-[#6366f1] py-3.5 text-sm font-black text-white transition hover:bg-[#4f46e5] shadow-lg shadow-indigo-500/20">
+                        <button id="tradingAccountTransferBtn" class="w-full rounded-2xl bg-cyan-400 hover:bg-cyan-300 py-3.5 text-sm font-black text-slate-950 transition shadow-lg shadow-cyan-400/20 cursor-pointer">
                             Transfer funds
                         </button>
                     </div>
@@ -580,91 +733,95 @@
                                     <h3 class="text-xl font-black text-white">Withdraw funds</h3>
                                     <p class="text-xs text-slate-400 mt-1">Submit withdrawal request payout after Admin approval.</p>
                                 </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider">Available Balance</span>
+                                    <p id="mainWithdrawalPageBalance" class="text-lg font-black text-emerald-400">--</p>
+                                </div>
                             </div>
                             
                             <!-- Payout Mode Selector Tab Bar -->
-                            <div id="txWithdrawCurrencyToggleBar" class="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
-                                <button id="txSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-[#22c55e] text-slate-950 shadow-lg shadow-emerald-500/20">
+                            <div id="mainWithdrawCurrencyToggleBar" class="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                                <button id="mainSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-[#22c55e] text-slate-950 shadow-lg shadow-emerald-500/20">
                                     $ USD / Crypto
                                 </button>
-                                <button id="txSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                                <button id="mainSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                                     ₹ INR
                                 </button>
                             </div>
 
-                            <p id="txWithdrawSubtitle" class="mb-5 text-xs font-semibold leading-relaxed text-slate-400">
-                                Submit your external crypto wallet address for USDT payout after Admin approval.
-                            </p>
+                             <p id="mainWithdrawSubtitle" class="mb-5 text-xs font-semibold leading-relaxed text-slate-400">
+                                 Submit your external crypto wallet address for USDT payout after Admin approval.
+                             </p>
 
-                            <form id="withdrawalForm" class="grid gap-4">
-                                <input id="withdrawMethodInput" name="withdrawal_method" type="hidden" value="crypto_withdrawal" />
-                                <input id="withdrawAsset" name="crypto_asset" type="hidden" value="USDT" />
+                             <form id="mainWithdrawalForm" class="grid gap-4">
+                                 <input id="mainWithdrawMethodInput" name="withdrawal_method" type="hidden" value="crypto_withdrawal" />
+                                 <input id="mainWithdrawAsset" name="crypto_asset" type="hidden" value="USDT" />
 
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <div id="txWithdrawAmountBox">
-                                        <label for="withdrawAmount" id="withdrawAmountLabel" class="tx-form-label">Amount (USD)</label>
-                                        <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
-                                    </div>
-                                    <div id="txWithdrawNetworkBox">
-                                        <label for="withdrawNetwork" class="tx-form-label">Network</label>
-                                        <select id="withdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
-                                            <option value="TRC20">TRON (TRC20)</option>
-                                            <option value="BEP20">BNB Smart Chain (BEP20)</option>
-                                            <option value="ERC20">Ethereum (ERC20)</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                 <div class="grid gap-4 sm:grid-cols-2">
+                                     <div id="mainWithdrawAmountBox">
+                                         <label for="mainWithdrawAmount" id="mainWithdrawAmountLabel" class="tx-form-label">Amount (USD)</label>
+                                         <input id="mainWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                                     </div>
+                                     <div id="mainWithdrawNetworkBox">
+                                         <label for="mainWithdrawNetwork" class="tx-form-label">Network</label>
+                                         <select id="mainWithdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
+                                             <option value="TRC20">TRON (TRC20)</option>
+                                             <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                                             <option value="ERC20">Ethereum (ERC20)</option>
+                                         </select>
+                                     </div>
+                                 </div>
 
-                                <div id="withdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
-                                    Enter withdrawal amount to see live conversion
-                                </div>
+                                 <div id="mainWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                                     Enter withdrawal amount to see live conversion
+                                 </div>
 
-                                <!-- Crypto Payout (USD) -->
-                                <div id="txWithdrawCryptoAddressBox">
-                                    <label for="withdrawalAddress" id="withdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
-                                    <input id="withdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
-                                </div>
+                                 <!-- Crypto Payout (USD) -->
+                                 <div id="mainWithdrawCryptoAddressBox">
+                                     <label for="mainWithdrawalAddress" id="mainWithdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
+                                     <input id="mainWithdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
+                                 </div>
 
-                                <!-- INR Payout (Bank details & UPI) -->
-                                <div id="txWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
-                                    <div>
-                                        <label for="withdrawHolderName" class="tx-form-label">Account Holder Name</label>
-                                        <input id="withdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
-                                    </div>
-                                    <div>
-                                        <label for="withdrawBankName" class="tx-form-label">Bank Name</label>
-                                        <input id="withdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
-                                    </div>
-                                    <div>
-                                        <label for="withdrawAccountNumber" class="tx-form-label">Account Number</label>
-                                        <input id="withdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
-                                    </div>
-                                    <div>
-                                        <label for="withdrawIfscCode" class="tx-form-label">IFSC Code</label>
-                                        <input id="withdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label for="withdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
-                                        <input id="withdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
-                                    </div>
-                                </div>
+                                 <!-- INR Payout (Bank details & UPI) -->
+                                 <div id="mainWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
+                                     <div>
+                                         <label for="mainWithdrawHolderName" class="tx-form-label">Account Holder Name</label>
+                                         <input id="mainWithdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                     </div>
+                                     <div>
+                                         <label for="mainWithdrawBankName" class="tx-form-label">Bank Name</label>
+                                         <input id="mainWithdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                     </div>
+                                     <div>
+                                         <label for="mainWithdrawAccountNumber" class="tx-form-label">Account Number</label>
+                                         <input id="mainWithdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                     </div>
+                                     <div>
+                                         <label for="mainWithdrawIfscCode" class="tx-form-label">IFSC Code</label>
+                                         <input id="mainWithdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+                                     </div>
+                                     <div class="sm:col-span-2">
+                                         <label for="mainWithdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
+                                         <input id="mainWithdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                     </div>
+                                 </div>
 
-                                <div id="txWithdrawTagBox">
-                                    <label for="destinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
-                                    <input id="destinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
-                                </div>
+                                 <div id="mainWithdrawTagBox">
+                                     <label for="mainDestinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                                     <input id="mainDestinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
+                                 </div>
 
-                                <div id="withdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-[#0b213b] p-4 text-xs leading-6 text-cyan-100 border">
-                                    <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
-                                    <div class="grid gap-2 sm:grid-cols-2">
-                                        <p>Withdraw amount: <b id="withdrawPreviewAmount">--</b></p>
-                                        <p>You will receive: <b id="withdrawPreviewReceive">--</b></p>
-                                        <p>Company fee: <b id="withdrawPreviewCompanyFee">--</b></p>
-                                        <p class="hidden">Network fee: <b id="withdrawPreviewNetworkFee">--</b></p>
-                                        <p class="hidden">Total fees: <b id="withdrawPreviewTotalFee">--</b></p>
-                                        <p>Total wallet debit: <b id="withdrawPreviewTotalDebit">--</b></p>
+                                 <div id="mainWithdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-[#0b213b] p-4 text-xs leading-6 text-cyan-100 border">
+                                     <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
+                                     <div class="grid gap-2 sm:grid-cols-2">
+                                         <p>Withdraw amount: <b id="mainWithdrawPreviewAmount">--</b></p>
+                                        <p>You will receive: <b id="mainWithdrawPreviewReceive">--</b></p>
+                                        <p>Company fee: <b id="mainWithdrawPreviewCompanyFee">--</b></p>
+                                        <p class="hidden">Network fee: <b id="mainWithdrawPreviewNetworkFee">--</b></p>
+                                        <p class="hidden">Total fees: <b id="mainWithdrawPreviewTotalFee">--</b></p>
+                                        <p>Total wallet debit: <b id="mainWithdrawPreviewTotalDebit">--</b></p>
                                     </div>
-                                    <p id="withdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                                    <p id="mainWithdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
                                 </div>
 
                                 <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
@@ -679,25 +836,10 @@
                             <div class="rounded-3xl border border-white/10 bg-[#07111f]/60 p-6 backdrop-blur-xl">
                                 <h4 class="text-sm font-black text-white flex items-center justify-between">
                                     <span>Related questions</span>
-                                    <span class="text-xs text-blue-400 font-bold cursor-pointer">Support 24/7 ›</span>
+                                    <span class="text-xs text-cyan-400 font-bold cursor-pointer">Support 24/7 ›</span>
                                 </h4>
-                                <div class="mt-4 grid gap-3 text-xs font-semibold text-slate-300">
-                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
-                                        <span>How to withdraw money?</span>
-                                        <span>›</span>
-                                    </div>
-                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
-                                        <span>How long does it take to withdraw money?</span>
-                                        <span>›</span>
-                                    </div>
-                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition border-b border-white/5 pb-2">
-                                        <span>What are money withdrawal limits?</span>
-                                        <span>›</span>
-                                    </div>
-                                    <div class="flex items-center justify-between hover:text-white cursor-pointer transition">
-                                        <span>What are money withdrawal fees?</span>
-                                        <span>›</span>
-                                    </div>
+                                <div id="txFaqAccordion" class="mt-4 grid gap-3 text-xs font-semibold text-slate-300">
+                                    <!-- Dynamic content populated by updateWalletFaqUI() -->
                                 </div>
                             </div>
 
@@ -934,16 +1076,16 @@
             </div>
 
             <div class="px-6 py-5">
-                <div class="mb-5 grid grid-cols-3 gap-3 rounded-2xl border border-white/20 bg-slate-900/70 p-4">
-                    <div>
+                <div id="walletModalStatsGrid" class="mb-5 grid grid-cols-3 gap-3 rounded-2xl border border-white/20 bg-slate-900/70 p-4">
+                    <div id="walletModalTradingCol">
                         <p class="text-xs font-black uppercase text-slate-500">Trading</p>
                         <p id="walletModalTradingBalance" class="mt-1 text-sm font-black text-cyan-300">--</p>
                     </div>
-                    <div>
+                    <div id="walletModalMainCol">
                         <p class="text-xs font-black uppercase text-slate-500">Main</p>
                         <p id="walletModalMainBalance" class="mt-1 text-sm font-black text-emerald-300">--</p>
                     </div>
-                    <div>
+                    <div id="walletModalPnlCol">
                         <p class="text-xs font-black uppercase text-slate-500">P&L</p>
                         <p id="walletModalPnl" class="mt-1 text-sm font-black text-slate-300">--</p>
                     </div>
@@ -978,6 +1120,54 @@
                     </form>
                 </section>
 
+                <section data-wallet-action-panel="exchange" class="hidden">
+                    <form id="walletExchangeForm" class="grid gap-4">
+                        <div id="txExchangeRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
+                            <span>Exchange Rate:</span>
+                            <span id="txExchangeRateText" class="font-black text-cyan-300">Select currencies to view rate</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="walletExchangeFromAsset" class="tx-form-label">From Asset</label>
+                                <select id="walletExchangeFromAsset" name="from_asset" class="tx-form-input">
+                                    <option value="USDT">USDT</option>
+                                    <option value="BTC">BTC</option>
+                                    <option value="ETH" selected>ETH</option>
+                                    <option value="SOL">SOL</option>
+                                    <option value="USDC">USDC</option>
+                                    <option value="BNB">BNB</option>
+                                    <option value="XRP">XRP</option>
+                                    <option value="ADA">ADA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="walletExchangeToAsset" class="tx-form-label">To Asset</label>
+                                <select id="walletExchangeToAsset" name="to_asset" class="tx-form-input">
+                                    <option value="USDT" selected>USDT</option>
+                                    <option value="BTC">BTC</option>
+                                    <option value="ETH">ETH</option>
+                                    <option value="SOL">SOL</option>
+                                    <option value="USDC">USDC</option>
+                                    <option value="BNB">BNB</option>
+                                    <option value="XRP">XRP</option>
+                                    <option value="ADA">ADA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label for="walletExchangeAmount" id="walletExchangeAmountLabel" class="tx-form-label">Amount</label>
+                                <button id="txExchangeMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
+                            </div>
+                            <input id="walletExchangeAmount" name="amount" type="number" min="0.00000001" step="any" placeholder="Exchange amount" class="tx-form-input text-lg font-extrabold text-white" required />
+                        </div>
+                        <div id="exchangeConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
+                            Enter amount to see live conversion
+                        </div>
+                        <button id="walletExchangeSubmitBtn" type="submit" class="tx-submit-btn exchange">Confirm Exchange</button>
+                    </form>
+                </section>
+
                 <section data-wallet-action-panel="deposit" class="hidden">
                     <!-- Top Currency Switcher Tabs (Sleek Pills) -->
                     <div id="txDepositCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
@@ -999,7 +1189,7 @@
 
                         <!-- USD Crypto Mode Fields -->
                         <div id="cryptoDepositBox" class="grid gap-4">
-                            <div>
+                            <div id="cryptoNetworkContainer">
                                 <label for="cryptoNetwork" class="tx-form-label">Network</label>
                                 <select id="cryptoNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
                                     <option value="TRC20">USDT TRC20 (Tron)</option>
@@ -1080,31 +1270,31 @@
                 </section>
 
                 <section data-wallet-action-panel="withdraw" class="hidden">
-                    <div id="txWithdrawCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
-                        <button id="txSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                    <div id="modalWithdrawCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="modalSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             $ USD / USD
                         </button>
-                        <button id="txSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
+                        <button id="modalSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
                         </button>
                     </div>
 
-                    <p id="txWithdrawSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
+                    <p id="modalWithdrawSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
                         Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
                     </p>
 
-                    <form id="withdrawalForm" class="grid gap-4">
-                        <input id="withdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
-                        <input id="withdrawAsset" name="crypto_asset" type="hidden" value="INR" />
+                    <form id="modalWithdrawalForm" class="grid gap-4">
+                        <input id="modalWithdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
+                        <input id="modalWithdrawAsset" name="crypto_asset" type="hidden" value="INR" />
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div id="txWithdrawAmountBox">
-                                <label for="withdrawAmount" id="withdrawAmountLabel" class="tx-form-label">Amount (INR / ₹)</label>
-                                <input id="withdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                                <label for="modalWithdrawAmount" id="modalWithdrawAmountLabel" class="tx-form-label">Amount (INR / ₹)</label>
+                                <input id="modalWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
                             </div>
-                            <div id="txWithdrawNetworkBox">
-                                <label for="withdrawNetwork" class="tx-form-label">Network</label>
-                                <select id="withdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
+                            <div id="modalWithdrawNetworkBox">
+                                <label for="modalWithdrawNetwork" class="tx-form-label">Network</label>
+                                <select id="modalWithdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
                                     <option value="TRC20">TRON (TRC20)</option>
                                     <option value="BEP20">BNB Smart Chain (BEP20)</option>
                                     <option value="ERC20">Ethereum (ERC20)</option>
@@ -1112,55 +1302,55 @@
                             </div>
                         </div>
 
-                        <div id="withdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                        <div id="modalWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
                             Enter withdrawal amount to see live conversion
                         </div>
 
                         <!-- Crypto Payout (USD) -->
                         <div id="txWithdrawCryptoAddressBox">
-                            <label for="withdrawalAddress" id="withdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
-                            <input id="withdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
+                            <label for="modalWithdrawalAddress" id="modalWithdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
+                            <input id="modalWithdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
                         </div>
 
                         <!-- INR Payout (Bank details & UPI) -->
                         <div id="txWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
                             <div>
-                                <label for="withdrawHolderName" class="tx-form-label">Account Holder Name</label>
-                                <input id="withdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <label for="modalWithdrawHolderName" class="tx-form-label">Account Holder Name</label>
+                                <input id="modalWithdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
                             </div>
                             <div>
-                                <label for="withdrawBankName" class="tx-form-label">Bank Name</label>
-                                <input id="withdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <label for="modalWithdrawBankName" class="tx-form-label">Bank Name</label>
+                                <input id="modalWithdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
                             </div>
                             <div>
-                                <label for="withdrawAccountNumber" class="tx-form-label">Account Number</label>
-                                <input id="withdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <label for="modalWithdrawAccountNumber" class="tx-form-label">Account Number</label>
+                                <input id="modalWithdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
                             </div>
                             <div>
-                                <label for="withdrawIfscCode" class="tx-form-label">IFSC Code</label>
-                                <input id="withdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+                                <label for="modalWithdrawIfscCode" class="tx-form-label">IFSC Code</label>
+                                <input id="modalWithdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
                             </div>
                             <div class="sm:col-span-2">
-                                <label for="withdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
-                                <input id="withdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <label for="modalWithdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
+                                <input id="modalWithdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
                             </div>
                         </div>
-                        <div id="txWithdrawTagBox">
-                            <label for="destinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
-                            <input id="destinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
+                        <div id="modalWithdrawTagBox">
+                            <label for="modalDestinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
+                            <input id="modalDestinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
                         </div>
 
-                        <div id="withdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
+                        <div id="modalWithdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
                             <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
                             <div class="grid gap-2 sm:grid-cols-2">
-                                <p>Withdraw amount: <b id="withdrawPreviewAmount">--</b></p>
-                                <p>You will receive: <b id="withdrawPreviewReceive">--</b></p>
-                                <p>Company fee: <b id="withdrawPreviewCompanyFee">--</b></p>
-                                <p class="hidden">Network fee: <b id="withdrawPreviewNetworkFee">--</b></p>
-                                <p class="hidden">Total fees: <b id="withdrawPreviewTotalFee">--</b></p>
-                                <p>Total wallet debit: <b id="withdrawPreviewTotalDebit">--</b></p>
+                                <p>Withdraw amount: <b id="modalWithdrawPreviewAmount">--</b></p>
+                                <p>You will receive: <b id="modalWithdrawPreviewReceive">--</b></p>
+                                <p>Company fee: <b id="modalWithdrawPreviewCompanyFee">--</b></p>
+                                <p class="hidden">Network fee: <b id="modalWithdrawPreviewNetworkFee">--</b></p>
+                                <p class="hidden">Total fees: <b id="modalWithdrawPreviewTotalFee">--</b></p>
+                                <p>Total wallet debit: <b id="modalWithdrawPreviewTotalDebit">--</b></p>
                             </div>
-                            <p id="withdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
+                            <p id="modalWithdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
                         </div>
 
                         <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">

@@ -24,7 +24,7 @@ from models.user_model import (
     update_last_login,
 )
 from models.wallet_model import create_default_wallet
-from services.email_service import send_google_login_alert_email, send_signup_verification_code_email
+from services.email_service import send_google_login_alert_email, send_signup_verification_code_email, send_login_2fa_code_email
 from services.google_oauth_service import verify_google_id_token
 from services.user_status_service import build_account_status_service_result, is_user_active
 from utils.jwt_helper import generate_token
@@ -450,6 +450,127 @@ def login_user(data):
                 "credentials": "Invalid email or password."
             },
             "status_code": 401
+        }
+
+    if user.get("two_factor_enabled", False):
+        verification_code = _generate_email_code()
+        expires_seconds = int(getattr(settings, "REGISTER_EMAIL_CODE_SECONDS", 120) or 120)
+
+        pending = create_email_registration_request(
+            registration_data={
+                "email": user["email"],
+                "password_hash": user.get("password_hash", "")
+            },
+            verification_code=verification_code,
+            expires_seconds=expires_seconds,
+            client_ip=data.get("client_ip", ""),
+            user_agent=data.get("user_agent", "")
+        )
+
+        email_result = send_login_2fa_code_email(
+            to_email=user["email"],
+            code=verification_code,
+            expires_seconds=expires_seconds
+        )
+
+        if not email_result.get("sent") and getattr(settings, "REGISTER_EMAIL_DEV_CODE_ENABLED", True):
+            print(f"\n[DEV MODE] Login 2FA verification code for {user['email']}: {verification_code}\n")
+
+        masked_email = _masked_email(user["email"])
+
+        return {
+            "success": True,
+            "message": "2FA verification code sent to your email.",
+            "data": {
+                "two_factor_required": True,
+                "pending_id": str(pending["_id"]),
+                "email": user["email"],
+                "masked_email": masked_email,
+                "expires_seconds": expires_seconds
+            },
+            "status_code": 200
+        }
+
+    update_last_login(str(user["_id"]))
+    user = find_user_by_id(user["_id"])
+
+    return {
+        "success": True,
+        "message": "Login successful.",
+        "data": _create_login_payload(user),
+        "status_code": 200
+    }
+
+
+def verify_login_2fa(data):
+    from models.email_verification_model import (
+        find_pending_email_registration_request,
+        mark_email_registration_request_verified,
+        hash_verification_code,
+        increment_email_verification_attempts
+    )
+
+    email = clean_string(data.get("email")).lower()
+    code = clean_string(data.get("code"))
+    pending_id = clean_string(data.get("pending_id"))
+
+    errors = {}
+    if not email:
+        errors["email"] = "Email is required."
+    if not code:
+        errors["code"] = "Code is required."
+    if not pending_id:
+        errors["pending_id"] = "Pending ID is required."
+
+    if errors:
+        return {
+            "success": False,
+            "message": "Validation failed.",
+            "errors": errors,
+            "status_code": 422
+        }
+
+    pending = find_pending_email_registration_request(pending_id=pending_id, email=email)
+    if not pending:
+        return {
+            "success": False,
+            "message": "Verification code has expired or is invalid.",
+            "errors": {
+                "code": "Verification code has expired or is invalid."
+            },
+            "status_code": 400
+        }
+
+    if pending.get("attempts", 0) >= pending.get("max_attempts", 5):
+        return {
+            "success": False,
+            "message": "Too many failed verification attempts. Please request a new code.",
+            "errors": {
+                "code": "Too many failed verification attempts. Please request a new code."
+            },
+            "status_code": 400
+        }
+
+    provided_hash = hash_verification_code(email, code)
+    if pending.get("code_hash") != provided_hash:
+        increment_email_verification_attempts(pending["_id"])
+        return {
+            "success": False,
+            "message": "Incorrect verification code.",
+            "errors": {
+                "code": "Incorrect verification code."
+            },
+            "status_code": 400
+        }
+
+    mark_email_registration_request_verified(pending["_id"])
+
+    user = find_user_by_email(email)
+    if not user:
+        return {
+            "success": False,
+            "message": "User account not found.",
+            "status_code": 404
         }
 
     update_last_login(str(user["_id"]))

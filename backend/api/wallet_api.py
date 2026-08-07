@@ -639,3 +639,40 @@ def transfer_sub():
             "reference_id": reference_id
         }
     )
+
+
+@wallet_api.post("/exchange")
+@auth_required
+def exchange_assets():
+    try:
+        data = request.get_json(silent=True) or {}
+        from_asset = data.get("from_asset")
+        to_asset = data.get("to_asset")
+        amount = data.get("amount")
+        execute = data.get("execute", False)
+
+        from services.wallet_service import exchange_user_assets
+        result = exchange_user_assets(
+            user_id=g.current_user_id,
+            from_asset=from_asset,
+            to_asset=to_asset,
+            amount=amount,
+            execute=execute,
+        )
+
+        if result.get("success"):
+            return success_response(
+                message=result.get("message", "Success"),
+                data=result.get("data", {}),
+                status_code=result.get("status_code", 200),
+            )
+        
+        return error_response(
+            message=result.get("message", "Exchange failed."),
+            errors=result.get("errors", {}),
+            status_code=result.get("status_code", 400),
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return error_response(message=f"Exchange processing error: {str(e)}", status_code=500)

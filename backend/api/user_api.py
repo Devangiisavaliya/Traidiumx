@@ -4,7 +4,7 @@ from models.user_model import find_user_by_id
 from utils.jwt_helper import verify_token
 from utils.security import get_bearer_token
 from middleware.auth_middleware import auth_required, auth_required_allow_restricted
-from services.user_service import change_user_password, get_user_profile, update_user_profile
+from services.user_service import change_user_password, get_user_profile, update_user_profile, request_two_factor_toggle, verify_two_factor_toggle
 from services.user_status_service import build_user_account_status_payload
 from services.notification_service import get_user_notifications, mark_notifications_read
 from utils.response import success_response, error_response
@@ -89,148 +89,40 @@ def update_profile():
     )
 
 
-
-@user_api.patch("/change-password")
-@auth_required_allow_restricted
-def change_password():
-    data = request.get_json(silent=True) or {}
-
-    result = change_user_password(g.current_user, data)
-
-    if result["success"]:
-        return success_response(
-            message=result["message"],
-            data=result["data"],
-            status_code=result["status_code"]
-        )
-
-    return error_response(
-        message=result["message"],
-        errors=result["errors"],
-        status_code=result["status_code"]
-    )
-
-
-@user_api.get("/notifications")
-@auth_required_allow_restricted
-def notifications():
-    limit = request.args.get("limit", 20)
-    unread_only = str(request.args.get("unread_only") or request.args.get("unreadOnly") or "false").strip().lower() in {"1", "true", "yes", "on"}
-    notifications_list = get_user_notifications(
-        user_id=str(g.current_user.get("_id")),
-        limit=limit,
-        unread_only=unread_only,
-    )
-
-    return success_response(
-        message="Notifications loaded successfully.",
-        data={"notifications": notifications_list},
-    )
-
-
-@user_api.patch("/notifications/read")
-@auth_required_allow_restricted
-def mark_notifications_as_read():
-    data = request.get_json(silent=True) or {}
-    ids = data.get("notification_ids") or data.get("ids") or []
-    if not isinstance(ids, list):
-        ids = []
-
-    result = mark_notifications_read(
-        user_id=str(g.current_user.get("_id")),
-        notification_ids=ids,
-    )
-
-from flask import Blueprint, g, request
-
-from models.user_model import find_user_by_id
-from utils.jwt_helper import verify_token
-from utils.security import get_bearer_token
-from middleware.auth_middleware import auth_required, auth_required_allow_restricted
-from services.user_service import change_user_password, get_user_profile, update_user_profile
-from services.user_status_service import build_user_account_status_payload
-from services.notification_service import get_user_notifications, mark_notifications_read
-from utils.response import success_response, error_response
-
-
-user_api = Blueprint("user_api", __name__, url_prefix="/api/user")
-
-
-def _current_user_from_token_without_status_block():
-    token = get_bearer_token(request)
-    if not token:
-        return None, error_response(
-            message="Unauthorized access.",
-            errors={"token": "Bearer token is required."},
-            status_code=401,
-        )
-
-    token_result = verify_token(token)
-    if not token_result["valid"]:
-        return None, error_response(
-            message="Invalid or expired token.",
-            errors={"token": token_result["message"]},
-            status_code=401,
-        )
-
-    user_id = token_result["data"].get("user_id")
-    user = find_user_by_id(user_id)
-    if not user:
-        return None, error_response(
-            message="User not found.",
-            errors={"user": "User account does not exist."},
-            status_code=404,
-        )
-
-    return user, None
-
-
-@user_api.get("/profile")
-@auth_required_allow_restricted
-def profile():
-    result = get_user_profile(g.current_user)
-
-    return success_response(
-        message=result["message"],
-        data=result["data"],
-        status_code=result["status_code"]
-    )
-
-
-@user_api.get("/account-status")
-def account_status():
-    # This endpoint intentionally allows blocked/suspended users to read the reason,
-    # grace timer, and suspend-until timer so the frontend can show a helpful banner.
-    user, response = _current_user_from_token_without_status_block()
-    if response:
-        return response
-
-    return success_response(
-        message="Account status loaded successfully.",
-        data=build_user_account_status_payload(user),
-    )
-
-
-@user_api.patch("/profile")
+@user_api.post("/two-factor/request")
 @auth_required
-def update_profile():
+def two_factor_request():
     data = request.get_json(silent=True) or {}
-
-    result = update_user_profile(g.current_user, data)
-
+    action = data.get("action")
+    result = request_two_factor_toggle(g.current_user, action)
     if result["success"]:
         return success_response(
             message=result["message"],
-            data=result["data"],
+            data=result.get("data", {}),
             status_code=result["status_code"]
         )
-
     return error_response(
         message=result["message"],
-        errors=result["errors"],
         status_code=result["status_code"]
     )
 
+
+@user_api.post("/two-factor/verify")
+@auth_required
+def two_factor_verify():
+    data = request.get_json(silent=True) or {}
+    result = verify_two_factor_toggle(g.current_user, data)
+    if result["success"]:
+        return success_response(
+            message=result["message"],
+            data=result.get("data", {}),
+            status_code=result["status_code"]
+        )
+    return error_response(
+        message=result["message"],
+        errors=result.get("errors", {}),
+        status_code=result["status_code"]
+    )
 
 
 @user_api.patch("/change-password")
@@ -283,6 +175,7 @@ def mark_notifications_as_read():
         user_id=str(g.current_user.get("_id")),
         notification_ids=ids,
     )
+
 
     return success_response(
         message="Notifications marked as read.",

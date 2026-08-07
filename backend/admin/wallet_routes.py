@@ -651,12 +651,14 @@ def verify_deposit(deposit_id):
             data={"deposit": serialize_document(_enrich_deposits(db, [updated])[0])},
         )
 
+    currency = (deposit.get("currency") or deposit.get("crypto_asset") or "USDT").upper()
     wallet = credit_main_wallet(
         user_id=deposit.get("user_id"),
         amount=amount,
         transaction_type="crypto_deposit_credit",
         reference_id=deposit_id,
-        description=f"Admin verified USDT deposit {deposit.get('deposit_reference')} into Main Wallet.",
+        description=f"Admin verified {currency} deposit {deposit.get('deposit_reference')} into Main Wallet.",
+        currency=currency,
     )
 
     updated = _update_deposit_document(
@@ -665,7 +667,7 @@ def verify_deposit(deposit_id):
         "completed",
         {
             "verification_status": "verified",
-            "verification_message": verification.get("message", "USDT blockchain transfer verified."),
+            "verification_message": verification.get("message", f"{currency} blockchain transfer verified."),
             "confirmations": verification.get("confirmations", deposit.get("confirmations", 0)),
             "required_confirmations": verification.get("required_confirmations", deposit.get("required_confirmations", 0)),
             "verified_amount": verification.get("verified_amount", amount),
@@ -677,7 +679,7 @@ def verify_deposit(deposit_id):
             "approved_at": now_utc(),
             "remark": remark,
             "admin_note": remark,
-            "user_status_message": "Admin verified this deposit. USDT has been credited to your available wallet balance.",
+            "user_status_message": f"Admin verified this deposit. {currency} has been credited to your available wallet balance.",
             "wallet_after_credit": serialize_document(wallet),
         },
     )

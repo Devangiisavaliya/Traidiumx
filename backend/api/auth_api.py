@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 
 from config.settings import settings
-from services.auth_service import register_user, login_user, google_auth_user, start_email_registration, verify_email_registration
+from services.auth_service import register_user, login_user, google_auth_user, start_email_registration, verify_email_registration, verify_login_2fa
 from services.password_reset_service import request_password_reset, reset_password_with_code, verify_password_reset_code
 from utils.response import success_response, error_response
 
@@ -52,7 +52,15 @@ def register_verify():
 @auth_api.post("/login")
 def login():
     data = request.get_json(silent=True) or {}
+    data["client_ip"] = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    data["user_agent"] = request.headers.get("User-Agent", "")
     return _service_response(login_user(data))
+
+
+@auth_api.post("/login/verify")
+def login_verify():
+    data = request.get_json(silent=True) or {}
+    return _service_response(verify_login_2fa(data))
 
 
 @auth_api.get("/google/config")

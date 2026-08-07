@@ -28,8 +28,8 @@ from utils.validators import clean_string, validate_positive_number
 
 
 ALLOWED_PAYMENT_METHODS = ["crypto_deposit"]
-SUPPORTED_CRYPTO_ASSETS = ["USDT"]
-SUPPORTED_CRYPTO_NETWORKS = ["TRC20", "ERC20", "BEP20"]
+SUPPORTED_CRYPTO_ASSETS = ["USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+SUPPORTED_CRYPTO_NETWORKS = ["TRC20", "ERC20", "BEP20", "BITCOIN", "SOLANA", "RIPPLE", "CARDANO"]
 
 NETWORK_DETAILS = {
     "TRC20": {
@@ -41,16 +41,65 @@ NETWORK_DETAILS = {
     },
     "ERC20": {
         "label": "Ethereum (ERC20)",
-        "asset": "USDT",
-        "confirmation_note": "Send only USDT on Ethereum/ERC20 network.",
+        "asset": "ETH",
+        "confirmation_note": "Send ETH, ERC20-USDT, or ERC20-USDC on Ethereum/ERC20 network.",
         "address_setting": "CRYPTO_DEPOSIT_USDT_ERC20_ADDRESS",
         "required_confirmations_setting": "CRYPTO_ERC20_REQUIRED_CONFIRMATIONS",
     },
     "BEP20": {
         "label": "BNB Smart Chain (BEP20)",
-        "asset": "USDT",
-        "confirmation_note": "Send only USDT on BNB Smart Chain/BEP20 network.",
+        "asset": "BNB",
+        "confirmation_note": "Send BNB or BEP20-USDT on BNB Smart Chain/BEP20 network.",
         "address_setting": "CRYPTO_DEPOSIT_USDT_BEP20_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_BEP20_REQUIRED_CONFIRMATIONS",
+    },
+    "BITCOIN": {
+        "label": "Bitcoin (BTC)",
+        "asset": "BTC",
+        "confirmation_note": "Send only BTC on Bitcoin mainnet.",
+        "address_setting": "CRYPTO_DEPOSIT_BTC_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_BTC_REQUIRED_CONFIRMATIONS",
+    },
+    "SOLANA": {
+        "label": "Solana (SOL)",
+        "asset": "SOL",
+        "confirmation_note": "Send only SOL on Solana network.",
+        "address_setting": "CRYPTO_DEPOSIT_SOL_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_SOL_REQUIRED_CONFIRMATIONS",
+    },
+    "RIPPLE": {
+        "label": "Ripple (XRP)",
+        "asset": "XRP",
+        "confirmation_note": "Send only XRP on Ripple network.",
+        "address_setting": "CRYPTO_DEPOSIT_XRP_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_XRP_REQUIRED_CONFIRMATIONS",
+    },
+    "CARDANO": {
+        "label": "Cardano (ADA)",
+        "asset": "ADA",
+        "confirmation_note": "Send only ADA on Cardano network.",
+        "address_setting": "CRYPTO_DEPOSIT_ADA_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_ADA_REQUIRED_CONFIRMATIONS",
+    },
+    "ETH": {
+        "label": "Ethereum (ETH)",
+        "asset": "ETH",
+        "confirmation_note": "Send only ETH on Ethereum network.",
+        "address_setting": "CRYPTO_DEPOSIT_ETH_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_ERC20_REQUIRED_CONFIRMATIONS",
+    },
+    "USDC": {
+        "label": "USD Coin (USDC)",
+        "asset": "USDC",
+        "confirmation_note": "Send only USDC on ERC20/BEP20 network.",
+        "address_setting": "CRYPTO_DEPOSIT_USDC_ADDRESS",
+        "required_confirmations_setting": "CRYPTO_ERC20_REQUIRED_CONFIRMATIONS",
+    },
+    "BNB": {
+        "label": "BNB Coin (BNB)",
+        "asset": "BNB",
+        "confirmation_note": "Send only BNB on BEP20 network.",
+        "address_setting": "CRYPTO_DEPOSIT_BNB_ADDRESS",
         "required_confirmations_setting": "CRYPTO_BEP20_REQUIRED_CONFIRMATIONS",
     },
 }
@@ -197,12 +246,12 @@ def _validate_deposit_input(user_id, data):
         min_deposit_amount = get_crypto_deposit_min_usdt()
         max_deposit_amount = get_crypto_deposit_max_usdt()
         if amount < min_deposit_amount:
-            errors["amount"] = f"Minimum crypto deposit amount is {min_deposit_amount:g} USDT."
+            errors["amount"] = f"Minimum crypto deposit amount is {min_deposit_amount:g} {crypto_asset}."
         if amount > max_deposit_amount:
-            errors["amount"] = f"Maximum crypto deposit amount is {max_deposit_amount:g} USDT."
+            errors["amount"] = f"Maximum crypto deposit amount is {max_deposit_amount:g} {crypto_asset}."
 
         if crypto_network not in SUPPORTED_CRYPTO_NETWORKS:
-            errors["crypto_network"] = "Network must be one of: TRC20, ERC20, BEP20."
+            errors["crypto_network"] = f"Network must be one of: {', '.join(SUPPORTED_CRYPTO_NETWORKS)}."
 
     wallet = ensure_user_wallet(user_id)
     main_addresses = ((wallet or {}).get("main_wallet") or {}).get("addresses") or {}
@@ -270,7 +319,7 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
         amount=amount,
         transaction_type="crypto_deposit_credit",
         reference_id=deposit_id,
-        description=f"Verified USDT deposit credited for reference {deposit.get('deposit_reference')}",
+        description=f"Verified {currency} deposit credited for reference {deposit.get('deposit_reference')}",
         currency=currency,
     )
 
@@ -279,19 +328,19 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
         "completed",
         {
             "verification_status": "verified",
-            "verification_message": verification_result.get("message", "USDT blockchain transfer verified."),
+            "verification_message": verification_result.get("message", f"{currency} blockchain transfer verified."),
             "confirmations": verification_result.get("confirmations", 0),
             "required_confirmations": verification_result.get("required_confirmations", get_crypto_network_confirmations(deposit.get("crypto_network"))),
             "verified_amount": verification_result.get("verified_amount", amount),
             "verified_to_address": verification_result.get("verified_to_address", deposit.get("deposit_address", "")),
             "explorer_url": verification_result.get("explorer_url", build_explorer_url(deposit.get("crypto_network"), deposit.get("tx_hash"))),
             "credited_at": now_utc(),
-            "remark": "Blockchain verification completed. USDT wallet credited through ledger.",
+            "remark": f"Blockchain verification completed. {currency} wallet credited through ledger.",
             "wallet_after_credit": {
-                "available_balance": (wallet.get("main_wallet") or {}).get("available_balance", wallet.get("available_balance", 0.0)),
-                "locked_balance": (wallet.get("main_wallet") or {}).get("locked_balance", 0.0),
-                "total_balance": (wallet.get("main_wallet") or {}).get("total_balance", wallet.get("total_balance", 0.0)),
-                "wallet_type": "main_wallet",
+                "available_balance": (wallet.get(f"main_wallet_{currency.lower()}") or {}).get("available_balance", 0.0),
+                "locked_balance": (wallet.get(f"main_wallet_{currency.lower()}") or {}).get("locked_balance", 0.0),
+                "total_balance": (wallet.get(f"main_wallet_{currency.lower()}") or {}).get("total_balance", 0.0),
+                "wallet_type": f"main_wallet_{currency.lower()}",
             },
         },
     )
@@ -381,7 +430,7 @@ def create_deposit_request(user_id, data):
             "deposit_reference": deposit_reference,
             "gateway_order_id": gateway_order_id,
             "amount": cleaned["amount"],
-            "currency": "USDT",
+            "currency": cleaned["crypto_asset"],
             "status": "pending_blockchain_verification" if not is_demo_deposit else "processing_direct_credit",
             "payment_method": "crypto_deposit",
             "gateway": "company_address_confirmation_demo" if cleaned.get("address_confirmed_demo") else ("development_direct_credit" if is_demo_deposit else "blockchain_auto_verification"),
@@ -395,13 +444,13 @@ def create_deposit_request(user_id, data):
             "is_demo": is_demo_deposit,
             "explorer_url": explorer_url,
             "verification_status": "direct_credit_pending" if is_demo_deposit else "not_checked",
-            "verification_message": "Company deposit address matched. Demo Main Wallet credit is being posted directly; admin approval is not required." if cleaned.get("address_confirmed_demo") else ("Deposit received. Main Wallet credit is being posted directly; admin approval is not required." if is_demo_deposit else "Deposit request created. Blockchain auto-verification pending."),
+            "verification_message": "Company deposit address matched. Demo Main Wallet credit is being posted directly; admin approval is not required." if cleaned.get("address_confirmed_demo") else (f"Deposit received. {cleaned['crypto_asset']} Main Wallet credit is being posted directly; admin approval is not required." if is_demo_deposit else f"Deposit request created. Blockchain auto-verification pending."),
             "confirmations": 0,
             "required_confirmations": 0 if is_demo_deposit else get_crypto_network_confirmations(cleaned["crypto_network"]),
             "verified_amount": 0.0,
             "verified_to_address": "",
-            "remark": "Deposit address confirmation matched the company wallet address. Demo credit posted to Main Wallet. Withdrawals still require admin approval." if cleaned.get("address_confirmed_demo") else ("Deposit will credit Main Wallet directly. Withdrawals still require admin approval." if is_demo_deposit else "Wallet credit pending only until backend blockchain auto-verification completes. No admin approval is required for deposit."),
-            "risk_note": "USDT Crypto deposit.",
+            "remark": "Deposit address confirmation matched the company wallet address. Demo credit posted to Main Wallet. Withdrawals still require admin approval." if cleaned.get("address_confirmed_demo") else (f"Deposit will credit {cleaned['crypto_asset']} Main Wallet directly. Withdrawals still require admin approval." if is_demo_deposit else f"Wallet credit pending only until backend blockchain auto-verification completes. No admin approval is required for deposit."),
+            "risk_note": f"{cleaned['crypto_asset']} Crypto deposit.",
         }
     )
 

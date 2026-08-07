@@ -9,18 +9,39 @@ CRYPTO_DEPOSIT_DEFAULTS = {
     "TRC20": "TQp9K7vY3Wm2N8rF4cL6Xh5A1BzDgE2sRZ",
     "ERC20": "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
     "BEP20": "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF",
+    "BITCOIN": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    "SOLANA": "HN7cAB2133LQV7t3W3x2fGfY1c5f3c5f3c5f3c5f3c5f",
+    "RIPPLE": "rEb8QCgNs9rkec2QCQKsE2wo9T3p45WstX",
+    "CARDANO": "Ae2tdPwUPEYx5g5P7w5UaXfGfM4vXfP5p3d",
+    "ETH": "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
+    "USDC": "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
+    "BNB": "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF",
 }
 
 ADDRESS_SETTING_KEYS = {
     "TRC20": "crypto_deposit_usdt_trc20_address",
     "ERC20": "crypto_deposit_usdt_erc20_address",
     "BEP20": "crypto_deposit_usdt_bep20_address",
+    "BITCOIN": "crypto_deposit_btc_address",
+    "SOLANA": "crypto_deposit_sol_address",
+    "RIPPLE": "crypto_deposit_xrp_address",
+    "CARDANO": "crypto_deposit_ada_address",
+    "ETH": "crypto_deposit_eth_address",
+    "USDC": "crypto_deposit_usdc_address",
+    "BNB": "crypto_deposit_bnb_address",
 }
 
 ENV_ADDRESS_KEYS = {
     "TRC20": "CRYPTO_DEPOSIT_USDT_TRC20_ADDRESS",
     "ERC20": "CRYPTO_DEPOSIT_USDT_ERC20_ADDRESS",
     "BEP20": "CRYPTO_DEPOSIT_USDT_BEP20_ADDRESS",
+    "BITCOIN": "CRYPTO_DEPOSIT_BTC_ADDRESS",
+    "SOLANA": "CRYPTO_DEPOSIT_SOL_ADDRESS",
+    "RIPPLE": "CRYPTO_DEPOSIT_XRP_ADDRESS",
+    "CARDANO": "CRYPTO_DEPOSIT_ADA_ADDRESS",
+    "ETH": "CRYPTO_DEPOSIT_ETH_ADDRESS",
+    "USDC": "CRYPTO_DEPOSIT_USDC_ADDRESS",
+    "BNB": "CRYPTO_DEPOSIT_BNB_ADDRESS",
 }
 
 
@@ -70,6 +91,13 @@ def get_crypto_deposit_addresses_map():
         "TRC20": get_crypto_deposit_address("TRC20"),
         "ERC20": get_crypto_deposit_address("ERC20"),
         "BEP20": get_crypto_deposit_address("BEP20"),
+        "BITCOIN": get_crypto_deposit_address("BITCOIN"),
+        "SOLANA": get_crypto_deposit_address("SOLANA"),
+        "RIPPLE": get_crypto_deposit_address("RIPPLE"),
+        "CARDANO": get_crypto_deposit_address("CARDANO"),
+        "ETH": get_crypto_deposit_address("ETH"),
+        "USDC": get_crypto_deposit_address("USDC"),
+        "BNB": get_crypto_deposit_address("BNB"),
     }
 
 

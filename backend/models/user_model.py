@@ -263,5 +263,6 @@ def format_user(user):
         "show_downgrade_warning": bool(user.get("show_downgrade_warning", False)),
         "downgrade_warnings": int(user.get("downgrade_warnings", 0)),
         "plan_funding_required": user.get("plan_funding_required", False),
+        "two_factor_enabled": bool(user.get("two_factor_enabled", False)),
         "created_at": user.get("created_at").isoformat() if user.get("created_at") else None
     }

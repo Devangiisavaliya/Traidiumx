@@ -43,6 +43,9 @@ referral_model.format_relationship = lambda r: r
 referral_model.format_affiliate_application = lambda a: a
 referral_model.update_referral_profile = lambda pid, data: None
 referral_model.create_affiliate_application = lambda data: None
+referral_model.update_referral_relationship = lambda rid, data: None
+referral_model.increment_referral_stats = lambda uid, invites_delta=0, verified_delta=0, rewards_delta=0.0: None
+
 
 sys.modules.setdefault("models.referral_model", referral_model)
 

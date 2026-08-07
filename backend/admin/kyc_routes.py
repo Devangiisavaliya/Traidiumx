@@ -461,6 +461,14 @@ def approve_kyc(kyc_id):
         extra_fields,
     )
 
+    # Update referral relationship to verified if applicable
+    try:
+        from services.referral_service import mark_referral_as_verified
+        mark_referral_as_verified(str(user_id))
+    except Exception as ref_err:
+        print(f"Error marking referral as verified for user {user_id}: {ref_err}")
+
+
     try:
         user = db.users.find_one({"_id": to_object_id(user_id)})
         if user:

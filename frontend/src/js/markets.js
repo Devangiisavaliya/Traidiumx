@@ -1003,6 +1003,30 @@ function initMarketSlider() {
 }
 
 async function loadMarkets() {
+    const txIntroStatus = document.getElementById("marketsIntroStatus");
+    if (txIntroStatus) {
+        const statuses = [
+            "DECRYPTING ORDER BOOK DATA...",
+            "SYNCING BLOCKCHAIN CONTRACTS...",
+            "ESTABLISHING SECURE PORTAL...",
+            "LIVE BOARD ACTIVE"
+        ];
+        let step = 0;
+        const interval = setInterval(() => {
+            const el = document.getElementById("marketsIntroStatus");
+            if (el && document.getElementById("marketsPageIntro")) {
+                if (step < statuses.length) {
+                    el.textContent = statuses[step];
+                    step++;
+                } else {
+                    clearInterval(interval);
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 320);
+    }
+
     setMarketStatus("", "loading");
     initTabs();
     initSearchAndSort();

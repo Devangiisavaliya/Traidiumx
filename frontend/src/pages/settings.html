@@ -249,6 +249,36 @@
             font-size: 0.75rem;
             font-weight: 800;
         }
+
+        @media (max-width: 640px) {
+            .tx-settings-main {
+                padding-top: 5.5rem;
+                padding-bottom: 3rem;
+            }
+
+            .tx-settings-wrap {
+                width: 100%;
+                padding: 0 1rem;
+            }
+
+            .tx-settings-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                padding: 1.25rem 1rem;
+            }
+
+            .tx-settings-right {
+                width: 100%;
+                justify-content: flex-end;
+                gap: 1rem;
+            }
+
+            .tx-settings-value,
+            .tx-settings-right > div {
+                margin-right: auto;
+            }
+        }
     </style>
 </head>
 
@@ -330,16 +360,7 @@
                     </div>
                 </div>
 
-                <div class="tx-settings-row">
-                    <div class="tx-settings-left">
-                        <h3 class="tx-settings-label">Auto Price Alert</h3>
-                        <p class="tx-settings-desc">Once configured, you will receive alerts on price changes of major and holding assets.</p>
-                    </div>
-                    <div class="tx-settings-right">
-                        <span class="tx-settings-value" id="priceAlertDisplay">Notification On, Sound On</span>
-                        <button type="button" class="tx-settings-btn" id="managePriceAlertBtn">Manage</button>
-                    </div>
-                </div>
+
             </div>
 
             <!-- Preferences -->
@@ -408,8 +429,30 @@
                         <p class="tx-settings-desc">Switch between light and dark modes.</p>
                     </div>
                     <div class="tx-settings-right">
-                        <span class="tx-settings-value" id="themeValDisplay">Dark</span>
-                        <button type="button" class="tx-settings-btn" id="editThemeBtn">Edit</button>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-semibold text-slate-400" id="themeStatusText">Dark</span>
+                            <button type="button" id="themeToggleBtn" style="position: relative; display: inline-flex; width: 46px; height: 24px; border-radius: 9999px; background-color: #1e293b; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: background-color 0.2s ease; outline: none; padding: 0;" aria-checked="false">
+                                <span class="sr-only">Toggle Theme</span>
+                                <span id="themeToggleThumb" style="position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background-color: #64748b; color: #0f172a; transition: transform 0.2s ease, background-color 0.2s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.25);">
+                                    <!-- Sun Icon -->
+                                    <svg id="themeToggleSun" class="hidden" style="width: 12px; height: 12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="5"></circle>
+                                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                    </svg>
+                                    <!-- Moon Icon -->
+                                    <svg id="themeToggleMoon" style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998z" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -433,10 +476,14 @@
                 <div class="tx-settings-row">
                     <div class="tx-settings-left">
                         <h3 class="tx-settings-label">Two-Factor Authentication</h3>
-                        <p class="tx-settings-desc">Add an extra layer of security with authenticator app or OTP.</p>
+                        <p class="tx-settings-desc">Add an extra layer of security with Email OTP verification during login.</p>
                     </div>
                     <div class="tx-settings-right">
-                        <button type="button" class="tx-settings-btn" id="manage2faBtn">Manage</button>
+                        <span class="tx-settings-value mr-2">
+                            <span class="tx-status-icon-off" id="twoFactorIcon">✕</span>
+                            <span id="twoFactorDisplay">OFF</span>
+                        </span>
+                        <button type="button" class="tx-settings-btn" id="enableTwoFactorBtn">Enable</button>
                     </div>
                 </div>
             </div>
@@ -605,6 +652,6 @@
     <script src="../js/api-config.js"></script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/auth-state.js"></script>
-    <script src="../js/settings.js"></script>
+    <script src="../js/settings.js?v=28"></script>
 </body>
 </html>

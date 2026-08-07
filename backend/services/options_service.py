@@ -432,6 +432,17 @@ def place_option_order(user_id, data):
                     reference_id=str(order_id),
                     description=f"Entry trading fee for options {action} order {order_reference}",
                 )
+                # Distribute referral commission if applicable
+                try:
+                    from services.referral_service import distribute_referral_commission
+                    distribute_referral_commission(
+                        referred_user_id=str(user_id),
+                        fee_amount=platform_fee,
+                        reference_id=str(order_id),
+                        description=f"Options order entry fee"
+                    )
+                except Exception as ref_err:
+                    print(f"Error distributing referral commission for options order {order_id}: {ref_err}")
             except Exception as error:
                 print(f"Warning: admin options entry-fee credit failed for order {order_id}: {error}")
 
@@ -622,6 +633,17 @@ def close_option_position(user_id, position_id, data=None):
                 reference_id=str(position_id),
                 description=f"Exit trading fee for options position {position.get('contract')} {position_id}.",
             )
+            # Distribute referral commission if applicable
+            try:
+                from services.referral_service import distribute_referral_commission
+                distribute_referral_commission(
+                    referred_user_id=str(user_id),
+                    fee_amount=exit_trading_fee,
+                    reference_id=str(position_id),
+                    description=f"Options position close fee"
+                )
+            except Exception as ref_err:
+                print(f"Error distributing referral commission for options exit position {position_id}: {ref_err}")
         except Exception as error:
             print(f"Warning: admin options exit-fee credit failed for position {position_id}: {error}")
 

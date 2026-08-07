@@ -72,6 +72,16 @@ def create_referral_relationship(relationship_data):
     return result.inserted_id
 
 
+def update_referral_relationship(relationship_id, update_data):
+    update_data["updated_at"] = now_utc()
+
+    get_referral_relationships_collection().update_one(
+        {"_id": relationship_id},
+        {"$set": update_data}
+    )
+
+
+
 def find_relationship_by_referred_user_id(user_id):
     return get_referral_relationships_collection().find_one({
         "referred_user_id": str(user_id)
