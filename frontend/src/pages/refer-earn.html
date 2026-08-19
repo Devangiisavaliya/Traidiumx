@@ -61,7 +61,7 @@
 </head>
 
 <body class="bg-[#020617] text-white" data-page="refer">
-    <div class="fixed inset-0 -z-20 pointer-events-none" style="background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 34%), radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 32%);"></div>
+    <div class="fixed inset-0 -z-20 pointer-events-none" style="background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.03) 45%, transparent 70%), radial-gradient(circle at top right, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.02) 45%, transparent 70%);"></div>
 
     <!-- Reusable Navbar -->
     <div data-component="navbar"></div>
@@ -71,10 +71,10 @@
 
         <!-- ================= REFER HERO START ================= -->
         <section class="relative">
-            <div class="absolute inset-0 -z-10">
-                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
-                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
-                <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[140px]"></div>
+            <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+                <div class="absolute -left-20 -top-20 h-[550px] w-[750px] rounded-full bg-cyan-500/20 blur-[140px] transform-gpu"></div>
+                <div class="absolute -right-20 top-20 h-[550px] w-[750px] rounded-full bg-blue-600/20 blur-[140px] transform-gpu"></div>
+                <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[140px] transform-gpu"></div>
             </div>
 
             <div class="mx-auto grid min-h-[82vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
@@ -96,13 +96,13 @@
                     </p>
 
                     <div class="mt-8 grid gap-4 sm:grid-cols-2">
-                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                        <div class="rounded-[2rem] border border-white/10 bg-[#0b1528]/80 p-5 backdrop-blur-md isolate transform-gpu">
                             <p class="text-sm text-slate-400">You Earn</p>
                             <h3 id="referRewardRate" class="mt-2 text-3xl font-black text-cyan-400">20%</h3>
                             <p class="mt-1 text-xs text-slate-500">Trading fee reward</p>
                         </div>
 
-                        <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                        <div class="rounded-[2rem] border border-white/10 bg-[#0b1528]/80 p-5 backdrop-blur-md isolate transform-gpu">
                             <p class="text-sm text-slate-400">Friend Saves</p>
                             <h3 id="referFriendDiscount" class="mt-2 text-3xl font-black text-emerald-400">10%</h3>
                             <p class="mt-1 text-xs text-slate-500">Fee discount</p>
@@ -120,7 +120,7 @@
                 <div id="referralBox" class="relative tx-fade-up">
                     <div class="absolute -inset-8 rounded-[3rem] bg-cyan-400/20 blur-3xl"></div>
 
-                    <div class="relative rounded-[2.5rem] border border-cyan-400/20 bg-white/[0.06] p-5 shadow-2xl backdrop-blur-xl sm:p-6 will-change-transform">
+                    <div class="relative rounded-[2.5rem] border border-cyan-400/20 bg-[#0c1830]/80 p-5 shadow-2xl backdrop-blur-md isolate transform-gpu sm:p-6">
                         <div class="mb-6 flex items-start justify-between gap-4">
                             <div>
                                 <p class="text-sm font-bold text-cyan-300">Your Referral Link</p>
