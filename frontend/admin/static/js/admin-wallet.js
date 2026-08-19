@@ -608,8 +608,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                                 </div>` : ""}
                             </div>
                             <div class="tx-withdrawal-modal-field">
-                                <label class="tx-withdrawal-modal-label">Payout TX hash required</label>
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <label class="tx-withdrawal-modal-label" style="margin-bottom: 0;">Payout TX hash required</label>
+                                    <button type="button" id="txWithdrawalMetaMaskBtn" class="tx-withdrawal-modal-copy" style="background: #eab308; color: #000; border-color: #eab308; display: none; font-size: 11px; padding: 4px 8px;">Payout via MetaMask</button>
+                                </div>
                                 <input id="txWithdrawalPayoutInput" class="tx-withdrawal-modal-input" value="${api.escapeHtml(displayPayoutReference)}" placeholder="Paste payout transaction hash / TXID after payout" />
+                                <div id="txWithdrawalMetaMaskStatus" style="display: none; font-size: 11px; font-weight: bold; color: #10b981; margin-top: 4px; line-height: 1.3;"></div>
                             </div>
                         ` : ""}
 
@@ -687,10 +691,151 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            modal.querySelector(".tx-withdrawal-modal-copy")?.addEventListener("click", (event) => {
+            modal.querySelectorAll(".tx-withdrawal-modal-copy").forEach(btn => {
+                if (btn.id === "txWithdrawalMetaMaskBtn") return; // separate listener
+                btn.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    copyWithdrawalAddress(event.currentTarget);
+                });
+            });
+
+            // Show MetaMask Button if applicable
+            const showMetaMaskBtn = isApprove && ["ERC20", "BEP20"].includes(String(withdrawal?.network || "").toUpperCase());
+            if (showMetaMaskBtn && typeof window.ethereum !== "undefined") {
+                const metamaskBtn = modal.querySelector("#txWithdrawalMetaMaskBtn");
+                if (metamaskBtn) {
+                    metamaskBtn.style.display = "inline-block";
+                }
+            }
+
+            modal.querySelector("#txWithdrawalMetaMaskBtn")?.addEventListener("click", async (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                copyWithdrawalAddress(event.currentTarget);
+
+                const btn = event.currentTarget;
+                const statusDiv = modal.querySelector("#txWithdrawalMetaMaskStatus");
+                const payoutInput = modal.querySelector("#txWithdrawalPayoutInput");
+                const originalText = btn.textContent;
+
+                const setStatus = (msg, isError = false) => {
+                    if (statusDiv) {
+                        statusDiv.textContent = msg;
+                        statusDiv.style.color = isError ? "#f43f5e" : "#10b981";
+                        statusDiv.style.display = "block";
+                    }
+                };
+
+                try {
+                    btn.disabled = true;
+                    btn.textContent = "Connecting...";
+                    setStatus("Please check MetaMask popup...", false);
+
+                    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+                    const adminAddress = accounts[0];
+
+                    btn.textContent = "Switching Chain...";
+
+                    // Switch chain to Sepolia (0xaa36a7) or BSC Testnet (0x61) depending on network
+                    const isBep20 = String(withdrawal?.network || "").toUpperCase() === "BEP20";
+                    const chainId = isBep20 ? "0x61" : "0xaa36a7";
+
+                    try {
+                        await window.ethereum.request({
+                            method: "wallet_switchEthereumChain",
+                            params: [{ chainId: chainId }]
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            const networkDetails = {
+                                "0xaa36a7": {
+                                    chainId: "0xaa36a7",
+                                    chainName: "Sepolia Test Network",
+                                    nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+                                    rpcUrls: ["https://rpc.sepolia.org"],
+                                    blockExplorerUrls: ["https://sepolia.etherscan.io"]
+                                },
+                                "0x61": {
+                                    chainId: "0x61",
+                                    chainName: "BSC Testnet",
+                                    nativeCurrency: { name: "tBNB", symbol: "tBNB", decimals: 18 },
+                                    rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+                                    blockExplorerUrls: ["https://testnet.bscscan.com"]
+                                }
+                            };
+                            await window.ethereum.request({
+                                method: "wallet_addEthereumChain",
+                                params: [networkDetails[chainId]]
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+
+                    btn.textContent = "Processing...";
+                    setStatus("Confirm payout in MetaMask...", false);
+
+                    let txParams;
+                    const asset = String(withdrawal?.asset || "ETH").toUpperCase();
+                    const amount = parseFloat(withdrawal?.amount || 0);
+
+                    if (asset === "BTC") {
+                        // ERC20 Token transfer (custom BTC token on Sepolia)
+                        btn.textContent = "Loading configuration...";
+                        const settingsResponse = await api.request("/settings");
+                        const btcContract = settingsResponse?.crypto_deposit_btc_contract_address || "";
+                        if (!btcContract) {
+                            throw new Error("BTC ERC20 Contract Address is not configured on settings.");
+                        }
+
+                        const cleanToAddress = withdrawalAddress.replace("0x", "").toLowerCase().padStart(64, "0");
+                        const decimals = 18; 
+                        const tokenAmountWei = BigInt(Math.floor(amount * Math.pow(10, decimals)));
+                        const cleanAmount = tokenAmountWei.toString(16).padStart(64, "0");
+                        const txData = "0xa9059cbb" + cleanToAddress + cleanAmount;
+
+                        txParams = {
+                            from: adminAddress,
+                            to: btcContract,
+                            value: "0x0",
+                            data: txData,
+                            gas: "0x186a0" // 100,000 gas limit for ERC20
+                        };
+                    } else {
+                        // Native transfer (ETH/tBNB)
+                        const weiValue = "0x" + BigInt(Math.floor(amount * 1e18)).toString(16);
+                        txParams = {
+                            from: adminAddress,
+                            to: withdrawalAddress,
+                            value: weiValue,
+                            gas: "0x5208" // 21,000 gas
+                        };
+                    }
+
+                    btn.textContent = "Sending...";
+                    const txHash = await window.ethereum.request({
+                        method: "eth_sendTransaction",
+                        params: [txParams]
+                    });
+
+                    if (payoutInput) {
+                        payoutInput.value = txHash;
+                    }
+
+                    btn.textContent = "Payout Sent ✓";
+                    setStatus("MetaMask payment complete! TX Hash populated.", false);
+                } catch (err) {
+                    console.error("MetaMask Payout Error:", err);
+                    btn.textContent = "Failed";
+                    setStatus(err.message || "MetaMask payment failed.", true);
+                } finally {
+                    btn.disabled = false;
+                    setTimeout(() => {
+                        if (btn.textContent === "Payout Sent ✓" || btn.textContent === "Failed") {
+                            btn.textContent = originalText;
+                        }
+                    }, 3000);
+                }
             });
 
             modal.querySelector("#txWithdrawalConfirmBtn")?.addEventListener("click", () => {

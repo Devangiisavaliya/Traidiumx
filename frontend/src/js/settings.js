@@ -143,16 +143,16 @@ function bindButtonListeners(user) {
         showModal("Select Language", `
             <div class="space-y-2 p-5 text-sm">
                 <button class="w-full text-left bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 hover:border-cyan-400 transition flex justify-between items-center cursor-pointer" onclick="setLanguage('English')">
-                    <span>English</span>
-                    ${currentLang === 'English' ? '<span class="text-emerald-400 font-bold">✓</span>' : ''}
+                    <span>English <span class="notranslate">(English)</span></span>
+                    ${currentLang === 'English' ? '<span class="text-emerald-400 font-bold notranslate">✓</span>' : ''}
                 </button>
                 <button class="w-full text-left bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 hover:border-cyan-400 transition flex justify-between items-center cursor-pointer" onclick="setLanguage('Gujarati')">
-                    <span>ગુજરાતી (Gujarati)</span>
-                    ${currentLang === 'Gujarati' ? '<span class="text-emerald-400 font-bold">✓</span>' : ''}
+                    <span>ગુજરાતી <span class="notranslate">(Gujarati)</span></span>
+                    ${currentLang === 'Gujarati' ? '<span class="text-emerald-400 font-bold notranslate">✓</span>' : ''}
                 </button>
                 <button class="w-full text-left bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 hover:border-cyan-400 transition flex justify-between items-center cursor-pointer" onclick="setLanguage('Hindi')">
-                    <span>हिन्दी (Hindi)</span>
-                    ${currentLang === 'Hindi' ? '<span class="text-emerald-400 font-bold">✓</span>' : ''}
+                    <span>हिन्दी <span class="notranslate">(Hindi)</span></span>
+                    ${currentLang === 'Hindi' ? '<span class="text-emerald-400 font-bold notranslate">✓</span>' : ''}
                 </button>
                 <button type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition mt-2 cursor-pointer" onclick="closeSettingsModal()">Cancel</button>
             </div>

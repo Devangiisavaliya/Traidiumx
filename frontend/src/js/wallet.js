@@ -141,6 +141,7 @@ const walletElements = {
     cryptoAddressStatus: document.getElementById("cryptoAddressStatus"),
     copyCryptoAddressBtn: document.getElementById("copyCryptoAddressBtn"),
     createDepositBtn: document.getElementById("createDepositBtn"),
+    payWithMetaMaskBtn: document.getElementById("payWithMetaMaskBtn"),
     get withdrawalForm() { return document.getElementById(isWalletActionModalOpen() ? "modalWithdrawalForm" : "mainWithdrawalForm"); },
     get withdrawNetwork() { return document.getElementById(isWalletActionModalOpen() ? "modalWithdrawNetwork" : "mainWithdrawNetwork"); },
     get withdrawAsset() { return document.getElementById(isWalletActionModalOpen() ? "modalWithdrawAsset" : "mainWithdrawAsset"); },
@@ -877,11 +878,12 @@ function injectWalletPageStyles() {
         .tx-form-label { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 12px; font-weight: 950; text-transform: uppercase; letter-spacing: .12em; }
         .tx-form-input { width: 100%; border-radius: 18px; border: 1px solid rgba(255,255,255,.10); background: rgba(2,6,23,.88); padding: 14px 16px; color: #fff; outline: none; font-size: 14px; font-weight: 850; transition: border-color .15s ease, box-shadow .15s ease; }
         .tx-form-input:focus { border-color: rgba(34,211,238,.72); box-shadow: 0 0 0 3px rgba(34,211,238,.10); }
-        .tx-submit-btn { width: 100%; border: 0; border-radius: 20px; padding: 16px 20px; font-size: 14px; font-weight: 950; color: #020617; transition: transform .15s ease, opacity .15s ease; }
+        .tx-submit-btn { width: 100%; border: 0; border-radius: 20px; padding: 16px 20px; font-size: 14px; font-weight: 950; color: #020617; transition: transform .15s ease, opacity .15s ease; cursor: pointer; }
         .tx-submit-btn:hover { transform: translateY(-1px); }
         .tx-submit-btn.transfer { background: linear-gradient(135deg, #facc15, #f59e0b); }
         .tx-submit-btn.deposit { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
         .tx-submit-btn.withdraw { color: #fff; background: linear-gradient(135deg, #ef4444, #991b1b); box-shadow: 0 16px 36px rgba(127, 29, 29, .30); }
+        .tx-submit-btn.exchange { background: linear-gradient(135deg, #22d3ee, #06b6d4); box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25); }
         .tx-wallet-modal-scroll {
             scrollbar-width: thin;
             scrollbar-color: rgba(34, 211, 238, 0.3) rgba(2, 6, 23, 0.4);
@@ -1681,8 +1683,17 @@ async function loadRestrictedWithdrawalOnly() {
     WALLET_STATE.pnlSummary = null;
     WALLET_STATE.positionSummary = null;
 
-    const withdrawalResponse = await apiRequest("/withdrawal/history");
-    WALLET_STATE.withdrawals = withdrawalResponse.data?.withdrawals || [];
+    try {
+        const [withdrawalResponse, boardRes] = await Promise.all([
+            apiRequest("/withdrawal/history"),
+            apiRequest("/market/board").catch(() => ({ success: false, data: { board: [] } }))
+        ]);
+        WALLET_STATE.withdrawals = withdrawalResponse.data?.withdrawals || [];
+        WALLET_STATE.board = boardRes.data?.board || [];
+    } catch (err) {
+        console.error("Failed to load restricted withdrawal details:", err);
+    }
+    
     notifyWithdrawalStatusChanges(WALLET_STATE.withdrawals);
 
     renderWalletPage();
@@ -1705,8 +1716,12 @@ async function refreshWithdrawalHistoryOnly() {
             return;
         }
 
-        const response = await apiRequest("/withdrawal/history");
+        const [response, boardRes] = await Promise.all([
+            apiRequest("/withdrawal/history"),
+            apiRequest("/market/board").catch(() => ({ success: false, data: { board: [] } }))
+        ]);
         WALLET_STATE.withdrawals = response.data?.withdrawals || [];
+        WALLET_STATE.board = boardRes.data?.board || [];
         notifyWithdrawalStatusChanges(WALLET_STATE.withdrawals);
         applyRestrictedWalletVisibility();
         renderWithdrawalTable();
@@ -1740,6 +1755,7 @@ async function loadCryptoDepositAddresses() {
     });
 
     WALLET_STATE.cryptoDeposit.networks = response.data?.networks || [];
+    WALLET_STATE.cryptoDeposit.btcContractAddress = response.data?.btc_contract_address || "";
     WALLET_STATE.cryptoDeposit.minAmount = Number(response.data?.min_amount || 10);
     WALLET_STATE.cryptoDeposit.maxAmount = Number(response.data?.max_amount || 1000000);
     if (walletElements.depositAmount) {
@@ -1758,7 +1774,7 @@ async function loadCryptoDepositAddresses() {
 
 function getSelectedCryptoNetwork() {
     const activeCurrency = String(WALLET_STATE.activeDepositCurrency || "USDT").toUpperCase();
-    if (activeCurrency !== "USDT") {
+    if (activeCurrency !== "USDT" && activeCurrency !== "BTC") {
         const nativeNetworks = {
             "BTC": "BITCOIN",
             "SOL": "SOLANA",
@@ -1770,13 +1786,13 @@ function getSelectedCryptoNetwork() {
         };
         return nativeNetworks[activeCurrency] || "ERC20";
     }
-    return String(walletElements.cryptoNetwork?.value || WALLET_STATE.cryptoDeposit.selectedNetwork || "TRC20").toUpperCase();
+    return String(walletElements.cryptoNetwork?.value || WALLET_STATE.cryptoDeposit.selectedNetwork || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
 }
 
 function getSelectedWithdrawalCryptoNetwork() {
     const isModal = isWalletActionModalOpen();
     const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || (isModal ? WALLET_STATE.activeWithdrawalCurrency : localStorage.getItem("tx_navbar_currency")) || "USDT").toUpperCase();
-    if (activeCurrency !== "USDT") {
+    if (activeCurrency !== "USDT" && activeCurrency !== "BTC") {
         const nativeNetworks = {
             "BTC": "BITCOIN",
             "SOL": "SOLANA",
@@ -1789,7 +1805,7 @@ function getSelectedWithdrawalCryptoNetwork() {
         return nativeNetworks[activeCurrency] || "ERC20";
     }
     const prefix = isModal ? "modal" : "main";
-    return String(document.getElementById(`${prefix}WithdrawNetwork`)?.value || "TRC20").toUpperCase();
+    return String(document.getElementById(`${prefix}WithdrawNetwork`)?.value || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
 }
 
 function getSelectedCryptoAddressInfo() {
@@ -1843,28 +1859,49 @@ function updateCryptoDepositAddressUI() {
 
     const cryptoNetworkContainer = document.getElementById("cryptoNetworkContainer");
     const cryptoNetworkSelect = document.getElementById("cryptoNetwork");
-    const isUSDT = activeCurrency === "USDT";
+    const isUSDTOrBTC = ["USDT", "BTC"].includes(activeCurrency);
 
     if (cryptoNetworkContainer) {
-        cryptoNetworkContainer.classList.toggle("hidden", !isUSDT);
+        cryptoNetworkContainer.classList.toggle("hidden", !isUSDTOrBTC);
     }
 
     if (cryptoNetworkSelect) {
-        if (!isUSDT) {
-            const nativeNetworks = {
-                "BTC": "BITCOIN",
-                "SOL": "SOLANA",
-                "XRP": "RIPPLE",
-                "ADA": "CARDANO",
-                "ETH": "ERC20",
-                "USDC": "ERC20",
-                "BNB": "BEP20"
-            };
-            cryptoNetworkSelect.value = nativeNetworks[activeCurrency] || "ERC20";
-        } else {
-            if (!["TRC20", "ERC20", "BEP20"].includes(cryptoNetworkSelect.value)) {
-                cryptoNetworkSelect.value = "TRC20";
+        const currentVal = cryptoNetworkSelect.value;
+        cryptoNetworkSelect.innerHTML = "";
+        
+        if (activeCurrency === "USDT") {
+            cryptoNetworkSelect.innerHTML = `
+                <option value="TRC20">USDT TRC20 (Tron)</option>
+                <option value="BEP20">USDT BEP20 (Binance Smart Chain)</option>
+                <option value="ERC20">USDT ERC20 (Ethereum)</option>
+            `;
+            if (["TRC20", "ERC20", "BEP20"].includes(currentVal)) {
+                cryptoNetworkSelect.value = currentVal;
+            } else {
+                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork || "TRC20";
             }
+        } else if (activeCurrency === "BTC") {
+            cryptoNetworkSelect.innerHTML = `
+                <option value="BITCOIN">BTC Mainnet (Bitcoin)</option>
+                <option value="ERC20">BTC ERC20 / Sepolia Token (MetaMask)</option>
+            `;
+            if (["BITCOIN", "ERC20"].includes(currentVal)) {
+                cryptoNetworkSelect.value = currentVal;
+            } else {
+                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork || "BITCOIN";
+            }
+        } else {
+            const nativeNetworks = {
+                "SOL": { value: "SOLANA", label: "Solana Mainnet" },
+                "XRP": { value: "RIPPLE", label: "Ripple Mainnet" },
+                "ADA": { value: "CARDANO", label: "Cardano Mainnet" },
+                "ETH": { value: "ERC20", label: "Ethereum Mainnet (MetaMask)" },
+                "USDC": { value: "ERC20", label: "ERC20 / Sepolia Token (MetaMask)" },
+                "BNB": { value: "BEP20", label: "BSC / BEP20 Token (MetaMask)" }
+            };
+            const config = nativeNetworks[activeCurrency] || { value: "ERC20", label: "ERC20 network" };
+            cryptoNetworkSelect.innerHTML = `<option value="${config.value}">${activeCurrency} ${config.label}</option>`;
+            cryptoNetworkSelect.value = config.value;
         }
     }
 
@@ -1903,6 +1940,11 @@ function updateCryptoDepositAddressUI() {
         walletElements.copyCryptoAddressBtn.disabled = !isConfigured;
         walletElements.copyCryptoAddressBtn.classList.toggle("opacity-50", !isConfigured);
         walletElements.copyCryptoAddressBtn.classList.toggle("cursor-not-allowed", !isConfigured);
+    }
+
+    if (walletElements.payWithMetaMaskBtn) {
+        const showMetaMask = isConfigured && ["ERC20", "BEP20"].includes(selectedNetwork);
+        walletElements.payWithMetaMaskBtn.classList.toggle("hidden", !showMetaMask);
     }
 }
 
@@ -1966,8 +2008,22 @@ async function loadWalletData(options = {}) {
             clearWalletAlert();
         }
 
-        await loadWalletAccountStatus();
-        await loadWalletEnvironment();
+        // Parallelize initial API queries to avoid serial network roundtrip overhead
+        const accountStatusPromise = WALLET_STATE.accountStatus ? Promise.resolve() : loadWalletAccountStatus();
+        const environmentPromise = WALLET_STATE.environment ? Promise.resolve() : loadWalletEnvironment();
+
+        const [_, __, balanceRes, boardRes] = await Promise.all([
+            accountStatusPromise,
+            environmentPromise,
+            apiRequest("/wallet/balance").catch(err => {
+                console.error("Failed to load wallet balance:", err);
+                return null;
+            }),
+            apiRequest("/market/board").catch(err => {
+                console.error("Failed to load market board:", err);
+                return { success: false, data: { board: [] } };
+            })
+        ]);
 
         if (isWalletRestrictedMode()) {
             if (silent) {
@@ -1978,26 +2034,22 @@ async function loadWalletData(options = {}) {
             return;
         }
 
-        await loadCryptoDepositAddresses();
-
-        // 1. Fetch wallet balance first and render instantly!
-        try {
-            const [balanceRes, boardRes] = await Promise.all([
-                apiRequest("/wallet/balance"),
-                apiRequest("/market/board").catch(err => {
-                    console.error("Failed to load market board:", err);
-                    return { success: false, data: { board: [] } };
-                })
-            ]);
-            if (requestSeq === WALLET_STATE.walletLoadRequestSeq) {
-                WALLET_STATE.wallet = balanceRes.data.wallet || balanceRes.data || null;
-                WALLET_STATE.board = boardRes.data?.board || [];
-                renderWalletPage();
-                setWalletStatus("Active", "live");
-            }
-        } catch (err) {
-            console.error("Failed to load wallet balance or board:", err);
+        // Fetch crypto deposit addresses only on the first load
+        let depositAddressesPromise = Promise.resolve();
+        if (!WALLET_STATE.cryptoDeposit.networks || WALLET_STATE.cryptoDeposit.networks.length === 0) {
+            depositAddressesPromise = loadCryptoDepositAddresses().catch(err => {
+                console.error("Failed to load crypto deposit addresses:", err);
+            });
         }
+
+        if (balanceRes && requestSeq === WALLET_STATE.walletLoadRequestSeq) {
+            WALLET_STATE.wallet = balanceRes.data.wallet || balanceRes.data || null;
+            WALLET_STATE.board = boardRes.data?.board || [];
+            renderWalletPage();
+            setWalletStatus("Active", "live");
+        }
+
+        await depositAddressesPromise;
 
         // 2. Fetch other history and optional APIs in the background
         let ledgerUrl = "/wallet/ledger";
@@ -2005,32 +2057,40 @@ async function loadWalletData(options = {}) {
             ledgerUrl += `?sub_account_id=${WALLET_STATE.selectedSubAccountId}`;
         }
 
-        Promise.allSettled([
-            apiRequest(ledgerUrl),
-            apiRequest("/deposit/history"),
-            apiRequest("/withdrawal/history"),
+        // Throttle transaction history requests to every 30 seconds during background updates
+        const nowTime = Date.now();
+        const shouldFetchHistory = !silent || !WALLET_STATE.lastHistoryFetchAt || (nowTime - WALLET_STATE.lastHistoryFetchAt > 30000);
+
+        const historyPromises = [
+            shouldFetchHistory ? apiRequest(ledgerUrl) : Promise.resolve(null),
+            shouldFetchHistory ? apiRequest("/deposit/history") : Promise.resolve(null),
+            shouldFetchHistory ? apiRequest("/withdrawal/history") : Promise.resolve(null),
             getOptionalApi("/trading/pnl-summary", {}),
             getOptionalApi("/trading/positions", {}),
             getOptionalApi("/onboarding/mt5/status", {})
-        ]).then((results) => {
+        ];
+
+        Promise.allSettled(historyPromises).then((results) => {
             if (requestSeq !== WALLET_STATE.walletLoadRequestSeq) {
                 return;
             }
 
             const [ledgerResult, depositResult, withdrawalResult, pnlResult, positionsResult, mt5Result] = results;
 
-            if (ledgerResult.status === "fulfilled") {
-                WALLET_STATE.ledger = ledgerResult.value.data.ledger || [];
+            if (shouldFetchHistory) {
+                WALLET_STATE.lastHistoryFetchAt = nowTime;
+                if (ledgerResult.status === "fulfilled" && ledgerResult.value) {
+                    WALLET_STATE.ledger = ledgerResult.value.data.ledger || [];
+                }
+                if (depositResult.status === "fulfilled" && depositResult.value) {
+                    WALLET_STATE.deposits = depositResult.value.data.deposits || [];
+                }
+                if (withdrawalResult.status === "fulfilled" && withdrawalResult.value) {
+                    WALLET_STATE.withdrawals = withdrawalResult.value.data.withdrawals || [];
+                    notifyWithdrawalStatusChanges(WALLET_STATE.withdrawals);
+                }
+                syncHistoryFromLedgerFallbacks();
             }
-            if (depositResult.status === "fulfilled") {
-                WALLET_STATE.deposits = depositResult.value.data.deposits || [];
-            }
-            if (withdrawalResult.status === "fulfilled") {
-                WALLET_STATE.withdrawals = withdrawalResult.value.data.withdrawals || [];
-                notifyWithdrawalStatusChanges(WALLET_STATE.withdrawals);
-            }
-
-            syncHistoryFromLedgerFallbacks();
 
             if (pnlResult.status === "fulfilled") {
                 WALLET_STATE.pnlSummary = pnlResult.value.data || null;
@@ -2522,6 +2582,146 @@ function validateDepositForm(formData, isINR = false) {
 }
 
 
+async function handleMetaMaskPayment() {
+    if (typeof window.ethereum === "undefined") {
+        showWalletActionMessage("MetaMask is not installed. Please install the extension first.", "error");
+        return;
+    }
+
+    const usdAmount = parseFloat(walletElements.depositAmount?.value);
+    if (isNaN(usdAmount) || usdAmount <= 0) {
+        showWalletActionMessage("Please enter a valid deposit amount first.", "error");
+        return;
+    }
+
+    const selectedNetwork = getSelectedCryptoNetwork();
+    const companyAddress = walletElements.cryptoDepositAddress?.textContent?.trim();
+
+    if (!companyAddress || companyAddress === "--" || companyAddress.includes("not configured")) {
+        showWalletActionMessage("Company deposit address is not configured properly.", "error");
+        return;
+    }
+
+    const chainIdMap = {
+        "ERC20": "0xaa36a7", // Sepolia Testnet
+        "BEP20": "0x61"      // BSC Testnet
+    };
+    const chainId = chainIdMap[selectedNetwork];
+    if (!chainId) {
+        showWalletActionMessage("Selected network is not supported for MetaMask deposits.", "error");
+        return;
+    }
+
+    try {
+        walletSetButtonLoading(walletElements.payWithMetaMaskBtn, true);
+        showWalletActionMessage("Requesting MetaMask connection...", "info");
+
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const userAddress = accounts[0];
+
+        showWalletActionMessage(`Switching MetaMask network to ${selectedNetwork === "ERC20" ? "Sepolia Testnet" : "BSC Testnet"}...`, "info");
+        try {
+            await window.ethereum.request({
+                method: "wallet_switchEthereumChain",
+                params: [{ chainId: chainId }]
+            });
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                const networkDetails = {
+                    "0xaa36a7": {
+                        chainId: "0xaa36a7",
+                        chainName: "Sepolia Test Network",
+                        nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+                        rpcUrls: ["https://rpc.sepolia.org"],
+                        blockExplorerUrls: ["https://sepolia.etherscan.io"]
+                    },
+                    "0x61": {
+                        chainId: "0x61",
+                        chainName: "BSC Testnet",
+                        nativeCurrency: { name: "tBNB", symbol: "tBNB", decimals: 18 },
+                        rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545/"],
+                        blockExplorerUrls: ["https://testnet.bscscan.com"]
+                    }
+                };
+                await window.ethereum.request({
+                    method: "wallet_addEthereumChain",
+                    params: [networkDetails[chainId]]
+                });
+            } else {
+                throw switchError;
+            }
+        }
+
+        const activeCurrency = String(WALLET_STATE.activeDepositCurrency || "USDT").toUpperCase();
+        const btcContract = WALLET_STATE.cryptoDeposit.btcContractAddress || "";
+        
+        let txParams;
+        if (activeCurrency === "BTC" && btcContract) {
+            // ERC20 Token transfer (BTC custom token)
+            // Method ID for transfer(address,uint256) is 0xa9059cbb
+            const cleanToAddress = companyAddress.replace("0x", "").toLowerCase().padStart(64, "0");
+            const decimals = 18; 
+            const tokenAmountWei = BigInt(Math.floor(usdAmount * Math.pow(10, decimals)));
+            const cleanAmount = tokenAmountWei.toString(16).padStart(64, "0");
+            const txData = "0xa9059cbb" + cleanToAddress + cleanAmount;
+
+            txParams = {
+                from: userAddress,
+                to: btcContract,
+                value: "0x0",
+                data: txData,
+                gas: "0x186a0" // 100,000 gas limit is standard and safe for ERC20
+            };
+            showWalletActionMessage(`Preparing ERC20 BTC token transfer to ${companyAddress}...`, "info");
+        } else {
+            // Native ETH/BNB transfer
+            const testAmount = usdAmount * 0.0001;
+            const weiValue = "0x" + Math.floor(testAmount * 1e18).toString(16);
+            txParams = {
+                from: userAddress,
+                to: companyAddress,
+                value: weiValue,
+                gas: "0x5208"
+            };
+            showWalletActionMessage("Preparing payment transaction...", "info");
+        }
+
+        showWalletActionMessage("Confirm transaction in MetaMask popup...", "info");
+        const txHash = await window.ethereum.request({
+            method: "eth_sendTransaction",
+            params: [txParams]
+        });
+
+        if (walletElements.depositTxHash) {
+            walletElements.depositTxHash.value = txHash;
+        }
+        if (walletElements.depositAddressConfirmation) {
+            walletElements.depositAddressConfirmation.value = companyAddress;
+        }
+
+        const depositForm = document.getElementById("walletDepositForm") || document.querySelector("#modalDepositFormForm");
+        if (depositForm) {
+            showWalletActionMessage("MetaMask payment complete! Auto-verifying deposit...", "info");
+            setTimeout(() => {
+                try {
+                    depositForm.requestSubmit();
+                } catch (e) {
+                    const submitEvent = new Event("submit", { cancelable: true });
+                    depositForm.dispatchEvent(submitEvent);
+                }
+            }, 300);
+        } else {
+            showWalletActionMessage("MetaMask payment complete! TXID has been filled automatically. Please click 'Deposit' below to credit.", "success");
+        }
+    } catch (err) {
+        console.error("MetaMask Payment Error:", err);
+        showWalletActionMessage(err.message || "MetaMask payment failed.", "error");
+    } finally {
+        walletSetButtonLoading(walletElements.payWithMetaMaskBtn, false);
+    }
+}
+
+
 async function handleDepositSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -2670,7 +2870,8 @@ async function handleDepositSubmit(event) {
                 payment_method: "crypto_deposit",
                 crypto_asset: String(formData.get("crypto_asset") || "USDT").trim().toUpperCase(),
                 crypto_network: getSelectedCryptoNetwork(),
-                tx_hash: String(formData.get("tx_hash") || "").trim()
+                tx_hash: String(formData.get("tx_hash") || "").trim(),
+                deposit_address_confirmation: String(formData.get("deposit_address_confirmation") || "").trim()
             };
 
             const response = await apiRequest("/deposit/create", {
@@ -2892,7 +3093,11 @@ function validateWithdrawalForm(formData) {
 
         if (activeCurrency === "BTC") {
             const btcRegex = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{39,59})$/;
-            if (!btcRegex.test(address)) return "Please enter a valid Bitcoin address (starts with 1, 3, or bc1).";
+            if (network === "ERC20") {
+                if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) return "Please enter a valid ERC20 wallet address starting with 0x.";
+            } else {
+                if (!btcRegex.test(address)) return "Please enter a valid Bitcoin address (starts with 1, 3, or bc1).";
+            }
         } else if (activeCurrency === "SOL") {
             const solRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
             if (!solRegex.test(address)) return "Please enter a valid Solana address.";
@@ -3264,7 +3469,7 @@ function startWalletAutoRefresh() {
         }
 
         loadWalletData({ silent: true });
-    }, 15000);
+    }, 1000);
 
     if (!WALLET_STATE.walletSyncEventsBound) {
         WALLET_STATE.walletSyncEventsBound = true;
@@ -3474,12 +3679,41 @@ function bindRealtimeConversionCalculator() {
                     }
                 }
                 if (rateNoteEl) rateNoteEl.textContent = `Min ₹100 · $1 = ₹${rate.toFixed(2)}`;
-            } else {
+            } else if (activeCurrency === "USDT") {
                 if (youDepEl) youDepEl.textContent = val > 0 ? `$${val.toFixed(2)}` : "$0.00";
                 if (walletCreditEl) walletCreditEl.textContent = val > 0 ? `$${val.toFixed(2)} USD` : "$0.00 USD";
                 const minUsdt = WALLET_STATE.cryptoDeposit.minAmount || 10;
                 const minInr = (minUsdt * rate).toFixed(0);
                 if (rateNoteEl) rateNoteEl.textContent = `Min $${minUsdt} / ₹${minInr} · $1 = ₹${rate.toFixed(2)}`;
+            } else {
+                const getAssetPrice = (code) => {
+                    if (code === "USDT" || code === "USDC") return 1.0;
+                    if (code === "INR") return 1.0 / rate;
+                    const board = WALLET_STATE.board || [];
+                    const symbol = `${code}USDT`;
+                    const item = board.find(b => b.symbol === symbol || b.ui_symbol === symbol);
+                    return item ? parseFloat(item.price || item.last_price || 0) : 0.0;
+                };
+
+                const assetPrice = getAssetPrice(activeCurrency);
+                if (youDepEl) youDepEl.textContent = val > 0 ? `${val.toFixed(4)} ${activeCurrency}` : `0.0000 ${activeCurrency}`;
+                if (walletCreditEl) {
+                    if (val > 0 && assetPrice > 0) {
+                        const usdEq = (val * assetPrice).toFixed(2);
+                        walletCreditEl.innerHTML = `${val.toFixed(4)} ${activeCurrency} <span class="text-xs font-normal text-slate-400">(≈ $${usdEq} USD)</span>`;
+                    } else {
+                        walletCreditEl.textContent = `0.0000 ${activeCurrency}`;
+                    }
+                }
+                const minUsdt = WALLET_STATE.cryptoDeposit.minAmount || 10;
+                const minCoin = assetPrice > 0 ? (minUsdt / assetPrice).toFixed(4) : "0.00";
+                if (rateNoteEl) {
+                    if (assetPrice > 0) {
+                        rateNoteEl.textContent = `Min $${minUsdt} value (≈ ${minCoin} ${activeCurrency}) · 1 ${activeCurrency} ≈ $${assetPrice.toFixed(2)}`;
+                    } else {
+                        rateNoteEl.textContent = `Min $${minUsdt} value`;
+                    }
+                }
             }
         };
         depInput.addEventListener("input", updateDep);
@@ -3726,7 +3960,48 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     if (accNumInput) accNumInput.required = isINR;
     if (ifscInput) ifscInput.required = isINR;
 
-    if (netBox) netBox.classList.toggle("hidden", !isUSDT);
+    if (netBox) netBox.classList.toggle("hidden", !["USDT", "BTC"].includes(activeCurrency));
+    
+    const netSelect = document.getElementById(`${prefix}WithdrawNetwork`);
+    if (netSelect) {
+        const currentVal = netSelect.value;
+        netSelect.innerHTML = "";
+        if (activeCurrency === "USDT") {
+            netSelect.innerHTML = `
+                <option value="TRC20">TRON (TRC20)</option>
+                <option value="BEP20">BNB Smart Chain (BEP20)</option>
+                <option value="ERC20">Ethereum (ERC20)</option>
+            `;
+            if (["TRC20", "BEP20", "ERC20"].includes(currentVal)) {
+                netSelect.value = currentVal;
+            } else {
+                netSelect.value = "TRC20";
+            }
+        } else if (activeCurrency === "BTC") {
+            netSelect.innerHTML = `
+                <option value="BITCOIN">BTC Mainnet (Bitcoin)</option>
+                <option value="ERC20">BTC ERC20 / Sepolia Token (MetaMask)</option>
+            `;
+            if (["BITCOIN", "ERC20"].includes(currentVal)) {
+                netSelect.value = currentVal;
+            } else {
+                netSelect.value = "BITCOIN";
+            }
+        } else {
+            const nativeNetworks = {
+                "SOL": { value: "SOLANA", label: "Solana Network" },
+                "XRP": { value: "RIPPLE", label: "Ripple Network" },
+                "ADA": { value: "CARDANO", label: "Cardano Network" },
+                "ETH": { value: "ERC20", label: "Ethereum Network" },
+                "USDC": { value: "ERC20", label: "Ethereum Network" },
+                "BNB": { value: "BEP20", label: "Binance Smart Chain" }
+            };
+            const config = nativeNetworks[activeCurrency] || { value: "ERC20", label: "Ethereum Network" };
+            netSelect.innerHTML = `<option value="${config.value}">${config.label}</option>`;
+            netSelect.value = config.value;
+        }
+    }
+
     if (tagBox) tagBox.classList.toggle("hidden", !requiresTag);
     if (toggleBar) toggleBar.classList.toggle("hidden", isCryptoSpecific);
 
@@ -3759,7 +4034,14 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     }
 
     const withInput = document.getElementById(`${prefix}WithdrawAmount`);
-    if (withInput) withInput.dispatchEvent(new Event("input"));
+    if (withInput) {
+        if (isINR || activeCurrency === "USDT") {
+            withInput.setAttribute("min", "10");
+        } else {
+            withInput.setAttribute("min", "0.00000001");
+        }
+        withInput.dispatchEvent(new Event("input"));
+    }
     updateWalletActionModalBalances();
 
     // Dynamically update the FAQ items for the active currency
@@ -4003,6 +4285,7 @@ function initWalletEvents() {
     });
 
     walletElements.copyCryptoAddressBtn?.addEventListener("click", copyCryptoDepositAddress);
+    walletElements.payWithMetaMaskBtn?.addEventListener("click", handleMetaMaskPayment);
 
     sanitizePositiveAmountInput(walletElements.demoDepositAmount || walletElements.demoCreditAmount, 6);
     sanitizePositiveAmountInput(walletElements.demoWithdrawAmount, 6);
@@ -4447,14 +4730,23 @@ function txRenderAssetLists() {
 
     // Retrieve live backend balances
     const inrBalance = walletNumber(wallet.main_wallet_inr?.available_balance, 0);
+    const inrLocked = walletNumber(wallet.main_wallet_inr?.locked_balance, 0);
     const usdtBalance = walletNumber(wallet.main_wallet_usdt?.available_balance, 0);
+    const usdtLocked = walletNumber(wallet.main_wallet_usdt?.locked_balance, 0);
     const btcBalance = walletNumber(wallet.main_wallet_btc?.available_balance, 0);
+    const btcLocked = walletNumber(wallet.main_wallet_btc?.locked_balance, 0);
     const ethBalance = walletNumber(wallet.main_wallet_eth?.available_balance, 0);
+    const ethLocked = walletNumber(wallet.main_wallet_eth?.locked_balance, 0);
     const usdcBalance = walletNumber(wallet.main_wallet_usdc?.available_balance, 0);
+    const usdcLocked = walletNumber(wallet.main_wallet_usdc?.locked_balance, 0);
     const solBalance = walletNumber(wallet.main_wallet_sol?.available_balance, 0);
+    const solLocked = walletNumber(wallet.main_wallet_sol?.locked_balance, 0);
     const bnbBalance = walletNumber(wallet.main_wallet_bnb?.available_balance, 0);
+    const bnbLocked = walletNumber(wallet.main_wallet_bnb?.locked_balance, 0);
     const xrpBalance = walletNumber(wallet.main_wallet_xrp?.available_balance, 0);
+    const xrpLocked = walletNumber(wallet.main_wallet_xrp?.locked_balance, 0);
     const adaBalance = walletNumber(wallet.main_wallet_ada?.available_balance, 0);
+    const adaLocked = walletNumber(wallet.main_wallet_ada?.locked_balance, 0);
 
     const board = WALLET_STATE.board || [];
     function getAssetPrice(code) {
@@ -4472,7 +4764,7 @@ function txRenderAssetLists() {
             name: "Indian Rupee",
             symbol: "₹",
             balance: inrBalance,
-            pending: 0,
+            pending: inrLocked,
             iconClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
         },
         {
@@ -4480,20 +4772,20 @@ function txRenderAssetLists() {
             name: "Tether USD",
             symbol: "$",
             balance: usdtBalance,
-            pending: 0,
+            pending: usdtLocked,
             iconClass: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
         }
     ];
 
     // Crypto Listing Items
     const cryptoAssets = [
-        { code: "BTC", name: "Bitcoin", symbol: "₿", balance: btcBalance, pending: 0, iconClass: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-        { code: "ETH", name: "Ethereum", symbol: "Ξ", balance: ethBalance, pending: 0, iconClass: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
-        { code: "USDC", name: "USD Coin", symbol: "C", balance: usdcBalance, pending: 0, iconClass: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-        { code: "SOL", name: "Solana", symbol: "S", balance: solBalance, pending: 0, iconClass: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20" },
-        { code: "BNB", name: "BNB", symbol: "B", balance: bnbBalance, pending: 0, iconClass: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
-        { code: "XRP", name: "Ripple", symbol: "X", balance: xrpBalance, pending: 0, iconClass: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
-        { code: "ADA", name: "Cardano", symbol: "A", balance: adaBalance, pending: 0, iconClass: "bg-indigo-600/10 text-indigo-500 border-indigo-600/20" }
+        { code: "BTC", name: "Bitcoin", symbol: "₿", balance: btcBalance, pending: btcLocked, iconClass: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+        { code: "ETH", name: "Ethereum", symbol: "Ξ", balance: ethBalance, pending: ethLocked, iconClass: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+        { code: "USDC", name: "USD Coin", symbol: "C", balance: usdcBalance, pending: usdcLocked, iconClass: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+        { code: "SOL", name: "Solana", symbol: "S", balance: solBalance, pending: solLocked, iconClass: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20" },
+        { code: "BNB", name: "BNB", symbol: "B", balance: bnbBalance, pending: bnbLocked, iconClass: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" },
+        { code: "XRP", name: "Ripple", symbol: "X", balance: xrpBalance, pending: xrpLocked, iconClass: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
+        { code: "ADA", name: "Cardano", symbol: "A", balance: adaBalance, pending: adaLocked, iconClass: "bg-indigo-600/10 text-indigo-500 border-indigo-600/20" }
     ];
 
     // Calculate total USD value of all assets combined

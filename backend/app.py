@@ -318,6 +318,13 @@ def create_app():
     except Exception as error:
         print(f"Warning: Failed to start plan monitor: {error}")
 
+    # Start periodic blockchain deposit monitor background thread
+    try:
+        from services.blockchain_monitor_service import start_blockchain_monitor
+        start_blockchain_monitor()
+    except Exception as error:
+        print(f"Warning: Failed to start blockchain monitor: {error}")
+
     import time
     @app.before_request
     def start_timer():

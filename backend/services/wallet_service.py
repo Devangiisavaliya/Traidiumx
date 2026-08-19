@@ -137,6 +137,18 @@ def apply_account_platform_fee_if_due(user_id, trigger="wallet_access"):
     if not fee_info.get("enabled") or fee_amount <= 0:
         return {"success": True, "charged": False, "reason": "disabled", "wallet": wallet, "fee": fee_info}
 
+    # Fast path: If the wallet is already marked as charged for this cycle, return immediately
+    cycle_key = str(cycle or "one_time").strip().lower()
+    has_marker = False
+    if cycle_key == "one_time":
+        has_marker = bool(wallet.get("account_platform_fee_one_time_charged_at"))
+    else:
+        marker = _platform_fee_cycle_marker(cycle_key)
+        has_marker = wallet.get("account_platform_fee_last_cycle_key") == marker
+
+    if has_marker:
+        return {"success": True, "charged": False, "reason": "already_charged", "wallet": wallet, "fee": fee_info}
+
     # Old versions only wrote ledger entries, not wallet marker fields. Sync that
     # state first so one-time/daily/monthly Platform Fee never repeats.
     if _sync_platform_fee_marker_if_ledger_exists(user_id, cycle):

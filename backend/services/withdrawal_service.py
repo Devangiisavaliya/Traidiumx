@@ -179,10 +179,11 @@ def create_withdrawal_request(user_id, data):
             if amount < 10:
                 errors["amount"] = "Minimum INR withdrawal amount is ₹10."
         else:
-            if amount < settings.CRYPTO_WITHDRAWAL_MIN_USDT:
-                errors["amount"] = f"Minimum crypto withdrawal amount is {settings.CRYPTO_WITHDRAWAL_MIN_USDT:g} USDT."
-            if amount > settings.CRYPTO_WITHDRAWAL_MAX_USDT:
-                errors["amount"] = f"Maximum crypto withdrawal amount is {settings.CRYPTO_WITHDRAWAL_MAX_USDT:g} USDT."
+            if crypto_asset == "USDT":
+                if amount < settings.CRYPTO_WITHDRAWAL_MIN_USDT:
+                    errors["amount"] = f"Minimum crypto withdrawal amount is {settings.CRYPTO_WITHDRAWAL_MIN_USDT:g} USDT."
+                if amount > settings.CRYPTO_WITHDRAWAL_MAX_USDT:
+                    errors["amount"] = f"Maximum crypto withdrawal amount is {settings.CRYPTO_WITHDRAWAL_MAX_USDT:g} USDT."
 
     if withdrawal_method == "inr_withdrawal":
         if not withdrawal_address:
@@ -206,11 +207,11 @@ def create_withdrawal_request(user_id, data):
         if total_fee > 0 and payout_amount <= 0:
             errors["amount"] = "Withdrawal amount must be greater than total fees."
         is_inr = (withdrawal_method == "inr_withdrawal" or crypto_asset == "INR")
-        main_bucket = wallet.get("main_wallet_inr") if is_inr else wallet.get("main_wallet_usdt")
+        main_bucket = wallet.get("main_wallet_inr") if is_inr else wallet.get(f"main_wallet_{crypto_asset.lower()}")
         main_bucket = main_bucket or {}
         available_balance = float(main_bucket.get("available_balance", 0.0))
         if available_balance < total_lock_amount:
-            errors["wallet"] = "Insufficient Main Wallet balance for withdrawal amount. Fees are deducted from the requested amount."
+            errors["wallet"] = f"Insufficient Main Wallet balance for withdrawal amount of {amount} {crypto_asset}."
         else:
             from admin.settings_routes import get_final_settings
             system_settings = get_final_settings()
@@ -230,9 +231,9 @@ def create_withdrawal_request(user_id, data):
     withdrawal_reference = f"TXW-{uuid.uuid4().hex[:12].upper()}"
     processing_mode = clean_string(settings.CRYPTO_WITHDRAWAL_PROCESSING_MODE or "backend_operations")
     is_inr = (withdrawal_method == "inr_withdrawal")
-    req_currency = "INR" if is_inr else "USDT"
+    req_currency = "INR" if is_inr else crypto_asset
     req_tx_type = "inr_withdrawal_request" if is_inr else "crypto_withdrawal_request"
-    unit_sym = "₹" if is_inr else "$"
+    unit_sym = "₹" if is_inr else ("$" if req_currency == "USDT" else "")
 
     withdrawal_id = create_withdrawal(
         {

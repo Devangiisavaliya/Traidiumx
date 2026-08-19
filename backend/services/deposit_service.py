@@ -169,6 +169,11 @@ def get_crypto_deposit_addresses(user_id=None):
         # system_settings first, then backend .env, then demo defaults. Old
         # per-user demo addresses stay only as a last fallback.
         address = clean_string(get_crypto_network_address(network) or main_addresses.get(network))
+        contract_address = ""
+        if network == "TRC20":
+            from services.blockchain_service import get_usdt_contract
+            contract_address = get_usdt_contract("TRC20")
+
         networks.append(
             {
                 "asset": details["asset"],
@@ -178,8 +183,13 @@ def get_crypto_deposit_addresses(user_id=None):
                 "is_configured": bool(address),
                 "required_confirmations": get_crypto_network_confirmations(network),
                 "confirmation_note": details["confirmation_note"],
+                "contract_address": contract_address,
             }
         )
+
+    from services.system_settings_service import get_runtime_system_settings
+    settings_data = get_runtime_system_settings()
+    btc_contract = clean_string(settings_data.get("crypto_deposit_btc_contract_address", ""))
 
     return {
         "success": True,
@@ -189,6 +199,7 @@ def get_crypto_deposit_addresses(user_id=None):
             "networks": networks,
             "min_amount": get_crypto_deposit_min_usdt(),
             "max_amount": get_crypto_deposit_max_usdt(),
+            "btc_contract_address": btc_contract,
             "supported_methods": ALLOWED_PAYMENT_METHODS,
             "fiat_methods_enabled": False,
             "auto_verify_enabled": bool(settings.CRYPTO_DEPOSIT_AUTO_VERIFY),
@@ -243,12 +254,45 @@ def _validate_deposit_input(user_id, data):
         if amount < 10:
             errors["amount"] = "Minimum INR deposit amount is ₹10."
     else:
+        from services.market_service import get_symbol_execution_price, get_symbol_ticker
+        
+        def get_asset_price(asset):
+            if asset in ["USDT", "USDC"]:
+                return 1.0
+            # Check setting overrides first
+            from admin.settings_routes import get_final_settings
+            sys_settings = get_final_settings()
+            override_val = sys_settings.get(f"rate_override_{asset.lower()}")
+            try:
+                if override_val is not None and float(override_val) > 0.0:
+                    return float(override_val)
+            except (ValueError, TypeError):
+                pass
+            
+            res = get_symbol_execution_price(f"{asset}USDT")
+            if res.get("success"):
+                return float(res.get("price", 0.0))
+            res_ticker = get_symbol_ticker(f"{asset}USDT")
+            if res_ticker.get("success"):
+                return float((res_ticker.get("data") or {}).get("last_price", 0.0))
+            return 0.0
+
+        asset_price = get_asset_price(crypto_asset)
+        if asset_price <= 0:
+            errors["crypto_asset"] = "Could not verify exchange rate for this asset."
+            usd_amount = 0.0
+        else:
+            usd_amount = amount * asset_price
+
         min_deposit_amount = get_crypto_deposit_min_usdt()
         max_deposit_amount = get_crypto_deposit_max_usdt()
-        if amount < min_deposit_amount:
-            errors["amount"] = f"Minimum crypto deposit amount is {min_deposit_amount:g} {crypto_asset}."
-        if amount > max_deposit_amount:
-            errors["amount"] = f"Maximum crypto deposit amount is {max_deposit_amount:g} {crypto_asset}."
+
+        if usd_amount < min_deposit_amount:
+            min_coin = min_deposit_amount / asset_price if asset_price > 0 else 0
+            errors["amount"] = f"Minimum deposit is ${min_deposit_amount:g} USDT value (≈ {min_coin:.4f} {crypto_asset})."
+        if usd_amount > max_deposit_amount:
+            max_coin = max_deposit_amount / asset_price if asset_price > 0 else 0
+            errors["amount"] = f"Maximum deposit is ${max_deposit_amount:g} USDT value (≈ {max_coin:.4f} {crypto_asset})."
 
         if crypto_network not in SUPPORTED_CRYPTO_NETWORKS:
             errors["crypto_network"] = f"Network must be one of: {', '.join(SUPPORTED_CRYPTO_NETWORKS)}."
@@ -344,7 +388,92 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
             },
         },
     )
+
+    # Save user's wallet address dynamically on first successful manual verification
+    from_addr = verification_result.get("verified_from_address")
+    if from_addr and deposit.get("crypto_network") == "TRC20":
+        from config.database import get_database
+        from bson import ObjectId
+        db = get_database()
+        db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"trc20_wallet_address": from_addr}}
+        )
+
     return updated, "Deposit verified and wallet credited successfully."
+
+
+def auto_credit_deposit(from_address, tx_hash, amount):
+    """Automatically create and complete a deposit request for the matched user.
+    
+    This is called by the background blockchain monitor daemon.
+    """
+    from config.database import get_database
+    db = get_database()
+    
+    # 1. Find user with this trc20_wallet_address
+    user = db.users.find_one({"trc20_wallet_address": from_address})
+    if not user:
+        return {"success": False, "message": "No user registered with this sender wallet address."}
+        
+    user_id = str(user["_id"])
+    
+    # 2. Check if a deposit with this tx_hash already exists
+    existing = find_deposit_by_tx_hash(tx_hash)
+    if existing:
+        return {"success": False, "message": f"Deposit with TXID {tx_hash} already exists."}
+        
+    # 3. Get network settings
+    deposit_address = clean_string(get_crypto_network_address("TRC20"))
+    deposit_reference = f"TXD-{uuid.uuid4().hex[:12].upper()}"
+    gateway_order_id = build_unique_gateway_order_id("crypto_deposit", deposit_reference)
+    explorer_url = build_explorer_url("TRC20", tx_hash)
+    
+    # 4. Create pending deposit document
+    deposit_id = create_deposit(
+        {
+            "user_id": user_id,
+            "deposit_reference": deposit_reference,
+            "gateway_order_id": gateway_order_id,
+            "amount": float(amount),
+            "currency": "USDT",
+            "status": "pending_blockchain_verification",
+            "payment_method": "crypto_deposit",
+            "gateway": "blockchain_auto_verification",
+            "gateway_payment_id": tx_hash,
+            "crypto_asset": "USDT",
+            "crypto_network": "TRC20",
+            "deposit_address": deposit_address,
+            "deposit_address_confirmation": deposit_address,
+            "address_confirmed_demo": False,
+            "tx_hash": tx_hash,
+            "is_demo": False,
+            "explorer_url": explorer_url,
+            "verification_status": "verified",
+            "verification_message": "Automated background blockchain verification successful.",
+            "confirmations": 1,
+            "required_confirmations": get_crypto_network_confirmations("TRC20"),
+            "verified_amount": float(amount),
+            "verified_to_address": deposit_address,
+            "remark": "Automated background credit via TRON blockchain listener.",
+            "risk_note": "Automated USDT deposit.",
+        }
+    )
+    
+    # 5. Credit the wallet
+    verification = {
+        "verified": True,
+        "status": "verified",
+        "message": "Automated background verification successful.",
+        "confirmations": 1,
+        "required_confirmations": get_crypto_network_confirmations("TRC20"),
+        "verified_amount": float(amount),
+        "verified_to_address": deposit_address,
+        "explorer_url": explorer_url,
+    }
+    
+    deposit, message = _credit_verified_deposit(user_id, str(deposit_id), verification)
+    return {"success": True, "message": f"Successfully auto-credited {amount} USDT to user {user.get('name')} (Ref: {deposit_reference})."}
 
 
 def create_deposit_request(user_id, data):
@@ -416,7 +545,8 @@ def create_deposit_request(user_id, data):
     tx_hash = str(cleaned.get("tx_hash") or "")
     explorer_url = build_explorer_url(cleaned.get("crypto_network"), tx_hash)
     is_demo_deposit = bool(
-        cleaned.get("address_confirmed_demo")
+        settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT
+        or cleaned.get("address_confirmed_demo")
         or tx_hash.upper().startswith("DEMO")
         or is_demo_deposit_context(cleaned.get("deposit_address"))
     )

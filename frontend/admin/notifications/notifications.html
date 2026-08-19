@@ -126,6 +126,27 @@
         background: rgba(251,113,133,.11);
         border-color: rgba(251,113,133,.30);
     }
+    body.admin-light-mode[data-admin-page="notifications"] .status-info {
+        color: #0891b2 !important;
+        background: rgba(8,145,178,.12) !important;
+        border-color: rgba(8,145,178,.22) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .status-success {
+        color: #047857 !important;
+        background: rgba(16,185,129,.12) !important;
+        border-color: rgba(16,185,129,.22) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .status-warning {
+        color: #b45309 !important;
+        background: rgba(245,158,11,.12) !important;
+        border-color: rgba(245,158,11,.22) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .status-alert,
+    body.admin-light-mode[data-admin-page="notifications"] .status-danger {
+        color: #be123c !important;
+        background: rgba(244,63,94,.11) !important;
+        border-color: rgba(244,63,94,.22) !important;
+    }
     body[data-admin-page="notifications"] .notification-preview {
         border: 1px solid var(--notice-border);
         border-radius: 26px;
@@ -181,21 +202,54 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    body.admin-light-mode[data-admin-page="notifications"] .notification-preview,
-    body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview {
-        background: radial-gradient(circle at top left, var(--notice-soft), transparent 45%), #020617 !important;
+    body.admin-light-mode[data-admin-page="notifications"] {
+        --notice-color: #0891b2;
+        --notice-soft: rgba(8,145,178,.08);
+        --notice-border: rgba(8,145,178,.24);
+        --notice-text: #0e7490;
     }
-    body.admin-light-mode[data-admin-page="notifications"] .notification-preview *,
-    body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview * {
-        color: inherit;
+    body.admin-light-mode[data-admin-page="notifications"] [data-severity="info"] {
+        --notice-color: #0891b2;
+        --notice-soft: rgba(8,145,178,.08);
+        --notice-border: rgba(8,145,178,.24);
+        --notice-text: #0e7490;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] [data-severity="success"] {
+        --notice-color: #059669;
+        --notice-soft: rgba(5,150,105,.08);
+        --notice-border: rgba(5,150,105,.24);
+        --notice-text: #047857;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] [data-severity="warning"] {
+        --notice-color: #d97706;
+        --notice-soft: rgba(217,119,6,.08);
+        --notice-border: rgba(217,119,6,.24);
+        --notice-text: #b45309;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] [data-severity="alert"],
+    body.admin-light-mode[data-admin-page="notifications"] [data-severity="danger"] {
+        --notice-color: #e11d48;
+        --notice-soft: rgba(225,29,72,.08);
+        --notice-border: rgba(225,29,72,.24);
+        --notice-text: #be123c;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .notification-preview {
+        background: radial-gradient(circle at top left, var(--notice-soft), transparent 45%), #ffffff !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.80), 0 20px 48px rgba(15,23,42,.06) !important;
+        border-color: var(--notice-border) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview {
+        background: #ffffff !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.80), 0 18px 44px rgba(15,23,42,.06) !important;
+        border-color: var(--notice-border) !important;
     }
     body.admin-light-mode[data-admin-page="notifications"] .notification-preview h3,
     body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview h4 {
-        color: #ffffff !important;
+        color: #0f172a !important;
     }
     body.admin-light-mode[data-admin-page="notifications"] .notification-preview p,
     body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview p {
-        color: #cbd5e1 !important;
+        color: #475569 !important;
     }
     body.admin-light-mode[data-admin-page="notifications"] .notification-preview .preview-kicker,
     body.admin-light-mode[data-admin-page="notifications"] .notification-mail-preview .mail-format-kicker {
@@ -213,6 +267,15 @@
     }
     body.admin-light-mode[data-admin-page="notifications"] .broadcast-row {
         background: linear-gradient(135deg,var(--notice-soft),rgba(255,255,255,.78)) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .notification-modal {
+        background: rgba(15,23,42,.40) !important;
+    }
+    body.admin-light-mode[data-admin-page="notifications"] .notification-modal-card {
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(245,248,255,.94)) !important;
+        border-color: rgba(15,23,42,.12) !important;
+        box-shadow: 0 36px 110px rgba(15,23,42,.18), inset 0 1px 0 rgba(255,255,255,.82) !important;
+        color: #0f172a !important;
     }
     @media (max-width: 1180px) {
         body[data-admin-page="notifications"] .notification-grid { grid-template-columns: 1fr; }

@@ -173,10 +173,13 @@ function renderLoggedInDesktop(container, user) {
     const fullName = escapeHtml(user.name || user.email || "User");
     const userInitial = userName.charAt(0).toUpperCase() || "U";
 
+    const currentPath = window.location.pathname.toLowerCase();
+    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/");
+
     container.innerHTML = `
         <div class="flex items-center gap-3 relative z-10">
             <!-- Currency Switcher -->
-            <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40 mr-1">
+            <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40 mr-1" ${shouldHideToggle ? 'style="display: none !important;"' : ''}>
                 <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer" data-currency="INR">
                     ₹ INR
                 </button>
@@ -221,7 +224,7 @@ function renderLoggedInDesktop(container, user) {
                 <div id="txProfileDropdown" class="hidden absolute right-0 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
                     <!-- Header -->
                     <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
-                        <div class="w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
+                        <div class="tx-profile-avatar w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
                             ${userInitial}
                         </div>
                         <div class="min-w-0 flex-1">
@@ -353,6 +356,9 @@ function renderLoggedInMobile(container, user) {
     }
     const userName = escapeHtml(displayName);
 
+    const currentPath = window.location.pathname.toLowerCase();
+    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/");
+
     container.innerHTML = `
         <a href="/src/pages/profile.html" class="tx-mobile-auth-profile" title="Open account details">
             <span class="min-w-0">
@@ -364,7 +370,7 @@ function renderLoggedInMobile(container, user) {
             </svg>
         </a>
 
-        <div class="flex justify-between items-center my-3 px-1">
+        <div class="flex justify-between items-center my-3 px-1" ${shouldHideToggle ? 'style="display: none !important;"' : ''}>
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Display Currency</span>
             <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40">
                 <button type="button" class="flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px]" data-currency="INR">
@@ -1001,14 +1007,15 @@ function escapeHtml(value) {
             .tx-navbar-notification-list{flex:1 1 auto;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:rgba(103,232,249,.28) transparent;}
             .tx-navbar-notification-list::-webkit-scrollbar{width:6px;}
             .tx-navbar-notification-list::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(103,232,249,.28);}
-            .tx-navbar-notification-item{--notice-color:#22d3ee;--notice-soft:rgba(34,211,238,.07);--notice-border:rgba(34,211,238,.22);--notice-text:#a5f3fc;position:relative;display:grid;grid-template-columns:10px 1fr;gap:10px;border-radius:18px;border:1px solid transparent;border-left:3px solid var(--notice-border);padding:12px 11px;transition:background .16s ease,border-color .16s ease;}
+            .tx-navbar-notification-item{--notice-color:#22d3ee;--notice-soft:rgba(34,211,238,.07);--notice-border:rgba(34,211,238,.22);--notice-text:#a5f3fc;position:relative;display:grid;grid-template-columns:10px 1fr;gap:10px;border-radius:18px;border:1px solid transparent;border-left:3px solid var(--notice-border);padding:12px 11px;transition:background .16s ease,border-color .16s ease,opacity .16s ease;opacity:.65;}
             .tx-navbar-notification-item.info{--notice-color:#22d3ee;--notice-soft:rgba(34,211,238,.07);--notice-border:rgba(34,211,238,.24);--notice-text:#a5f3fc;}
             .tx-navbar-notification-item.success{--notice-color:#34d399;--notice-soft:rgba(52,211,153,.08);--notice-border:rgba(52,211,153,.28);--notice-text:#bbf7d0;}
             .tx-navbar-notification-item.warning{--notice-color:#fbbf24;--notice-soft:rgba(251,191,36,.08);--notice-border:rgba(251,191,36,.30);--notice-text:#fef3c7;}
             .tx-navbar-notification-item.alert,.tx-navbar-notification-item.danger,.tx-navbar-notification-item.error{--notice-color:#fb7185;--notice-soft:rgba(251,113,133,.08);--notice-border:rgba(251,113,133,.32);--notice-text:#ffe4e6;}
-            .tx-navbar-notification-item:hover{border-color:var(--notice-border);background:var(--notice-soft);}
-            .tx-navbar-notification-item.is-unread{border-color:var(--notice-border);background:linear-gradient(135deg,var(--notice-soft),rgba(255,255,255,.025));}
-            .tx-navbar-notification-dot{margin-top:6px;width:8px;height:8px;border-radius:999px;background:var(--notice-color);box-shadow:0 0 16px color-mix(in srgb,var(--notice-color) 55%,transparent);opacity:.72;}
+            .tx-navbar-notification-item:hover{border-color:var(--notice-border);background:var(--notice-soft);opacity:.85;}
+            .tx-navbar-notification-item.is-unread{opacity:1;border-color:var(--notice-border);background:linear-gradient(135deg,var(--notice-soft),rgba(255,255,255,.025));}
+            .tx-navbar-notification-item.is-unread:hover{opacity:1;}
+            .tx-navbar-notification-dot{margin-top:6px;width:8px;height:8px;border-radius:999px;background:var(--notice-color);box-shadow:0 0 16px color-mix(in srgb,var(--notice-color) 55%,transparent);opacity:0;transition:opacity .16s ease;}
             .tx-navbar-notification-item.is-unread .tx-navbar-notification-dot{opacity:1;box-shadow:0 0 18px color-mix(in srgb,var(--notice-color) 66%,transparent);}
             .tx-navbar-notification-meta{display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;flex-wrap:wrap;}
             .tx-navbar-notification-meta span:last-child{margin-left:auto;}
@@ -1287,28 +1294,61 @@ function initGlobalTranslation() {
     setGoogleTranslateCookie(langCode);
 
     if (langCode !== "en") {
-        let gtDiv = document.getElementById("google_translate_element");
-        if (!gtDiv) {
-            gtDiv = document.createElement("div");
-            gtDiv.id = "google_translate_element";
-            gtDiv.style.display = "none";
-            document.body.appendChild(gtDiv);
+        // Apply class and style immediately to prevent untranslated content flicker (FOUTC)
+        document.documentElement.classList.add("tx-translating");
+        if (!document.getElementById("tx-translation-flicker-prevention")) {
+            const style = document.createElement("style");
+            style.id = "tx-translation-flicker-prevention";
+            style.textContent = `
+                html.tx-translating body {
+                    opacity: 0 !important;
+                    visibility: hidden !important;
+                }
+                html.translated-ltr body, html.translated-rtl body {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    transition: opacity 0.15s ease;
+                }
+            `;
+            document.head.appendChild(style);
         }
 
-        if (!document.getElementById("google-translate-script")) {
-            const script = document.createElement("script");
-            script.id = "google-translate-script";
-            script.type = "text/javascript";
-            script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-            document.body.appendChild(script);
+        // Fallback: Show body after 850ms in case translation fails or delays
+        setTimeout(() => {
+            document.documentElement.classList.remove("tx-translating");
+        }, 850);
 
-            window.googleTranslateElementInit = function () {
-                new google.translate.TranslateElement({
-                    pageLanguage: 'en',
-                    includedLanguages: 'en,gu,hi',
-                    autoDisplay: true
-                }, 'google_translate_element');
-            };
+        // Load the translation elements on DOM ready
+        const setupTranslateElement = () => {
+            let gtDiv = document.getElementById("google_translate_element");
+            if (!gtDiv) {
+                gtDiv = document.createElement("div");
+                gtDiv.id = "google_translate_element";
+                gtDiv.style.display = "none";
+                document.body.appendChild(gtDiv);
+            }
+
+            if (!document.getElementById("google-translate-script")) {
+                const script = document.createElement("script");
+                script.id = "google-translate-script";
+                script.type = "text/javascript";
+                script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+                document.body.appendChild(script);
+
+                window.googleTranslateElementInit = function () {
+                    new google.translate.TranslateElement({
+                        pageLanguage: 'en',
+                        includedLanguages: 'en,gu,hi',
+                        autoDisplay: true
+                    }, 'google_translate_element');
+                };
+            }
+        };
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", setupTranslateElement);
+        } else {
+            setupTranslateElement();
         }
     }
 }
@@ -1330,10 +1370,6 @@ function setGoogleTranslateCookie(langCode) {
     }
 }
 
-// Run translation check on load
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initGlobalTranslation);
-} else {
-    initGlobalTranslation();
-}
+// Run translation check on load (runs immediately on script parse for early style injection)
+initGlobalTranslation();
 

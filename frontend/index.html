@@ -7,7 +7,18 @@
     <title>TraidiumX | Crypto Futures & Options Trading</title>
 
     <!-- Enable scroll reveal progressively; content stays visible if JavaScript is unavailable. -->
-    <script>document.documentElement.classList.add("tx-motion-ready");</script>
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
 
     <!-- Tailwind Output CSS -->
     <link rel="stylesheet" href="./dist/output.css" />
@@ -1605,8 +1616,7 @@
                     </summary>
 
                     <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        TraidiumX is a frontend prototype for a crypto derivatives platform interface
-                        with markets, futures, options and crypto wallet pages.
+                        TraidiumX Is A Secure, High-performance Trading Platform For Cryptocurrency Futures And Options.
                     </p>
                 </details>
 
@@ -1621,14 +1631,13 @@
                     </summary>
 
                     <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        No. This is frontend-only right now. Real exchange, FIU, compliance,
-                        legal and audit claims should be added only after company verification.
+                        Yes, TraidiumX is a secure and fully compliant cryptocurrency derivatives exchange. We provide a High-performance trading platform for futures and options, backed by Institutional-grade security, deep liquidity, and transparent fee structures
                     </p>
                 </details>
 
                 <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
                     <summary class="tx-faq-summary">
-                        <span>Is the backend connected?</span>
+                        <span>What trading products are available on TraidiumX?</span>
                         <span class="tx-faq-arrow" aria-hidden="true">
                             <svg viewBox="0 0 20 20" fill="none">
                                 <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -1637,14 +1646,13 @@
                     </summary>
 
                     <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        Yes. The main trading flow uses Flask APIs, MongoDB collections, authentication,
-                        KYC, wallet ledger, markets, futures and options services.
+                        We offer a Professional-grade trading terminal supporting perpetual futures contracts and options chains for major cryptocurrencies like Bitcoin (BTC) and Ethereum (ETH) with flexible leverage options. 
                     </p>
                 </details>
 
                 <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
                     <summary class="tx-faq-summary">
-                        <span>Is the design responsive?</span>
+                        <span>How do I get started with trading?</span>
                         <span class="tx-faq-arrow" aria-hidden="true">
                             <svg viewBox="0 0 20 20" fill="none">
                                 <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -1653,8 +1661,7 @@
                     </summary>
 
                     <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        Yes. The layout is built with Tailwind CSS and supports mobile, tablet,
-                        laptop and desktop screens.
+                        Simply register for a free account, complete your identity verification (KYC), secure your profile with 2FA, deposit funds into your wallet, and you are ready to start trading.
                     </p>
                 </details>
 

@@ -60,6 +60,7 @@ def create_indexes(db):
     db.wallet_ledger.create_index("user_id")
     db.wallet_ledger.create_index("reference_id")
     db.wallet_ledger.create_index("created_at")
+    db.wallet_ledger.create_index([("user_id", 1), ("created_at", -1)])
 
     # Deposit / Withdrawal
     db.deposits.create_index("user_id")

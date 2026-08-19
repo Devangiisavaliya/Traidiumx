@@ -236,11 +236,11 @@ def _get_default_fee_config():
             "updated_label": "Backend controlled"
         },
         "policy_notes": [
-            "All fee values are served from the backend fee configuration API.",
-            "Trading fees are calculated in USDT and recorded through backend wallet ledger flows where applicable.",
-            "Funding is not a trading fee. Futures funding/settlement rules are handled by the trading engine policy.",
-            "Crypto deposits are credited only after backend blockchain verification; no UPI, bank transfer or INR rail is used.",
-            "Fee values can be changed from backend configuration/database in future without changing frontend code."
+            "Fee Transparency. All trading and wallet fees are displayed transparently and updated dynamically according to our latest fee structure.",
+            "USDT Settlement. All trading fees and transactions are settled and recorded in USDT to ensure stability and transparency.",
+            "Funding Rates. Funding rates on perpetual futures are exchanged directly between long and short positions and are not platform fees.",
+            "Deposit Verification. Cryptocurrency deposits are credited securely to your account after standard blockchain network confirmations.",
+            "Fee Updates. Fee structures are subject to periodic adjustments to align with market conditions and liquidity."
         ]
     }
 
@@ -370,12 +370,8 @@ def _platform_fee_cycle(value, default="one_time"):
 
 def get_runtime_fee_settings():
     try:
-        db = get_database()
-        saved = (
-            db.system_settings.find_one({"settings_key": "main"})
-            or db.system_settings.find_one(sort=[("updated_at", -1)])
-            or {}
-        )
+        from services.system_settings_service import get_runtime_system_settings
+        saved = get_runtime_system_settings()
     except Exception:
         saved = {}
 

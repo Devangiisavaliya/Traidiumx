@@ -24,15 +24,50 @@ from utils.validators import clean_string
 USDT_DECIMALS = 6
 TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
-USDT_CONTRACTS = {
-    "TRC20": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-    "ERC20": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    "BEP20": "0x55d398326f99059fF775485246999027B3197955",
-}
+def get_usdt_contract(network):
+    network = clean_string(network).upper()
+    if network == "TRC20":
+        return clean_string(getattr(settings, "USDT_TRC20_CONTRACT_ADDRESS", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"))
+    if network == "ERC20":
+        return "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+    if network == "BEP20":
+        return "0x55d398326f99059fF775485246999027B3197955"
+    return ""
 
 
 def normalize_network(network):
     return clean_string(network).upper()
+
+
+def hex_to_base58(hex_str):
+    import hashlib
+    hex_str = clean_string(hex_str)
+    if not hex_str:
+        return ""
+    # Standard TRON address prefix is 0x41
+    if hex_str.startswith("0x"):
+        hex_str = "41" + hex_str[2:]
+    elif not hex_str.startswith("41"):
+        hex_str = "41" + hex_str
+        
+    try:
+        hex_bytes = bytes.fromhex(hex_str)
+        first_sha = hashlib.sha256(hex_bytes).digest()
+        second_sha = hashlib.sha256(first_sha).digest()
+        checksum = second_sha[:4]
+        final_bytes = hex_bytes + checksum
+        
+        alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        n_pad = len(final_bytes) - len(final_bytes.lstrip(b'\x00'))
+        v = int.from_bytes(final_bytes, 'big')
+        result = []
+        while v > 0:
+            v, mod = divmod(v, 58)
+            result.append(alphabet[mod])
+        result.extend([alphabet[0]] * n_pad)
+        return ''.join(reversed(result))
+    except Exception:
+        return ""
 
 
 def build_explorer_url(network, tx_hash):
@@ -141,7 +176,7 @@ def _verify_evm_deposit(network, tx_hash, expected_to_address, expected_amount):
             "confirmations": 0,
         }
 
-    expected_contract = USDT_CONTRACTS[network].lower()
+    expected_contract = get_usdt_contract(network).lower()
     expected_to_address = clean_string(expected_to_address).lower()
 
     matched_amount = 0.0
@@ -205,23 +240,27 @@ def _verify_trc20_deposit(tx_hash, expected_to_address, expected_amount):
     events = response.get("data", [])
     expected_to_address = clean_string(expected_to_address)
     matched_amount = 0.0
+    verified_from_address = ""
 
     for event in events:
         event_name = clean_string(event.get("event_name") or event.get("event") or "")
         contract = clean_string(event.get("contract_address") or event.get("contract") or "")
         result = event.get("result") or {}
         to_address = clean_string(result.get("to") or result.get("_to") or "")
+        from_address = clean_string(result.get("from") or result.get("_from") or "")
         value = result.get("value") or result.get("_value") or 0
 
         if event_name.lower() != "transfer":
             continue
-        if contract and contract != USDT_CONTRACTS["TRC20"]:
+        if contract and contract != get_usdt_contract("TRC20"):
             continue
         if to_address != expected_to_address:
             continue
 
         try:
             matched_amount += float(value) / (10 ** USDT_DECIMALS)
+            if not verified_from_address and from_address:
+                verified_from_address = hex_to_base58(from_address)
         except (TypeError, ValueError):
             continue
 
@@ -249,6 +288,7 @@ def _verify_trc20_deposit(tx_hash, expected_to_address, expected_amount):
         "confirmations": 1,
         "verified_amount": round(matched_amount, 8),
         "verified_to_address": expected_to_address,
+        "verified_from_address": verified_from_address,
     }
 
 

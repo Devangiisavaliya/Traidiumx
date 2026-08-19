@@ -87,6 +87,14 @@ DEFAULT_SETTINGS = {
     "crypto_deposit_usdt_trc20_address": getattr(app_settings, "CRYPTO_DEPOSIT_USDT_TRC20_ADDRESS", "") or "TQp9K7vY3Wm2N8rF4cL6Xh5A1BzDgE2sRZ",
     "crypto_deposit_usdt_erc20_address": getattr(app_settings, "CRYPTO_DEPOSIT_USDT_ERC20_ADDRESS", "") or "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
     "crypto_deposit_usdt_bep20_address": getattr(app_settings, "CRYPTO_DEPOSIT_USDT_BEP20_ADDRESS", "") or "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF",
+    "crypto_deposit_btc_contract_address": getattr(app_settings, "CRYPTO_DEPOSIT_BTC_CONTRACT_ADDRESS", "") or "",
+    "crypto_deposit_btc_address": getattr(app_settings, "CRYPTO_DEPOSIT_BTC_ADDRESS", "") or "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    "crypto_deposit_sol_address": getattr(app_settings, "CRYPTO_DEPOSIT_SOL_ADDRESS", "") or "HN7cAB2133LQV7t3W3x2fGfY1c5f3c5f3c5f3c5f3c5f",
+    "crypto_deposit_xrp_address": getattr(app_settings, "CRYPTO_DEPOSIT_XRP_ADDRESS", "") or "rEb8QCgNs9rkec2QCQKsE2wo9T3p45WstX",
+    "crypto_deposit_ada_address": getattr(app_settings, "CRYPTO_DEPOSIT_ADA_ADDRESS", "") or "Ae2tdPwUPEYx5g5P7w5UaXfGfM4vXfP5p3d",
+    "crypto_deposit_eth_address": getattr(app_settings, "CRYPTO_DEPOSIT_ETH_ADDRESS", "") or "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
+    "crypto_deposit_usdc_address": getattr(app_settings, "CRYPTO_DEPOSIT_USDC_ADDRESS", "") or "0x8A4b2C5D7e9F0a1B3c4D6E8F901234567890AbCd",
+    "crypto_deposit_bnb_address": getattr(app_settings, "CRYPTO_DEPOSIT_BNB_ADDRESS", "") or "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF",
     "crypto_deposit_min_usdt": getattr(app_settings, "CRYPTO_DEPOSIT_MIN_USDT", 10),
     "crypto_deposit_max_usdt": getattr(app_settings, "CRYPTO_DEPOSIT_MAX_USDT", 1000000),
     "min_main_wallet_balance": 0.0,
@@ -471,6 +479,37 @@ def clean_settings_payload(data):
         "crypto_deposit_usdt_bep20_address": clean_address_value(
             data.get("crypto_deposit_usdt_bep20_address")
             or DEFAULT_SETTINGS["crypto_deposit_usdt_bep20_address"]
+        ),
+        "crypto_deposit_btc_contract_address": clean_address_value(
+            data.get("crypto_deposit_btc_contract_address") or ""
+        ),
+        "crypto_deposit_btc_address": clean_address_value(
+            data.get("crypto_deposit_btc_address")
+            or DEFAULT_SETTINGS["crypto_deposit_btc_address"]
+        ),
+        "crypto_deposit_sol_address": clean_address_value(
+            data.get("crypto_deposit_sol_address")
+            or DEFAULT_SETTINGS["crypto_deposit_sol_address"]
+        ),
+        "crypto_deposit_xrp_address": clean_address_value(
+            data.get("crypto_deposit_xrp_address")
+            or DEFAULT_SETTINGS["crypto_deposit_xrp_address"]
+        ),
+        "crypto_deposit_ada_address": clean_address_value(
+            data.get("crypto_deposit_ada_address")
+            or DEFAULT_SETTINGS["crypto_deposit_ada_address"]
+        ),
+        "crypto_deposit_eth_address": clean_address_value(
+            data.get("crypto_deposit_eth_address")
+            or DEFAULT_SETTINGS["crypto_deposit_eth_address"]
+        ),
+        "crypto_deposit_usdc_address": clean_address_value(
+            data.get("crypto_deposit_usdc_address")
+            or DEFAULT_SETTINGS["crypto_deposit_usdc_address"]
+        ),
+        "crypto_deposit_bnb_address": clean_address_value(
+            data.get("crypto_deposit_bnb_address")
+            or DEFAULT_SETTINGS["crypto_deposit_bnb_address"]
         ),
         "crypto_deposit_min_usdt": normalize_min_deposit(
             data.get("crypto_deposit_min_usdt")

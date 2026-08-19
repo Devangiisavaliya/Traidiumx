@@ -7986,7 +7986,6 @@ html.light iframe,
 html.light canvas,
 html.light [style*="background-image"],
 html.light #txNavbarProfileBtn,
-html.light #txProfileDropdown,
 html.light .tx-profile-avatar {
     filter: invert(1) hue-rotate(180deg);
 }

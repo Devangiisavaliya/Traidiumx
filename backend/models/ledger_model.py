@@ -81,7 +81,7 @@ def get_user_ledger(user_id, limit=50):
     return list(ledger_items)
 
 
-def format_ledger_item(item):
+def format_ledger_item(item, wallet_currency_cache=None):
     if not item:
         return None
 
@@ -95,13 +95,19 @@ def format_ledger_item(item):
     else:
         currency = item.get("currency")
         if not currency:
-            try:
-                db = get_database()
-                w = db.wallets.find_one({"user_id": str(item.get("user_id"))})
-                if w:
-                    currency = w.get("primary_currency") or (w.get("main_wallet") or {}).get("currency")
-            except Exception:
-                pass
+            user_id = str(item.get("user_id"))
+            if wallet_currency_cache is not None and user_id in wallet_currency_cache:
+                currency = wallet_currency_cache[user_id]
+            else:
+                try:
+                    db = get_database()
+                    w = db.wallets.find_one({"user_id": user_id})
+                    if w:
+                        currency = w.get("primary_currency") or (w.get("main_wallet") or {}).get("currency")
+                        if wallet_currency_cache is not None:
+                            wallet_currency_cache[user_id] = currency
+                except Exception:
+                    pass
 
     currency = str(currency or "USDT").strip().upper()
     if currency not in ["INR", "USDT"]:
@@ -125,4 +131,5 @@ def format_ledger_item(item):
 
 
 def format_ledger_items(items):
-    return [format_ledger_item(item) for item in items]
+    wallet_currency_cache = {}
+    return [format_ledger_item(item, wallet_currency_cache=wallet_currency_cache) for item in items]

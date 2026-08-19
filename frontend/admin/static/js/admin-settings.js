@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         crypto_deposit_usdt_erc20_address: document.getElementById("cryptoDepositErc20Address"),
         crypto_deposit_usdt_bep20_address: document.getElementById("cryptoDepositBep20Address"),
         crypto_deposit_btc_address: document.getElementById("cryptoDepositBtcAddress"),
+        crypto_deposit_btc_contract_address: document.getElementById("cryptoDepositBtcContractAddress"),
         crypto_deposit_sol_address: document.getElementById("cryptoDepositSolAddress"),
         crypto_deposit_xrp_address: document.getElementById("cryptoDepositXrpAddress"),
         crypto_deposit_ada_address: document.getElementById("cryptoDepositAdaAddress"),
@@ -553,6 +554,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setVal(fields.crypto_deposit_usdt_erc20_address, data.crypto_deposit_usdt_erc20_address);
         setVal(fields.crypto_deposit_usdt_bep20_address, data.crypto_deposit_usdt_bep20_address);
         setVal(fields.crypto_deposit_btc_address, data.crypto_deposit_btc_address);
+        setVal(fields.crypto_deposit_btc_contract_address, data.crypto_deposit_btc_contract_address);
         setVal(fields.crypto_deposit_sol_address, data.crypto_deposit_sol_address);
         setVal(fields.crypto_deposit_xrp_address, data.crypto_deposit_xrp_address);
         setVal(fields.crypto_deposit_ada_address, data.crypto_deposit_ada_address);
@@ -600,6 +602,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             validateAddressLive("cryptoDepositErc20Address", "ERC20");
             validateAddressLive("cryptoDepositBep20Address", "BEP20");
             validateAddressLive("cryptoDepositBtcAddress", "BITCOIN");
+            validateAddressLive("cryptoDepositBtcContractAddress", "ERC20");
             validateAddressLive("cryptoDepositSolAddress", "SOLANA");
             validateAddressLive("cryptoDepositXrpAddress", "RIPPLE");
             validateAddressLive("cryptoDepositAdaAddress", "CARDANO");
@@ -675,6 +678,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             crypto_deposit_usdt_erc20_address: getVal(fields.crypto_deposit_usdt_erc20_address).replace(/\s/g, ""),
             crypto_deposit_usdt_bep20_address: getVal(fields.crypto_deposit_usdt_bep20_address).replace(/\s/g, ""),
             crypto_deposit_btc_address: getVal(fields.crypto_deposit_btc_address).replace(/\s/g, ""),
+            crypto_deposit_btc_contract_address: getVal(fields.crypto_deposit_btc_contract_address).replace(/\s/g, ""),
             crypto_deposit_sol_address: getVal(fields.crypto_deposit_sol_address).replace(/\s/g, ""),
             crypto_deposit_xrp_address: getVal(fields.crypto_deposit_xrp_address).replace(/\s/g, ""),
             crypto_deposit_ada_address: getVal(fields.crypto_deposit_ada_address).replace(/\s/g, ""),
@@ -942,9 +946,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 errMsg = `${networkType} Address must be exactly 42 characters (currently ${val.length})`;
             }
         } else if (networkType === "BITCOIN") {
-            const startsOk = val.startsWith("1") || val.startsWith("3") || val.toLowerCase().startsWith("bc1");
+            const startsOk = val.startsWith("1") || val.startsWith("3") || val.toLowerCase().startsWith("bc1") || val.toLowerCase().startsWith("0x");
             if (!startsOk) {
-                errMsg = "Bitcoin Address must start with '1', '3', or 'bc1'";
+                errMsg = "Bitcoin Address must start with '1', '3', 'bc1' (or '0x' for Sepolia ERC20-BTC)";
+            } else if (val.toLowerCase().startsWith("0x")) {
+                if (val.length !== 42) {
+                    errMsg = "ERC20 Bitcoin Address must be exactly 42 characters (currently " + val.length + ")";
+                }
             } else if (val.length < 26 || val.length > 90) {
                 errMsg = `Bitcoin Address length must be between 26 and 90 characters (currently ${val.length})`;
             }
@@ -985,6 +993,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         { field: fields.crypto_deposit_usdt_erc20_address, type: "ERC20", id: "cryptoDepositErc20Address" },
         { field: fields.crypto_deposit_usdt_bep20_address, type: "BEP20", id: "cryptoDepositBep20Address" },
         { field: fields.crypto_deposit_btc_address, type: "BITCOIN", id: "cryptoDepositBtcAddress" },
+        { field: fields.crypto_deposit_btc_contract_address, type: "ERC20", id: "cryptoDepositBtcContractAddress" },
         { field: fields.crypto_deposit_sol_address, type: "SOLANA", id: "cryptoDepositSolAddress" },
         { field: fields.crypto_deposit_xrp_address, type: "RIPPLE", id: "cryptoDepositXrpAddress" },
         { field: fields.crypto_deposit_ada_address, type: "CARDANO", id: "cryptoDepositAdaAddress" },

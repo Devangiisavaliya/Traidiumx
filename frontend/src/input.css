@@ -1,1 +1,12 @@
-@import "tailwindcss"; 
+@import "tailwindcss";
+
+/* Google Translate flicker prevention */
+html.tx-translating body {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+html.translated-ltr body, html.translated-rtl body {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: opacity 0.12s ease;
+}

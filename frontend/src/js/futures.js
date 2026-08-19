@@ -1895,11 +1895,11 @@ function txSyncWalletModalCurrencyUI(nodes, primaryCurrency) {
 function txUpdateFuturesDepositModalUIByCurrency(currency) {
     const nodes = txGetFuturesWalletModalNodes();
     const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const activeCurrency = String(currency || nodes.depositForm?.dataset.activeCurrency || primaryCurrency).toUpperCase();
+    const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.depositForm) nodes.depositForm.dataset.activeCurrency = activeCurrency;
 
     const isINR = activeCurrency === "INR";
-    const isLocked = false;
+    const isLocked = true; // Hide toggle bar
 
     const inrBox = document.getElementById("futuresInrDepositBox");
     const cryptoBox = document.getElementById("futuresCryptoDepositBox");
@@ -1960,7 +1960,7 @@ function txUpdateFuturesDepositModalUIByCurrency(currency) {
 function txUpdateFuturesWithdrawalModalUIByCurrency(currency) {
     const nodes = txGetFuturesWalletModalNodes();
     const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const activeCurrency = String(currency || nodes.withdrawForm?.dataset.activeCurrency || primaryCurrency).toUpperCase();
+    const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.withdrawForm) nodes.withdrawForm.dataset.activeCurrency = activeCurrency;
 
     const isINR = activeCurrency === "INR";
@@ -1974,6 +1974,9 @@ function txUpdateFuturesWithdrawalModalUIByCurrency(currency) {
     const assetInput = document.getElementById("futuresWithdrawAsset");
     const btnInr = document.getElementById("txFuturesSelectWithdrawInrBtn");
     const btnUsdt = document.getElementById("txFuturesSelectWithdrawUsdtBtn");
+
+    const toggleBar = document.getElementById("txFuturesWithdrawCurrencyToggleBar");
+    if (toggleBar) toggleBar.classList.add("hidden");
 
     if (netBox) netBox.classList.toggle("hidden", isINR);
     if (tagBox) tagBox.classList.toggle("hidden", isINR);

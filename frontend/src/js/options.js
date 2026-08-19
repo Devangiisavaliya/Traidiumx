@@ -2791,11 +2791,11 @@ function openOptionsWalletModal(action = "transfer") {
 
     if (!nodes.modal) return;
     if (nodes.depositForm) {
-        const primaryCurrency = (state.wallet.primaryCurrency || "INR").toUpperCase();
+        const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
         nodes.depositForm.dataset.activeCurrency = primaryCurrency;
     }
     if (nodes.withdrawForm) {
-        const primaryCurrency = (state.wallet.primaryCurrency || "INR").toUpperCase();
+        const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
         nodes.withdrawForm.dataset.activeCurrency = primaryCurrency;
     }
     fetchOptionsUsdtRate();
@@ -2886,12 +2886,12 @@ function syncOptionsWalletModalCurrencyUI(nodes, primaryCurrency) {
 
 function updateOptionsDepositModalUIByCurrency(currency) {
     const nodes = getOptionsWalletModalNodes();
-    const primaryCurrency = (state.wallet.primaryCurrency || "INR").toUpperCase();
-    const activeCurrency = String(currency || nodes.depositForm?.dataset.activeCurrency || primaryCurrency).toUpperCase();
+    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.depositForm) nodes.depositForm.dataset.activeCurrency = activeCurrency;
 
     const isINR = activeCurrency === "INR";
-    const isLocked = false;
+    const isLocked = true; // Hide toggle bar
 
     const inrBox = document.getElementById("optionsInrDepositBox");
     const cryptoBox = document.getElementById("optionsCryptoDepositBox");
@@ -2951,8 +2951,8 @@ function updateOptionsDepositModalUIByCurrency(currency) {
 
 function updateOptionsWithdrawalModalUIByCurrency(currency) {
     const nodes = getOptionsWalletModalNodes();
-    const primaryCurrency = (state.wallet.primaryCurrency || "INR").toUpperCase();
-    const activeCurrency = String(currency || nodes.withdrawForm?.dataset.activeCurrency || primaryCurrency).toUpperCase();
+    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.withdrawForm) nodes.withdrawForm.dataset.activeCurrency = activeCurrency;
 
     const isINR = activeCurrency === "INR";
@@ -2966,6 +2966,9 @@ function updateOptionsWithdrawalModalUIByCurrency(currency) {
     const assetInput = document.getElementById("optionsWithdrawAsset");
     const btnInr = document.getElementById("txOptionsSelectWithdrawInrBtn");
     const btnUsdt = document.getElementById("txOptionsSelectWithdrawUsdtBtn");
+
+    const toggleBar = document.getElementById("txOptionsWithdrawCurrencyToggleBar");
+    if (toggleBar) toggleBar.classList.add("hidden");
 
     if (netBox) netBox.classList.toggle("hidden", isINR);
     if (tagBox) tagBox.classList.toggle("hidden", isINR);

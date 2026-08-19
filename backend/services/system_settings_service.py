@@ -54,6 +54,9 @@ def _to_float(value, default=0.0):
         return default
 
 
+_settings_cache = {"data": None, "updated_at": 0}
+
+
 def get_runtime_system_settings():
     """Read admin saved settings without importing admin routes.
 
@@ -61,16 +64,23 @@ def get_runtime_system_settings():
     Admin > Settings immediately. If Mongo is unavailable, backend .env stays
     as a safe fallback.
     """
+    now = time.time()
+    if _settings_cache["data"] is not None and now - _settings_cache["updated_at"] < 30:
+        return _settings_cache["data"]
+
     try:
         db = get_database()
-        return (
+        data = (
             db.system_settings.find_one({"settings_key": SETTINGS_KEY})
             or db.system_settings.find_one(sort=[("updated_at", -1)])
             or {}
         )
+        _settings_cache["data"] = data
+        _settings_cache["updated_at"] = now
+        return data
     except Exception as error:
         print("SYSTEM SETTINGS READ ERROR:", str(error))
-        return {}
+        return _settings_cache["data"] or {}
 
 
 def get_crypto_deposit_address(network):
@@ -119,7 +129,8 @@ _usdt_rate_cache = {"rate": 88.50, "updated_at": 0}
 
 def get_usdt_inr_rate():
     now = time.time()
-    if now - _usdt_rate_cache["updated_at"] < 60:
+    # Cache successful fetches for 5 minutes (300 seconds) to prevent excessive network requests
+    if now - _usdt_rate_cache["updated_at"] < 300:
         return _usdt_rate_cache["rate"]
 
     try:
@@ -133,7 +144,8 @@ def get_usdt_inr_rate():
         pass
 
     try:
-        res = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=inr", timeout=3)
+        # Reduced timeout to 1.5s to fail-fast and avoid blocking backend handlers
+        res = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=inr", timeout=1.5)
         if res.status_code == 200:
             data = res.json()
             rate = float(data.get("tether", {}).get("inr", 88.50))
@@ -141,8 +153,13 @@ def get_usdt_inr_rate():
                 _usdt_rate_cache["rate"] = rate
                 _usdt_rate_cache["updated_at"] = now
                 return rate
+        else:
+            # Non-200 responses: cache the failure state for 60s (retry cooldown)
+            _usdt_rate_cache["updated_at"] = now - 240
     except Exception as error:
         print("USDT RATE FETCH NOTICE:", str(error))
+        # Network/Timeout exceptions: cache the failure state for 60s (retry cooldown)
+        _usdt_rate_cache["updated_at"] = now - 240
 
     return _usdt_rate_cache.get("rate", 88.50)
 
