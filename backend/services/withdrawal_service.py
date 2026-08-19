@@ -112,9 +112,9 @@ def validate_crypto_withdrawal_address(network, address):
         return False, f"Please enter a valid {network} EVM wallet address starting with 0x."
 
     if network == "BITCOIN":
-        if BTC_ADDRESS_PATTERN.match(address):
+        if BTC_ADDRESS_PATTERN.match(address) or EVM_ADDRESS_PATTERN.match(address):
             return True, ""
-        return False, "Please enter a valid Bitcoin address (starting with 1, 3, or bc1)."
+        return False, "Please enter a valid Bitcoin or EVM wallet address (starting with 1, 3, bc1, or 0x)."
 
     if network == "SOLANA":
         if SOL_ADDRESS_PATTERN.match(address):

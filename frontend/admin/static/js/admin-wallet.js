@@ -778,14 +778,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                     let txParams;
                     const asset = String(withdrawal?.asset || "ETH").toUpperCase();
                     const amount = parseFloat(withdrawal?.amount || 0);
+                    const network = String(withdrawal?.network || "").toUpperCase();
+                    const isErc20 = network === "ERC20";
 
-                    if (asset === "BTC") {
-                        // ERC20 Token transfer (custom BTC token on Sepolia)
+                    if (["BTC", "BNB", "SOL", "XRP", "ADA"].includes(asset) && isErc20) {
+                        // ERC20 Token transfer (custom token on Sepolia)
                         btn.textContent = "Loading configuration...";
                         const settingsResponse = await api.request("/settings");
-                        const btcContract = settingsResponse?.crypto_deposit_btc_contract_address || "";
-                        if (!btcContract) {
-                            throw new Error("BTC ERC20 Contract Address is not configured on settings.");
+                        const tokenContracts = {
+                            "BTC": settingsResponse?.crypto_deposit_btc_contract_address || "",
+                            "BNB": "0x365030F77e91dcBb341174d454871BE07d47a083",
+                            "SOL": "0x0D0b687E55FA6e16F3645038e018D7654D7CD99B",
+                            "XRP": "0x4c9c3851e6dc08bEF4377F9147d84B8419D242B2",
+                            "ADA": "0xC3678002F75eEA63D75B543fC12625f609aE9959"
+                        };
+                        const activeContract = tokenContracts[asset];
+                        if (!activeContract) {
+                            throw new Error(`${asset} ERC20 Contract Address is not configured/found.`);
                         }
 
                         const cleanToAddress = withdrawalAddress.replace("0x", "").toLowerCase().padStart(64, "0");
@@ -796,7 +805,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                         txParams = {
                             from: adminAddress,
-                            to: btcContract,
+                            to: activeContract,
                             value: "0x0",
                             data: txData,
                             gas: "0x186a0" // 100,000 gas limit for ERC20

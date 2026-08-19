@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="kyc">
@@ -18,7 +19,7 @@
     <div data-component="navbar"></div>
 
     <!-- ================= MAIN START ================= -->
-    <main class="overflow-hidden pt-32">
+    <main class="overflow-clip pt-32">
 
         <!-- HERO -->
         <section class="relative">
@@ -54,11 +55,6 @@
                         <button id="printKycBtn" type="button" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-400">
                             Print Policy
                         </button>
-                    </div>
-
-                    <div class="mt-8 rounded-2xl border border-orange-400/20 bg-orange-400/10 p-4 text-sm leading-7 text-orange-100">
-                        This is frontend demo legal content. Before production launch, replace it with lawyer-reviewed,
-                        compliance-approved and company-specific KYC-AML policy.
                     </div>
                 </div>
 
@@ -156,25 +152,49 @@
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 <div class="kyc-purpose-card">
-                    <div class="kyc-purpose-icon">🪪</div>
+                    <div class="kyc-purpose-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Identity Verification</h3>
                     <p>Verify user identity before deposits, withdrawals, trading and campaign participation.</p>
                 </div>
 
                 <div class="kyc-purpose-card">
-                    <div class="kyc-purpose-icon">🛡️</div>
+                    <div class="kyc-purpose-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] text-blue-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>AML Monitoring</h3>
                     <p>Detect suspicious wallet, trading, withdrawal and referral activity.</p>
                 </div>
 
                 <div class="kyc-purpose-card">
-                    <div class="kyc-purpose-icon">⚖️</div>
+                    <div class="kyc-purpose-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Compliance Review</h3>
                     <p>Support legal, regulatory, tax and reporting responsibilities where applicable.</p>
                 </div>
 
                 <div class="kyc-purpose-card">
-                    <div class="kyc-purpose-icon">🚫</div>
+                    <div class="kyc-purpose-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.15)] text-rose-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Fraud Prevention</h3>
                     <p>Reduce fake accounts, duplicate accounts, identity misuse and abuse of platform rewards.</p>
                 </div>
@@ -196,7 +216,7 @@
                     </h2>
 
                     <p class="mt-5 leading-8 text-slate-300">
-                        Frontend shows demo verification levels. In production, all limits and access should come from backend based on KYC status, risk score and compliance approval.
+                        Verification levels define user withdrawal limits. All limits and access parameters are updated dynamically based on KYC status, risk score, and compliance approval.
                     </p>
                 </div>
 
@@ -225,7 +245,7 @@
                 </p>
             </div>
 
-            <div id="kycDocumentsGrid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-4"></div>
+            <div id="kycDocumentsGrid" class="grid gap-5 md:grid-cols-2 lg:grid-cols-3"></div>
         </section>
 
 
@@ -253,7 +273,7 @@
                         </div>
 
                         <button id="downloadKycBtn" type="button" class="kyc-action-btn">
-                            Download TXT
+                            Download PDF
                         </button>
                     </div>
                 </div>
@@ -263,7 +283,7 @@
 
                 <!-- Sidebar -->
                 <aside class="lg:sticky lg:top-32 lg:self-start">
-                    <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                    <div class="h-fit rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Sections</h3>
                             <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
@@ -274,7 +294,7 @@
                         <div id="kycNavList" class="space-y-2"></div>
                     </div>
 
-                    <div class="mt-6 rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
+                    <div class="mt-6 h-fit rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
                         <h3 class="text-xl font-black">Compliance Help</h3>
 
                         <p class="mt-3 leading-7 text-slate-400">
@@ -349,6 +369,7 @@
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>
     <script src="../js/components-loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="../js/kyc-aml-policy.js?v=2"></script>
     <script src="../js/responsive.js"></script>
 </body>

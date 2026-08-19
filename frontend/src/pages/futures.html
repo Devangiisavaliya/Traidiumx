@@ -21,13 +21,14 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
         /* Futures table must show all backend rows. No 10-row display cap for Positions/Open Orders. */
         .rt-table-wrap {
-            max-height: none !important;
-            overflow-y: visible !important;
+            height: 290px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
         }
 
         .rt-position-action-bar {
@@ -1045,6 +1046,82 @@
             }
         }
 
+        /* -------------------------------------------------------------
+           Restructured 2-Column Terminal Layout Styling
+           ------------------------------------------------------------- */
+        .rt-positions-wrapper-col {
+            grid-column: 1 / -1;
+            width: 100%;
+        }
+
+        .rt-order-type-tabs.three {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+
+        /* Large Desktop Screen Layout (min-width: 1201px) */
+        @media (min-width: 1201px) {
+            /* Force the main terminal container to have two rows and three columns */
+            section.rt-terminal-main-grid.rt-terminal-focused {
+                display: grid !important;
+                grid-template-columns: minmax(720px, 1fr) 330px 330px !important;
+                grid-template-rows: auto auto !important;
+                gap: 10px !important;
+                align-items: stretch !important;
+            }
+
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-left-terminal {
+                grid-column: 1 !important;
+                grid-row: 1 !important;
+            }
+
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-middle-orderbook {
+                grid-column: 2 !important;
+                grid-row: 1 !important;
+            }
+
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-positions-wrapper-col {
+                grid-column: 1 / span 2 !important;
+                grid-row: 2 !important;
+            }
+
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-right-panel {
+                grid-column: 3 !important;
+                grid-row: 1 / span 2 !important;
+                height: 100% !important;
+                min-height: 100% !important;
+            }
+        }
+
+        /* Medium screens (Tablet / Small Desktop: 1025px to 1200px) */
+        @media (min-width: 1025px) and (max-width: 1200px) {
+            section.rt-terminal-main-grid.rt-terminal-focused {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) 300px !important;
+                gap: 8px !important;
+            }
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-right-panel {
+                grid-column: 1 / -1 !important;
+                position: static !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 8px !important;
+            }
+        }
+
+        /* Small screens (Mobile / Tablet: <= 1024px) */
+        @media (max-width: 1024px) {
+            section.rt-terminal-main-grid.rt-terminal-focused {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+            }
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-middle-orderbook,
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-right-panel {
+                position: static !important;
+            }
+            section.rt-terminal-main-grid.rt-terminal-focused .rt-right-panel {
+                display: block !important;
+            }
+        }
     </style>
 </head>
 
@@ -1182,281 +1259,256 @@
                             Deposit
                         </button>
                         <button id="futuresWithdrawBtn" type="button" class="rt-pair-funds-btn withdraw">
-                            Withdraw
+                Withdraw
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- TERMINAL GRID - 3 PART LAYOUT -->
-<section class="rt-terminal-3col rt-terminal-focused mx-auto mt-4 max-w-[1800px] px-4">
+        <!-- TERMINAL GRID - MAIN LAYOUT -->
+        <section class="rt-terminal-main-grid rt-terminal-focused mx-auto mt-4 max-w-[1800px] px-4 pb-8">
 
-    <!-- ================= LEFT: CHART + TABLE ================= -->
-    <div class="rt-left-terminal space-y-4">
-
-        <!-- CHART CARD -->
-        <div class="rt-card rt-chart-card overflow-hidden">
-
-            <div class="rt-chart-layout rt-tv-chart-layout rt-tv-native-only">
-                <div class="rt-chart-area rt-tv-chart-area rt-tv-native-area tx-futures-chart-shell">
-                    <div id="terminalPairTitle" class="rt-hidden-tv-status">BTC-USDT PERPETUAL · 1m · TraidiumX</div>
-                    <div id="terminalCandleInfo" class="rt-hidden-tv-status">TradingView chart connecting...</div>
-
-                    <div id="chartContainer" class="rt-chart-container rt-tv-chart-container rt-perfect-tv-container"></div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ================= MIDDLE: ORDER BOOK + RECENT TRADES ================= -->
-    <div class="rt-middle-orderbook">
-        <div class="rt-card rt-ob-card">
-            <div class="rt-ob-header">
-                <div class="rt-ob-top-tabs">
-                    <button id="orderBookTabBtn" class="active" type="button">Order Book</button>
-                    <button id="tradesTabBtn" type="button">Recent Trades</button>
-                </div>
-                <div class="rt-ob-info">i</div>
-            </div>
-
-            <!-- Visual toggle icons matching standard exchange orderbook views -->
-            <div class="rt-ob-icons-row">
-                <button class="rt-ob-view-btn active" type="button" data-book-view="both"><span class="ob-green"></span><span class="ob-red"></span></button>
-                <button class="rt-ob-view-btn" type="button" data-book-view="bids"><span class="ob-green"></span></button>
-                <button class="rt-ob-view-btn" type="button" data-book-view="asks"><span class="ob-red"></span></button>
-            </div>
-
-            <!-- Orderbook Panel -->
-            <div id="orderBookPanel" class="space-y-1">
-                <div class="rt-book-head compact">
-                    <span>Price (USD)</span>
-                    <span id="orderBookSizeLabel">Size</span>
-                    <span id="orderBookSumLabel">Total</span>
-                </div>
-                
-                <!-- ASKS (Red/Top) -->
-                <div id="orderBookAsks" class="rt-book-list asks">
-                    <!-- Populated by JS -->
-                </div>
-                
-                <!-- MID (Spread/Last Price) -->
-                <div id="orderBookMid" class="rt-book-mid">--</div>
-                
-                <!-- BIDS (Green/Bottom) -->
-                <div id="orderBookBids" class="rt-book-list bids">
-                    <!-- Populated by JS -->
-                </div>
-                
-                <!-- Buy / Sell ratio indicator -->
-                <div class="px-4 py-2 flex items-center justify-between text-[11px] font-black text-slate-500 border-t border-white/5 mt-2">
-                    <span id="buyPercentBar" class="text-emerald-400">B --%</span>
-                    <span id="sellPercentBar" class="text-red-400">S --%</span>
+            <!-- ================= LEFT: CHART ================= -->
+            <div class="rt-left-terminal">
+                <!-- CHART CARD -->
+                <div class="rt-card rt-chart-card overflow-hidden">
+                    <div class="rt-chart-layout rt-tv-chart-layout rt-tv-native-only">
+                        <div class="rt-chart-area rt-tv-chart-area rt-tv-native-area tx-futures-chart-shell">
+                            <div id="terminalPairTitle" class="rt-hidden-tv-status">BTC-USDT PERPETUAL · 1m · TraidiumX</div>
+                            <div id="terminalCandleInfo" class="rt-hidden-tv-status">TradingView chart connecting...</div>
+                            <div id="chartContainer" class="rt-chart-container rt-tv-chart-container rt-perfect-tv-container"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Recent Trades Panel -->
-            <div id="tradesPanel" class="hidden space-y-1">
-                <div class="rt-book-head compact">
-                    <span>Price (USD)</span>
-                    <span>Size</span>
-                    <span>Time</span>
-                </div>
-                <div id="recentTradesList" class="rt-trades-list">
-                    <!-- Populated by JS -->
+            <!-- ================= MIDDLE: ORDER BOOK + RECENT TRADES ================= -->
+            <div class="rt-middle-orderbook">
+                <div class="rt-card rt-ob-card">
+                    <div class="rt-ob-header">
+                        <div class="rt-ob-top-tabs">
+                            <button id="orderBookTabBtn" class="active" type="button">Order Book</button>
+                            <button id="tradesTabBtn" type="button">Recent Trades</button>
+                        </div>
+                        <div class="rt-ob-info">i</div>
+                    </div>
+
+                    <div class="rt-ob-icons-row">
+                        <button class="rt-ob-view-btn active" type="button" data-book-view="both"><span class="ob-green"></span><span class="ob-red"></span></button>
+                        <button class="rt-ob-view-btn" type="button" data-book-view="bids"><span class="ob-green"></span></button>
+                        <button class="rt-ob-view-btn" type="button" data-book-view="asks"><span class="ob-red"></span></button>
+                    </div>
+
+                    <div id="orderBookPanel" class="space-y-1">
+                        <div class="rt-book-head compact">
+                            <span>Price (USD)</span>
+                            <span id="orderBookSizeLabel">Size</span>
+                            <span id="orderBookSumLabel">Total</span>
+                        </div>
+                        <div id="orderBookAsks" class="rt-book-list asks"></div>
+                        <div id="orderBookMid" class="rt-book-mid">--</div>
+                        <div id="orderBookBids" class="rt-book-list bids"></div>
+                    </div>
+
+                    <div id="tradesPanel" class="hidden space-y-1">
+                        <div class="rt-book-head compact">
+                            <span>Price (USD)</span>
+                            <span>Size</span>
+                            <span>Time</span>
+                        </div>
+                        <div id="recentTradesList" class="rt-trades-list"></div>
+                    </div>
+
+                    <div class="px-4 py-2 flex items-center justify-between text-[11px] font-black text-slate-500 border-t border-white/5 mt-2">
+                        <span id="buyPercentBar" class="text-emerald-400">B --%</span>
+                        <span id="sellPercentBar" class="text-red-400">S --%</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ================= RIGHT: ORDER FORM + MARGIN ================= -->
-    <aside class="rt-right-panel space-y-4">
+            <!-- ================= RIGHT: ORDER FORM + MARGIN ================= -->
+            <aside class="rt-right-panel space-y-4">
+                <!-- ORDER PANEL -->
+                <div class="rt-card rt-order-panel-card">
+                    <div class="rt-order-header flex items-center justify-between relative">
+                        <div class="relative inline-block text-left" id="marginModeDropdown">
+                            <button type="button" id="marginModeBtn" class="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider focus:outline-none transition-all duration-200 cursor-pointer" style="padding: 6px 12px !important; color: #22d3ee !important; border: 1px solid rgba(34, 211, 238, 0.2) !important;">
+                                <b id="marginModeBtnText" style="color: inherit !important; font-size: 11px !important; font-weight: 900 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: inline !important;">Isolated Margin</b>
+                                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: inherit !important;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div id="marginModeMenu" class="hidden absolute left-0 mt-1.5 w-56 rounded-xl bg-[#0b0f19] border border-slate-800 shadow-2xl z-50 overflow-hidden divide-y divide-slate-800/50" style="background-color: #0b0f19 !important; border: 1px solid rgba(148, 163, 184, 0.15) !important;">
+                                <div class="margin-mode-option w-full text-left px-4 py-3 text-xs font-black uppercase tracking-wider transition-colors flex flex-col gap-0.5 cursor-pointer" data-value="isolated" style="padding: 12px 16px !important; border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important; background: transparent;">
+                                    <b class="title-isolated" style="color: #22d3ee !important; font-size: 11px !important; font-weight: 950 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: block !important;">Isolated Margin</b>
+                                    <p class="desc" style="color: #64748b !important; font-size: 9px !important; font-weight: 700 !important; line-height: 1.3 !important; text-transform: none !important; margin: 2px 0 0 0 !important; padding: 0 !important;">Loss is limited to the margin allocated.</p>
+                                </div>
+                                <div class="margin-mode-option w-full text-left px-4 py-3 text-xs font-black uppercase tracking-wider transition-colors flex flex-col gap-0.5 cursor-pointer" data-value="cross" style="padding: 12px 16px !important; background: transparent;">
+                                    <b class="title-cross" style="color: #fbbf24 !important; font-size: 11px !important; font-weight: 950 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: block !important;">Cross Margin</b>
+                                    <p class="desc" style="color: #64748b !important; font-size: 9px !important; font-weight: 700 !important; line-height: 1.3 !important; text-transform: none !important; margin: 2px 0 0 0 !important; padding: 0 !important;">Uses entire wallet balance to prevent liquidation.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <span id="orderHeaderLeverageBadge">Max 50x</span>
+                    </div>
 
-        <!-- ORDER PANEL -->
-        <div class="rt-card rt-order-panel-card">
-            <div class="rt-order-header flex items-center justify-between relative">
-                <!-- Custom Margin Mode Dropdown -->
-                <div class="relative inline-block text-left" id="marginModeDropdown">
-                    <button type="button" id="marginModeBtn" class="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider focus:outline-none transition-all duration-200 cursor-pointer" style="padding: 6px 12px !important; color: #22d3ee !important; border: 1px solid rgba(34, 211, 238, 0.2) !important;">
-                        <b id="marginModeBtnText" style="color: inherit !important; font-size: 11px !important; font-weight: 900 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: inline !important;">Isolated Margin</b>
-                        <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: inherit !important;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
-                        </svg>
+                    <div class="rt-order-type-tabs three">
+                        <button class="active" type="button" data-order-type="MARKET">Market</button>
+                        <button type="button" data-order-type="LIMIT">Limit</button>
+                        <button type="button" data-order-type="STOP_LIMIT">Stop Limit</button>
+                    </div>
+
+                    <div id="limitPriceWrap" class="hidden">
+                        <label class="rt-label">Limit Price</label>
+                        <input id="limitPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter limit price" />
+                    </div>
+
+                    <div id="stopPriceWrap" class="hidden">
+                        <label class="rt-label">Stop Price</label>
+                        <input id="stopPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter stop trigger price" />
+                    </div>
+
+                    <label class="rt-label">Quantity</label>
+                    <input id="quantityInput" type="number" step="0.001" class="rt-input" placeholder="Quantity" />
+
+                    <div class="rt-percent-row">
+                        <button type="button" data-percent="25">25%</button>
+                        <button type="button" data-percent="50">50%</button>
+                        <button type="button" data-percent="75">75%</button>
+                        <button type="button" data-percent="100">Max</button>
+                    </div>
+
+                    <label class="rt-label">Leverage</label>
+                    <select id="leverageSelect" class="rt-input">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="5">5x</option>
+                        <option value="10" selected>10x</option>
+                        <option value="20">20x</option>
+                        <option value="25">25x</option>
+                        <option value="50">50x</option>
+                    </select>
+
+                    <label class="rt-tp-sl-label mx-4 mt-4 flex items-center gap-2 text-sm text-slate-500">
+                        <input id="tpSlCheckbox" type="checkbox" class="accent-cyan-400" />
+                        Set Take Profit/ Stop Loss
+                    </label>
+
+                    <div id="tpSlFields" class="hidden px-4 pt-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="rt-label compact">Take Profit</label>
+                                <input id="takeProfitInput" type="number" step="0.01" class="rt-input" placeholder="TP price" />
+                            </div>
+                            <div>
+                                <label class="rt-label compact">Stop Loss</label>
+                                <input id="stopLossInput" type="number" step="0.01" class="rt-input" placeholder="SL price" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rt-side-tabs">
+                        <button id="sideBuyBtn" class="active" type="button" data-side="BUY">Buy / Long</button>
+                        <button id="sideSellBtn" type="button" data-side="SELL">Sell / Short</button>
+                    </div>
+
+                    <div class="rt-wallet-mini-grid mt-4 grid grid-cols-2 gap-3 px-4 text-sm">
+                        <div class="rt-wallet-mini">
+                            <span>Trading Available</span>
+                            <strong id="walletAvailable">0.00 USD</strong>
+                        </div>
+
+                        <div class="rt-wallet-mini">
+                            <span>Used Margin</span>
+                            <strong id="walletUsed">0.00 USD</strong>
+                        </div>
+
+                        <div class="rt-wallet-mini">
+                            <span>Total Profit</span>
+                            <strong id="walletTotalProfit" class="text-emerald-400">+0.00 USD</strong>
+                        </div>
+
+                        <div class="rt-wallet-mini">
+                            <span>Total Loss</span>
+                            <strong id="walletTotalLoss" class="text-red-400">0.00 USD</strong>
+                        </div>
+                    </div>
+
+                    <div class="rt-est-margin-row mt-4 flex items-center justify-between px-5 text-sm font-black text-slate-400">
+                        <span>Est. Margin</span>
+                        <span id="walletEstMargin" class="text-cyan-400">0.00 USD</span>
+                    </div>
+
+                    <button id="placeOrderBtn" type="button" class="rt-place-order-btn">
+                        Login to Trade
                     </button>
-                    <!-- Dropdown Panel -->
-                    <div id="marginModeMenu" class="hidden absolute left-0 mt-1.5 w-56 rounded-xl bg-[#0b0f19] border border-slate-800 shadow-2xl z-50 overflow-hidden divide-y divide-slate-800/50" style="background-color: #0b0f19 !important; border: 1px solid rgba(148, 163, 184, 0.15) !important;">
-                        <div class="margin-mode-option w-full text-left px-4 py-3 text-xs font-black uppercase tracking-wider transition-colors flex flex-col gap-0.5 cursor-pointer" data-value="isolated" style="padding: 12px 16px !important; border-bottom: 1px solid rgba(148, 163, 184, 0.08) !important; background: transparent;">
-                            <b class="title-isolated" style="color: #22d3ee !important; font-size: 11px !important; font-weight: 950 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: block !important;">Isolated Margin</b>
-                            <p class="desc" style="color: #64748b !important; font-size: 9px !important; font-weight: 700 !important; line-height: 1.3 !important; text-transform: none !important; margin: 2px 0 0 0 !important; padding: 0 !important;">Loss is limited to the margin allocated.</p>
-                        </div>
-                        <div class="margin-mode-option w-full text-left px-4 py-3 text-xs font-black uppercase tracking-wider transition-colors flex flex-col gap-0.5 cursor-pointer" data-value="cross" style="padding: 12px 16px !important; background: transparent;">
-                            <b class="title-cross" style="color: #fbbf24 !important; font-size: 11px !important; font-weight: 950 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; display: block !important;">Cross Margin</b>
-                            <p class="desc" style="color: #64748b !important; font-size: 9px !important; font-weight: 700 !important; line-height: 1.3 !important; text-transform: none !important; margin: 2px 0 0 0 !important; padding: 0 !important;">Uses entire wallet balance to prevent liquidation.</p>
-                        </div>
-                    </div>
-                </div>
-                <span id="orderHeaderLeverageBadge">Max 50x</span>
-            </div>
 
-            <div class="rt-order-type-tabs three">
-                <button class="active" type="button" data-order-type="MARKET">Market</button>
-                <button type="button" data-order-type="LIMIT">Limit</button>
-                <button type="button" data-order-type="STOP_LIMIT">Stop Limit</button>
-            </div>
-
-            <div id="limitPriceWrap" class="hidden">
-                <label class="rt-label">Limit Price</label>
-                <input id="limitPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter limit price" />
-            </div>
-
-            <div id="stopPriceWrap" class="hidden">
-                <label class="rt-label">Stop Price</label>
-                <input id="stopPriceInput" type="number" step="0.01" class="rt-input" placeholder="Enter stop trigger price" />
-            </div>
-
-            <label class="rt-label">Quantity</label>
-            <input id="quantityInput" type="number" step="0.001" class="rt-input" placeholder="Quantity" />
-
-            <div class="rt-percent-row">
-                <button type="button" data-percent="25">25%</button>
-                <button type="button" data-percent="50">50%</button>
-                <button type="button" data-percent="75">75%</button>
-                <button type="button" data-percent="100">Max</button>
-            </div>
-
-            <label class="rt-label">Leverage</label>
-            <select id="leverageSelect" class="rt-input">
-                <option value="1">1x</option>
-                <option value="2">2x</option>
-                <option value="3">3x</option>
-                <option value="5">5x</option>
-                <option value="10" selected>10x</option>
-                <option value="20">20x</option>
-                <option value="25">25x</option>
-                <option value="50">50x</option>
-            </select>
-
-            <label class="rt-tp-sl-label mx-4 mt-4 flex items-center gap-2 text-sm text-slate-500">
-                <input id="tpSlCheckbox" type="checkbox" class="accent-cyan-400" />
-                Set Take Profit/ Stop Loss
-            </label>
-
-            <div id="tpSlFields" class="hidden px-4 pt-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="rt-label compact">Take Profit</label>
-                        <input id="takeProfitInput" type="number" step="0.01" class="rt-input" placeholder="TP price" />
-                    </div>
-                    <div>
-                        <label class="rt-label compact">Stop Loss</label>
-                        <input id="stopLossInput" type="number" step="0.01" class="rt-input" placeholder="SL price" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="rt-side-tabs">
-                <button id="sideBuyBtn" class="active" type="button" data-side="BUY">Buy / Long</button>
-                <button id="sideSellBtn" type="button" data-side="SELL">Sell / Short</button>
-            </div>
-
-            <div class="rt-wallet-mini-grid mt-4 grid grid-cols-2 gap-3 px-4 text-sm">
-                <div class="rt-wallet-mini">
-                    <span>Trading Available</span>
-                    <strong id="walletAvailable">0.00 USD</strong>
-                </div>
-
-                <div class="rt-wallet-mini">
-                    <span>Used Margin</span>
-                    <strong id="walletUsed">0.00 USD</strong>
-                </div>
-
-                <div class="rt-wallet-mini">
-                    <span>Total Profit</span>
-                    <strong id="walletTotalProfit" class="text-emerald-400">+0.00 USD</strong>
-                </div>
-
-                <div class="rt-wallet-mini">
-                    <span>Total Loss</span>
-                    <strong id="walletTotalLoss" class="text-red-400">0.00 USD</strong>
-                </div>
-            </div>
-
-            <div class="rt-est-margin-row mt-4 flex items-center justify-between px-5 text-sm font-black text-slate-400">
-                <span>Est. Margin</span>
-                <span id="walletEstMargin" class="text-cyan-400">0.00 USD</span>
-            </div>
-
-            <button id="placeOrderBtn" type="button" class="rt-place-order-btn">
-                Login to Trade
-            </button>
-
-            <div id="notLoggedInOrderHelp" class="px-4 pb-4 text-center hidden">
-                <p class="mb-3 text-sm font-bold text-slate-500">New to TraidiumX?</p>
-                <a href="./register.html" class="rt-create-account-btn">Create Account</a>
-            </div>
-
-            <p id="orderMessage" class="rt-order-message hidden"></p>
-            <!-- Combined Margin Section -->
-            <div class="border-t border-slate-800/80 mt-4">
-                <div class="rt-margin-head" style="border-radius: 0; background: #0b111d;">
-                    <h3>Overall Profit / Loss</h3>
-                    <span id="sessionStatus" class="hidden">Backend Controlled</span>
-                </div>
-
-                <div class="px-4 py-4">
-                    <div class="flex items-center justify-between">
-                        <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USD</h2>
-                        <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
-                            BTC-USDT
-                        </span>
+                    <div id="notLoggedInOrderHelp" class="px-4 pb-4 text-center hidden">
+                        <p class="mb-3 text-sm font-bold text-slate-500">New to TraidiumX?</p>
+                        <a href="./register.html" class="rt-create-account-btn">Create Account</a>
                     </div>
 
-                    <div class="mt-4 h-2 rounded-full bg-slate-800">
-                        <div id="marginRatioBar" class="h-full w-0 rounded-full bg-cyan-400"></div>
-                    </div>
+                    <p id="orderMessage" class="rt-order-message hidden"></p>
 
-                    <div class="mt-5 grid grid-cols-2 gap-4 text-xs">
-                        <div>
-                            <p class="text-slate-500">Maintenance Margin</p>
-                            <strong id="maintenanceMarginValue" class="mt-1 block text-white">0.0000 USD</strong>
+                    <!-- Combined Margin Section -->
+                    <div class="border-t border-slate-700/60 mt-6 pt-1">
+                        <div class="rt-margin-head" style="border-radius: 0; background: #0b111d;">
+                            <h3>Overall Profit / Loss</h3>
+                            <span id="sessionStatus" class="hidden">Backend Controlled</span>
                         </div>
 
-                        <div>
-                            <p class="text-slate-500">Margin Balance</p>
-                            <strong id="marginBalanceValue" class="mt-1 block text-white">0.0000 USD</strong>
+                        <div class="px-4 py-4">
+                            <div class="flex items-center justify-between">
+                                <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USD</h2>
+                                <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
+                                    BTC-USDT
+                                </span>
+                            </div>
+
+                            <div class="mt-4 h-2 rounded-full bg-slate-800">
+                                <div id="marginRatioBar" class="h-full w-0 rounded-full bg-cyan-400"></div>
+                            </div>
+
+                            <div class="mt-5 grid grid-cols-2 gap-4 text-xs">
+                                <div>
+                                    <p class="text-slate-500">Maintenance Margin</p>
+                                    <strong id="maintenanceMarginValue" class="mt-1 block text-white">0.0000 USD</strong>
+                                </div>
+
+                                <div>
+                                    <p class="text-slate-500">Margin Balance</p>
+                                    <strong id="marginBalanceValue" class="mt-1 block text-white">0.0000 USD</strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </aside>
+
+            <!-- ================= BOTTOM: POSITIONS / ORDERS TABLE ================= -->
+            <div class="rt-positions-wrapper-col">
+                <div class="rt-card rt-positions-card">
+                    <div class="rt-bottom-tabs">
+                        <button class="active" type="button" data-terminal-tab="positions">Positions</button>
+                        <button type="button" data-terminal-tab="openOrders">Open Orders</button>
+                        <button type="button" data-terminal-tab="orderHistory">Order History</button>
+                        <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
+                        <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
+                        <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
+                    </div>
+
+                    <div class="rt-table-wrap">
+                        <div id="terminalTable"></div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-    </aside>
-
-</section>
-
-    <!-- POSITIONS / ORDERS TABLE (Full Width, matching grid max-width) -->
-    <div class="mx-auto mt-4 max-w-[1800px] px-4 pb-8">
-        <div class="rt-card rt-positions-card">
-            <div class="rt-bottom-tabs">
-                <button class="active" type="button" data-terminal-tab="positions">Positions</button>
-                <button type="button" data-terminal-tab="openOrders">Open Orders</button>
-                <button type="button" data-terminal-tab="orderHistory">Order History</button>
-                <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
-                <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
-                <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
-            </div>
-
-            <div class="rt-table-wrap">
-                <div id="terminalTable"></div>
-            </div>
-        </div>
-    </div>
+        </section>
 
     </main>
 
-
-    <!-- Futures quick wallet modal: deposit / withdraw / transfer without leaving Futures page -->
     <div id="futuresWalletModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
         <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
             <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
@@ -1771,7 +1823,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
     <script src="../js/auth-state.js"></script>
-    <script src="../js/futures.js?v=31"></script>
+    <script src="../js/futures.js?v=32"></script>
     <script src="../js/responsive.js"></script>
 </body>
 </html>

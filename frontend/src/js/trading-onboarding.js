@@ -44,10 +44,11 @@
         const style = document.createElement("style");
         style.id = "txTradingOnboardingStyles";
         style.textContent = `
-            .tx-ob-overlay{position:fixed;inset:0;z-index:999998;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.82);backdrop-filter:blur(16px)}
+            .tx-ob-overlay{position:fixed;inset:0;z-index:999998;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.85);backdrop-filter:blur(18px)}
             .tx-ob-overlay.hidden{display:none!important}
-            .tx-ob-card{width:min(760px,100%);max-height:min(90vh,820px);overflow:auto;border:1px solid rgba(34,211,238,.24);border-radius:28px;background:radial-gradient(circle at 90% 0,rgba(124,58,237,.2),transparent 33%),linear-gradient(160deg,#111827,#060b16 58%,#020617);box-shadow:0 34px 110px rgba(0,0,0,.68);color:#e5e7eb;padding:26px;scrollbar-width:none}
+            .tx-ob-card{width:min(760px,100%);max-height:min(90vh,820px);overflow:auto;border:1px solid rgba(34,211,238,.28);border-radius:28px;background:radial-gradient(circle at 90% 0,rgba(34,211,238,.15),transparent 40%),linear-gradient(160deg,#111827,#060b16 58%,#020617);box-shadow:0 34px 110px rgba(0,0,0,.75);color:#e5e7eb;padding:26px;scrollbar-width:none;animation:txModalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
             .tx-ob-card::-webkit-scrollbar{display:none}
+            @keyframes txModalPop { from { opacity: 0; transform: scale(0.94) translateY(14px); } to { opacity: 1; transform: scale(1) translateY(0); } }
             .tx-ob-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:22px}
             .tx-ob-kicker{color:#67e8f9;font-size:10px;font-weight:950;letter-spacing:.2em;text-transform:uppercase}
             .tx-ob-title{margin:7px 0 0;color:#fff;font-size:clamp(24px,4vw,36px);font-weight:950;line-height:1.08;letter-spacing:-.04em}
@@ -58,7 +59,7 @@
             .tx-ob-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
             .tx-ob-choice{position:relative;display:block;width:100%;min-height:132px;border:1px solid rgba(71,85,105,.7);border-radius:20px;background:rgba(15,23,42,.72);padding:18px;text-align:left;color:#e5e7eb;cursor:pointer;transition:.16s ease}
             .tx-ob-choice:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.48)}
-            .tx-ob-choice.selected{border-color:#8b5cf6;background:linear-gradient(145deg,rgba(76,29,149,.48),rgba(15,23,42,.9));box-shadow:0 18px 46px rgba(76,29,149,.22)}
+            .tx-ob-choice.selected{border-color:#22d3ee;background:linear-gradient(145deg,rgba(8,47,73,.65),rgba(15,23,42,.9));box-shadow:0 18px 46px rgba(34,211,238,.25)}
             .tx-ob-choice:disabled{opacity:.42;cursor:not-allowed;transform:none}
             .tx-ob-choice-icon{display:inline-flex;width:42px;height:42px;align-items:center;justify-content:center;border-radius:14px;background:rgba(34,211,238,.1);color:#67e8f9;font-size:18px;font-weight:950}
             .tx-ob-choice h3{margin:13px 0 5px;color:#fff;font-size:17px;font-weight:950}.tx-ob-choice p{margin:0;color:#94a3b8;font-size:12px;font-weight:700;line-height:1.5}
@@ -68,37 +69,68 @@
             .tx-ob-plan-name{font-size:17px;font-weight:950;color:#fff}.tx-ob-plan-pips{margin-top:9px;color:#67e8f9;font-size:25px;font-weight:950}.tx-ob-plan-min{margin-top:8px;color:#94a3b8;font-size:11px;font-weight:800;line-height:1.45}
             .tx-ob-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tx-ob-box{border:1px solid rgba(71,85,105,.58);border-radius:18px;background:rgba(15,23,42,.62);padding:15px}.tx-ob-box span{display:block;color:#64748b;font-size:9px;font-weight:950;text-transform:uppercase;letter-spacing:.1em}.tx-ob-box strong{display:block;margin-top:7px;color:#fff;font-size:16px;font-weight:950}
             .tx-ob-notice{margin-top:15px;border:1px solid rgba(251,191,36,.26);border-radius:17px;background:rgba(120,53,15,.18);padding:13px 14px;color:#fde68a;font-size:12px;font-weight:800;line-height:1.55}.tx-ob-notice.success{border-color:rgba(52,211,153,.28);background:rgba(6,78,59,.25);color:#bbf7d0}.tx-ob-notice.error{border-color:rgba(248,113,113,.28);background:rgba(127,29,29,.22);color:#fecaca}
-            .tx-ob-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.tx-ob-btn{border:1px solid rgba(71,85,105,.75);border-radius:15px;background:rgba(15,23,42,.85);color:#cbd5e1;padding:12px 18px;font-size:12px;font-weight:950;cursor:pointer}.tx-ob-btn.primary{border:0;background:linear-gradient(135deg,#22d3ee,#8b5cf6);color:#020617}.tx-ob-btn.success{border:0;background:linear-gradient(135deg,#34d399,#22d3ee);color:#020617}.tx-ob-btn:disabled{opacity:.5;cursor:not-allowed}
+            .tx-ob-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.tx-ob-btn{border:1px solid rgba(71,85,105,.75);border-radius:15px;background:rgba(15,23,42,.85);color:#cbd5e1;padding:12px 18px;font-size:12px;font-weight:950;cursor:pointer}.tx-ob-btn.primary{border:0;background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#020617}.tx-ob-btn.success{border:0;background:linear-gradient(135deg,#34d399,#22d3ee);color:#020617}.tx-ob-btn:disabled{opacity:.5;cursor:not-allowed}
             .tx-ob-form{display:grid;gap:12px;margin-top:14px}.tx-ob-form input{width:100%;border:1px solid rgba(71,85,105,.7);border-radius:14px;background:#020617;color:#fff;padding:12px 13px;font-size:13px;font-weight:750;outline:none}.tx-ob-form input:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.1)}
             .tx-ob-close{background:none;border:none;color:#94a3b8;font-size:28px;cursor:pointer;padding:0 8px;line-height:1;outline:none;transition:color .15s ease}
             .tx-ob-close:hover{color:#fff}
             .tx-ob-card.tx-narrow { max-width: 480px; }
             .tx-ob-mobile-app-step { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-            .tx-phone-mockup { position: relative; width: 230px; height: 390px; border: 8px solid #1e293b; border-radius: 36px; background: #070e17; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; margin: 0 auto 20px; }
-            .tx-phone-notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 90px; height: 16px; background: #1e293b; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 10; }
-            .tx-phone-screen { height: 100%; display: flex; flex-direction: column; padding: 22px 14px 14px; box-sizing: border-box; justify-content: space-between; }
-            .tx-phone-header { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #64748b; font-weight: 700; }
-            .tx-phone-logo { color: #f59e0b; font-weight: 950; letter-spacing: 0.05em; }
-            .tx-phone-portfolio { text-align: left; margin-top: 10px; }
-            .tx-phone-portfolio h3 { margin: 0; font-size: 15px; font-weight: 900; color: #fff; }
-            .tx-phone-portfolio-card { background: linear-gradient(135deg, #2e1065, #0f172a); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: 14px; padding: 10px 12px; margin-top: 8px; }
-            .tx-phone-label { font-size: 8px; color: #a78bfa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-            .tx-phone-balance { font-size: 18px; font-weight: 950; color: #fff; margin-top: 1px; }
+
+            /* ===== Realistic Smartphone Chassis & Animation ===== */
+            .tx-phone-mockup-wrapper { perspective: 1000px; margin: 0 auto 18px; width: 100%; display: flex; justify-content: center; }
+            .tx-phone-mockup { position: relative; width: 235px; height: 410px; border: 9px solid #0f172a; border-radius: 42px; background: #070d18; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12), 0 25px 65px rgba(0,0,0,0.8), 0 0 35px rgba(34,211,238,0.22); overflow: hidden; margin: 0 auto; animation: txPhoneFloat 4s ease-in-out infinite, txPhoneGlow 4s ease-in-out infinite; transition: transform 0.3s ease; }
+            .tx-phone-mockup:hover { transform: translateY(-6px) scale(1.02); }
+            @keyframes txPhoneFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-7px); } }
+            @keyframes txPhoneGlow { 0%, 100% { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12), 0 25px 65px rgba(0,0,0,0.8), 0 0 30px rgba(34,211,238,0.2); } 50% { box-shadow: inset 0 0 0 2px rgba(34,211,238,0.4), 0 30px 75px rgba(0,0,0,0.85), 0 0 50px rgba(34,211,238,0.45); } }
+
+            /* Side Buttons */
+            .tx-phone-mockup::before { content: ""; position: absolute; top: 70px; left: -11px; width: 3px; height: 24px; background: #1e293b; border-radius: 3px 0 0 3px; box-shadow: 0 30px 0 #1e293b, 0 58px 0 #1e293b; z-index: 10; }
+            .tx-phone-mockup::after { content: ""; position: absolute; top: 85px; right: -11px; width: 3px; height: 40px; background: #1e293b; border-radius: 0 3px 3px 0; z-index: 10; }
+
+            /* Glass Reflection Shine Overlay */
+            .tx-phone-glass-shine { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 30%, transparent 60%); pointer-events: none; z-index: 25; }
+
+            /* Dynamic Island Pill Notch */
+            .tx-phone-notch { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 72px; height: 17px; background: #000000; border-radius: 20px; z-index: 30; display: flex; align-items: center; justify-content: flex-end; padding-right: 7px; box-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+            .tx-phone-camera-dot { width: 6px; height: 6px; background: #0e1726; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; }
+
+            /* Screen & UI Elements */
+            .tx-phone-screen { height: 100%; display: flex; flex-direction: column; padding: 26px 13px 13px; box-sizing: border-box; justify-content: space-between; background: radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.15), transparent 60%), #070d18; position: relative; z-index: 10; }
+            .tx-phone-header { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #94a3b8; font-weight: 700; }
+            .tx-phone-logo { color: #22d3ee; font-weight: 950; letter-spacing: 0.06em; font-size: 10px; display: flex; align-items: center; gap: 4px; }
+            .tx-phone-live-dot { width: 6px; height: 6px; background: #34d399; border-radius: 50%; display: inline-block; animation: txLiveBlink 1.5s infinite; }
+            @keyframes txLiveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+            .tx-phone-portfolio { text-align: left; margin-top: 6px; }
+            .tx-phone-portfolio h3 { margin: 0; font-size: 14px; font-weight: 900; color: #fff; }
+            .tx-phone-portfolio-card { background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 47, 73, 0.65)); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 14px; padding: 10px 12px; margin-top: 6px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+            .tx-phone-label { font-size: 8px; color: #38bdf8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+            .tx-phone-balance { font-size: 18px; font-weight: 950; color: #fff; margin-top: 1px; letter-spacing: -0.02em; }
             .tx-phone-change { font-size: 8px; color: #34d399; font-weight: 700; margin-top: 1px; }
-            .tx-phone-chart { width: 100%; height: 48px; margin-top: 8px; display: block; }
-            .tx-phone-asset { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 8px; margin-top: 8px; }
+
+            .tx-phone-chart-wrap { position: relative; width: 100%; height: 46px; margin-top: 6px; }
+            .tx-phone-chart { width: 100%; height: 100%; display: block; }
+            .tx-phone-chart-line { stroke-dasharray: 200; stroke-dashoffset: 0; animation: txChartPulse 6s linear infinite; }
+            @keyframes txChartPulse { 0% { stroke-dashoffset: 200; } 50% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -200; } }
+
+            .tx-phone-asset { display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(34, 211, 238, 0.22); border-radius: 12px; padding: 8px 10px; margin-top: 6px; }
             .tx-phone-asset-info { display: flex; align-items: center; gap: 6px; }
-            .tx-phone-asset-icon { width: 22px; height: 22px; background: rgba(245,158,11,0.15); color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
+            .tx-phone-asset-icon { width: 22px; height: 22px; background: rgba(34, 211, 238, 0.15); color: #22d3ee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; }
             .tx-phone-asset-name { display: block; font-size: 9px; font-weight: 900; color: #fff; text-align: left; }
             .tx-phone-asset-type { display: block; font-size: 7px; color: #64748b; font-weight: 700; text-align: left; }
-            .tx-phone-asset-change { font-size: 9px; color: #10b981; font-weight: 900; }
+
             .tx-phone-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: auto; }
-            .tx-phone-btn { padding: 7px 0; border-radius: 8px; font-size: 8px; font-weight: 955; text-align: center; color: #fff; cursor: default; }
-            .tx-phone-btn.long { background: #10b981; }
-            .tx-phone-btn.short { background: #ef4444; }
-            .tx-ob-mobile-text { font-size: 13px; color: #94a3b8; font-weight: 700; line-height: 1.5; max-width: 480px; margin: 0 auto 20px; }
-            .tx-ob-app-card { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 480px; margin: 0 auto 16px; border: 1px solid rgba(34, 211, 238, 0.15); background: rgba(15, 23, 42, 0.6); border-radius: 18px; padding: 14px; box-sizing: border-box; text-align: left; }
-            .tx-ob-app-card-icon { width: 38px; height: 38px; border: 1px solid rgba(234, 179, 8, 0.25); background: rgba(234, 179, 8, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #eab308; }
+            .tx-phone-btn { padding: 7px 0; border-radius: 8px; font-size: 9px; font-weight: 955; text-align: center; color: #fff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+            .tx-phone-btn.long { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+            .tx-phone-btn.short { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+
+            /* Cyan Install Button & Cards */
+            #txObInstallBtn { width: 100%; background: linear-gradient(135deg, #22d3ee, #06b6d4) !important; color: #020617 !important; font-weight: 950 !important; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px; height: 48px; cursor: pointer; box-shadow: 0 8px 25px rgba(34, 211, 238, 0.35); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+            #txObInstallBtn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(34, 211, 238, 0.5); }
+
+            .tx-ob-mobile-text { font-size: 13px; color: #94a3b8; font-weight: 700; line-height: 1.5; max-width: 480px; margin: 0 auto 18px; }
+            .tx-ob-app-card { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 480px; margin: 0 auto 16px; border: 1px solid rgba(34, 211, 238, 0.25); background: rgba(15, 23, 42, 0.65); border-radius: 18px; padding: 14px; box-sizing: border-box; text-align: left; }
+            .tx-ob-app-card-icon { width: 40px; height: 40px; border: 1px solid rgba(34, 211, 238, 0.35); background: rgba(34, 211, 238, 0.12); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #22d3ee; }
             .tx-ob-app-card h4 { margin: 0; font-size: 13px; font-weight: 950; color: #fff; }
             .tx-ob-app-card p { margin: 2px 0 0; font-size: 11px; color: #64748b; font-weight: 700; }
             @media(max-width:680px){.tx-ob-card{padding:20px;border-radius:22px}.tx-ob-grid,.tx-ob-plans,.tx-ob-summary{grid-template-columns:1fr}.tx-ob-progress{grid-template-columns:1fr}.tx-ob-actions{flex-direction:column-reverse}.tx-ob-btn{width:100%}}
@@ -231,6 +263,7 @@
     }
 
     function hide() {
+        if (window.__txPhoneTickerInterval) clearInterval(window.__txPhoneTickerInterval);
         const el = root();
         el.innerHTML = "";
     }
@@ -243,62 +276,97 @@
     }
 
     function progress(step) {
+        if (step === 4) return "";
         return `
-            <div class="tx-ob-progress" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="tx-ob-progress" style="grid-template-columns: repeat(3, 1fr);">
                 <div class="tx-ob-step ${step === 1 ? "active" : "done"}">1. Platform</div>
                 <div class="tx-ob-step ${step === 2 ? "active" : step > 2 ? "done" : ""}">2. Choose plan</div>
                 <div class="tx-ob-step ${step === 3 ? "active" : step > 3 ? "done" : ""}">3. Fund & activate</div>
-                <div class="tx-ob-step ${step === 4 ? "active" : ""}">4. Mobile App</div>
             </div>`;
     }
 
     function mobileAppHtml() {
         return `
             <div class="tx-ob-mobile-app-step">
-                <!-- Phone Mockup -->
-                <div class="tx-phone-mockup">
-                    <div class="tx-phone-notch"></div>
-                    <div class="tx-phone-screen">
-                        <div class="tx-phone-header">
-                            <span class="tx-phone-time">9:41</span>
-                            <span class="tx-phone-logo">TRAIDIUMX</span>
-                            <span class="tx-phone-bell">
-                                <svg style="width: 10px; height: 10px;" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
-                                </svg>
-                            </span>
+                <!-- Realistic Smartphone Mockup -->
+                <div class="tx-phone-mockup-wrapper">
+                    <div class="tx-phone-mockup">
+                        <div class="tx-phone-glass-shine"></div>
+                        <div class="tx-phone-notch">
+                            <div class="tx-phone-camera-dot"></div>
                         </div>
-                        <div class="tx-phone-portfolio">
-                            <h3>Portfolio</h3>
-                            <div class="tx-phone-portfolio-card">
-                                <span class="tx-phone-label">Total Balance</span>
-                                <div class="tx-phone-balance">$12,480.50</div>
-                                <div class="tx-phone-change">▲ +$842.30 (24h)</div>
+                        <div class="tx-phone-screen">
+                            <div class="tx-phone-header">
+                                <span class="tx-phone-time" id="txPhoneLiveTime">--:--</span>
+                                <span class="tx-phone-logo">
+                                    <span class="tx-phone-live-dot"></span>TRAIDIUMX
+                                </span>
+                                <span class="tx-phone-bell" style="color: #22d3ee;">
+                                    <svg style="width: 11px; height: 11px;" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </span>
                             </div>
-                        </div>
-                        <svg class="tx-phone-chart" viewBox="0 0 100 30">
-                            <defs>
-                                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"></stop>
-                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"></stop>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,25 Q15,5 30,20 T60,5 T90,15 T100,10 L100,30 L0,30 Z" fill="url(#chartGrad)"></path>
-                            <path d="M0,25 Q15,5 30,20 T60,5 T90,15 T100,10" fill="none" stroke="#10b981" stroke-width="1.5" />
-                        </svg>
-                        <div class="tx-phone-asset">
-                            <div class="tx-phone-asset-info">
-                                <span class="tx-phone-asset-icon">₿</span>
-                                <div>
-                                    <span class="tx-phone-asset-name">BTC/USDT</span>
-                                    <span class="tx-phone-asset-type">Perpetual</span>
+                            <div class="tx-phone-portfolio">
+                                <h3>Portfolio</h3>
+                                <div class="tx-phone-portfolio-card">
+                                    <span class="tx-phone-label">Total Balance</span>
+                                    <div class="tx-phone-balance">$12,480.50</div>
+                                    <div class="tx-phone-change" id="txPhoneLiveChange">▲ +2.41% (24h)</div>
                                 </div>
                             </div>
-                            <span class="tx-phone-asset-change">+2.41%</span>
-                        </div>
-                        <div class="tx-phone-actions">
-                            <div class="tx-phone-btn long">LONG</div>
-                            <div class="tx-phone-btn short">SHORT</div>
+                            <div class="tx-phone-chart-wrap">
+                                <svg class="tx-phone-chart" viewBox="0 0 100 35" style="overflow: visible;">
+                                    <defs>
+                                        <linearGradient id="chartGradCyan" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.45"></stop>
+                                            <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.0"></stop>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- Background Grid Lines -->
+                                    <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2,2"/>
+                                    <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2,2"/>
+                                    <line x1="0" y1="30" x2="100" y2="30" stroke="rgba(255,255,255,0.06)" stroke-dasharray="2,2"/>
+                                    
+                                    <!-- Gradient Area -->
+                                    <path d="M 2,28 L 16,22 L 26,25 L 42,13 L 52,17 L 70,8 L 82,12 L 96,5 L 96,35 L 2,35 Z" fill="url(#chartGradCyan)"></path>
+                                    
+                                    <!-- Animated Bullish Trendline -->
+                                    <path class="tx-phone-chart-line" d="M 2,28 L 16,22 L 26,25 L 42,13 L 52,17 L 70,8 L 82,12 L 96,5" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                    
+                                    <!-- Price Target Horizontal Dashed Line -->
+                                    <line x1="70" y1="5" x2="96" y2="5" stroke="rgba(34,211,238,0.5)" stroke-dasharray="1.5,1.5" />
+                                    
+                                    <!-- Glowing Price Marker Dot -->
+                                    <circle cx="96" cy="5" r="2.5" fill="#22d3ee" />
+                                    <circle cx="96" cy="5" r="6" fill="rgba(34,211,238,0.4)" style="animation: txLiveBlink 1.2s infinite;" />
+                                </svg>
+                            </div>
+                            <div class="tx-phone-asset">
+                                <div class="tx-phone-asset-info">
+                                    <span class="tx-phone-asset-icon">₿</span>
+                                    <div>
+                                        <span class="tx-phone-asset-name">BTC/USDT</span>
+                                        <span class="tx-phone-asset-type">Perpetual</span>
+                                    </div>
+                                </div>
+                                <span id="txPhoneLivePrice" style="font-size: 10px; font-weight: 950; color: #67e8f9;">$64,320.50</span>
+                            </div>
+                            <div class="tx-phone-asset" style="margin-top: 4px;">
+                                <div class="tx-phone-asset-info">
+                                    <span class="tx-phone-asset-icon" style="background: rgba(99, 102, 241, 0.18); color: #a5f3fc;">Ξ</span>
+                                    <div>
+                                        <span class="tx-phone-asset-name">ETH/USDT</span>
+                                        <span class="tx-phone-asset-type">Perpetual</span>
+                                    </div>
+                                </div>
+                                <span id="txPhoneLivePriceEth" style="font-size: 10px; font-weight: 950; color: #a5f3fc;">$3,482.10</span>
+                            </div>
+                            <div class="tx-phone-actions">
+                                <div class="tx-phone-btn long">LONG</div>
+                                <div class="tx-phone-btn short">SHORT</div>
+                            </div>
+                            <div style="width: 75px; height: 3.5px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 5px auto 0;"></div>
                         </div>
                     </div>
                 </div>
@@ -310,33 +378,36 @@
                 <!-- Get App Badge Card -->
                 <div class="tx-ob-app-card">
                     <div class="tx-ob-app-card-icon">
-                        <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
                     </div>
                     <div>
-                        <h4>Get TraidiumX on your phone</h4>
-                        <p>Use Install for Google Play, or pick App Store below.</p>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <h4>Get TraidiumX on your phone</h4>
+                            <span style="font-size: 9px; font-weight: 900; background: rgba(34, 211, 238, 0.15); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.35); padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.05em;">Coming Soon</span>
+                        </div>
+                        <p style="margin-top: 3px; color: #94a3b8; font-size: 11px;">Mobile app for Android & iOS is currently under development. Launching soon!</p>
                     </div>
                 </div>
 
-                <!-- Custom Step 2 Actions inside body -->
+                <!-- Step Actions -->
                 <div class="tx-ob-actions" style="flex-direction: column; gap: 8px; margin-top: 14px; width: 100%; max-width: 480px; margin-left: auto; margin-right: auto; padding: 0 10px;">
-                    <button type="button" class="tx-ob-btn primary" id="txObInstallBtn" style="width: 100%; background: #eab308; color: #020617; font-weight: 950; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 12px; height: 46px; cursor: pointer;">
+                    <button type="button" class="tx-ob-btn primary" id="txObInstallBtn">
                         <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>
-                        Install
+                        Install App
                     </button>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%;">
-                        <button type="button" class="tx-ob-btn" id="txObGooglePlayBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(255,255,255,0.08); background: #0f172a; color: #fff; cursor: pointer;">
-                            <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                        <button type="button" class="tx-ob-btn" id="txObGooglePlayBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(34,211,238,0.25); background: #0f172a; color: #fff; cursor: pointer;">
+                            <svg style="width: 12px; height: 12px; color: #22d3ee;" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M3 20.285V3.715C3 3.09 3.497 2.6 4.108 2.6c.19 0 .378.05.545.145l14.407 8.29a1.085 1.085 0 0 1 0 1.93l-14.407 8.29a1.084 1.084 0 0 1-1.653-.94Z" />
                             </svg>
                             Google Play
                         </button>
-                        <button type="button" class="tx-ob-btn" id="txObAppStoreBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(255,255,255,0.08); background: #0f172a; color: #fff; cursor: pointer;">
-                            <svg style="width: 14px; height: 14px;" fill="currentColor" viewBox="0 0 24 24">
+                        <button type="button" class="tx-ob-btn" id="txObAppStoreBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; font-weight: 800; border-radius: 12px; height: 40px; border: 1px solid rgba(34,211,238,0.25); background: #0f172a; color: #fff; cursor: pointer;">
+                            <svg style="width: 14px; height: 14px; color: #22d3ee;" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.48C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.1 16.67C20.08 16.74 19.67 18.11 18.71 19.5M15.97 4.17C16.63 3.37 17.07 2.28 16.95 1C15.85 1.04 14.51 1.73 13.73 2.64C13.07 3.41 12.49 4.52 12.64 5.78C13.87 5.87 15.12 5.17 15.97 4.17Z" />
                             </svg>
                             App Store
@@ -365,13 +436,13 @@
         else if (step === 4) title = "Install Mobile App";
 
         let kicker = "Trading account setup";
-        if (step === 4) kicker = "STEP 4 / 4 · MOBILE APP";
-        else kicker = `STEP ${step} / 4 · ${step === 1 ? "PLATFORM" : step === 2 ? "PLAN" : "ACTIVATION"}`;
+        if (step === 4) kicker = "SUCCESS · MOBILE APP";
+        else kicker = `STEP ${step} / 3 · ${step === 1 ? "PLATFORM" : step === 2 ? "PLAN" : "ACTIVATION"}`;
 
         let headerIconHtml = "";
         if (step === 4) {
             headerIconHtml = `
-                <div style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #eab308; display: grid; place-items: center; background: rgba(234,179,8,0.1); color: #eab308; margin-right: 14px; flex-shrink: 0; margin-top: 6px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; border: 2px solid #22d3ee; display: grid; place-items: center; background: rgba(34,211,238,0.12); color: #22d3ee; margin-right: 14px; flex-shrink: 0; margin-top: 6px;">
                     <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                         <line x1="12" y1="18" x2="12.01" y2="18"></line>
@@ -508,7 +579,45 @@
         document.getElementById("txObClose")?.addEventListener("click", hide);
 
         if (step === 4) {
+            // Real-time system clock updater on mockup status bar
+            const updateClock = () => {
+                const timeEl = document.getElementById("txPhoneLiveTime");
+                if (timeEl) {
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, "0");
+                    const minutes = now.getMinutes().toString().padStart(2, "0");
+                    timeEl.textContent = `${hours}:${minutes}`;
+                }
+            };
+            updateClock();
+
+            // Live price ticker animation on mockup screen
+            if (window.__txPhoneTickerInterval) clearInterval(window.__txPhoneTickerInterval);
+            let btcPrice = 64320.50;
+            let ethPrice = 3482.10;
+            const priceEl = document.getElementById("txPhoneLivePrice");
+            const ethEl = document.getElementById("txPhoneLivePriceEth");
+            const changeEl = document.getElementById("txPhoneLiveChange");
+            if (priceEl) {
+                window.__txPhoneTickerInterval = setInterval(() => {
+                    updateClock();
+                    const delta = (Math.random() - 0.48) * 14.2;
+                    const ethDelta = (Math.random() - 0.48) * 2.8;
+                    btcPrice += delta;
+                    ethPrice += ethDelta;
+                    priceEl.textContent = `$${btcPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    if (ethEl) ethEl.textContent = `$${ethPrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    if (changeEl) {
+                        const isUp = delta >= 0;
+                        const pct = (2.41 + (Math.random() * 0.06)).toFixed(2);
+                        changeEl.textContent = `${isUp ? "▲ +" : "▼ "}${pct}% (24h)`;
+                        changeEl.style.color = isUp ? "#34d399" : "#f87171";
+                    }
+                }, 1200);
+            }
+
             const handleFinishOnboarding = () => {
+                if (window.__txPhoneTickerInterval) clearInterval(window.__txPhoneTickerInterval);
                 window.location.href = state.selectedPlatform === "mt5" ? "/src/pages/trading-account.html" : "/src/pages/futures.html";
             };
             

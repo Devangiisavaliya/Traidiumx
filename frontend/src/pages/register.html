@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="register" data-auth-page="register">
@@ -23,7 +24,7 @@
             <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/10 blur-[140px]"></div>
         </div>
 
-        <section class="mx-auto grid min-h-[calc(100vh-8rem)] max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
+        <section class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:px-8">
 
             <!-- Left Visual -->
             <div class="auth-visual-card">
@@ -40,31 +41,48 @@
                 </h1>
 
                 <p class="mt-5 max-w-xl leading-8 text-slate-300">
-                    Create your TraidiumX account with backend authentication, wallet creation and secure session handling.
+                    Create your TraidiumX account to get access to multi-asset wallets, instant order execution, and advanced charting tools.
                 </p>
 
-                <div class="mt-8 grid gap-4 sm:grid-cols-3">
-                    <div class="auth-mini-stat">
-                        <h3>350+</h3>
-                        <p>Pairs</p>
+                <div class="mt-10 space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                            <!-- SVG Wallet Icon -->
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Multi-Asset Wallet</h3>
+                            <p class="mt-1 text-sm text-slate-400">Seamlessly deposit and manage INR, USDT, and multiple major cryptocurrencies in one place.</p>
+                        </div>
                     </div>
 
-                    <div class="auth-mini-stat">
-                        <h3>150x</h3>
-                        <p>Leverage</p>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                            <!-- SVG Lightning Icon -->
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Ultra-Low Latency Execution</h3>
+                            <p class="mt-1 text-sm text-slate-400">Trade futures and options contracts with instant order routing and minimal slippage.</p>
+                        </div>
                     </div>
 
-                    <div class="auth-mini-stat">
-                        <h3>24/7</h3>
-                        <p>Support</p>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                            <!-- SVG Security Shield Icon -->
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Bank-Grade Security</h3>
+                            <p class="mt-1 text-sm text-slate-400">Your funds are protected with multi-sig wallets, cold storage backups, and advanced encryption.</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="mt-8 rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.06] p-5">
-                    <h3 class="font-black text-cyan-300">Security Note</h3>
-                    <p class="mt-2 text-sm leading-7 text-slate-400">
-                        Use a strong password. This registration is connected with Flask backend validation and MongoDB Atlas.
-                    </p>
                 </div>
             </div>
 
@@ -91,13 +109,13 @@
                     <!-- Backend API message -->
                     <div id="authMessage" class="hidden rounded-2xl border px-4 py-3 text-sm font-bold"></div>
 
-                    <div class="space-y-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+                    <div id="txGoogleLoginWrapper" class="space-y-3 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
                         <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Fast sign up</p>
                         <div id="googleSignupButton" class="flex min-h-[44px] w-full items-center justify-center overflow-hidden rounded-full bg-white"></div>
                         <p id="googleSignupStatus" class="hidden text-xs font-semibold leading-6 text-amber-300"></p>
                     </div>
 
-                    <div class="flex items-center gap-4">
+                    <div id="txGoogleLoginSpacer" class="flex items-center gap-4">
                         <div class="h-px flex-1 bg-white/10"></div>
                         <span class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">or sign up with email</span>
                         <div class="h-px flex-1 bg-white/10"></div>
@@ -135,47 +153,51 @@
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <div class="mb-2 flex items-center justify-between">
-                                <label for="registerPassword" class="auth-label mb-0">Password</label>
-                                <button type="button" data-toggle-password="registerPassword" class="auth-password-toggle">
-                                    Show
+                            <label for="registerPassword" class="auth-label">Password</label>
+                            <div class="relative">
+                                <input
+                                    id="registerPassword"
+                                    name="password"
+                                    type="password"
+                                    placeholder="Create password"
+                                    class="auth-input pr-12"
+                                    autocomplete="new-password"
+                                    required
+                                />
+                                <button type="button" data-toggle-password="registerPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none" aria-label="Toggle password visibility">
+                                    <svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
                                 </button>
                             </div>
-
-                            <input
-                                id="registerPassword"
-                                name="password"
-                                type="password"
-                                placeholder="Create password"
-                                class="auth-input"
-                                autocomplete="new-password"
-                                required
-                            />
                             <p id="registerPasswordError" class="auth-error"></p>
                         </div>
 
                         <div>
-                            <div class="mb-2 flex items-center justify-between">
-                                <label for="registerConfirmPassword" class="auth-label mb-0">Confirm Password</label>
-                                <button type="button" data-toggle-password="registerConfirmPassword" class="auth-password-toggle">
-                                    Show
+                            <label for="registerConfirmPassword" class="auth-label">Confirm Password</label>
+                            <div class="relative">
+                                <input
+                                    id="registerConfirmPassword"
+                                    name="confirm_password"
+                                    type="password"
+                                    placeholder="Confirm password"
+                                    class="auth-input pr-12"
+                                    autocomplete="new-password"
+                                    required
+                                />
+                                <button type="button" data-toggle-password="registerConfirmPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none" aria-label="Toggle password visibility">
+                                    <svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
                                 </button>
                             </div>
-
-                            <input
-                                id="registerConfirmPassword"
-                                name="confirm_password"
-                                type="password"
-                                placeholder="Confirm password"
-                                class="auth-input"
-                                autocomplete="new-password"
-                                required
-                            />
                             <p id="registerConfirmPasswordError" class="auth-error"></p>
                         </div>
                     </div>
 
-                    <div>
+                    <div id="passwordStrengthWrapper" class="hidden">
                         <div class="mb-2 flex items-center justify-between">
                             <p class="text-xs font-black text-slate-500">Password Strength</p>
                             <p id="passwordStrengthLabel" class="text-xs font-black text-slate-500">Weak</p>
@@ -250,12 +272,6 @@
                     <p id="registerSuccessMessage" class="auth-success hidden">
                         Account created successfully.
                     </p>
-
-                    <div class="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4 text-sm leading-7 text-slate-300">
-                        <p class="font-black text-cyan-300">Backend registration:</p>
-                        <p>Email sign-up sends a 6 digit verification code to your email before creating the account.</p>
-                        <p>Google sign-up calls <span class="font-black text-white">/api/auth/google</span> and verifies the Google credential on the Flask backend before creating the user wallet in MongoDB.</p>
-                    </div>
                 </form>
 
                 <p class="mt-6 text-center text-sm text-slate-400">
@@ -293,12 +309,19 @@
             }
 
             const passwordInput = document.getElementById("registerPassword");
+            const strengthWrapper = document.getElementById("passwordStrengthWrapper");
             const strengthLabel = document.getElementById("passwordStrengthLabel");
             const strengthBar = document.getElementById("passwordStrengthBar");
 
-            if (passwordInput && strengthLabel && strengthBar) {
+            if (passwordInput && strengthWrapper && strengthLabel && strengthBar) {
                 passwordInput.addEventListener("input", function () {
                     const password = passwordInput.value;
+                    if (password.length === 0) {
+                        strengthWrapper.classList.add("hidden");
+                        return;
+                    }
+                    strengthWrapper.classList.remove("hidden");
+
                     let score = 0;
 
                     if (password.length >= 8) score++;

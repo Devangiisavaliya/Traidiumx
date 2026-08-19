@@ -28,6 +28,7 @@ const profileEl = {
     editCancelBtn: document.getElementById("profileEditCancelBtn"),
     nameText: document.getElementById("profileNameText"),
     emailText: document.getElementById("profileEmailText"),
+    phoneText: document.getElementById("profilePhoneText"),
     createdText: document.getElementById("profileCreatedText"),
     form: document.getElementById("profileUpdateForm"),
     platformText: document.getElementById("profilePlatformText"),
@@ -494,6 +495,7 @@ function renderProfile() {
     if (profileEl.avatarInitials) profileEl.avatarInitials.textContent = getProfileInitials(displayName);
     if (profileEl.nameText) profileEl.nameText.textContent = displayName;
     if (profileEl.emailText) profileEl.emailText.textContent = user.email || "--";
+    if (profileEl.phoneText) profileEl.phoneText.textContent = user.phone || user.phone_number || user.mobile || "Not added";
     if (profileEl.createdText) profileEl.createdText.textContent = formatDateTime(user.created_at);
 
     const onboarding = profileState.onboarding || {};
@@ -510,6 +512,17 @@ function renderProfile() {
     if (profileEl.preferredPlanText) profileEl.preferredPlanText.textContent = planDisplayName;
 
     renderPrimaryCurrencyCard();
+
+    // 2FA status
+    const twoFaText = document.getElementById("profile2faStatusText");
+    const twoFaDot  = document.getElementById("profile2faStatusDot");
+    if (twoFaText && twoFaDot) {
+        const is2faOn = user.two_factor_enabled === true;
+        twoFaText.textContent = is2faOn ? "Enabled" : "Disabled";
+        twoFaText.style.color = is2faOn ? "#34d399" : "#94a3b8";
+        twoFaDot.style.background  = is2faOn ? "rgba(52,211,153,0.12)" : "";
+        twoFaDot.style.color = is2faOn ? "#34d399" : "";
+    }
 
     // Toggle MT5 connection section
     const mt5Section = profileEl.mt5ConnectionSection;
@@ -1035,66 +1048,131 @@ function initProfilePage() {
         });
     }
 
-    window.addEventListener("traidiumx:currency-change", renderPrimaryCurrencyCard);
+    window.addEventListener("traidiumx:currency-change", () => {
+        renderPrimaryCurrencyCard();
+        const cached = getCachedSubAccounts();
+        if (cached && cached.length > 0) {
+            renderSubAccountsDOM(cached);
+        }
+        if (typeof txUpdateProfileSubTransferPreview === "function") {
+            txUpdateProfileSubTransferPreview();
+        }
+    });
     loadProfile();
     loadWalletHistories();
 }
 
 document.addEventListener("DOMContentLoaded", initProfilePage);
 
-async function txInitProfileSubAccounts() {
+let cachedSubAccountsList = null;
+
+function getCachedSubAccounts() {
+    if (cachedSubAccountsList && cachedSubAccountsList.length > 0) {
+        return cachedSubAccountsList;
+    }
+    try {
+        const cached = localStorage.getItem("tx_cached_sub_accounts");
+        if (cached) {
+            cachedSubAccountsList = JSON.parse(cached);
+            return cachedSubAccountsList;
+        }
+    } catch (e) {}
+    return [];
+}
+
+function renderSubAccountsDOM(subAccounts) {
+    if (!Array.isArray(subAccounts)) return;
+    window.txSubAccountsLocalCache = subAccounts;
+
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+    const rate = Number(profileState.wallet?.usdt_inr_rate || 95.00);
+
+    // Populate Target Account Selector
+    const transferSelect = document.getElementById("profileSubTransferAccount");
+    if (transferSelect) {
+        const currentVal = transferSelect.value;
+        transferSelect.innerHTML = `<option value="main">Main Trading Account (${isINR ? "INR" : "USDT"})</option>`;
+        subAccounts.forEach(sub => {
+            const opt = document.createElement("option");
+            opt.value = sub.id;
+            opt.textContent = `${sub.name} (USDT)`;
+            transferSelect.appendChild(opt);
+        });
+        if (currentVal) transferSelect.value = currentVal;
+    }
+    
+    // Render Existing Sub Accounts List
+    const listContainer = document.getElementById("profileSubAccountsList");
+    if (listContainer) {
+        if (subAccounts.length === 0) {
+            listContainer.innerHTML = `<p class="text-xs text-slate-500 font-semibold py-2">No sub accounts created yet.</p>`;
+            return;
+        }
+        
+        let html = "";
+        subAccounts.forEach(sub => {
+            const w = sub.wallet || { available_balance: 0, locked_balance: 0, total_balance: 0 };
+            const availUsd = Number(w.available_balance || 0);
+            const lockedUsd = Number(w.locked_balance || 0);
+            const totalUsd = Number(w.total_balance || 0);
+
+            let availFormatted = `${availUsd.toFixed(2)} USD`;
+            let lockedFormatted = `${lockedUsd.toFixed(2)} USD`;
+            let totalFormatted = `${totalUsd.toFixed(2)} USD`;
+
+            if (isINR) {
+                const availInr = availUsd * rate;
+                const lockedInr = lockedUsd * rate;
+                const totalInr = totalUsd * rate;
+                availFormatted = `₹${availInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+                lockedFormatted = `₹${lockedInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+                totalFormatted = `₹${totalInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+            }
+
+            html += `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition gap-3 text-xs" style="min-width:0;overflow:hidden;">
+                    <div style="min-width:0;flex:1;overflow:hidden;">
+                        <strong class="text-white text-sm font-black block truncate">${escapeHtml(sub.name)}</strong>
+                        <p class="text-[10px] text-slate-500 mt-1" style="word-break:break-all;white-space:normal;">ID: ${sub.id} · Client ID: ${sub.client_id}</p>
+                    </div>
+                    <div class="flex gap-4 text-right" style="flex-shrink:0;">
+                        <div>
+                            <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Available</span>
+                            <strong class="text-cyan-300 font-black text-sm">${availFormatted}</strong>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Locked</span>
+                            <strong class="text-slate-400 font-black text-sm">${lockedFormatted}</strong>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Total</span>
+                            <strong class="text-white font-black text-sm">${totalFormatted}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        listContainer.innerHTML = html;
+    }
+}
+
+async function txInitProfileSubAccounts(forceCacheOnly = false) {
+    const cached = getCachedSubAccounts();
+    if (cached && cached.length > 0) {
+        renderSubAccountsDOM(cached);
+    }
+
+    if (forceCacheOnly) return;
+
     try {
         const response = await apiRequest("/user/sub-accounts");
         const subAccounts = response.data || [];
-        
-        // Populate Target Account Selector
-        const transferSelect = document.getElementById("profileSubTransferAccount");
-        if (transferSelect) {
-            transferSelect.innerHTML = `<option value="main">Main Trading Account</option>`;
-            subAccounts.forEach(sub => {
-                const opt = document.createElement("option");
-                opt.value = sub.id;
-                opt.textContent = sub.name;
-                transferSelect.appendChild(opt);
-            });
-        }
-        
-        // Render Existing Sub Accounts List
-        const listContainer = document.getElementById("profileSubAccountsList");
-        if (listContainer) {
-            if (subAccounts.length === 0) {
-                listContainer.innerHTML = `<p class="text-xs text-slate-500 font-semibold py-2">No sub accounts created yet.</p>`;
-                return;
-            }
-            
-            let html = "";
-            subAccounts.forEach(sub => {
-                const w = sub.wallet || { available_balance: 0, locked_balance: 0, total_balance: 0 };
-                html += `
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition gap-3 text-xs">
-                        <div>
-                            <strong class="text-white text-sm font-black">${escapeHtml(sub.name)}</strong>
-                            <p class="text-[10px] text-slate-500 mt-1">ID: ${sub.id} · Client ID: ${sub.client_id}</p>
-                        </div>
-                        <div class="flex gap-4 text-right">
-                            <div>
-                                <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Available</span>
-                                <strong class="text-cyan-300 font-black text-sm">${w.available_balance.toFixed(2)} USD</strong>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Locked</span>
-                                <strong class="text-slate-400 font-black text-sm">${w.locked_balance.toFixed(2)} USD</strong>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Total</span>
-                                <strong class="text-white font-black text-sm">${w.total_balance.toFixed(2)} USD</strong>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        }
+        cachedSubAccountsList = subAccounts;
+        try {
+            localStorage.setItem("tx_cached_sub_accounts", JSON.stringify(subAccounts));
+        } catch (e) {}
+        renderSubAccountsDOM(subAccounts);
     } catch (e) {
         console.error("Failed to load sub accounts:", e);
     }

@@ -756,7 +756,7 @@ function startMarketWebSocket() {
 
         marketSocket = new WebSocket(`${BINANCE_WS_BASE}${streams.join("/")}`);
 
-        marketSocket.onopen = () => setMarketStatus("Live", "live", "Backend market board + Binance live feed");
+        marketSocket.onopen = () => setMarketStatus("Operational", "live", "Backend market board + Binance live feed");
         marketSocket.onmessage = (event) => {
             try {
                 const response = JSON.parse(event.data);
@@ -794,7 +794,7 @@ async function refreshMarketBoard(silent = true) {
 
         applyMarkets(board.markets, board.stats);
         setBoardUpdatedTime(board.lastUpdated, board.provider || board.source);
-        setMarketStatus("Live", "live", board.warnings.length ? "Live with provider warnings" : "Backend market board + Binance live feed");
+        setMarketStatus("Operational", "live", board.warnings.length ? "Operational with provider warnings" : "Backend market board + Binance live feed");
 
         if (!silent) startMarketWebSocket();
     } catch (error) {

@@ -212,10 +212,92 @@
         .tx-mobile-auth-actions .tx-navbar-notification-btn-mobile,
         .tx-mobile-logout-btn {
             font-size: 9.5px !important;
+    }
+
+    /* Scroll Transition for Desktop/Mobile Navbar */
+    .tx-pill-header {
+        transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .tx-pill-navbar {
+        transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    min-height 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .tx-pill-glow {
+        transition: border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* Scrolled State Styles - Floating Pill style (similar to Shark Exchange) */
+    .tx-pill-header.tx-navbar-scrolled {
+        padding-top: 8px !important;
+    }
+
+    .tx-pill-header.tx-navbar-scrolled .tx-pill-navbar {
+        border-radius: 999px !important; /* Keep it rounded-full */
+        background-color: rgba(3, 7, 18, 0.95) !important;
+        border-color: rgba(34, 211, 238, 0.22) !important;
+        min-height: 76px !important;
+        padding-top: 14px !important;
+        padding-bottom: 14px !important;
+        box-shadow: 
+            0 0 0 1px rgba(34, 211, 238, 0.12),
+            0 16px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .tx-pill-header.tx-navbar-scrolled .tx-pill-glow {
+        border-radius: 999px !important;
+    }
+
+    .tx-pill-header.tx-navbar-scrolled .tx-pill-brand h1 {
+        font-size: 23px !important;
+    }
+
+    .tx-pill-header.tx-navbar-scrolled .tx-pill-brand p {
+        font-size: 11px !important;
+        letter-spacing: 0.25em !important;
+        margin-top: 2px !important;
+    }
+
+    .tx-pill-header.tx-navbar-scrolled .tx-pill-trade-btn {
+        padding-top: 9.5px !important;
+        padding-bottom: 9.5px !important;
+        border-radius: 15px !important;
+        box-shadow: 0 12px 30px rgba(34, 211, 238, 0.2) !important;
+    }
+
+    @media (max-width: 1023px) {
+        .tx-pill-header.tx-navbar-scrolled {
+            /* Keep safe-area padding for notch devices when scrolled on mobile */
+            padding-top: max(8px, env(safe-area-inset-top)) !important;
         }
     }
 </style>
 <header class="tx-pill-header fixed left-0 top-0 z-50 w-full px-4 pt-4 sm:px-6 lg:px-8">
+    <script>
+        (function() {
+            const header = document.querySelector('.tx-pill-header');
+            if (!header) return;
+            function handleScroll() {
+                const scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                if (scrollTop > 20) {
+                    header.classList.add('tx-navbar-scrolled');
+                } else {
+                    header.classList.remove('tx-navbar-scrolled');
+                }
+            }
+            window.removeEventListener('scroll', window.__txNavbarScrollHandler);
+            window.__txNavbarScrollHandler = handleScroll;
+            window.addEventListener('scroll', handleScroll, { passive: true });
+            handleScroll();
+        })();
+    </script>
     <nav class="tx-pill-navbar relative mx-auto flex max-w-7xl items-center justify-between rounded-full border border-cyan-400/15 bg-[#030712]/90 px-5 py-4 shadow-2xl backdrop-blur-2xl sm:px-8">
 
         <!-- Animated Navbar Glow -->

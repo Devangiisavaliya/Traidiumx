@@ -95,6 +95,10 @@ const WALLET_STATE = {
     withdrawalFeeEstimate: null,
     withdrawalFeeLoading: false,
     activeAction: "",
+    exchangeIntervalId: null,
+    currentExchangeRate: null,
+    currentExchangeFromAsset: null,
+    currentExchangeToAsset: null,
     history: {
         ledger: { search: "", status: "all", currency: "all", page: 1, pageSize: 5 },
         deposits: { search: "", status: "all", page: 1, pageSize: 5 },
@@ -192,6 +196,13 @@ const walletElements = {
     actionBackdrop: document.getElementById("walletActionBackdrop"),
     actionModalClose: document.getElementById("walletActionModalClose"),
     actionModalTitle: document.getElementById("walletActionModalTitle"),
+    internalTransferForm: document.getElementById("walletInternalTransferForm"),
+    internalTransferAsset: document.getElementById("walletInternalTransferAsset"),
+    internalTransferRecipient: document.getElementById("walletInternalTransferRecipient"),
+    internalTransferAmount: document.getElementById("walletInternalTransferAmount"),
+    internalTransferMyBalance: document.getElementById("walletInternalTransferMyBalance"),
+    internalTransferSubmitBtn: document.getElementById("walletInternalTransferSubmitBtn"),
+    quickInternalTransferBtn: document.getElementById("quickInternalTransferBtn"),
     actionModalSubtitle: document.getElementById("walletActionModalSubtitle"),
     actionModalMessage: document.getElementById("walletActionModalMessage"),
     actionPanels: Array.from(document.querySelectorAll("[data-wallet-action-panel]")),
@@ -276,14 +287,35 @@ function getMainWalletData() {
     }
 }
 
+function getActiveWalletData() {
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const cache = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
+    if (activeSubId && cache.length > 0) {
+        const sub = cache.find(s => s.id === activeSubId);
+        if (sub && sub.wallet) return sub.wallet;
+    }
+    const parentEntry = cache.find(s => s.is_parent);
+    if (!activeSubId && parentEntry && parentEntry.wallet) {
+        return parentEntry.wallet;
+    }
+    return WALLET_STATE.wallet || {};
+}
+
 function getTradingWalletData() {
-    const wallet = WALLET_STATE.wallet || {};
-    return wallet.trading_wallet || {
+    const wallet = getActiveWalletData();
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const bucketKey = activeCurrency === "INR" ? "trading_wallet_inr" : "trading_wallet_usdt";
+    const fallbackCurrency = activeCurrency === "INR" ? "INR" : "USDT";
+    return wallet[bucketKey] || wallet.trading_wallet || {
         available_balance: wallet.available_balance || 0,
         locked_balance: wallet.locked_balance || 0,
         total_balance: wallet.total_balance || 0,
-        currency: wallet.currency || "USDT"
+        currency: fallbackCurrency
     };
+}
+
+function isBalanceHidden() {
+    return localStorage.getItem("tx_balance_hidden") === "1";
 }
 
 function formatWalletMoney(value, currency = getWalletCurrency(), decimals = 2) {
@@ -296,6 +328,13 @@ function formatWalletMoney(value, currency = getWalletCurrency(), decimals = 2) 
         return `₹${amount}`;
     }
     return `$${amount}`;
+}
+
+function formatWalletMoneyPrivate(value, currency = getWalletCurrency(), decimals = 2) {
+    if (isBalanceHidden()) {
+        return "••••••••";
+    }
+    return formatWalletMoney(value, currency, decimals);
 }
 
 function formatWalletDate(value) {
@@ -884,6 +923,7 @@ function injectWalletPageStyles() {
         .tx-submit-btn.deposit { background: linear-gradient(135deg, #67e8f9, #22d3ee); }
         .tx-submit-btn.withdraw { color: #fff; background: linear-gradient(135deg, #ef4444, #991b1b); box-shadow: 0 16px 36px rgba(127, 29, 29, .30); }
         .tx-submit-btn.exchange { background: linear-gradient(135deg, #22d3ee, #06b6d4); box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25); }
+        .tx-submit-btn.internal_transfer { background: linear-gradient(135deg, #67e8f9, #22d3ee); box-shadow: 0 8px 24px rgba(34, 211, 238, 0.25); }
         .tx-wallet-modal-scroll {
             scrollbar-width: thin;
             scrollbar-color: rgba(34, 211, 238, 0.3) rgba(2, 6, 23, 0.4);
@@ -961,7 +1001,7 @@ function showWalletActionMessage(message = "", type = "success") {
 }
 
 function updateWalletActionModalBalances() {
-    const wallet = WALLET_STATE.wallet || {};
+    const wallet = getActiveWalletData();
     const tradingWallet = getTradingWalletData();
     const tradingCurrency = tradingWallet.currency || "USDT";
     
@@ -977,6 +1017,12 @@ function updateWalletActionModalBalances() {
     const tradingCol = document.getElementById("walletModalTradingCol");
     const mainCol = document.getElementById("walletModalMainCol");
     const pnlCol = document.getElementById("walletModalPnlCol");
+
+    if (action === "internal_transfer") {
+        updateInternalTransferBalance();
+        if (modalStatsGrid) modalStatsGrid.classList.add("hidden");
+        return;
+    }
 
     if (action === "exchange") {
         const fromAsset = (document.getElementById("walletExchangeFromAsset")?.value || "USDT").toUpperCase();
@@ -1069,6 +1115,32 @@ function resetWalletActionModalDOM() {
     walletElements.depositForm?.reset();
     walletElements.withdrawalForm?.reset();
     walletElements.unifiedTransferForm?.reset();
+    walletElements.internalTransferForm?.reset();
+    const recDetails = document.getElementById("walletInternalTransferRecipientDetails");
+    if (recDetails) recDetails.classList.add("hidden");
+
+    const headerIcon = document.getElementById("txModalHeaderIcon");
+    if (headerIcon) {
+        headerIcon.classList.add("hidden");
+        headerIcon.classList.remove("flex");
+    }
+
+    // Reset internal transfer tabs to default (Receive)
+    const btnReceive = document.getElementById("txItTabBtnReceive");
+    const btnSend = document.getElementById("txItTabBtnSend");
+    const contentReceive = document.getElementById("txItTabContentReceive");
+    const contentSend = document.getElementById("txItTabContentSend");
+    if (btnReceive && btnSend && contentReceive && contentSend) {
+        contentReceive.classList.remove("hidden");
+        contentSend.classList.add("hidden");
+        btnReceive.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+        btnSend.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all text-slate-400 hover:text-slate-200";
+    }
+
+    // Stop camera scanner if running
+    if (typeof stopCameraScanner === "function") {
+        stopCameraScanner();
+    }
 
     // Clear balances display
     if (walletElements.modalTradingBalance) walletElements.modalTradingBalance.textContent = "--";
@@ -1111,7 +1183,7 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
         return;
     }
 
-    const target = ["transfer", "deposit", "withdraw", "exchange"].includes(String(action).toLowerCase())
+    const target = ["transfer", "deposit", "withdraw", "exchange", "internal_transfer"].includes(String(action).toLowerCase())
         ? String(action).toLowerCase()
         : "deposit";
 
@@ -1120,13 +1192,15 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
         transfer: "Transfer Funds",
         deposit: "Deposit to Main Wallet",
         withdraw: "Withdraw from Main Wallet",
-        exchange: "Exchange Main Wallet Crypto"
+        exchange: "Exchange Main Wallet Crypto",
+        internal_transfer: "Internal Money Transfer"
     };
     const subtitleMap = {
         transfer: "Move balance between Main Wallet and Trading Wallet.",
         deposit: "Copy the company address and confirm the exact same address before demo credit.",
         withdraw: "Submit your external wallet address. Admin approval completes payout.",
-        exchange: "Exchange crypto coins in your Main Wallet at live market rates."
+        exchange: "Exchange crypto coins in your Main Wallet at live market rates.",
+        internal_transfer: "Send money instantly to another TraidiumX user off-chain."
     };
 
     if (walletElements.actionModalTitle) walletElements.actionModalTitle.textContent = titleMap[target];
@@ -1179,9 +1253,15 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
     walletElements.actionModal.setAttribute("aria-hidden", "false");
 
     if (target === "deposit") {
+        const cur = String(selectedAsset || WALLET_STATE.activeDepositCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+        WALLET_STATE.activeDepositCurrency = cur;
+        updateDepositModalUIByCurrency(cur);
         loadCryptoDepositAddresses();
     }
     if (target === "withdraw") {
+        const cur = String(selectedAsset || WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+        WALLET_STATE.activeWithdrawalCurrency = cur;
+        updateWithdrawalModalUIByCurrency(cur, true);
         estimateWithdrawalFee(false);
     }
     if (target === "exchange") {
@@ -1198,6 +1278,44 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
         }
         updateExchangePreview();
         updateWalletActionModalBalances();
+
+        if (WALLET_STATE.exchangeIntervalId) {
+            clearInterval(WALLET_STATE.exchangeIntervalId);
+        }
+        WALLET_STATE.exchangeIntervalId = setInterval(() => {
+            if (WALLET_STATE.activeAction === "exchange") {
+                updateExchangePreview(true);
+            } else {
+                if (WALLET_STATE.exchangeIntervalId) {
+                    clearInterval(WALLET_STATE.exchangeIntervalId);
+                    WALLET_STATE.exchangeIntervalId = null;
+                }
+            }
+        }, 5000);
+    }
+    if (target === "internal_transfer") {
+        const asset = selectedAsset || "USDT";
+        const assetSelect = document.getElementById("walletInternalTransferAsset");
+        if (assetSelect) {
+            assetSelect.value = asset;
+        }
+
+        // Set dynamic header title, subtitle, and icon circle
+        if (walletElements.actionModalTitle) {
+            walletElements.actionModalTitle.textContent = `Internal Transfer — ${asset}`;
+        }
+        if (walletElements.actionModalSubtitle) {
+            walletElements.actionModalSubtitle.textContent = `User to User (${asset}) • 0% Fee`;
+        }
+        const headerIcon = document.getElementById("txModalHeaderIcon");
+        if (headerIcon) {
+            headerIcon.textContent = asset.charAt(0);
+            headerIcon.classList.remove("hidden");
+            headerIcon.classList.add("flex");
+        }
+
+        updateInternalTransferBalance();
+        updateWalletActionModalBalances();
     }
 }
 
@@ -1208,6 +1326,11 @@ function closeWalletActionModal() {
     walletElements.actionModal.setAttribute("aria-hidden", "true");
     WALLET_STATE.activeAction = "";
     clearWalletActionMessage();
+
+    if (WALLET_STATE.exchangeIntervalId) {
+        clearInterval(WALLET_STATE.exchangeIntervalId);
+        WALLET_STATE.exchangeIntervalId = null;
+    }
 }
 
 function walletSetButtonLoading(button, loading, text = "Processing...") {
@@ -1774,38 +1897,28 @@ async function loadCryptoDepositAddresses() {
 
 function getSelectedCryptoNetwork() {
     const activeCurrency = String(WALLET_STATE.activeDepositCurrency || "USDT").toUpperCase();
-    if (activeCurrency !== "USDT" && activeCurrency !== "BTC") {
-        const nativeNetworks = {
-            "BTC": "BITCOIN",
-            "SOL": "SOLANA",
-            "XRP": "RIPPLE",
-            "ADA": "CARDANO",
-            "ETH": "ERC20",
-            "USDC": "ERC20",
-            "BNB": "BEP20"
-        };
-        return nativeNetworks[activeCurrency] || "ERC20";
+    if (["USDT", "BTC", "SOL", "XRP", "ADA", "BNB"].includes(activeCurrency)) {
+        return String(walletElements.cryptoNetwork?.value || WALLET_STATE.cryptoDeposit.selectedNetwork || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
     }
-    return String(walletElements.cryptoNetwork?.value || WALLET_STATE.cryptoDeposit.selectedNetwork || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
+    const nativeNetworks = {
+        "ETH": "ERC20",
+        "USDC": "ERC20"
+    };
+    return nativeNetworks[activeCurrency] || "ERC20";
 }
 
 function getSelectedWithdrawalCryptoNetwork() {
     const isModal = isWalletActionModalOpen();
     const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || (isModal ? WALLET_STATE.activeWithdrawalCurrency : localStorage.getItem("tx_navbar_currency")) || "USDT").toUpperCase();
-    if (activeCurrency !== "USDT" && activeCurrency !== "BTC") {
-        const nativeNetworks = {
-            "BTC": "BITCOIN",
-            "SOL": "SOLANA",
-            "XRP": "RIPPLE",
-            "ADA": "CARDANO",
-            "ETH": "ERC20",
-            "USDC": "ERC20",
-            "BNB": "BEP20"
-        };
-        return nativeNetworks[activeCurrency] || "ERC20";
+    if (["USDT", "BTC", "SOL", "XRP", "ADA", "BNB"].includes(activeCurrency)) {
+        const prefix = isModal ? "modal" : "main";
+        return String(document.getElementById(`${prefix}WithdrawNetwork`)?.value || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
     }
-    const prefix = isModal ? "modal" : "main";
-    return String(document.getElementById(`${prefix}WithdrawNetwork`)?.value || (activeCurrency === "BTC" ? "BITCOIN" : "TRC20")).toUpperCase();
+    const nativeNetworks = {
+        "ETH": "ERC20",
+        "USDC": "ERC20"
+    };
+    return nativeNetworks[activeCurrency] || "ERC20";
 }
 
 function getSelectedCryptoAddressInfo() {
@@ -1859,7 +1972,7 @@ function updateCryptoDepositAddressUI() {
 
     const cryptoNetworkContainer = document.getElementById("cryptoNetworkContainer");
     const cryptoNetworkSelect = document.getElementById("cryptoNetwork");
-    const isUSDTOrBTC = ["USDT", "BTC"].includes(activeCurrency);
+    const isUSDTOrBTC = ["USDT", "BTC", "BNB", "SOL", "XRP", "ADA"].includes(activeCurrency);
 
     if (cryptoNetworkContainer) {
         cryptoNetworkContainer.classList.toggle("hidden", !isUSDTOrBTC);
@@ -1877,8 +1990,10 @@ function updateCryptoDepositAddressUI() {
             `;
             if (["TRC20", "ERC20", "BEP20"].includes(currentVal)) {
                 cryptoNetworkSelect.value = currentVal;
+            } else if (["TRC20", "ERC20", "BEP20"].includes(WALLET_STATE.cryptoDeposit.selectedNetwork)) {
+                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork;
             } else {
-                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork || "TRC20";
+                cryptoNetworkSelect.value = "TRC20";
             }
         } else if (activeCurrency === "BTC") {
             cryptoNetworkSelect.innerHTML = `
@@ -1887,17 +2002,34 @@ function updateCryptoDepositAddressUI() {
             `;
             if (["BITCOIN", "ERC20"].includes(currentVal)) {
                 cryptoNetworkSelect.value = currentVal;
+            } else if (["BITCOIN", "ERC20"].includes(WALLET_STATE.cryptoDeposit.selectedNetwork)) {
+                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork;
             } else {
-                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork || "BITCOIN";
+                cryptoNetworkSelect.value = "BITCOIN";
+            }
+        } else if (["SOL", "XRP", "ADA", "BNB"].includes(activeCurrency)) {
+            const labelMap = {
+                "SOL": { native: "SOLANA", nativeLabel: "SOL Mainnet (Solana)", erc20Label: "SOL ERC20 / Sepolia Token (MetaMask)" },
+                "XRP": { native: "RIPPLE", nativeLabel: "XRP Mainnet (Ripple)", erc20Label: "XRP ERC20 / Sepolia Token (MetaMask)" },
+                "ADA": { native: "CARDANO", nativeLabel: "ADA Mainnet (Cardano)", erc20Label: "ADA ERC20 / Sepolia Token (MetaMask)" },
+                "BNB": { native: "BEP20", nativeLabel: "BNB Mainnet (Binance Smart Chain)", erc20Label: "BNB ERC20 / Sepolia Token (MetaMask)" }
+            };
+            const coinConfig = labelMap[activeCurrency];
+            cryptoNetworkSelect.innerHTML = `
+                <option value="${coinConfig.native}">${coinConfig.nativeLabel}</option>
+                <option value="ERC20">${coinConfig.erc20Label}</option>
+            `;
+            if ([coinConfig.native, "ERC20"].includes(currentVal)) {
+                cryptoNetworkSelect.value = currentVal;
+            } else if ([coinConfig.native, "ERC20"].includes(WALLET_STATE.cryptoDeposit.selectedNetwork)) {
+                cryptoNetworkSelect.value = WALLET_STATE.cryptoDeposit.selectedNetwork;
+            } else {
+                cryptoNetworkSelect.value = coinConfig.native;
             }
         } else {
             const nativeNetworks = {
-                "SOL": { value: "SOLANA", label: "Solana Mainnet" },
-                "XRP": { value: "RIPPLE", label: "Ripple Mainnet" },
-                "ADA": { value: "CARDANO", label: "Cardano Mainnet" },
                 "ETH": { value: "ERC20", label: "Ethereum Mainnet (MetaMask)" },
-                "USDC": { value: "ERC20", label: "ERC20 / Sepolia Token (MetaMask)" },
-                "BNB": { value: "BEP20", label: "BSC / BEP20 Token (MetaMask)" }
+                "USDC": { value: "ERC20", label: "ERC20 / Sepolia Token (MetaMask)" }
             };
             const config = nativeNetworks[activeCurrency] || { value: "ERC20", label: "ERC20 network" };
             cryptoNetworkSelect.innerHTML = `<option value="${config.value}">${activeCurrency} ${config.label}</option>`;
@@ -1945,6 +2077,32 @@ function updateCryptoDepositAddressUI() {
     if (walletElements.payWithMetaMaskBtn) {
         const showMetaMask = isConfigured && ["ERC20", "BEP20"].includes(selectedNetwork);
         walletElements.payWithMetaMaskBtn.classList.toggle("hidden", !showMetaMask);
+    }
+
+    const qrImg = document.getElementById("cryptoDepositQrImg");
+    const qrPlaceholder = document.getElementById("cryptoDepositQrPlaceholder");
+    const qrContainer = document.getElementById("cryptoDepositQrContainer");
+
+    if (qrContainer) {
+        if (isConfigured && address) {
+            qrContainer.classList.remove("hidden");
+            if (qrImg) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}`;
+                qrImg.classList.remove("hidden");
+            }
+            if (qrPlaceholder) {
+                qrPlaceholder.classList.add("hidden");
+            }
+        } else {
+            if (qrImg) {
+                qrImg.src = "";
+                qrImg.classList.add("hidden");
+            }
+            if (qrPlaceholder) {
+                qrPlaceholder.textContent = "Address not configured";
+                qrPlaceholder.classList.remove("hidden");
+            }
+        }
     }
 }
 
@@ -2165,11 +2323,11 @@ function renderWalletPage() {
         if (walletElements.openMarginLabel) walletElements.openMarginLabel.textContent = "MT5 Account Equity";
         if (walletElements.openMarginNote) walletElements.openMarginNote.textContent = "MetaTrader 5 server equity";
 
-        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
-        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoney(totalMargin, mt5Curr);
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoneyPrivate(tradingAvailable, mt5Curr);
+        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoneyPrivate(totalMargin, mt5Curr);
 
         if (walletElements.unrealizedPnl) {
-            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoney(unrealizedPnl, mt5Curr)}`;
+            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoneyPrivate(unrealizedPnl, mt5Curr)}`;
             walletElements.unrealizedPnl.className = unrealizedPnl >= 0
                 ? "mt-3 text-3xl font-black text-emerald-400"
                 : "mt-3 text-3xl font-black text-red-400";
@@ -2185,19 +2343,19 @@ function renderWalletPage() {
         if (walletElements.openMarginLabel) walletElements.openMarginLabel.textContent = "Trading Locked Margin";
         if (walletElements.openMarginNote) walletElements.openMarginNote.textContent = "Open position margin";
 
-        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
-        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoney(totalMargin, tradingCurrency);
+        if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoneyPrivate(tradingAvailable, tradingCurrency);
+        if (walletElements.openMargin) walletElements.openMargin.textContent = formatWalletMoneyPrivate(totalMargin, tradingCurrency);
 
         if (walletElements.unrealizedPnl) {
-            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoney(unrealizedPnl, tradingCurrency)}`;
+            walletElements.unrealizedPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatWalletMoneyPrivate(unrealizedPnl, tradingCurrency)}`;
             walletElements.unrealizedPnl.className = unrealizedPnl >= 0
                 ? "mt-3 text-3xl font-black text-emerald-400"
                 : "mt-3 text-3xl font-black text-red-400";
         }
     }
 
-    if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoney(mainAvailable, mainCurrency);
-    if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoney(mainTotal, mainCurrency);
+    if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoneyPrivate(mainAvailable, mainCurrency);
+    if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoneyPrivate(mainTotal, mainCurrency);
 
     if (walletElements.ledgerCount) walletElements.ledgerCount.textContent = String(getDisplayLedgerRows(WALLET_STATE.ledger).length);
 
@@ -2653,11 +2811,19 @@ async function handleMetaMaskPayment() {
         }
 
         const activeCurrency = String(WALLET_STATE.activeDepositCurrency || "USDT").toUpperCase();
-        const btcContract = WALLET_STATE.cryptoDeposit.btcContractAddress || "";
+        
+        const tokenContracts = {
+            "BTC": WALLET_STATE.cryptoDeposit.btcContractAddress || "",
+            "BNB": "0x365030F77e91dcBb341174d454871BE07d47a083",
+            "SOL": "0x0D0b687E55FA6e16F3645038e018D7654D7CD99B",
+            "XRP": "0x4c9c3851e6dc08bEF4377F9147d84B8419D242B2",
+            "ADA": "0xC3678002F75eEA63D75B543fC12625f609aE9959"
+        };
+        const activeContract = tokenContracts[activeCurrency];
         
         let txParams;
-        if (activeCurrency === "BTC" && btcContract) {
-            // ERC20 Token transfer (BTC custom token)
+        if (["BTC", "BNB", "SOL", "XRP", "ADA"].includes(activeCurrency) && activeContract) {
+            // ERC20 Token transfer (custom token)
             // Method ID for transfer(address,uint256) is 0xa9059cbb
             const cleanToAddress = companyAddress.replace("0x", "").toLowerCase().padStart(64, "0");
             const decimals = 18; 
@@ -2667,12 +2833,12 @@ async function handleMetaMaskPayment() {
 
             txParams = {
                 from: userAddress,
-                to: btcContract,
+                to: activeContract,
                 value: "0x0",
                 data: txData,
                 gas: "0x186a0" // 100,000 gas limit is standard and safe for ERC20
             };
-            showWalletActionMessage(`Preparing ERC20 BTC token transfer to ${companyAddress}...`, "info");
+            showWalletActionMessage(`Preparing ERC20 ${activeCurrency} token transfer to ${companyAddress}...`, "info");
         } else {
             // Native ETH/BNB transfer
             const testAmount = usdAmount * 0.0001;
@@ -3091,26 +3257,26 @@ function validateWithdrawalForm(formData) {
         if (amount <= 0) return "Please enter a valid withdrawal amount.";
         if (!address) return "Please enter a withdrawal wallet address.";
 
-        if (activeCurrency === "BTC") {
-            const btcRegex = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{39,59})$/;
-            if (network === "ERC20") {
-                if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) return "Please enter a valid ERC20 wallet address starting with 0x.";
-            } else {
-                if (!btcRegex.test(address)) return "Please enter a valid Bitcoin address (starts with 1, 3, or bc1).";
+        if (["ERC20", "BEP20"].includes(network)) {
+            if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) {
+                return `Please enter a valid ${network} wallet address starting with 0x.`;
             }
-        } else if (activeCurrency === "SOL") {
-            const solRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-            if (!solRegex.test(address)) return "Please enter a valid Solana address.";
-        } else if (activeCurrency === "XRP") {
-            const xrpRegex = /^r[0-9a-zA-Z]{24,34}$/;
-            if (!xrpRegex.test(address)) return "Please enter a valid Ripple address starting with r.";
-        } else if (activeCurrency === "ADA") {
-            const adaRegex = /^(addr1[a-z0-9]+|Ae2[a-km-zA-HJ-NP-Z1-9]+|Ddz[a-km-zA-HJ-NP-Z1-9]+)$/;
-            if (!adaRegex.test(address)) return "Please enter a valid Cardano address.";
-        } else if (["ETH", "USDC"].includes(activeCurrency)) {
-            if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) return `Please enter a valid ${activeCurrency} address starting with 0x.`;
-        } else if (activeCurrency === "BNB") {
-            if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) return "Please enter a valid BEP20 address starting with 0x.";
+        } else {
+            if (activeCurrency === "BTC") {
+                const btcRegex = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{39,59}|0[xX][a-fA-F0-9]{40})$/;
+                if (!btcRegex.test(address)) return "Please enter a valid Bitcoin or EVM wallet address (starts with 1, 3, bc1, or 0x).";
+            } else if (activeCurrency === "SOL") {
+                const solRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+                if (!solRegex.test(address)) return "Please enter a valid Solana address.";
+            } else if (activeCurrency === "XRP") {
+                const xrpRegex = /^r[0-9a-zA-Z]{24,34}$/;
+                if (!xrpRegex.test(address)) return "Please enter a valid Ripple address starting with r.";
+            } else if (activeCurrency === "ADA") {
+                const adaRegex = /^(addr1[a-z0-9]+|Ae2[a-km-zA-HJ-NP-Z1-9]+|Ddz[a-km-zA-HJ-NP-Z1-9]+)$/;
+                if (!adaRegex.test(address)) return "Please enter a valid Cardano address.";
+            } else if (["ETH", "USDC", "BNB"].includes(activeCurrency)) {
+                if (!/^0[xX][a-fA-F0-9]{40}$/.test(address)) return `Please enter a valid ${activeCurrency} address starting with 0x.`;
+            }
         }
     }
 
@@ -3696,13 +3862,22 @@ function bindRealtimeConversionCalculator() {
                 };
 
                 const assetPrice = getAssetPrice(activeCurrency);
-                if (youDepEl) youDepEl.textContent = val > 0 ? `${val.toFixed(4)} ${activeCurrency}` : `0.0000 ${activeCurrency}`;
+                if (youDepEl) {
+                    if (val > 0 && assetPrice > 0) {
+                        const usdEq = (val * assetPrice).toFixed(2);
+                        youDepEl.innerHTML = `${val.toFixed(4)} ${activeCurrency} <span class="text-xs font-normal text-slate-400">(≈ $${usdEq} USD)</span>`;
+                    } else if (val > 0) {
+                        youDepEl.textContent = `${val.toFixed(4)} ${activeCurrency}`;
+                    } else {
+                        youDepEl.textContent = `0.0000 ${activeCurrency}`;
+                    }
+                }
                 if (walletCreditEl) {
                     if (val > 0 && assetPrice > 0) {
                         const usdEq = (val * assetPrice).toFixed(2);
                         walletCreditEl.innerHTML = `${val.toFixed(4)} ${activeCurrency} <span class="text-xs font-normal text-slate-400">(≈ $${usdEq} USD)</span>`;
                     } else {
-                        walletCreditEl.textContent = `0.0000 ${activeCurrency}`;
+                        walletCreditEl.textContent = `${val > 0 ? val.toFixed(4) : "0.0000"} ${activeCurrency}`;
                     }
                 }
                 const minUsdt = WALLET_STATE.cryptoDeposit.minAmount || 10;
@@ -3960,7 +4135,7 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     if (accNumInput) accNumInput.required = isINR;
     if (ifscInput) ifscInput.required = isINR;
 
-    if (netBox) netBox.classList.toggle("hidden", !["USDT", "BTC"].includes(activeCurrency));
+    if (netBox) netBox.classList.toggle("hidden", !["USDT", "BTC", "BNB", "SOL", "XRP", "ADA"].includes(activeCurrency));
     
     const netSelect = document.getElementById(`${prefix}WithdrawNetwork`);
     if (netSelect) {
@@ -3987,14 +4162,27 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
             } else {
                 netSelect.value = "BITCOIN";
             }
+        } else if (["SOL", "XRP", "ADA", "BNB"].includes(activeCurrency)) {
+            const labelMap = {
+                "SOL": { native: "SOLANA", nativeLabel: "Solana Network", erc20Label: "SOL ERC20 / Sepolia Token (MetaMask)" },
+                "XRP": { native: "RIPPLE", nativeLabel: "Ripple Network", erc20Label: "XRP ERC20 / Sepolia Token (MetaMask)" },
+                "ADA": { native: "CARDANO", nativeLabel: "Cardano Network", erc20Label: "ADA ERC20 / Sepolia Token (MetaMask)" },
+                "BNB": { native: "BEP20", nativeLabel: "Binance Smart Chain", erc20Label: "BNB ERC20 / Sepolia Token (MetaMask)" }
+            };
+            const coinConfig = labelMap[activeCurrency];
+            netSelect.innerHTML = `
+                <option value="${coinConfig.native}">${coinConfig.nativeLabel}</option>
+                <option value="ERC20">${coinConfig.erc20Label}</option>
+            `;
+            if ([coinConfig.native, "ERC20"].includes(currentVal)) {
+                netSelect.value = currentVal;
+            } else {
+                netSelect.value = coinConfig.native;
+            }
         } else {
             const nativeNetworks = {
-                "SOL": { value: "SOLANA", label: "Solana Network" },
-                "XRP": { value: "RIPPLE", label: "Ripple Network" },
-                "ADA": { value: "CARDANO", label: "Cardano Network" },
                 "ETH": { value: "ERC20", label: "Ethereum Network" },
-                "USDC": { value: "ERC20", label: "Ethereum Network" },
-                "BNB": { value: "BEP20", label: "Binance Smart Chain" }
+                "USDC": { value: "ERC20", label: "Ethereum Network" }
             };
             const config = nativeNetworks[activeCurrency] || { value: "ERC20", label: "Ethereum Network" };
             netSelect.innerHTML = `<option value="${config.value}">${config.label}</option>`;
@@ -4245,6 +4433,17 @@ function initWalletEvents() {
 
     walletElements.unifiedTransferForm?.addEventListener("submit", handleUnifiedWalletTransferSubmit);
 
+    walletElements.internalTransferForm?.addEventListener("submit", handleInternalTransferSubmit);
+    walletElements.internalTransferAsset?.addEventListener("change", updateInternalTransferBalance);
+    document.getElementById("txInternalTransferMaxBtn")?.addEventListener("click", () => {
+        const wallet = WALLET_STATE.wallet || {};
+        const asset = walletElements.internalTransferAsset?.value || "USDT";
+        const assetWallet = wallet[`main_wallet_${asset.toLowerCase()}`] || { available_balance: 0 };
+        if (walletElements.internalTransferAmount) {
+            walletElements.internalTransferAmount.value = walletNumber(assetWallet.available_balance, 0);
+        }
+    });
+
     // Exchange Form event bindings
     const exchangeForm = document.getElementById("walletExchangeForm");
     exchangeForm?.addEventListener("submit", handleExchangeSubmit);
@@ -4331,6 +4530,7 @@ function initWalletEvents() {
     bindRealtimeConversionCalculator();
     // Initialize ledger sub-account dropdown if parent account
     txInitLedgerSubAccountDropdown();
+    initRecipientLookup();
 }
 
 
@@ -4347,7 +4547,7 @@ function focusWalletSectionFromNavigation() {
         console.warn("Unable to read wallet focus action.", error);
     }
 
-    if (["deposit", "withdraw", "withdrawal", "transfer", "trading"].includes(target)) {
+    if (["deposit", "withdraw", "withdrawal", "transfer", "trading", "exchange"].includes(target)) {
         window.setTimeout(() => {
             if (target === "withdrawal") {
                 openWalletActionModal("withdraw");
@@ -4356,7 +4556,31 @@ function focusWalletSectionFromNavigation() {
             } else {
                 openWalletActionModal(target);
             }
-        }, 450);
+        }, 200);
+        return;
+    }
+
+    if (target === "history") {
+        closeWalletActionModal();
+        const mainTabWallet = document.getElementById("mainTabWallet");
+        if (mainTabWallet) mainTabWallet.click();
+
+        const tabHistory = document.getElementById("subTabHistory");
+        if (tabHistory) tabHistory.click();
+
+        const historyEl = document.getElementById("walletSubContentHistory") || document.getElementById("walletLedgerPanel");
+        if (historyEl) {
+            historyEl.classList.remove("hidden");
+            window.setTimeout(() => {
+                historyEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 200);
+        }
+        return;
+    }
+
+    if (target === "overview" || !target) {
+        closeWalletActionModal();
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
     }
 
@@ -4364,11 +4588,45 @@ function focusWalletSectionFromNavigation() {
     if (targetElement && typeof targetElement.scrollIntoView === "function") {
         window.setTimeout(() => {
             targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 350);
+        }, 200);
+    }
+}
+window.focusWalletSectionFromNavigation = focusWalletSectionFromNavigation;
+window.openWalletActionModal = openWalletActionModal;
+
+function updateBalancePrivacyUI() {
+    const hidden = isBalanceHidden();
+    const eyeOpen = document.getElementById("txEyeOpenIcon");
+    const eyeClosed = document.getElementById("txEyeClosedIcon");
+
+    if (eyeOpen && eyeClosed) {
+        eyeOpen.classList.toggle("hidden", hidden);
+        eyeClosed.classList.toggle("hidden", !hidden);
+    }
+
+    renderWalletPage();
+}
+
+function initBalancePrivacyToggle() {
+    const toggleBtn = document.getElementById("txToggleBalancePrivacy");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+            const currentlyHidden = isBalanceHidden();
+            localStorage.setItem("tx_balance_hidden", currentlyHidden ? "0" : "1");
+            updateBalancePrivacyUI();
+        });
+    }
+    const hidden = isBalanceHidden();
+    const eyeOpen = document.getElementById("txEyeOpenIcon");
+    const eyeClosed = document.getElementById("txEyeClosedIcon");
+    if (eyeOpen && eyeClosed) {
+        eyeOpen.classList.toggle("hidden", hidden);
+        eyeClosed.classList.toggle("hidden", !hidden);
     }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    initBalancePrivacyToggle();
     // Skip loading overlay animation if switching sub-accounts
     if (localStorage.getItem("tx_skip_wallet_intro") === "1") {
         localStorage.removeItem("tx_skip_wallet_intro");
@@ -4414,15 +4672,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("quickExchangeBtn")?.addEventListener("click", () => {
         openWalletActionModal("transfer");
     });
+    document.getElementById("quickInternalTransferBtn")?.addEventListener("click", () => {
+        openWalletActionModal("internal_transfer");
+    });
     document.getElementById("tradingAccountTransferBtn")?.addEventListener("click", () => {
         openWalletActionModal("transfer");
     });
+
+    // Parse query parameters for QR code direct actions
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipient = urlParams.get("recipient");
+    const asset = urlParams.get("asset");
+    if (recipient && asset) {
+        sessionStorage.setItem("tx_pending_internal_transfer", JSON.stringify({ recipient, asset }));
+        // Clean URL to keep address bar clean
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
 
     document.getElementById("assetSearchInput")?.addEventListener("input", txRenderAssetLists);
     document.getElementById("hideEmptyBalancesCheck")?.addEventListener("change", txRenderAssetLists);
 
     try {
         await loadWalletData();
+        
+        // Handle pending internal transfer if any
+        const pending = sessionStorage.getItem("tx_pending_internal_transfer");
+        if (pending && isLoggedIn()) {
+            try {
+                const { recipient, asset } = JSON.parse(pending);
+                sessionStorage.removeItem("tx_pending_internal_transfer");
+                setTimeout(() => {
+                    openWalletActionModal("internal_transfer", asset);
+                    // Select Send tab
+                    const btnSend = document.getElementById("txItTabBtnSend");
+                    if (btnSend) btnSend.click();
+                    
+                    // Populate recipient
+                    const recipientInput = document.getElementById("walletInternalTransferRecipient");
+                    if (recipientInput) {
+                        recipientInput.value = recipient;
+                        recipientInput.dispatchEvent(new Event("input"));
+                    }
+                }, 800);
+            } catch (e) {
+                console.error("Error parsing pending internal transfer", e);
+            }
+        }
     } finally {
         await hideWalletPageIntro();
         focusWalletSectionFromNavigation();
@@ -4637,6 +4933,7 @@ window.txSetActiveTradingAccount = async function(subId) {
     
     // 1. Immediately toggle active badges in the UI
     txRenderTradingAccounts();
+    updateWalletActionModalBalances();
 
     // 2. Fetch and render new account data dynamically without full page reload
     try {
@@ -4761,6 +5058,7 @@ function txRenderAssetLists() {
     const moneyAssets = [
         {
             code: "INR",
+            displayCode: "INR",
             name: "Indian Rupee",
             symbol: "₹",
             balance: inrBalance,
@@ -4769,7 +5067,8 @@ function txRenderAssetLists() {
         },
         {
             code: "USDT",
-            name: "Tether USD",
+            displayCode: "USD",
+            name: "US Dollar",
             symbol: "$",
             balance: usdtBalance,
             pending: usdtLocked,
@@ -4788,17 +5087,12 @@ function txRenderAssetLists() {
         { code: "ADA", name: "Cardano", symbol: "A", balance: adaBalance, pending: adaLocked, iconClass: "bg-indigo-600/10 text-indigo-500 border-indigo-600/20" }
     ];
 
-    // Calculate total USD value of all assets combined
-    let totalUsdValue = (inrBalance / rate) + usdtBalance;
-    cryptoAssets.forEach(asset => {
-        const price = getAssetPrice(asset.code);
-        totalUsdValue += asset.balance * price;
-    });
-
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const totalEl = document.getElementById("portfolioTotalBalance");
     if (totalEl) {
-        if (activeCurrency === "INR") {
+        if (isBalanceHidden()) {
+            totalEl.textContent = `≈ •••••••• ${activeCurrency}`;
+        } else if (activeCurrency === "INR") {
             totalEl.textContent = `≈ ₹${inrBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {
             totalEl.textContent = `≈ $${usdtBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
@@ -4829,7 +5123,9 @@ function txRenderAssetLists() {
                 moneyTotalUsd += a.balance; // USDT
             }
         });
-        if (activeCurrency === "INR") {
+        if (isBalanceHidden()) {
+            moneySub.textContent = `| ≈ •••••••• ${activeCurrency}`;
+        } else if (activeCurrency === "INR") {
             const moneyInr = moneyTotalUsd * rate;
             moneySub.textContent = `| ≈ ₹${moneyInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {
@@ -4843,7 +5139,9 @@ function txRenderAssetLists() {
         filteredCrypto.forEach(asset => {
             cryptoSumUsd += asset.balance * getAssetPrice(asset.code);
         });
-        if (activeCurrency === "INR") {
+        if (isBalanceHidden()) {
+            cryptoSub.textContent = `| ≈ •••••••• ${activeCurrency}`;
+        } else if (activeCurrency === "INR") {
             const cryptoInr = cryptoSumUsd * rate;
             cryptoSub.textContent = `| $${cryptoSumUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT (≈ ₹${cryptoInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR)`;
         } else {
@@ -4861,17 +5159,18 @@ function txRenderAssetLists() {
                         ${asset.symbol}
                     </div>
                     <div>
-                        <div class="font-bold text-white">${asset.code}</div>
+                        <div class="font-bold text-white">${asset.displayCode || asset.code}</div>
                         <div class="text-[10px] text-slate-500 font-semibold">${asset.name}</div>
                     </div>
                 </td>
-                <td class="py-4 font-bold text-white">${asset.symbol}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td class="py-4 text-slate-500">${asset.symbol}${asset.pending.toFixed(2)}</td>
+                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.symbol}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : `${asset.symbol}${asset.pending.toFixed(2)}`}</td>
                 <td class="py-4 text-right">
                     <div class="flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-cyan-400 hover:text-cyan-300 font-black">Withdraw</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'transfer')" class="text-cyan-400 hover:text-cyan-300 font-black">Transfer</button>
+                        <button onclick="txTriggerRowAction('${asset.code}', 'internal_transfer')" class="text-cyan-400 hover:text-cyan-300 font-black">Internal</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'exchange')" class="text-cyan-400 hover:text-cyan-300 font-black font-semibold">Exchange</button>
                     </div>
                 </td>
@@ -4893,12 +5192,13 @@ function txRenderAssetLists() {
                         <div class="text-[10px] text-slate-500 font-semibold">${asset.name}</div>
                     </div>
                 </td>
-                <td class="py-4 font-bold text-white">${asset.code === "USDT" ? "$" : ""}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
-                <td class="py-4 text-slate-500">${asset.pending.toFixed(2)}</td>
+                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.code === "USDT" ? "$" : ""}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`}</td>
+                <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : asset.pending.toFixed(2)}</td>
                 <td class="py-4 text-right">
                     <div class="flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-cyan-400 hover:text-cyan-300 font-black">Withdraw</button>
+                        <button onclick="txTriggerRowAction('${asset.code}', 'internal_transfer')" class="text-cyan-400 hover:text-cyan-300 font-black">Internal</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'exchange')" class="text-cyan-400 hover:text-cyan-300 font-black font-semibold">Exchange</button>
                     </div>
                 </td>
@@ -4915,32 +5215,22 @@ window.txTriggerRowAction = function(asset, action) {
             loadInrDepositDetails();
         }
         updateDepositModalUIByCurrency(asset);
-        openWalletActionModal("deposit");
+        openWalletActionModal("deposit", asset);
     } else if (action === "withdraw") {
         WALLET_STATE.activeWithdrawalCurrency = asset;
         checkAndShowCurrencyLockModal();
         
-        const isCryptoSpecific = !["USDT", "INR"].includes(asset);
-        if (isCryptoSpecific) {
-            updateWithdrawalModalUIByCurrency(asset, true);
-            openWalletActionModal("withdraw");
-        } else {
-            updateWithdrawalModalUIByCurrency(asset, false);
-            txAutofillWithdrawBankDetails(false);
-            
-            // Select Wallet main tab first
-            const tabWallet = document.getElementById("mainTabWallet");
-            if (tabWallet) {
-                tabWallet.click();
-                // Select withdraw sub-tab
-                const tabWithdraw = document.getElementById("subTabWithdraw");
-                if (tabWithdraw) tabWithdraw.click();
-            }
+        updateWithdrawalModalUIByCurrency(asset, true);
+        if (asset === "INR") {
+            txAutofillWithdrawBankDetails(true);
         }
+        openWalletActionModal("withdraw", asset);
     } else if (action === "exchange") {
         openWalletActionModal("exchange", asset);
     } else if (action === "transfer") {
         openWalletActionModal("transfer");
+    } else if (action === "internal_transfer") {
+        openWalletActionModal("internal_transfer", asset);
     }
 };
 
@@ -5002,6 +5292,10 @@ function txRenderTradingAccounts() {
     let parentAvailableRaw = 0;
     let splitTradingVal = 0;
 
+    const activeAccountEntry = isMainActive 
+        ? parentEntry 
+        : cache.find(sub => sub.id === activeSubId);
+
     if (activeCurrency === "INR") {
         const wallet = WALLET_STATE.wallet || {};
         const tradingWalletInr = wallet.trading_wallet_inr || {};
@@ -5011,7 +5305,9 @@ function txRenderTradingAccounts() {
             ? walletNumber(parentEntry.wallet.trading_wallet_inr.available_balance, 0)
             : (isMainActive ? activeTradingInrAvailable : 0);
 
-        splitTradingVal = activeTradingInrAvailable;
+        splitTradingVal = activeAccountEntry && activeAccountEntry.wallet && activeAccountEntry.wallet.trading_wallet_inr
+            ? walletNumber(activeAccountEntry.wallet.trading_wallet_inr.available_balance, 0)
+            : activeTradingInrAvailable;
     } else {
         const wallet = WALLET_STATE.wallet || {};
         const tradingWalletUsdt = wallet.trading_wallet_usdt || {};
@@ -5021,7 +5317,9 @@ function txRenderTradingAccounts() {
             ? walletNumber(parentEntry.wallet.trading_wallet_usdt.available_balance, 0)
             : (isMainActive ? activeTradingUsdtAvailable : 0);
 
-        splitTradingVal = activeTradingUsdtAvailable;
+        splitTradingVal = activeAccountEntry && activeAccountEntry.wallet && activeAccountEntry.wallet.trading_wallet_usdt
+            ? walletNumber(activeAccountEntry.wallet.trading_wallet_usdt.available_balance, 0)
+            : activeTradingUsdtAvailable;
     }
 
     const parentFormatted = formatWalletMoney(parentAvailableRaw, activeCurrency);
@@ -5090,7 +5388,7 @@ function txRenderTradingAccounts() {
 }
 
 
-async function updateExchangePreview() {
+async function updateExchangePreview(forceFetch = false) {
     const fromAsset = document.getElementById("walletExchangeFromAsset")?.value;
     const toAsset = document.getElementById("walletExchangeToAsset")?.value;
     const amountInput = document.getElementById("walletExchangeAmount");
@@ -5102,42 +5400,61 @@ async function updateExchangePreview() {
     if (!fromAsset || !toAsset) return;
     
     if (fromAsset === toAsset) {
+        WALLET_STATE.currentExchangeRate = null;
         if (rateText) rateText.textContent = "Assets cannot be the same";
         if (previewDiv) previewDiv.textContent = "Please select different assets.";
         return;
     }
-    
-    try {
-        const res = await apiRequest("/wallet/exchange", {
-            method: "POST",
-            body: JSON.stringify({
-                from_asset: fromAsset,
-                to_asset: toAsset,
-                amount: amountVal || 1.0,
-                execute: false
-            })
-        });
-        
-        if (res.success && res.data) {
-            const data = res.data;
-            if (rateText) {
-                rateText.textContent = `1 ${fromAsset} = ${walletNumber(data.rate, 0).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${toAsset}`;
+
+    const needsFetch = (forceFetch === true) || 
+                       !WALLET_STATE.currentExchangeRate || 
+                       WALLET_STATE.currentExchangeFromAsset !== fromAsset || 
+                       WALLET_STATE.currentExchangeToAsset !== toAsset;
+
+    if (needsFetch) {
+        try {
+            WALLET_STATE.currentExchangeFromAsset = fromAsset;
+            WALLET_STATE.currentExchangeToAsset = toAsset;
+
+            const res = await apiRequest("/wallet/exchange", {
+                method: "POST",
+                body: JSON.stringify({
+                    from_asset: fromAsset,
+                    to_asset: toAsset,
+                    amount: 1.0,
+                    execute: false
+                })
+            });
+            
+            if (res.success && res.data) {
+                WALLET_STATE.currentExchangeRate = parseFloat(res.data.rate) || null;
+            } else {
+                WALLET_STATE.currentExchangeRate = null;
             }
-            if (previewDiv) {
-                if (amountVal > 0) {
-                    previewDiv.textContent = `You will receive: ${walletNumber(data.receive_amount, 0).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${toAsset}`;
-                    previewDiv.className = "rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300";
-                } else {
-                    previewDiv.textContent = "Enter amount to see live conversion";
-                    previewDiv.className = "rounded-xl border border-white/10 bg-slate-950/30 p-3 text-xs font-bold text-slate-400";
-                }
-            }
-        } else {
-            if (rateText) rateText.textContent = "Exchange rate unavailable";
-            if (previewDiv) previewDiv.textContent = "Exchange rate could not be calculated.";
+        } catch (err) {
+            console.error("Failed to update exchange rate preview:", err);
+            WALLET_STATE.currentExchangeRate = null;
         }
-    } catch (err) {
-        console.error("Failed to update exchange rate preview:", err);
+    }
+
+    const rate = WALLET_STATE.currentExchangeRate;
+    if (rate !== null && rate > 0) {
+        if (rateText) {
+            rateText.textContent = `1 ${fromAsset} = ${walletNumber(rate, 0).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${toAsset}`;
+        }
+        if (previewDiv) {
+            if (amountVal > 0) {
+                const receive_amount = amountVal * rate;
+                previewDiv.textContent = `You will receive: ${walletNumber(receive_amount, 0).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${toAsset}`;
+                previewDiv.className = "rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300";
+            } else {
+                previewDiv.textContent = "Enter amount to see live conversion";
+                previewDiv.className = "rounded-xl border border-white/10 bg-slate-950/30 p-3 text-xs font-bold text-slate-400";
+            }
+        }
+    } else {
+        if (rateText) rateText.textContent = "Exchange rate unavailable";
+        if (previewDiv) previewDiv.textContent = "Exchange rate could not be calculated.";
     }
 }
 
@@ -5194,3 +5511,352 @@ async function handleExchangeSubmit(event) {
         walletSetButtonLoading(submitBtn, false);
     }
 }
+
+
+function updateInternalTransferBalance() {
+    const wallet = WALLET_STATE.wallet || {};
+    const assetSelect = walletElements.internalTransferAsset;
+    const balanceEl = walletElements.internalTransferMyBalance;
+    if (!assetSelect || !balanceEl) return;
+    
+    const asset = assetSelect.value.toUpperCase();
+    const assetWallet = wallet[`main_wallet_${asset.toLowerCase()}`] || { available_balance: 0 };
+    
+    const avail = walletNumber(assetWallet.available_balance, 0);
+    if (["INR", "USDT"].includes(asset)) {
+        balanceEl.textContent = formatWalletMoney(avail, asset);
+    } else {
+        balanceEl.textContent = `${avail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${asset}`;
+    }
+
+    // Set up Receive details
+    const addressTextEl = document.getElementById("txItReceiveAddressText");
+    const qrImageEl = document.getElementById("txItReceiveQrImage");
+    const netSelectContainer = document.getElementById("txItReceiveNetworkSelectContainer");
+    const netSelect = document.getElementById("txItReceiveNetworkSelect");
+
+    if (addressTextEl && qrImageEl) {
+        if (asset === "INR") {
+            if (netSelectContainer) netSelectContainer.classList.add("hidden");
+        } else {
+            if (netSelectContainer) netSelectContainer.classList.remove("hidden");
+        }
+
+        const addresses = assetWallet.addresses || {};
+        
+        const primaryNetworkMapping = {
+            "USDT": "TRC20",
+            "USDC": "ERC20",
+            "BTC": "BITCOIN",
+            "ETH": "ERC20",
+            "SOL": "SOLANA",
+            "BNB": "BEP20",
+            "XRP": "RIPPLE",
+            "ADA": "CARDANO",
+            "INR": "INTERNAL"
+        };
+
+        const primaryNet = primaryNetworkMapping[asset];
+        const addr = addresses[primaryNet];
+
+        if (addr) {
+            addressTextEl.textContent = addr;
+            const siteUrl = `${window.location.origin}${window.location.pathname}`;
+            const qrUrl = `${siteUrl}?recipient=${encodeURIComponent(addr)}&asset=${encodeURIComponent(asset)}`;
+            qrImageEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
+        } else {
+            addressTextEl.textContent = "No address generated";
+            qrImageEl.src = "";
+        }
+    }
+}
+
+
+async function handleInternalTransferSubmit(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form) return;
+
+    if (!isLoggedIn()) {
+        showWalletActionMessage("Please login first.", "error");
+        return;
+    }
+
+    const asset = walletElements.internalTransferAsset?.value;
+    const recipient = walletElements.internalTransferRecipient?.value;
+    const amount = parseFloat(walletElements.internalTransferAmount?.value) || 0;
+
+    if (!recipient) {
+        showWalletActionMessage("Please enter recipient Email, Client ID or Address.", "error");
+        return;
+    }
+
+    if (amount <= 0) {
+        showWalletActionMessage("Please enter a valid amount.", "error");
+        return;
+    }
+
+    try {
+        const submitBtn = walletElements.internalTransferSubmitBtn;
+        walletSetButtonLoading(submitBtn, true, "Transferring...");
+        
+        const res = await apiRequest("/wallet/internal-transfer", {
+            method: "POST",
+            body: JSON.stringify({
+                asset: asset,
+                recipient_info: recipient,
+                amount: amount
+            })
+        });
+
+        if (res.success) {
+            form.reset();
+            await loadWalletData({ silent: true });
+            closeWalletActionModal();
+            showWalletAlert(res.message || "Internal transfer completed successfully!", "success");
+        } else {
+            showWalletActionMessage(res.message || "Transfer failed.", "error");
+        }
+    } catch (err) {
+        showWalletActionMessage(err.message || "Failed to complete internal transfer.", "error");
+    } finally {
+        const submitBtn = walletElements.internalTransferSubmitBtn;
+        walletSetButtonLoading(submitBtn, false);
+    }
+}
+
+
+var recipientLookupTimeout = null;
+
+function initRecipientLookup() {
+    const input = document.getElementById("walletInternalTransferRecipient");
+    const container = document.getElementById("walletInternalTransferRecipientDetails");
+    const nameEl = document.getElementById("txItRecipientName");
+    const emailEl = document.getElementById("txItRecipientEmail");
+    const clientIdEl = document.getElementById("txItRecipientClientId");
+    const errorEl = document.getElementById("walletInternalTransferRecipientError");
+    const submitBtn = document.getElementById("walletInternalTransferSubmitBtn");
+    
+    if (input) {
+        input.addEventListener("input", () => {
+            const val = input.value.trim();
+            
+            // Clear previous timeout
+            if (recipientLookupTimeout) {
+                clearTimeout(recipientLookupTimeout);
+            }
+            
+            if (!val) {
+                if (container) container.classList.add("hidden");
+                if (errorEl) {
+                    errorEl.textContent = "";
+                    errorEl.classList.add("hidden");
+                }
+                if (submitBtn) submitBtn.disabled = false;
+                return;
+            }
+            
+            // Debounce for 350ms
+            recipientLookupTimeout = setTimeout(async () => {
+                try {
+                    const activeAsset = (document.getElementById("walletInternalTransferAsset")?.value || "USDT").toUpperCase();
+                    const res = await apiRequest(`/wallet/lookup-recipient?query=${encodeURIComponent(val)}&asset=${activeAsset}`);
+                    
+                    if (res.success && res.data) {
+                        if (res.data.found) {
+                            if (nameEl) nameEl.textContent = res.data.name;
+                            if (emailEl) emailEl.textContent = res.data.email;
+                            if (clientIdEl) clientIdEl.textContent = res.data.client_id;
+                            if (container) container.classList.remove("hidden");
+                            
+                            if (errorEl) {
+                                errorEl.textContent = "";
+                                errorEl.classList.add("hidden");
+                            }
+                            if (submitBtn) submitBtn.disabled = false;
+                        } else {
+                            if (container) container.classList.add("hidden");
+                            
+                            if (errorEl) {
+                                if (res.data.matched_different_asset) {
+                                    errorEl.textContent = `This is a ${res.data.matched_different_asset} address. Please select ${res.data.matched_different_asset} modal or enter a valid ${activeAsset} address.`;
+                                } else {
+                                    errorEl.textContent = `Recipient not found. Please verify the Email, Client ID, or Address.`;
+                                }
+                                errorEl.classList.remove("hidden");
+                            }
+                            if (submitBtn) submitBtn.disabled = true;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Recipient lookup failed:", err);
+                    if (container) container.classList.add("hidden");
+                }
+            }, 350);
+        });
+    }
+
+    // Tab buttons & contents
+    const btnReceive = document.getElementById("txItTabBtnReceive");
+    const btnSend = document.getElementById("txItTabBtnSend");
+    const contentReceive = document.getElementById("txItTabContentReceive");
+    const contentSend = document.getElementById("txItTabContentSend");
+
+    if (btnReceive && btnSend && contentReceive && contentSend) {
+        btnReceive.addEventListener("click", () => {
+            contentReceive.classList.remove("hidden");
+            contentSend.classList.add("hidden");
+            btnReceive.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+            btnSend.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all text-slate-400 hover:text-slate-200";
+        });
+
+        btnSend.addEventListener("click", () => {
+            contentReceive.classList.add("hidden");
+            contentSend.classList.remove("hidden");
+            btnSend.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+            btnReceive.className = "flex-1 rounded-xl py-2.5 text-xs font-black transition-all text-slate-400 hover:text-slate-200";
+        });
+    }
+
+    // Copy Address Button
+    document.getElementById("txItReceiveCopyBtn")?.addEventListener("click", () => {
+        const address = document.getElementById("txItReceiveAddressText")?.textContent;
+        if (address && address !== "--" && address !== "No address generated") {
+            navigator.clipboard.writeText(address).then(() => {
+                showWalletAlert("Address copied to clipboard!", "success");
+            }).catch(() => {
+                showWalletAlert("Failed to copy address.", "error");
+            });
+        }
+    });
+
+    // Share Button
+    document.getElementById("txItReceiveShareBtn")?.addEventListener("click", () => {
+        const address = document.getElementById("txItReceiveAddressText")?.textContent;
+        if (address && address !== "--" && address !== "No address generated") {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Permanent Crypto Address',
+                    text: address
+                }).catch(err => {
+                    console.log("Share cancelled or failed:", err);
+                });
+            } else {
+                navigator.clipboard.writeText(address).then(() => {
+                    showWalletAlert("Address copied to clipboard! (Share API unsupported)", "success");
+                });
+            }
+        }
+    });
+
+    // Scan QR Button (Camera Scanner)
+    document.getElementById("txItScanQrBtn")?.addEventListener("click", () => {
+        if (txHtml5QrCode) {
+            stopCameraScanner();
+        } else {
+            startCameraScanner();
+        }
+    });
+}
+
+
+var txHtml5QrCode = null;
+
+function loadHtml5QrcodeScript() {
+    return new Promise((resolve) => {
+        if (window.Html5Qrcode) {
+            resolve();
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
+        script.onload = resolve;
+        document.head.appendChild(script);
+    });
+}
+
+async function startCameraScanner() {
+    try {
+        await loadHtml5QrcodeScript();
+        const viewfinder = document.getElementById("txItCameraScannerViewfinder");
+        if (!viewfinder) return;
+        
+        viewfinder.classList.remove("hidden");
+        const scanBtn = document.getElementById("txItScanQrBtn");
+        if (scanBtn) scanBtn.textContent = "Stop Scan";
+
+        txHtml5QrCode = new Html5Qrcode("txItCameraScannerViewfinder");
+        
+        const extractRecipientFromDecodedText = (textVal) => {
+            const trimmed = textVal.trim();
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                try {
+                    const url = new URL(trimmed);
+                    const rec = url.searchParams.get("recipient");
+                    if (rec) return rec;
+                } catch (e) {
+                    console.error("Failed to parse scanned URL:", e);
+                }
+            }
+            return trimmed;
+        };
+
+        const qrCodeSuccessCallback = (decodedText) => {
+            const recipientInput = document.getElementById("walletInternalTransferRecipient");
+            if (recipientInput) {
+                recipientInput.value = extractRecipientFromDecodedText(decodedText);
+                recipientInput.dispatchEvent(new Event("input"));
+            }
+            stopCameraScanner();
+            showWalletAlert("QR code scanned successfully!", "success");
+        };
+        
+        const config = { fps: 15, qrbox: { width: 200, height: 200 } };
+        
+        await txHtml5QrCode.start(
+            { facingMode: "environment" },
+            config,
+            qrCodeSuccessCallback,
+            (errorMessage) => {}
+        );
+    } catch (err) {
+        console.error("Camera access failed:", err);
+        // Fallback to clipboard paste
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text && text.trim()) {
+                const recipientInput = document.getElementById("walletInternalTransferRecipient");
+                if (recipientInput) {
+                    recipientInput.value = extractRecipientFromDecodedText(text);
+                    recipientInput.dispatchEvent(new Event("input"));
+                    showWalletAlert("Clipboard fallback pasted!", "success");
+                }
+            } else {
+                showWalletAlert("Camera error: Please ensure you are on HTTPS and camera permissions are allowed.", "error");
+            }
+        } catch (clipErr) {
+            showWalletAlert("Camera error: Please ensure you are on HTTPS and camera permissions are allowed.", "error");
+        }
+        stopCameraScanner();
+    }
+}
+
+function stopCameraScanner() {
+    const viewfinder = document.getElementById("txItCameraScannerViewfinder");
+    if (viewfinder) viewfinder.classList.add("hidden");
+    
+    const scanBtn = document.getElementById("txItScanQrBtn");
+    if (scanBtn) scanBtn.textContent = "Scan QR";
+
+    if (txHtml5QrCode) {
+        txHtml5QrCode.stop().then(() => {
+            txHtml5QrCode.clear();
+            txHtml5QrCode = null;
+        }).catch(err => {
+            console.error("Error stopping qr scanner:", err);
+            txHtml5QrCode = null;
+        });
+    }
+}
+
+

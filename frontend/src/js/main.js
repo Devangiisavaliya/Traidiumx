@@ -101,7 +101,7 @@ function txHomePrimaryFutures(markets) {
     return txHomeFindMarket(markets, "BTCUSDT") || markets.find((item) => item.category === "USDT Futures") || markets[0];
 }
 
-function txHomeDrawSparkline(containerId, symbol, priceChange) {
+function txHomeDrawSparkline(containerId, symbol, priceChange, currentPrice) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -121,6 +121,7 @@ function txHomeDrawSparkline(containerId, symbol, priceChange) {
 
     let currentVal = 50;
     const changePercent = Number(priceChange) || 0;
+    const price = Number(currentPrice) || 0;
 
     for (let i = 0; i < numPoints; i++) {
         const step = (seededRandom() - 0.5) * 16;
@@ -141,7 +142,7 @@ function txHomeDrawSparkline(containerId, symbol, priceChange) {
     const range = maxVal - minVal || 1;
 
     const svgPoints = points.map((p, idx) => {
-        const x = (idx / (numPoints - 1)) * (width - 12) + 6;
+        const x = (idx / (numPoints - 1)) * width;
         const y = height - ((p - minVal) / range) * (height - 30) - 15;
         return { x, y };
     });
@@ -167,7 +168,7 @@ function txHomeDrawSparkline(containerId, symbol, priceChange) {
     const gradientId = `sparklineGradient-${symbol.replace(/[^a-zA-Z]/g, "")}`;
 
     const svgHtml = `
-        <svg class="w-full h-full" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <svg class="w-full h-full cursor-crosshair" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" style="overflow: visible;">
             <defs>
                 <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stop-color="${color}" stop-opacity="0.22"></stop>
@@ -176,9 +177,86 @@ function txHomeDrawSparkline(containerId, symbol, priceChange) {
             </defs>
             <path d="${areaPathData}" fill="url(#${gradientId})"></path>
             <path d="${linePathData}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 6px ${color}80);"></path>
+            
+            <!-- Hover elements -->
+            <line class="tx-sparkline-hover-line" x1="0" y1="0" x2="0" y2="${height}" stroke="${color}" stroke-width="1.2" stroke-dasharray="4 4" style="display: none; pointer-events: none; opacity: 0.6;"></line>
+            <circle class="tx-sparkline-hover-circle" r="6" fill="${color}" stroke="#020617" stroke-width="2.5" style="display: none; pointer-events: none; filter: drop-shadow(0 0 5px ${color});"></circle>
         </svg>
     `;
     container.innerHTML = svgHtml;
+
+    // Interactive Hover Listeners
+    const svg = container.querySelector("svg");
+    const hoverLine = container.querySelector(".tx-sparkline-hover-line");
+    const hoverCircle = container.querySelector(".tx-sparkline-hover-circle");
+
+    // Elements to update
+    const priceEl = document.getElementById("homeHeroPrice");
+    const changeEl = document.getElementById("homeHeroChange");
+
+    if (!priceEl || !changeEl) return;
+
+    // Cache original values
+    const originalPriceText = priceEl.textContent;
+    const originalChangeText = changeEl.textContent;
+    const originalChangeHtml = changeEl.innerHTML;
+    const originalChangeClass = changeEl.className;
+
+    // Math conversions for hover prices
+    const startPrice = price / (1 + changePercent / 100);
+    const deltaPrice = price - startPrice;
+    const ptFirst = points[0];
+    const ptLast = points[numPoints - 1];
+    const ptRange = ptLast - ptFirst || 1;
+
+    function getPriceForPoint(idx) {
+        if (idx === numPoints - 1) return price;
+        if (idx === 0) return startPrice;
+        const ptVal = points[idx];
+        return startPrice + ((ptVal - ptFirst) / ptRange) * deltaPrice;
+    }
+
+    function handleMouseMove(e) {
+        const rect = svg.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        
+        // Find closest point index
+        const idx = Math.round((mouseX / rect.width) * (numPoints - 1));
+        const clampedIdx = Math.max(0, Math.min(numPoints - 1, idx));
+        
+        const pt = svgPoints[clampedIdx];
+        
+        // Position hover line & circle
+        hoverLine.setAttribute("x1", pt.x);
+        hoverLine.setAttribute("x2", pt.x);
+        hoverLine.style.display = "block";
+        
+        hoverCircle.setAttribute("cx", pt.x);
+        hoverCircle.setAttribute("cy", pt.y);
+        hoverCircle.style.display = "block";
+
+        // Compute price & change at this point
+        const ptPrice = getPriceForPoint(clampedIdx);
+        const ptPctChange = ((ptPrice - startPrice) / startPrice) * 100;
+
+        // Update UI
+        priceEl.textContent = `${txHomeNumber(ptPrice, txHomePriceDecimals(ptPrice))} USDT`;
+        changeEl.textContent = txHomeChangeText(ptPctChange);
+        txHomeSetChangeClass(changeEl, ptPctChange, true);
+    }
+
+    function handleMouseLeave() {
+        hoverLine.style.display = "none";
+        hoverCircle.style.display = "none";
+        
+        // Restore original values
+        priceEl.textContent = originalPriceText;
+        changeEl.innerHTML = originalChangeHtml;
+        changeEl.className = originalChangeClass;
+    }
+
+    svg.addEventListener("mousemove", handleMouseMove);
+    svg.addEventListener("mouseleave", handleMouseLeave);
 }
 
 function txHomeUpdateHero(markets) {
@@ -220,7 +298,7 @@ function txHomeUpdateHero(markets) {
     if (longLink) longLink.setAttribute("href", tradeHref);
     if (shortLink) shortLink.setAttribute("href", tradeHref);
 
-    txHomeDrawSparkline("homeHeroChartContainer", symbol, change);
+    txHomeDrawSparkline("homeHeroChartContainer", symbol, change, price);
 }
 
 function txHomeUpdateMiniMarkets(markets) {

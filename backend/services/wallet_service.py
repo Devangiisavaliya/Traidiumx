@@ -1551,6 +1551,8 @@ def exchange_user_assets(user_id, from_asset, to_asset, amount, execute=False):
             return 1.0
         if asset == "INR":
             return 1.0 / usdt_inr_rate
+        if asset == "USDC":
+            return 1.0
         
         # Check for admin manual rate override
         try:
@@ -1685,4 +1687,159 @@ def exchange_user_assets(user_id, from_asset, to_asset, amount, execute=False):
         },
         "status_code": 200,
     }
+
+
+def internal_transfer_between_users(sender_id, recipient_info, amount, asset):
+    from config.database import get_database
+    from bson import ObjectId
+    import uuid
+
+    asset = str(asset or "USDT").strip().upper()
+    recipient_info = str(recipient_info or "").strip()
+
+    try:
+        amount = float(amount)
+        if amount <= 0:
+            return {"success": False, "message": "Amount must be greater than zero.", "status_code": 400}
+    except (ValueError, TypeError):
+        return {"success": False, "message": "Invalid amount.", "status_code": 400}
+
+    if not recipient_info:
+        return {"success": False, "message": "Recipient details are required.", "status_code": 400}
+
+    db = get_database()
+
+    # Find sender
+    sender = db.users.find_one({"_id": ObjectId(sender_id)})
+    if not sender:
+        return {"success": False, "message": "Sender not found.", "status_code": 404}
+
+    # Find recipient user by email, client_id, or coin address
+    recipient_user = None
+
+    # 1. Search by email
+    if "@" in recipient_info:
+        recipient_user = db.users.find_one({"email": recipient_info.lower()})
+
+    # 2. Search by client_id
+    if not recipient_user and recipient_info.isdigit() and len(recipient_info) == 6:
+        recipient_user = db.users.find_one({"client_id": recipient_info})
+
+    # 3. Search by deposit address (TRC20, ERC20, BEP20, BITCOIN, SOLANA, RIPPLE, CARDANO, INTERNAL)
+    if not recipient_user:
+        SUPPORTED_NETWORKS = ["TRC20", "ERC20", "BEP20", "BITCOIN", "SOLANA", "RIPPLE", "CARDANO", "INTERNAL"]
+        query_or = []
+        for network in SUPPORTED_NETWORKS:
+            query_or.append({f"main_wallet_{asset.lower()}.addresses.{network}": recipient_info})
+            query_or.append({f"main_wallet.addresses.{network}": recipient_info})
+
+        recipient_wallet = db.wallets.find_one({"$or": query_or})
+        if recipient_wallet:
+            recipient_user = db.users.find_one({"_id": ObjectId(recipient_wallet["user_id"])})
+
+    if not recipient_user:
+        return {
+            "success": False,
+            "message": "Recipient not found. Please verify the Email, Client ID, or Address.",
+            "status_code": 404
+        }
+
+    if str(recipient_user["_id"]) == str(sender_id):
+        return {"success": False, "message": "You cannot transfer to yourself.", "status_code": 400}
+
+    # Ensure wallets exist
+    sender_wallet = ensure_user_wallet(sender_id)
+    recipient_wallet = ensure_user_wallet(recipient_user["_id"])
+
+    # Check sender balance
+    bucket_key = f"main_wallet_{asset.lower()}"
+    sender_bucket = sender_wallet.get(bucket_key)
+    if not sender_bucket:
+        return {"success": False, "message": f"{asset} wallet not found.", "status_code": 400}
+
+    sender_avail = float(sender_bucket.get("available_balance", 0.0))
+    if sender_avail < amount:
+        return {
+            "success": False,
+            "message": f"Insufficient {asset} balance. Available: {sender_avail:g} {asset}.",
+            "status_code": 400
+        }
+
+    # Execute transfer atomically
+    reference_id = f"INT-TRF-{uuid.uuid4().hex[:12].upper()}"
+
+    res_sender = db.wallets.find_one_and_update(
+        {"_id": sender_wallet["_id"], f"{bucket_key}.available_balance": {"$gte": amount}},
+        {
+            "$inc": {
+                f"{bucket_key}.available_balance": -amount,
+                f"{bucket_key}.total_balance": -amount
+            },
+            "$set": {"updated_at": now_utc()}
+        },
+        return_document=ReturnDocument.AFTER
+    )
+
+    if not res_sender:
+        return {"success": False, "message": "Transfer failed. Insufficient funds or database collision.", "status_code": 400}
+
+    res_recipient = db.wallets.find_one_and_update(
+        {"_id": recipient_wallet["_id"]},
+        {
+            "$inc": {
+                f"{bucket_key}.available_balance": amount,
+                f"{bucket_key}.total_balance": amount
+            },
+            "$set": {"updated_at": now_utc()}
+        },
+        return_document=ReturnDocument.AFTER
+    )
+
+    # Log ledger entries
+    create_ledger_entry(
+        user_id=sender_id,
+        wallet_id=sender_wallet["_id"],
+        transaction_type="internal_transfer_debit",
+        direction="debit",
+        amount=amount,
+        balance_before=sender_avail,
+        balance_after=round(sender_avail - amount, 8),
+        reference_id=reference_id,
+        description=f"Internal transfer of {amount:g} {asset} to {recipient_user.get('name')} ({recipient_user.get('email') or recipient_user.get('client_id')}).",
+        currency=asset
+    )
+
+    recipient_bucket = recipient_wallet.get(bucket_key) or {}
+    recipient_avail_before = float(recipient_bucket.get("available_balance", 0.0))
+
+    create_ledger_entry(
+        user_id=str(recipient_user["_id"]),
+        wallet_id=recipient_wallet["_id"],
+        transaction_type="internal_transfer_credit",
+        direction="credit",
+        amount=amount,
+        balance_before=recipient_avail_before,
+        balance_after=round(recipient_avail_before + amount, 8),
+        reference_id=reference_id,
+        description=f"Received {amount:g} {asset} via internal transfer from {sender.get('name')} ({sender.get('email') or sender.get('client_id')}).",
+        currency=asset
+    )
+
+    # Normalize both to update legacy mirrors
+    normalize_wallet_currency(res_sender)
+    normalize_wallet_currency(res_recipient)
+
+    return {
+        "success": True,
+        "message": f"Successfully transferred {amount:g} {asset} to {recipient_user.get('name')}.",
+        "data": {
+            "amount": amount,
+            "asset": asset,
+            "recipient_name": recipient_user.get("name"),
+            "reference_id": reference_id,
+            "wallet": format_wallet(find_wallet_by_user_id(sender_id))
+        },
+        "status_code": 200
+    }
+
 

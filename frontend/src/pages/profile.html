@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
         :root {
@@ -1691,6 +1691,15 @@
                                     <h3 id="profilePrimaryCurrencyText" class="tx-profile-overview-value text-emerald-400 font-bold">INR (₹)</h3>
                                 </div>
                             </article>
+                            <article class="tx-profile-overview-item">
+                                <div>
+                                    <span class="tx-profile-overview-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="2" width="14" height="20" rx="2.5" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1" fill="currentColor" stroke="none"/></svg>
+                                    </span>
+                                    <p class="tx-profile-overview-label">Mobile Number</p>
+                                    <h3 id="profilePhoneText" class="tx-profile-overview-value">--</h3>
+                                </div>
+                            </article>
                         </div>
                     </section>
 
@@ -1775,6 +1784,44 @@
                                     <button id="passwordChangeBtn" type="submit" class="tx-profile-secondary-btn disabled:cursor-not-allowed disabled:opacity-60">Change Password</button>
                                 </div>
                             </form>
+                        </div>
+                    </section>
+
+                    <!-- 2FA Card -->
+                    <section class="tx-profile-card tx-profile-security-card mt-5">
+                        <aside class="tx-profile-security-aside">
+                            <div class="tx-profile-security-shield" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16" r="1.2" fill="currentColor"/></svg>
+                            </div>
+                            <p class="tx-profile-section-kicker">Two-Factor Auth</p>
+                            <h2>2FA Protection</h2>
+                            <p>Add an extra layer of security with Email OTP verification during every login.</p>
+                        </aside>
+
+                        <div class="tx-profile-security-form-wrap">
+                            <div class="tx-profile-section-head">
+                                <div class="tx-profile-heading-wrap">
+                                    <p class="tx-profile-section-kicker">Security Settings</p>
+                                    <h2 class="tx-profile-section-title">Two-Factor Authentication</h2>
+                                    <p class="tx-profile-section-copy">Protect your account with an additional verification step at login.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-4 mt-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02]">
+                                <div class="flex items-center gap-3">
+                                    <span id="profile2faStatusDot" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke-linecap="round"/></svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-xs font-black text-slate-300 uppercase tracking-wider">Status</p>
+                                        <p id="profile2faStatusText" class="text-sm font-black text-slate-500 mt-0.5">Loading...</p>
+                                    </div>
+                                </div>
+                                <a href="/src/pages/settings.html" class="tx-profile-secondary-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                    Manage 2FA
+                                </a>
+                            </div>
                         </div>
                     </section>
                 </div>
@@ -2087,7 +2134,7 @@
             <!-- Sub Accounts Panel -->
             <div id="profileSubAccountsPanel" class="tx-profile-tab-panel hidden" data-profile-panel="sub-accounts" hidden>
                 <div class="tx-profile-single-column">
-                    <section class="tx-profile-card">
+                    <section class="tx-profile-card p-6 sm:p-8">
                         <div class="tx-profile-section-head">
                             <div class="tx-profile-heading-wrap">
                                 <p class="tx-profile-section-kicker">Multi-Account Management</p>
@@ -2149,7 +2196,7 @@
             <!-- Bank Accounts Panel -->
             <div id="profileBankAccountsPanel" class="tx-profile-tab-panel hidden" data-profile-panel="bank-accounts" hidden>
                 <div class="tx-profile-single-column">
-                    <section class="tx-profile-card">
+                    <section class="tx-profile-card p-6 sm:p-8">
                         <div class="tx-profile-section-head">
                             <div class="tx-profile-heading-wrap">
                                 <p class="tx-profile-section-kicker">Payment Details</p>
@@ -2169,29 +2216,29 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <label for="bankHolderName" class="tx-profile-label">Account Holder Name</label>
-                                        <input id="bankHolderName" name="account_holder_name" type="text" maxlength="80" placeholder="" class="tx-profile-input" />
+                                        <input id="bankHolderName" name="account_holder_name" type="text" maxlength="80" placeholder="Full name as per bank" class="tx-profile-input" />
                                     </div>
                                     <div>
                                         <label for="bankName" class="tx-profile-label">Bank Name</label>
-                                        <input id="bankName" name="bank_name" type="text" maxlength="80" placeholder="" class="tx-profile-input" />
+                                        <input id="bankName" name="bank_name" type="text" maxlength="80" placeholder="e.g. HDFC Bank" class="tx-profile-input" />
                                     </div>
                                 </div>
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <label for="bankAccountNumber" class="tx-profile-label">Account Number <span class="text-slate-500 font-normal">(optional if UPI given)</span></label>
-                                        <input id="bankAccountNumber" name="account_number" type="text" maxlength="20" placeholder="" class="tx-profile-input" />
+                                        <input id="bankAccountNumber" name="account_number" type="text" maxlength="20" placeholder="e.g. 001234567890" class="tx-profile-input" />
                                     </div>
                                     <div>
                                         <label for="bankIfscCode" class="tx-profile-label">IFSC Code</label>
-                                        <input id="bankIfscCode" name="ifsc_code" type="text" maxlength="11" placeholder="" class="tx-profile-input" style="text-transform:uppercase;" />
+                                        <input id="bankIfscCode" name="ifsc_code" type="text" maxlength="11" placeholder="e.g. HDFC0001234" class="tx-profile-input" style="text-transform:uppercase;" />
                                     </div>
                                 </div>
 
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <label for="bankUpiId" class="tx-profile-label">UPI ID <span class="text-slate-500 font-normal">(optional if account no. given)</span></label>
-                                        <input id="bankUpiId" name="upi_id" type="text" maxlength="60" placeholder="" class="tx-profile-input" />
+                                        <input id="bankUpiId" name="upi_id" type="text" maxlength="60" placeholder="e.g. name@upi" class="tx-profile-input" />
                                     </div>
                                     <div>
                                         <label for="bankAccountType" class="tx-profile-label">Account Type</label>

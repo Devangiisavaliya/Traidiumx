@@ -18,6 +18,9 @@
 const DEMO_USER_KEY = "traidiumx_demo_user";
 const DEMO_SESSION_KEY = "traidiumx_demo_session";
 
+const EYE_OPEN_SVG = `<svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+const EYE_OFF_SVG = `<svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.035 10.035 0 014.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18"/></svg>`;
+
 let lastResetId = "";
 
 function showMiniMessage(message, type = "success") {
@@ -122,17 +125,23 @@ function generateResetId() {
 
 function initPasswordToggles() {
     document.querySelectorAll("[data-toggle-password]").forEach((button) => {
-        button.addEventListener("click", () => {
-            const inputId = button.getAttribute("data-toggle-password");
-            const input = getElement(inputId);
+        const inputId = button.getAttribute("data-toggle-password");
+        const input = typeof getElement === "function" ? getElement(inputId) : document.getElementById(inputId);
 
-            if (!input) {
+        if (input) {
+            button.innerHTML = input.type === "password" ? EYE_OPEN_SVG : EYE_OFF_SVG;
+        }
+
+        button.addEventListener("click", () => {
+            const targetInput = typeof getElement === "function" ? getElement(inputId) : document.getElementById(inputId);
+
+            if (!targetInput) {
                 return;
             }
 
-            const isPassword = input.type === "password";
-            input.type = isPassword ? "text" : "password";
-            button.textContent = isPassword ? "Hide" : "Show";
+            const isPassword = targetInput.type === "password";
+            targetInput.type = isPassword ? "text" : "password";
+            button.innerHTML = isPassword ? EYE_OFF_SVG : EYE_OPEN_SVG;
         });
     });
 }

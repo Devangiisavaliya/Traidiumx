@@ -676,3 +676,137 @@ def exchange_assets():
         import traceback
         traceback.print_exc()
         return error_response(message=f"Exchange processing error: {str(e)}", status_code=500)
+
+
+@wallet_api.post("/internal-transfer")
+@auth_required
+def internal_transfer():
+    try:
+        data = request.get_json(silent=True) or {}
+        asset = data.get("asset")
+        recipient_info = data.get("recipient_info") or data.get("recipient")
+        amount = data.get("amount")
+
+        from services.wallet_service import internal_transfer_between_users
+        result = internal_transfer_between_users(
+            sender_id=g.current_user_id,
+            recipient_info=recipient_info,
+            amount=amount,
+            asset=asset
+        )
+
+        if result.get("success"):
+            return success_response(
+                message=result.get("message"),
+                data=result.get("data"),
+                status_code=result.get("status_code", 200)
+            )
+
+        return error_response(
+            message=result.get("message", "Internal transfer failed."),
+            errors=result.get("errors", {}),
+            status_code=result.get("status_code", 400)
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return error_response(message=f"Internal transfer processing error: {str(e)}", status_code=500)
+
+
+@wallet_api.get("/lookup-recipient")
+@auth_required
+def lookup_recipient():
+    try:
+        query = request.args.get("query", "").strip()
+        if not query:
+            return error_response(message="Query parameter is required.", status_code=400)
+            
+        from config.database import get_database
+        db = get_database()
+        
+        # 1. Match by Email
+        recipient_user = db.users.find_one({"email": query})
+        
+        # 2. Match by Client ID
+        if not recipient_user:
+            recipient_user = db.users.find_one({"client_id": query})
+            
+        # 3. Match by Crypto Address
+        matched_other_asset = None
+        if not recipient_user:
+            active_asset = request.args.get("asset", "").strip().upper()
+            or_queries = []
+            NETWORKS = ["TRC20", "ERC20", "BEP20", "BITCOIN", "SOLANA", "RIPPLE", "CARDANO", "INTERNAL"]
+            
+            if active_asset:
+                assets_to_check = [active_asset]
+            else:
+                assets_to_check = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+                
+            for asset in assets_to_check:
+                asset_lower = asset.lower()
+                for net in NETWORKS:
+                    or_queries.append({f"main_wallet_{asset_lower}.addresses.{net}": query})
+            
+            matched_wallet = db.wallets.find_one({"$or": or_queries})
+            
+            # If not matched for active asset, check if it matches another asset
+            if not matched_wallet and active_asset:
+                other_queries = []
+                other_assets = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+                if active_asset in other_assets:
+                    other_assets.remove(active_asset)
+                for asset in other_assets:
+                    asset_lower = asset.lower()
+                    for net in NETWORKS:
+                        other_queries.append({f"main_wallet_{asset_lower}.addresses.{net}": query})
+                
+                matched_other = db.wallets.find_one({"$or": other_queries})
+                if matched_other:
+                    for asset in other_assets:
+                        asset_lower = asset.lower()
+                        for net in NETWORKS:
+                            addr_val = ((matched_other.get(f"main_wallet_{asset_lower}") or {}).get("addresses") or {}).get(net)
+                            if addr_val == query:
+                                matched_other_asset = asset
+                                break
+                        if matched_other_asset:
+                            break
+                            
+            if matched_wallet:
+                user_id = matched_wallet.get("user_id")
+                from bson import ObjectId
+                try:
+                    recipient_user = db.users.find_one({"_id": ObjectId(user_id)})
+                except Exception:
+                    recipient_user = db.users.find_one({"client_id": user_id})
+
+        if not recipient_user:
+            if matched_other_asset:
+                return success_response(
+                    message=f"Address belongs to another asset ({matched_other_asset}).",
+                    data={"found": False, "matched_different_asset": matched_other_asset}
+                )
+            return success_response(message="Recipient not found.", data={"found": False})
+
+        email = recipient_user.get("email", "")
+        masked_email = ""
+        if "@" in email:
+            parts = email.split("@")
+            masked_email = parts[0][:3] + "***@" + parts[1] if len(parts[0]) > 3 else parts[0] + "***@" + parts[1]
+        else:
+            masked_email = email
+
+        return success_response(
+            message="Recipient found.",
+            data={
+                "found": True,
+                "name": recipient_user.get("name", "Unknown"),
+                "email": masked_email,
+                "client_id": recipient_user.get("client_id", "")
+            }
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return error_response(message=f"Recipient lookup processing error: {str(e)}", status_code=500)

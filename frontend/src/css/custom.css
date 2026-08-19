@@ -50,21 +50,19 @@ body {
    Professional Scrollbar
 ================================ */
 
+html {
+    scroll-behavior: smooth;
+}
+
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
 }
 
-::-webkit-scrollbar-track {
-    background: #020617;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #1e293b;
-    border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #22d3ee;
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
 
@@ -925,10 +923,6 @@ details[open] {
     align-items: center;
     justify-content: center;
     border-radius: 28px;
-    background: #22d3ee;
-    color: #020617;
-    font-size: 32px;
-    font-weight: 950;
 }
 
 .blog-tag-btn {
@@ -1760,15 +1754,8 @@ details[open] {
 
 .about-trust-icon {
     display: flex;
-    height: 54px;
-    width: 54px;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
-    background: #22d3ee;
-    color: #020617;
-    font-size: 22px;
-    font-weight: 950;
 }
 
 .about-trust-card h3 {
@@ -1993,15 +1980,8 @@ details[open] {
 
 .privacy-principle-icon {
     display: flex;
-    height: 54px;
-    width: 54px;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
-    background: #22d3ee;
-    color: #020617;
-    font-size: 22px;
-    font-weight: 950;
 }
 
 .privacy-principle-card h3 {
@@ -2133,7 +2113,7 @@ details[open] {
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    background: #f87171;
+    background: #22d3ee;
     padding: 12px 20px;
     color: #020617;
     font-size: 13px;
@@ -2142,7 +2122,7 @@ details[open] {
 }
 
 .risk-action-btn:hover {
-    background: #fca5a5;
+    background: #67e8f9;
     transform: translateY(-2px);
 }
 
@@ -2168,15 +2148,8 @@ details[open] {
 
 .risk-highlight-icon {
     display: flex;
-    height: 54px;
-    width: 54px;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
-    background: #f87171;
-    color: #020617;
-    font-size: 22px;
-    font-weight: 950;
 }
 
 .risk-highlight-card h3 {
@@ -2316,15 +2289,8 @@ details[open] {
 
 .kyc-purpose-icon {
     display: flex;
-    height: 54px;
-    width: 54px;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
-    background: #22d3ee;
-    color: #020617;
-    font-size: 22px;
-    font-weight: 950;
 }
 
 .kyc-purpose-card h3 {
@@ -2591,13 +2557,16 @@ details[open] {
 }
 
 .auth-password-toggle {
-    color: #22d3ee;
-    font-size: 12px;
-    font-weight: 950;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.25s ease;
+    cursor: pointer;
 }
 
 .auth-password-toggle:hover {
-    color: #67e8f9;
+    color: #22d3ee;
 }
 
 @media (max-width: 640px) {
@@ -3424,7 +3393,7 @@ details[open] {
 
 .rt-terminal-3col {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px 340px;
+    grid-template-columns: minmax(0, 1fr) 330px 330px;
     gap: 8px;
     align-items: start;
 }
@@ -5244,7 +5213,7 @@ details[open] {
 }
 
 .rt-terminal-3col {
-    grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
+    grid-template-columns: minmax(720px, 1fr) 330px 330px !important;
     gap: 10px !important;
     align-items: stretch !important;
 }
@@ -7298,7 +7267,7 @@ details[open] {
 }
 
 .rt-terminal-focused {
-    grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
+    grid-template-columns: minmax(720px, 1fr) 330px 330px !important;
     gap: 10px !important;
     align-items: stretch !important;
 }
@@ -8030,4 +7999,118 @@ body {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
+}
+
+/* ========================================================================
+   FUTURES TRADING RIGHT SIDEBAR - SPACIOUS & PREMIUM SIZE OVERRIDES
+   ======================================================================== */
+body .rt-terminal-focused .rt-right-panel .rt-card {
+    padding: 20px !important;
+}
+
+body .rt-terminal-focused .rt-label {
+    padding: 8px 12px 6px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #94a3b8 !important;
+}
+
+body .rt-terminal-focused .rt-label + .rt-input,
+body .rt-terminal-focused #limitPriceWrap .rt-input,
+body .rt-terminal-focused #stopPriceWrap .rt-input,
+body .rt-terminal-focused #leverageSelect,
+body .rt-terminal-focused #takeProfitInput,
+body .rt-terminal-focused #stopLossInput {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 12px 14px !important;
+    font-size: 13.5px !important;
+    border-radius: 12px !important;
+    min-height: 46px !important;
+}
+
+body .rt-terminal-focused .rt-side-tabs,
+body .rt-terminal-focused .rt-order-type-tabs,
+body .rt-terminal-focused .rt-percent-row {
+    padding: 8px 0 0 !important;
+    gap: 8px !important;
+}
+
+body .rt-terminal-focused .rt-side-tabs button,
+body .rt-terminal-focused .rt-order-type-tabs button,
+body .rt-terminal-focused .rt-percent-row button {
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+    border-radius: 12px !important;
+}
+
+body .rt-terminal-focused .rt-wallet-mini-grid {
+    margin-top: 14px !important;
+    gap: 10px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+body .rt-terminal-focused .rt-wallet-mini {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+}
+
+body .rt-terminal-focused .rt-wallet-mini span {
+    font-size: 10.5px !important;
+}
+
+body .rt-terminal-focused .rt-wallet-mini strong {
+    margin-top: 4px !important;
+    font-size: 13px !important;
+}
+
+body .rt-terminal-focused .rt-est-margin-row {
+    margin-top: 14px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    font-size: 13px !important;
+}
+
+body .rt-terminal-focused .rt-place-order-btn {
+    margin: 18px 0 0 0 !important;
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 14px !important;
+    border-radius: 14px !important;
+    min-height: 48px !important;
+}
+
+body .rt-terminal-focused .rt-order-message {
+    margin: 10px 0 0 0 !important;
+}
+
+body .rt-terminal-focused .rt-margin-head {
+    padding: 16px 0 !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+}
+
+body .rt-terminal-focused .rt-margin-head h3 {
+    font-size: 14px !important;
+}
+
+body .rt-terminal-focused #walletPnl {
+    font-size: 1.85rem !important;
+    line-height: 2.25rem !important;
+}
+
+body .rt-terminal-focused #marginAssetBadge {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+}
+
+body .rt-terminal-focused .px-4.py-4 {
+    padding: 16px 0 0 0 !important;
+}
+
+body .rt-terminal-focused .mt-5.grid-cols-2 {
+    margin-top: 14px !important;
+    gap: 12px !important;
 }

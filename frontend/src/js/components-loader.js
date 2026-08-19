@@ -29,7 +29,7 @@ async function loadComponent(target) {
         return;
     }
 
-    const componentUrl = resolveAppPath(`src/components/${componentName}.html`);
+    const componentUrl = resolveAppPath(`src/components/${componentName}.html?v=` + new Date().getTime());
 
     try {
         const response = await fetch(componentUrl);
@@ -38,7 +38,19 @@ async function loadComponent(target) {
             throw new Error(`Failed to load ${componentUrl}. Status: ${response.status}`);
         }
 
-        target.innerHTML = await response.text();
+        const html = await response.text();
+        target.innerHTML = html;
+
+        // Execute any script tags nested in the loaded component html
+        const scripts = target.querySelectorAll("script");
+        scripts.forEach((oldScript) => {
+            const newScript = document.createElement("script");
+            Array.from(oldScript.attributes).forEach((attr) => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
     } catch (error) {
         console.error(error);
 

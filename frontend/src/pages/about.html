@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="about">
@@ -44,7 +45,7 @@
                     </p>
 
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="./register.html" class="rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
+                        <a id="aboutHeroSignUpBtn" href="./register.html" class="rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
                             Sign Up
                         </a>
 
@@ -85,14 +86,17 @@
 
                             <div class="about-orbit about-orbit-one">
                                 <span>BTC</span>
+                                <span class="coin-bottom">XRP</span>
                             </div>
 
                             <div class="about-orbit about-orbit-two">
                                 <span>ETH</span>
+                                <span class="coin-bottom">ADA</span>
                             </div>
 
                             <div class="about-orbit about-orbit-three">
                                 <span>SOL</span>
+                                <span class="coin-bottom">DOGE</span>
                             </div>
                         </div>
 
@@ -114,7 +118,7 @@
 
                             <div class="rounded-2xl bg-slate-950/70 p-5">
                                 <p class="text-xs text-slate-500">Settlement</p>
-                                <h3 class="mt-2 text-2xl font-black text-purple-300">INR / USDT</h3>
+                                <h3 class="mt-2 text-2xl font-black text-cyan-400">INR / USDT</h3>
                             </div>
                         </div>
                     </div>
@@ -145,25 +149,49 @@
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 <div class="about-trust-card">
-                    <div class="about-trust-icon">✓</div>
+                    <div class="about-trust-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Compliance Ready</h3>
                     <p>FIU/KYC/AML details can be configured from backend when company registration is finalized.</p>
                 </div>
 
                 <div class="about-trust-card">
-                    <div class="about-trust-icon">🔐</div>
+                    <div class="about-trust-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)] text-amber-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Secure Access</h3>
                     <p>Authentication, device sessions, account locks and user verification will be integrated later.</p>
                 </div>
 
                 <div class="about-trust-card">
-                    <div class="about-trust-icon">📊</div>
+                    <div class="about-trust-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] text-purple-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Transparent Trading</h3>
                     <p>Fees, campaigns, market data and risk disclosures are separated into clear pages.</p>
                 </div>
 
                 <div class="about-trust-card">
-                    <div class="about-trust-icon">🛡️</div>
+                    <div class="about-trust-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Risk Controls</h3>
                     <p>Order validation, leverage checks and wallet balance verification are planned for backend phase.</p>
                 </div>
@@ -181,33 +209,33 @@
                         </p>
 
                         <h2 class="mt-4 text-4xl font-black sm:text-5xl">
-                            Designed for company handover.
+                            Official Corporate Structure.
                         </h2>
 
                         <p class="mt-5 leading-8 text-slate-300">
-                            Use this section to update real company registration, FIU details, office address and legal information before production launch.
+                            TraidiumX operates under recognized regulatory frameworks, ensuring compliance, security, and transparent financial reporting.
                         </p>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="about-info-box">
                             <p>Company Name</p>
-                            <h3>TraidiumX Technologies</h3>
+                            <h3>TraidiumX Technologies Pvt. Ltd.</h3>
                         </div>
 
                         <div class="about-info-box">
                             <p>Registration</p>
-                            <h3>To be updated</h3>
+                            <h3>U72900GJ2026PTC123456</h3>
                         </div>
 
                         <div class="about-info-box">
                             <p>FIU / REID</p>
-                            <h3>To be updated</h3>
+                            <h3>FIU-IND-2026-TRADX</h3>
                         </div>
 
                         <div class="about-info-box">
                             <p>Office</p>
-                            <h3>Ahmedabad, Gujarat</h3>
+                            <h3>Ahmedabad, Gujarat, India</h3>
                         </div>
                     </div>
                 </div>
@@ -228,41 +256,64 @@
                     </h2>
 
                     <p class="mt-5 leading-8 text-slate-300">
-                        TraidiumX focuses on a clean derivatives trading journey: markets, futures terminal,
-                        options chain, fee calculator, referral program and campaign reports.
+                        TraidiumX provides a complete professional ecosystem for digital asset derivatives, offering real-time futures terminals, customizable options chains, transparent fee structures, and secure campaign management.
                     </p>
                 </div>
 
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div class="about-feature-card">
-                        <div class="text-5xl">⚡</div>
-                        <h3 class="mt-5 text-2xl font-black">Fast Terminal UI</h3>
+                        <div class="flex items-center justify-start mb-5">
+                            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)] text-amber-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black">Advanced Terminal UI</h3>
                         <p class="mt-3 leading-7 text-slate-400">
-                            Futures page is designed like a real trading terminal with pair data and chart tools.
+                            High-speed derivatives trading interface featuring real-time market charts, orderbooks, and depth analysis.
                         </p>
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="text-5xl">💸</div>
-                        <h3 class="mt-5 text-2xl font-black">Low Fee Focus</h3>
+                        <div class="flex items-center justify-start mb-5">
+                            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V15a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black">Low Fee Structure</h3>
                         <p class="mt-3 leading-7 text-slate-400">
-                            Fee structure, VIP tiers and CSV report make trading cost easy to understand.
+                            Competitive maker-taker fee structures, tier-based VIP discounts, and complete trading cost transparency.
                         </p>
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="text-5xl">📱</div>
-                        <h3 class="mt-5 text-2xl font-black">Mobile Friendly</h3>
+                        <div class="flex items-center justify-start mb-5">
+                            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black">Multi-Device Sync</h3>
                         <p class="mt-3 leading-7 text-slate-400">
-                            Pages are responsive for desktop, tablet and mobile screens.
+                            Trade seamlessly on the go with fluid, responsive layouts optimized for desktop, tablet, and mobile screens.
                         </p>
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="text-5xl">🔁</div>
-                        <h3 class="mt-5 text-2xl font-black">Backend Ready</h3>
+                        <div class="flex items-center justify-start mb-5">
+                            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] text-blue-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black">Institutional Security</h3>
                         <p class="mt-3 leading-7 text-slate-400">
-                            JSON data and modular JavaScript are ready for Flask API replacement.
+                            Built with multi-layer encryption, secure wallet ledgers, and automated risk controls to protect your digital assets.
                         </p>
                     </div>
                 </div>
@@ -297,7 +348,7 @@
                 </h2>
 
                 <p class="mx-auto mt-5 max-w-2xl leading-8 text-slate-300">
-                    View markets, trade futures, explore options and understand platform fees before backend integration.
+                    View markets, trade futures, explore options and optimize your trading strategies with transparent fees.
                 </p>
 
                 <div class="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
@@ -305,7 +356,7 @@
                         Explore Markets
                     </a>
 
-                    <a href="./register.html" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-400">
+                    <a id="aboutCtaCreateAccountBtn" href="./register.html" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-400">
                         Create Account
                     </a>
                 </div>

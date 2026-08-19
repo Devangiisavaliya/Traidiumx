@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/static/css/admin-base.css" />
-<link rel="icon" href="data:," />
+<link rel="icon" type="image/png" href="../../assets/logo.png" />
 <title>Wallet Ledger | TraidiumX Admin</title>
 </head>
 <body data-admin-page="ledger" data-page-title="Wallet Ledger" data-page-subtitle="Audit-ready wallet movement history with server-side pagination.">
@@ -36,7 +36,7 @@
         <div class="grid gap-3 xl:grid-cols-[1.45fr_0.8fr_0.8fr_0.8fr_auto_auto]">
             <input id="ledgerSearch" class="admin-input" placeholder="Search user, reference, type..." />
             <select id="ledgerCurrencyFilter" class="admin-input"><option value="all">All currencies</option><option value="INR">INR (₹)</option><option value="USDT">USDT ($)</option></select>
-            <select id="ledgerTypeFilter" class="admin-input"><option value="all">All types</option><option value="deposit">Deposit</option><option value="withdrawal">Withdrawal</option><option value="withdrawal_rejected_release">Rejected release</option><option value="trade">Trade</option></select>
+            <select id="ledgerTypeFilter" class="admin-input"><option value="all">All types</option><option value="deposit">Deposit</option><option value="withdrawal">Withdrawal</option><option value="withdrawal_rejected_release">Rejected release</option><option value="trade">Trade</option><option value="internal_transfer">Internal Transfer</option></select>
             <select id="ledgerDirectionFilter" class="admin-input"><option value="all">All directions</option><option value="credit">Credit</option><option value="debit">Debit</option></select>
             <button id="ledgerResetBtn" class="admin-btn">Reset</button>
             <button id="ledgerExportBtn" class="admin-btn admin-btn-primary">Export CSV</button>

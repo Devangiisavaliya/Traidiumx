@@ -259,6 +259,59 @@ def get_fee_structure():
         config = ensure_default_fee_config()
         data = serialize_fee_config(config)
 
+        # Dynamic override of wallet fees based on current runtime settings
+        from services.system_settings_service import get_crypto_deposit_min_usdt
+        fee_settings = get_runtime_fee_settings()
+        deposit_min = get_crypto_deposit_min_usdt()
+        withdrawal_min = float(getattr(settings, "CRYPTO_WITHDRAWAL_MIN_USDT", 10))
+
+        dynamic_wallet_rows = []
+        for network in ["TRC20", "BEP20", "ERC20"]:
+            dep_fee = "Free"
+
+            is_with_enabled = fee_settings.get("enable_withdrawal_fee", False)
+            with_value = float(fee_settings.get("withdrawal_fee_value", 0.0) or 0.0)
+            with_type = fee_settings.get("withdrawal_fee_type", "fixed")
+
+            net_fee = 0.0
+            if network == "TRC20":
+                net_fee = float(fee_settings.get("withdrawal_fee_trc20", 0.0) or 0.0)
+            elif network == "BEP20":
+                net_fee = float(fee_settings.get("withdrawal_fee_bep20", 0.0) or 0.0)
+            elif network == "ERC20":
+                net_fee = float(fee_settings.get("withdrawal_fee_erc20", 0.0) or 0.0)
+
+            if is_with_enabled and with_value > 0:
+                if with_type == "percentage":
+                    if net_fee > 0:
+                        with_fee = f"{with_value:g}% + {net_fee:g} USDT"
+                    else:
+                        with_fee = f"{with_value:g}%"
+                else:  # fixed
+                    total_fixed = with_value + net_fee
+                    with_fee = f"{total_fixed:g} USDT"
+            else:
+                if net_fee > 0:
+                    with_fee = f"{net_fee:g} USDT"
+                else:
+                    with_fee = "Free"
+
+            dynamic_wallet_rows.append({
+                "asset": "USDT",
+                "network": network,
+                "deposit_fee": dep_fee,
+                "withdrawal_fee": with_fee,
+                "minimum_deposit": f"{deposit_min:g} USDT",
+                "minimum_withdrawal": f"{withdrawal_min:g} USDT",
+                "processing": "Deposit after blockchain confirmation",
+                "status": "Active"
+            })
+
+        if isinstance(data.get("sections"), list):
+            for section in data["sections"]:
+                if section.get("key") == "wallet":
+                    section["rows"] = dynamic_wallet_rows
+
         data["runtime_settings"] = get_fee_runtime_summary()
         data["server_time"] = _now_iso()
 
@@ -497,6 +550,18 @@ def calculate_account_platform_fee(balance_amount=0):
 
 
 def get_network_fee_for_withdrawal(network, fee_settings=None):
+    if fee_settings is None:
+        fee_settings = get_runtime_fee_settings()
+
+    network_key = str(network or "TRC20").strip().upper()
+
+    if network_key == "TRC20":
+        return float(fee_settings.get("withdrawal_fee_trc20", 0.0) or 0.0)
+    elif network_key == "BEP20":
+        return float(fee_settings.get("withdrawal_fee_bep20", 0.0) or 0.0)
+    elif network_key == "ERC20":
+        return float(fee_settings.get("withdrawal_fee_erc20", 0.0) or 0.0)
+
     return 0.0
 
 

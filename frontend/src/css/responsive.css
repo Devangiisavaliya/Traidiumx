@@ -685,7 +685,7 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     
     html body[data-page="futures"] .rt-terminal-focused {
         display: grid !important;
-        grid-template-columns: minmax(720px, 1fr) 300px 345px !important;
+        grid-template-columns: minmax(720px, 1fr) 330px 330px !important;
         gap: 12px !important;
         align-items: stretch !important;
     }

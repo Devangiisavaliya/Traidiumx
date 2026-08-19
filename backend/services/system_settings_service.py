@@ -57,6 +57,11 @@ def _to_float(value, default=0.0):
 _settings_cache = {"data": None, "updated_at": 0}
 
 
+def clear_settings_cache():
+    _settings_cache["data"] = None
+    _settings_cache["updated_at"] = 0
+
+
 def get_runtime_system_settings():
     """Read admin saved settings without importing admin routes.
 

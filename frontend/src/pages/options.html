@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
         /* Options page only: hide bottom horizontal scrollbar line without changing existing data/UI */
@@ -99,19 +99,32 @@
             table-layout: fixed !important;
         }
 
-        body[data-page="options"] .os-chain-table th,
+        body[data-page="options"] .os-chain-table th {
+            padding: 8px 6px !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.03em !important;
+        }
+
         body[data-page="options"] .os-chain-table td {
-            padding-left: 5px !important;
-            padding-right: 5px !important;
-            font-size: 11px !important;
+            padding: 9px 6px !important;
+            font-size: 13.5px !important;
+            font-weight: 750 !important;
             white-space: nowrap !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
         }
 
+        body[data-page="options"] .os-chain-table td strong,
+        body[data-page="options"] .os-chain-table td.os-strike-cell {
+            font-size: 14.5px !important;
+            font-weight: 900 !important;
+        }
+
         body[data-page="options"] .os-chain-table small {
-            font-size: 9px !important;
-            line-height: 1.1 !important;
+            font-size: 10px !important;
+            line-height: 1.25 !important;
+            font-weight: 600 !important;
         }
 
         body[data-page="options"] .os-strike-head,
@@ -151,20 +164,147 @@
 
         /* Options page only: remove empty stretched area under options chain */
         body[data-page="options"] .os-terminal-grid {
-            align-items: stretch !important;
+            align-items: flex-start !important;
         }
 
         body[data-page="options"] .os-chain-card,
         body[data-page="options"] .os-side-market-card,
         body[data-page="options"] .os-order-card {
-            align-self: stretch !important;
-            height: 100% !important;
-        }
-
-        body[data-page="options"] .os-side-market-card {
             display: flex !important;
             flex-direction: column !important;
-            height: 100% !important;
+            align-self: start !important;
+            height: auto !important;
+        }
+
+        body[data-page="options"] .os-contract-card {
+            padding: 12px 14px !important;
+        }
+
+        body[data-page="options"] .os-contract-card .mt-4 {
+            margin-top: 10px !important;
+        }
+
+        body[data-page="options"] .os-book-mid {
+            margin: 7px 0 !important;
+            padding: 9px 10px !important;
+            font-size: 20.5px !important;
+            border-radius: 9px !important;
+        }
+
+        body[data-page="options"] .os-book-row {
+            padding: 5 px 0 !important;
+            font-size: 12.5px !important;
+            font-weight: 850 !important;
+        }
+
+        body[data-page="options"] .os-order-card {
+            padding: 13px 13px !important;
+        }
+
+        body[data-page="options"] .os-buy-sell-tabs button {
+            padding: 11px 13px !important;
+            font-size: 14.5px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-order-tabs {
+            margin-top: 8px !important;
+            padding-bottom: 5px !important;
+        }
+
+        body[data-page="options"] .os-order-tabs button {
+            font-size: 14.5px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-input-label {
+            font-size: 13px !important;
+            font-weight: 900 !important;
+        }
+
+        body[data-page="options"] .os-input-wrap input {
+            padding: 8px 11px !important;
+            font-size: 15px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-input-wrap span {
+            font-size: 12.5px !important;
+            font-weight: 850 !important;
+        }
+
+        body[data-page="options"] .os-percent-grid button {
+            padding: 5.5px 4px !important;
+            font-size: 11.5px !important;
+            font-weight: 900 !important;
+        }
+
+        body[data-page="options"] .os-cost-card {
+            padding: 8px 10px !important;
+        }
+
+        body[data-page="options"] .os-cost-card span {
+            font-size: 11.5px !important;
+            font-weight: 900 !important;
+        }
+
+        body[data-page="options"] .os-cost-card strong {
+            margin-top: 2px !important;
+            font-size: 15.5px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-margin-box {
+            padding: 4px 11px !important;
+        }
+
+        body[data-page="options"] .os-margin-box div {
+            padding: 5px 0 !important;
+            font-size: 12.5px !important;
+            font-weight: 850 !important;
+        }
+
+        body[data-page="options"] .os-margin-box strong {
+            font-size: 13px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-order-card .my-2.5 {
+            margin-top: 7px !important;
+            margin-bottom: 7px !important;
+            font-size: 13px !important;
+            font-weight: 900 !important;
+        }
+
+        body[data-page="options"] .os-trade-btn,
+        body[data-page="options"] .os-register-btn {
+            padding: 11.5px !important;
+            font-size: 15px !important;
+            font-weight: 950 !important;
+            letter-spacing: 0.02em !important;
+        }
+
+        body[data-page="options"] .os-contract-details {
+            margin-top: 9px !important;
+            padding: 10px 12px !important;
+            border-radius: 11px !important;
+        }
+
+        body[data-page="options"] .os-contract-details h3 {
+            margin-bottom: 5px !important;
+            font-size: 13.5px !important;
+            font-weight: 950 !important;
+        }
+
+        body[data-page="options"] .os-contract-details div {
+            padding: 5.5px 0 !important;
+            font-size: 12.5px !important;
+            font-weight: 850 !important;
+        }
+
+        body[data-page="options"] .os-contract-details strong {
+            font-size: 13px !important;
+            font-weight: 950 !important;
         }
 
         body[data-page="options"] .os-book-card {
@@ -174,11 +314,49 @@
             min-height: 0 !important;
         }
 
-        body[data-page="options"] #optionsOrderBookPanel {
+        body[data-page="options"] #optionsOrderBookPanel.hidden,
+        body[data-page="options"] #optionsTradesPanel.hidden {
+            display: none !important;
+        }
+
+        body[data-page="options"] #optionsOrderBookPanel:not(.hidden),
+        body[data-page="options"] #optionsTradesPanel:not(.hidden) {
             flex: 1 !important;
             display: flex !important;
             flex-direction: column !important;
             min-height: 0 !important;
+        }
+
+        body[data-page="options"] #optionsTradesPanel .os-book-head {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            padding: 6px 0 8px 0 !important;
+            font-size: 11px !important;
+            font-weight: 950 !important;
+            color: #94a3b8 !important;
+        }
+
+        body[data-page="options"] #optionsTradesPanel .os-book-head span:not(:first-child) {
+            text-align: right !important;
+        }
+
+        body[data-page="options"] .os-trades-list {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+        }
+
+        body[data-page="options"] .os-trade-row {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            padding: 5px 0 !important;
+            font-size: 12.5px !important;
+            font-weight: 850 !important;
+        }
+
+        body[data-page="options"] .os-trade-row span:not(:first-child) {
+            text-align: right !important;
         }
 
         body[data-page="options"] .os-book-list {
@@ -255,12 +433,14 @@
         @media (min-width: 1281px) {
             body[data-page="options"] .os-terminal-grid {
                 grid-template-rows: auto auto !important;
-                align-items: stretch !important;
+                align-items: flex-start !important;
             }
 
             body[data-page="options"] .os-chain-card {
                 grid-column: 1 / 2 !important;
                 grid-row: 1 / 2 !important;
+                align-self: start !important;
+                height: auto !important;
             }
 
             body[data-page="options"] .os-bottom-card {
@@ -274,11 +454,15 @@
             body[data-page="options"] .os-side-market-card {
                 grid-column: 2 / 3 !important;
                 grid-row: 1 / 2 !important;
+                align-self: start !important;
+                height: auto !important;
             }
 
             body[data-page="options"] .os-order-card {
                 grid-column: 3 / 4 !important;
                 grid-row: 1 / 2 !important;
+                align-self: start !important;
+                height: auto !important;
             }
         }
 

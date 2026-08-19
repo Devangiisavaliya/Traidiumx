@@ -668,6 +668,12 @@ def update_settings():
         upsert=True
     )
 
+    try:
+        from services.system_settings_service import clear_settings_cache
+        clear_settings_cache()
+    except Exception as e:
+        print("Failed to clear settings cache:", e)
+
     final_settings = get_final_settings()
 
     notice_delivery = None
@@ -712,6 +718,12 @@ def reset_settings():
         {"$set": settings},
         upsert=True
     )
+
+    try:
+        from services.system_settings_service import clear_settings_cache
+        clear_settings_cache()
+    except Exception as e:
+        print("Failed to clear settings cache:", e)
 
     final_settings = get_final_settings()
 

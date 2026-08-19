@@ -636,3 +636,61 @@
         transition-duration: 0.001ms !important;
     }
 }
+
+/* ========================================================================
+   SCROLLED NAVBAR FLOATING OVERRIDES (Force-override browser-cached rules)
+   ======================================================================== */
+body .tx-pill-header.tx-navbar-scrolled {
+    padding-top: 8px !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    body .tx-pill-header.tx-navbar-scrolled {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    body .tx-pill-header.tx-navbar-scrolled {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+}
+
+body .tx-pill-header.tx-navbar-scrolled .tx-pill-navbar {
+    width: 100% !important;
+    max-width: 80rem !important; /* max-w-7xl */
+    border-radius: 999px !important;
+    background-color: rgba(3, 7, 18, 0.95) !important;
+    border-color: rgba(34, 211, 238, 0.22) !important;
+    min-height: 76px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    box-shadow: 
+        0 0 0 1px rgba(34, 211, 238, 0.12),
+        0 16px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+body .tx-pill-header.tx-navbar-scrolled .tx-pill-glow {
+    border-radius: 999px !important;
+}
+
+body .tx-pill-header.tx-navbar-scrolled .tx-pill-brand h1 {
+    font-size: 23px !important;
+}
+
+body .tx-pill-header.tx-navbar-scrolled .tx-pill-brand p {
+    font-size: 11px !important;
+    letter-spacing: 0.25em !important;
+    margin-top: 2px !important;
+}
+
+body .tx-pill-header.tx-navbar-scrolled .tx-pill-trade-btn {
+    padding-top: 9.5px !important;
+    padding-bottom: 9.5px !important;
+    border-radius: 15px !important;
+    box-shadow: 0 12px 30px rgba(34, 211, 238, 0.2) !important;
+}

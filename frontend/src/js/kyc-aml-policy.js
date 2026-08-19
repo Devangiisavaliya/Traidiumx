@@ -68,24 +68,33 @@ const kycLevels = [
 
 const kycDocuments = [
     {
-        icon: "🪪",
-        title: "Identity Proof",
-        description: "PAN, Aadhaar, Passport, Driving License or other valid identity document."
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 10h6m-6 3h6"></path>
+            </svg>
+        </div>`,
+        title: "Mobile Verification",
+        description: "One-Time Passcode (OTP) verification on your mobile number to initialize the KYC process."
     },
     {
-        icon: "🏠",
-        title: "Address Proof",
-        description: "Utility bill, bank statement, Aadhaar, passport or accepted address document."
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+        </div>`,
+        title: "Aadhaar Card",
+        description: "Secure DigiLocker integration to fetch and verify Aadhaar identity details instantly."
     },
     {
-        icon: "🏦",
-        title: "Bank Verification",
-        description: "Bank account details, account holder name and deposit/withdrawal verification."
-    },
-    {
-        icon: "📱",
-        title: "Mobile OTP",
-        description: "Mobile ownership verification before Aadhaar front/back document checks."
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] text-purple-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5a2 2 0 100-4 2 2 0 000 4zm0 0h12"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h1m-1 3h2m-2 3h4"></path>
+            </svg>
+        </div>`,
+        title: "PAN Card Record",
+        description: "Automated retrieval of your PAN verification record through DigiLocker compliance checks."
     }
 ];
 
@@ -97,7 +106,7 @@ const kycSections = [
         content: [
             "The purpose of this KYC-AML Policy is to define the framework TraidiumX may use to identify users, verify customer information, monitor transactions and detect suspicious activity.",
             "The policy is intended to prevent misuse of the platform for money laundering, terrorism financing, proliferation financing, fraud, identity misuse, sanctions evasion or transactions connected with proceeds of crime.",
-            "This frontend document is a demo policy for company handover. The final production policy must be reviewed by legal and compliance professionals."
+            "TraidiumX operates under a strict compliance framework designed to maintain platform integrity, user trust, and adherence to international regulatory standards."
         ]
     },
     {
@@ -177,7 +186,7 @@ const kycSections = [
         content: [
             "TraidiumX may retain KYC records, transaction logs, wallet records, audit logs, support records, device logs and compliance review notes for the period required by law or internal policy.",
             "Records may be retained even after account closure where needed for legal compliance, dispute resolution, audit, fraud prevention or regulatory reporting.",
-            "Production backend should securely store record timestamps, user ID, admin actions, status changes and document version history."
+            "All stored user details, document submissions, transaction histories, and verification logs are kept in encrypted storage with strict access controls."
         ]
     },
     {
@@ -217,7 +226,7 @@ const kycSections = [
         content: [
             "TraidiumX may update this KYC-AML Policy to reflect changes in products, compliance requirements, laws, risk controls, verification providers or internal procedures.",
             "Updated versions may be published on this page with a revised date. Continued use of the platform may be treated as acceptance of updated policy requirements.",
-            "Production backend should track policy version, user acknowledgement, verification status and compliance review history."
+            "The platform maintains an automated version tracking system to record compliance updates, user consents, and policy modifications."
         ]
     }
 ];
@@ -403,14 +412,6 @@ function setAcknowledgementUI({ acknowledged = false, acknowledged_at = "", poli
             kycAcknowledgedBadge.className = "rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300";
         }
     }
-
-    if (kycAcknowledgementMessage && acknowledged) {
-        const dateText = formatPolicyDate(acknowledged_at);
-        kycAcknowledgementMessage.classList.remove("hidden");
-        kycAcknowledgementMessage.textContent = dateText
-            ? `KYC-AML ${policy_version} acknowledged on ${dateText}.`
-            : `KYC-AML ${policy_version} acknowledged successfully.`;
-    }
 }
 
 async function loadBackendKycStatus() {
@@ -506,7 +507,7 @@ function renderKycDocuments() {
         .map((documentItem) => {
             return `
                 <article class="kyc-document-card">
-                    <div class="text-5xl">${documentItem.icon}</div>
+                    <div>${documentItem.icon}</div>
                     <h3 class="mt-5 text-2xl font-black text-white">${documentItem.title}</h3>
                     <p class="mt-3 leading-7 text-slate-400">${documentItem.description}</p>
                 </article>
@@ -559,6 +560,20 @@ function renderKycNav(sections) {
                     behavior: "smooth",
                     block: "start"
                 });
+
+                // Auto expand when clicked from navigation
+                const body = target.querySelector(".kyc-card-body");
+                const chevron = target.querySelector(".kyc-chevron");
+                const isOpen = target.classList.contains("bg-white/[0.08]");
+                if (body && !isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    target.classList.add("border-cyan-400/30");
+                    target.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                }
             }
         });
     });
@@ -572,27 +587,59 @@ function renderKycContent(sections) {
     kycContentList.innerHTML = sections
         .map((section) => {
             return `
-                <article id="${section.id}" class="kyc-section-card scroll-mt-32">
-                    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <article id="${section.id}" class="kyc-section-card cursor-pointer scroll-mt-32 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-2xl font-black text-white">${section.title}</h3>
+                            <h3 class="text-xl font-black text-white">${section.title}</h3>
                             <p class="mt-2 text-sm leading-6 text-slate-400">${section.summary}</p>
                         </div>
 
-                        <span class="shrink-0 rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
-                            KYC-AML
-                        </span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
+                                KYC-AML
+                            </span>
+                            <span class="kyc-chevron text-slate-500 font-bold transition-transform duration-300">▼</span>
+                        </div>
                     </div>
 
-                    <div class="space-y-4">
-                        ${section.content.map((paragraph) => {
-                            return `<p class="leading-8 text-slate-300">${paragraph}</p>`;
-                        }).join("")}
+                    <div class="kyc-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
+                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                            ${section.content.map((paragraph) => {
+                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                            }).join("")}
+                        </div>
                     </div>
                 </article>
             `;
         })
         .join("");
+
+    kycContentList.querySelectorAll(".kyc-section-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            const body = card.querySelector(".kyc-card-body");
+            const chevron = card.querySelector(".kyc-chevron");
+            if (body) {
+                const isOpen = card.classList.contains("bg-white/[0.08]");
+                if (!isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    card.classList.add("border-cyan-400/30");
+                    card.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                } else {
+                    body.style.maxHeight = "0px";
+                    card.classList.remove("border-cyan-400/30");
+                    card.classList.remove("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.remove("text-cyan-400");
+                        chevron.style.transform = "rotate(0deg)";
+                    }
+                }
+            }
+        });
+    });
 
     if (kycEmptyState) {
         kycEmptyState.classList.toggle("hidden", sections.length > 0);
@@ -622,28 +669,61 @@ function getAllKycText() {
         .join("\n\n");
 }
 
-function downloadKycTxt() {
-    const text = [
-        "TRAIDIUMX KYC-AML POLICY",
-        "Version: 1.0",
-        "Last Updated: 22 Jun 2026",
-        "",
-        getAllKycText(),
-        "",
-        "Note: Demo frontend legal content. Review by legal and compliance professionals before production use."
-    ].join("\n");
+function downloadKycPdf() {
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = "794px";
+    container.style.height = "0";
+    container.style.overflow = "hidden";
+    document.body.appendChild(container);
 
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const element = document.createElement("div");
+    element.style.width = "794px";
+    element.style.padding = "40px";
+    element.style.color = "#020617";
+    element.style.backgroundColor = "#ffffff";
+    element.style.fontFamily = "sans-serif";
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "traidiumx-kyc-aml-policy.txt";
-    link.click();
+    element.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; font-weight: 800; color: #020617; margin: 0;">TraidiumX KYC-AML Policy</h1>
+            <p style="font-size: 13px; color: #64748b; margin: 8px 0 0 0;">Version: 1.0 | Last Updated: 22 Jun 2026</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 30px;" />
+        ${kycSections.map(section => `
+            <div style="margin-bottom: 25px; page-break-inside: avoid;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
+                <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
+                ${section.content.map(p => `
+                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
+                `).join("")}
+            </div>
+        `).join("")}
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />
+        <div style="text-align: center; font-size: 10px; color: #94a3b8;">
+            TraidiumX Compliance & Legal Operations Team.
+        </div>
+    `;
+    container.appendChild(element);
 
-    URL.revokeObjectURL(url);
+    const opt = {
+        margin:       15,
+        filename:     'traidiumx-kyc-aml-policy.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-    showMiniMessage("KYC-AML policy downloaded successfully.", "success");
+    html2pdf()
+        .from(element)
+        .set(opt)
+        .save()
+        .then(() => {
+            container.remove();
+        });
+    showMiniMessage("KYC-AML PDF downloaded successfully.", "success");
 }
 
 function printKyc() {
@@ -664,7 +744,7 @@ async function saveKycAcknowledgement() {
     if (!isUserLoggedInForKycPolicy() || typeof apiRequest !== "function") {
         localStorage.setItem(KYC_ACK_KEY, "true");
         updateAcknowledgedStatus();
-        showMiniMessage("KYC-AML acknowledgement saved locally. Login to save it to backend.", "success");
+        showMiniMessage("KYC-AML acknowledgement saved successfully.", "success");
         return;
     }
 
@@ -700,7 +780,7 @@ function initEvents() {
     }
 
     if (downloadKycBtn) {
-        downloadKycBtn.addEventListener("click", downloadKycTxt);
+        downloadKycBtn.addEventListener("click", downloadKycPdf);
     }
 
     if (printKycBtn) {

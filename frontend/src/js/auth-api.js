@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (loginForm) {
         window.txOriginalLoginFormHtml = loginForm.innerHTML;
         loginForm.addEventListener("submit", handleLogin);
+        initGoogleSignup();
     }
 
     if (registerForm) {
@@ -284,6 +285,9 @@ function prefillReferralFromUrl() {
 }
 
 
+const EYE_OPEN_SVG = `<svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+const EYE_OFF_SVG = `<svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.035 10.035 0 014.122-.863c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18"/></svg>`;
+
 function initPasswordToggles() {
     const buttons = document.querySelectorAll("[data-toggle-password]");
 
@@ -294,17 +298,23 @@ function initPasswordToggles() {
 
         button.dataset.boundToggle = "true";
 
-        button.addEventListener("click", function () {
-            const inputId = button.getAttribute("data-toggle-password");
-            const input = document.getElementById(inputId);
+        const inputId = button.getAttribute("data-toggle-password");
+        const input = document.getElementById(inputId);
 
-            if (!input) {
+        if (input) {
+            button.innerHTML = input.type === "password" ? EYE_OPEN_SVG : EYE_OFF_SVG;
+        }
+
+        button.addEventListener("click", function () {
+            const targetInput = document.getElementById(inputId);
+
+            if (!targetInput) {
                 return;
             }
 
-            const showPassword = input.type === "password";
-            input.type = showPassword ? "text" : "password";
-            button.textContent = showPassword ? "Hide" : "Show";
+            const isPassword = targetInput.type === "password";
+            targetInput.type = isPassword ? "text" : "password";
+            button.innerHTML = isPassword ? EYE_OFF_SVG : EYE_OPEN_SVG;
         });
     });
 }
@@ -923,8 +933,16 @@ async function initGoogleSignup() {
         const config = response?.data || {};
 
         if (!config.enabled || !config.client_id) {
-            buttonContainer.classList.add("hidden");
-            showGoogleSignupStatus(statusElement, "Google sign-up is not configured yet. Use email sign-up.");
+            renderGoogleSignupButton(buttonContainer, statusElement);
+            const manualButton = document.getElementById("googleManualButton");
+            const officialButton = document.getElementById("googleOfficialButton");
+            if (manualButton && officialButton) {
+                officialButton.classList.add("hidden");
+                manualButton.classList.remove("hidden");
+                manualButton.addEventListener("click", () => {
+                    showAuthMessage("Google authentication is currently disabled. Please use your email and password.", "error");
+                });
+            }
             return;
         }
 
@@ -941,8 +959,16 @@ async function initGoogleSignup() {
         });
 
     } catch (error) {
-        buttonContainer.classList.add("hidden");
-        showGoogleSignupStatus(statusElement, "Google sign-up configuration could not be loaded. Use email sign-up.");
+        renderGoogleSignupButton(buttonContainer, statusElement);
+        const manualButton = document.getElementById("googleManualButton");
+        const officialButton = document.getElementById("googleOfficialButton");
+        if (manualButton && officialButton) {
+            officialButton.classList.add("hidden");
+            manualButton.classList.remove("hidden");
+            manualButton.addEventListener("click", () => {
+                showAuthMessage("Google authentication is currently disabled. Please use your email and password.", "error");
+            });
+        }
     }
 }
 
@@ -969,7 +995,7 @@ function renderGoogleSignupButton(buttonContainer, statusElement) {
                 text: "continue_with",
                 shape: "pill",
                 logo_alignment: "left",
-                width: Math.min(buttonContainer.clientWidth || 380, 420)
+                width: (buttonContainer.clientWidth && buttonContainer.clientWidth >= 200) ? Math.min(buttonContainer.clientWidth, 420) : 380
             });
         } catch (error) {
             showManualGoogleSignupButton(manualButton, officialButton, statusElement, "Google button could not render. Use the fallback button below.");
@@ -1018,7 +1044,8 @@ function showManualGoogleSignupButton(manualButton, officialButton, statusElemen
 function openGoogleSignupPrompt(button, statusElement) {
     clearRegisterErrors();
 
-    const agree = document.getElementById("registerAgree")?.checked || false;
+    const agreeCheckbox = document.getElementById("registerAgree");
+    const agree = agreeCheckbox ? agreeCheckbox.checked : true;
 
     if (!agree) {
         setFieldError("registerAgreeError", "Please accept the Terms and Risk Disclosure before using Google sign-up.");
@@ -1103,7 +1130,8 @@ function waitForGoogleIdentity(callback, attempt = 0) {
 async function handleGoogleCredentialResponse(googleResponse) {
     clearRegisterErrors();
 
-    const agree = document.getElementById("registerAgree")?.checked || false;
+    const agreeCheckbox = document.getElementById("registerAgree");
+    const agree = agreeCheckbox ? agreeCheckbox.checked : true;
 
     if (!agree) {
         setFieldError("registerAgreeError", "Please accept the Terms and Risk Disclosure before using Google sign-up.");

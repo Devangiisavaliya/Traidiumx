@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <title>TraidiumX | Crypto Futures & Options Trading</title>
+    <link rel="icon" type="image/png" href="assets/logo.png" />
 
     <!-- Enable scroll reveal progressively; content stays visible if JavaScript is unavailable. -->
     <script>
@@ -1065,7 +1066,25 @@
             .tx-motion-ready .tx-referral-step.tx-scroll-reveal.is-visible:hover {
                 opacity: 1 !important;
                 transform: none !important;
-        }
+            }
+
+            /* Step cards visual connectors */
+            @media (min-width: 1024px) {
+                .tx-step-card {
+                    position: relative;
+                }
+                .tx-step-card:not(:last-child)::after {
+                    content: '';
+                    position: absolute;
+                    top: 48px; /* Aligned with the center of the icon */
+                    left: 100%;
+                    width: 24px; /* Bridge the gap-6 space */
+                    height: 2px;
+                    border-top: 2px dashed rgba(34, 211, 238, 0.25);
+                    z-index: 10;
+                    pointer-events: none;
+                }
+            }
     </style>
 
 </head>
@@ -1194,7 +1213,7 @@
                             </div>
 
                             <!-- Backend Chart -->
-                            <div id="homeHeroChartContainer" class="tx-chart-panel mt-6 h-44 rounded-2xl border border-cyan-400/20 bg-slate-950 p-2 relative overflow-hidden">
+                            <div id="homeHeroChartContainer" class="tx-chart-panel mt-6 h-44 rounded-2xl border border-cyan-400/20 bg-slate-950 px-0 py-2 relative overflow-hidden">
                                 <!-- Dynamic sparkline chart rendered via JS -->
                             </div>
 
@@ -1464,11 +1483,13 @@
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                 <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="80">
-                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
-                        1
+                    <div class="mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.15)] text-indigo-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
                     </div>
-
-                    <div class="tx-step-icon mb-4 text-4xl">👤</div>
 
                     <h3 class="text-xl font-black">Create Account</h3>
 
@@ -1482,11 +1503,13 @@
                 </div>
 
                 <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="160">
-                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
-                        2
+                    <div class="mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] text-blue-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </div>
                     </div>
-
-                    <div class="tx-step-icon mb-4 text-4xl">🛡️</div>
 
                     <h3 class="text-xl font-black">Complete KYC</h3>
 
@@ -1500,11 +1523,13 @@
                 </div>
 
                 <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="240">
-                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
-                        3
+                    <div class="mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                        </div>
                     </div>
-
-                    <div class="tx-step-icon mb-4 text-4xl">💳</div>
 
                     <h3 class="text-xl font-black">Add Funds</h3>
 
@@ -1518,11 +1543,13 @@
                 </div>
 
                 <div class="tx-step-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 tx-hover-lift" data-reveal-delay="320">
-                    <div class="tx-step-number mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400 text-xl font-black text-slate-950">
-                        4
+                    <div class="mb-6">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
                     </div>
-
-                    <div class="tx-step-icon mb-4 text-4xl">📈</div>
 
                     <h3 class="text-xl font-black">Trade Now</h3>
 
@@ -1555,34 +1582,50 @@
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
                 <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="80">
-                    <div class="tx-feature-icon mb-5">💸</div>
+                    <div class="tx-feature-icon mb-5 text-emerald-400" style="border-color: rgba(52, 211, 153, 0.3); box-shadow: 0 0 15px rgba(52, 211, 153, 0.15);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V15a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-black">Low Fees</h3>
                     <p class="mt-3 text-sm leading-7 text-slate-400">
-                        A transparent fee structure designed for frequent trading.
+                        Transparent maker-taker schedules and VIP tier discounts designed for active traders.
                     </p>
                 </div>
 
                 <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="150">
-                    <div class="tx-feature-icon mb-5">⚡</div>
+                    <div class="tx-feature-icon mb-5 text-amber-400" style="border-color: rgba(245, 158, 11, 0.3); box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-black">Leverage Options</h3>
                     <p class="mt-3 text-sm leading-7 text-slate-400">
-                        Flexible leverage UI for futures and options trading pages.
+                        Manage risk with flexible leverage settings up to 50x on futures and options contracts.
                     </p>
                 </div>
 
                 <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="220">
-                    <div class="tx-feature-icon mb-5">₮</div>
+                    <div class="tx-feature-icon mb-5 text-cyan-400" style="border-color: rgba(34, 211, 238, 0.3); box-shadow: 0 0 15px rgba(34, 211, 238, 0.15);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-black">USD Ledger Wallet</h3>
                     <p class="mt-3 text-sm leading-7 text-slate-400">
-                        Crypto-only deposit, withdrawal and margin flow without UPI or bank rails.
+                        Institutional crypto-only wallet ledger for direct deposits, withdrawals, and margins.
                     </p>
                 </div>
 
                 <div class="tx-feature-card tx-scroll-reveal rounded-[2rem] border border-white/10 bg-slate-900/70 p-6" data-reveal-delay="290">
-                    <div class="tx-feature-icon mb-5">🛡️</div>
+                    <div class="tx-feature-icon mb-5 text-blue-400" style="border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-black">Secure Flow</h3>
                     <p class="mt-3 text-sm leading-7 text-slate-400">
-                        Security-first layouts for login, KYC, wallet and trading actions.
+                        Security-first infrastructure safeguarding user credentials, verification flows, and wallets.
                     </p>
                 </div>
 
@@ -1592,78 +1635,86 @@
 
 
         <!-- ================= FAQ START ================= -->
-        <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="mb-10 text-center">
-                <h2 class="text-3xl font-black sm:text-5xl">
-                    Frequently Asked Questions
-                </h2>
-
-                <p class="mt-4 text-slate-400">
-                    Simple answers for new and active users.
-                </p>
-            </div>
-
-            <div class="space-y-4">
-
-                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
-                    <summary class="tx-faq-summary">
-                        <span>What is TraidiumX?</span>
-                        <span class="tx-faq-arrow" aria-hidden="true">
-                            <svg viewBox="0 0 20 20" fill="none">
-                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                        </span>
-                    </summary>
-
-                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        TraidiumX Is A Secure, High-performance Trading Platform For Cryptocurrency Futures And Options.
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="grid gap-12 lg:grid-cols-[1fr_1.8fr] lg:items-start">
+                
+                <!-- Left Column: Heading & CTA -->
+                <div class="tx-scroll-reveal tx-reveal-left" data-reveal-delay="50">
+                    <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                        Support Center
+                    </span>
+                    <h2 class="text-3xl font-black leading-tight sm:text-5xl">
+                        Frequently Asked Questions.
+                    </h2>
+                    <p class="mt-5 text-base leading-8 text-slate-400">
+                        Can't find the answer you're looking for? Reach out to our customer support team for assistance.
                     </p>
-                </details>
+                    <div class="mt-8">
+                        <a href="./src/pages/contact.html" class="inline-flex rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
 
-                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
-                    <summary class="tx-faq-summary">
-                        <span>Is this a real exchange?</span>
-                        <span class="tx-faq-arrow" aria-hidden="true">
-                            <svg viewBox="0 0 20 20" fill="none">
-                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                        </span>
-                    </summary>
+                <!-- Right Column: Accordion List -->
+                <div class="tx-scroll-reveal tx-reveal-right space-y-4" data-reveal-delay="120">
+                    <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                        <summary class="tx-faq-summary">
+                            <span>What is TraidiumX?</span>
+                            <span class="tx-faq-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </summary>
+                        <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                            TraidiumX Is A Secure, High-performance Trading Platform For Cryptocurrency Futures And Options.
+                        </p>
+                    </details>
 
-                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        Yes, TraidiumX is a secure and fully compliant cryptocurrency derivatives exchange. We provide a High-performance trading platform for futures and options, backed by Institutional-grade security, deep liquidity, and transparent fee structures
-                    </p>
-                </details>
+                    <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                        <summary class="tx-faq-summary">
+                            <span>Is this a real exchange?</span>
+                            <span class="tx-faq-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </summary>
+                        <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                            Yes, TraidiumX is a secure and fully compliant cryptocurrency derivatives exchange. We provide a High-performance trading platform for futures and options, backed by Institutional-grade security, deep liquidity, and transparent fee structures.
+                        </p>
+                    </details>
 
-                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
-                    <summary class="tx-faq-summary">
-                        <span>What trading products are available on TraidiumX?</span>
-                        <span class="tx-faq-arrow" aria-hidden="true">
-                            <svg viewBox="0 0 20 20" fill="none">
-                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                        </span>
-                    </summary>
+                    <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                        <summary class="tx-faq-summary">
+                            <span>What trading products are available on TraidiumX?</span>
+                            <span class="tx-faq-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </summary>
+                        <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                            We offer a Professional-grade trading terminal supporting perpetual futures contracts and options chains for major cryptocurrencies like Bitcoin (BTC) and Ethereum (ETH) with flexible leverage options. 
+                        </p>
+                    </details>
 
-                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        We offer a Professional-grade trading terminal supporting perpetual futures contracts and options chains for major cryptocurrencies like Bitcoin (BTC) and Ethereum (ETH) with flexible leverage options. 
-                    </p>
-                </details>
-
-                <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
-                    <summary class="tx-faq-summary">
-                        <span>How do I get started with trading?</span>
-                        <span class="tx-faq-arrow" aria-hidden="true">
-                            <svg viewBox="0 0 20 20" fill="none">
-                                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                        </span>
-                    </summary>
-
-                    <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
-                        Simply register for a free account, complete your identity verification (KYC), secure your profile with 2FA, deposit funds into your wallet, and you are ready to start trading.
-                    </p>
-                </details>
+                    <details class="tx-faq-item group rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+                        <summary class="tx-faq-summary">
+                            <span>How do I get started with trading?</span>
+                            <span class="tx-faq-arrow" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none">
+                                    <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </span>
+                        </summary>
+                        <p class="tx-faq-answer mt-4 leading-7 text-slate-400">
+                            Simply register for a free account, complete your identity verification (KYC), secure your profile with 2FA, deposit funds into your wallet, and you are ready to start trading.
+                        </p>
+                    </details>
+                </div>
 
             </div>
         </section>
@@ -1738,7 +1789,7 @@
     <div data-component="footer"></div>
 
     <!-- JavaScript -->
-    <script src="./src/js/components-loader.js"></script>
+    <script src="./src/js/components-loader.js?v=2"></script>
     <script src="./src/js/api-config.js"></script>
     <script src="./src/js/auth-state.js"></script>
     <script src="./src/js/main.js"></script>

@@ -1368,14 +1368,14 @@ function generateBookRows() {
     const mark = selected ? selected.mark : 100;
     const rows = { asks: [], bids: [] };
 
-    for (let index = 7; index >= 1; index -= 1) {
+    for (let index = 5; index >= 1; index -= 1) {
         rows.asks.push({
             price: mark + index * Math.max(0.1, mark * 0.006),
             qty: 0.2 + pseudo(`ask-${state.activeUnderlying}-${state.selectedStrike}-${index}`) * 5
         });
     }
 
-    for (let index = 1; index <= 7; index += 1) {
+    for (let index = 1; index <= 5; index += 1) {
         rows.bids.push({
             price: Math.max(0.01, mark - index * Math.max(0.1, mark * 0.006)),
             qty: 0.2 + pseudo(`bid-${state.activeUnderlying}-${state.selectedStrike}-${index}`) * 5
@@ -1420,7 +1420,7 @@ function generateTrades() {
     const now = Date.now();
     const trades = [];
 
-    for (let index = 0; index < 16; index += 1) {
+    for (let index = 0; index < 14; index += 1) {
         const side = pseudo(`${state.activeUnderlying}-${state.selectedStrike}-trade-side-${index}`) > 0.48 ? "BUY" : "SELL";
         const move = (pseudo(`${state.selectedStrike}-trade-${index}`) - 0.5) * mark * 0.04;
 
@@ -1468,7 +1468,7 @@ function startTradeTicker() {
             qty: 0.04 + Math.random() * 2.2,
             time: Date.now()
         });
-        state.trades = state.trades.slice(0, 16);
+        state.trades = state.trades.slice(0, 14 );
         renderTrades();
     }, 1800);
 }

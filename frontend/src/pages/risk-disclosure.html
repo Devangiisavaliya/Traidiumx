@@ -10,18 +10,19 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="risk">
 
     <div data-component="navbar"></div>
 
-    <main class="overflow-hidden pt-32">
+    <main class="overflow-clip pt-32">
 
         <!-- HERO -->
         <section class="relative">
             <div class="absolute inset-0 -z-10">
-                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-red-500/15 blur-[120px]"></div>
+                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/15 blur-[120px]"></div>
                 <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-cyan-600/20 blur-[120px]"></div>
                 <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/10 blur-[140px]"></div>
             </div>
@@ -29,8 +30,8 @@
             <div class="mx-auto grid min-h-[72vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
 
                 <div class="tx-fade-up">
-                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-bold text-red-300">
-                        <span class="h-2 w-2 rounded-full bg-red-400 shadow-lg shadow-red-400/50"></span>
+                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
                         High risk trading disclosure
                     </div>
 
@@ -44,28 +45,24 @@
                     </p>
 
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-                        <a href="#riskContentArea" class="rounded-full bg-red-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-red-400/20 hover:bg-red-300">
+                        <a href="#riskContentArea" class="rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
                             Read Risk Document
                         </a>
 
-                        <button id="printRiskBtn" type="button" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-red-400 hover:text-red-300">
+                        <button id="printRiskBtn" type="button" class="rounded-full border border-white/10 px-8 py-4 text-center text-sm font-black text-white hover:border-cyan-400 hover:text-cyan-300">
                             Print Disclosure
                         </button>
-                    </div>
-
-                    <div class="mt-8 rounded-2xl border border-red-400/25 bg-red-400/10 p-4 text-sm leading-7 text-red-100">
-                        This is frontend demo legal content. Before production launch, replace it with lawyer-reviewed and compliance-approved risk disclosure.
                     </div>
                 </div>
 
                 <!-- Right Risk Card -->
                 <div class="relative tx-fade-up">
-                    <div class="absolute -inset-8 rounded-[3rem] bg-red-400/15 blur-3xl"></div>
+                    <div class="absolute -inset-8 rounded-[3rem] bg-cyan-400/15 blur-3xl"></div>
 
-                    <div class="relative rounded-[2.5rem] border border-red-400/20 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl">
+                    <div class="relative rounded-[2.5rem] border border-cyan-400/20 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl">
                         <div class="mb-6 flex items-start justify-between gap-4">
                             <div>
-                                <p class="text-sm font-bold text-red-300">Document Status</p>
+                                <p class="text-sm font-bold text-cyan-300">Document Status</p>
                                 <h2 class="mt-2 text-4xl font-black text-white">Risk v1.0</h2>
                             </div>
 
@@ -77,7 +74,7 @@
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="rounded-2xl bg-slate-950/70 p-5">
                                 <p class="text-xs text-slate-500">Risk Level</p>
-                                <h3 class="mt-2 text-xl font-black text-red-400">Very High</h3>
+                                <h3 class="mt-2 text-xl font-black text-cyan-400">Very High</h3>
                             </div>
 
                             <div class="rounded-2xl bg-slate-950/70 p-5">
@@ -96,9 +93,9 @@
                             </div>
                         </div>
 
-                        <div class="mt-6 rounded-3xl border border-red-400/20 bg-red-400/10 p-5">
-                            <h3 class="text-xl font-black text-red-300">Important Warning</h3>
-                            <p class="mt-3 text-sm leading-7 text-red-100">
+                        <div class="mt-6 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-5">
+                            <h3 class="text-xl font-black text-cyan-300">Important Warning</h3>
+                            <p class="mt-3 text-sm leading-7 text-cyan-100">
                                 No risk management tool can remove all trading risks. You are responsible for your own decisions.
                             </p>
                         </div>
@@ -130,25 +127,49 @@
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 <div class="risk-highlight-card">
-                    <div class="risk-highlight-icon">⚠️</div>
+                    <div class="risk-highlight-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.15)] text-rose-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Market Volatility</h3>
                     <p>Prices can move sharply within seconds and may create large losses.</p>
                 </div>
 
                 <div class="risk-highlight-card">
-                    <div class="risk-highlight-icon">📉</div>
+                    <div class="risk-highlight-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.15)] text-orange-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Leverage Risk</h3>
                     <p>Leverage can magnify both profit and loss. Small market moves can liquidate positions.</p>
                 </div>
 
                 <div class="risk-highlight-card">
-                    <div class="risk-highlight-icon">⛔</div>
+                    <div class="risk-highlight-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Liquidation Risk</h3>
                     <p>Adverse price movement may cause margin loss and forced position closure.</p>
                 </div>
 
                 <div class="risk-highlight-card">
-                    <div class="risk-highlight-icon">🔐</div>
+                    <div class="risk-highlight-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Cyber Risk</h3>
                     <p>Wallets, accounts, APIs and devices may be exposed to hacking and security threats.</p>
                 </div>
@@ -174,13 +195,13 @@
                                 id="riskSearchInput"
                                 type="search"
                                 placeholder="Search liquidation, tax, cyber..."
-                                class="w-full rounded-full border border-white/10 bg-slate-950 px-5 py-3 pr-12 text-sm text-white outline-none transition focus:border-red-400 sm:w-80"
+                                class="w-full rounded-full border border-white/10 bg-slate-950 px-5 py-3 pr-12 text-sm text-white outline-none transition focus:border-cyan-400 sm:w-80"
                             />
                             <span class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
                         </div>
 
                         <button id="downloadRiskBtn" type="button" class="risk-action-btn">
-                            Download TXT
+                            Download PDF
                         </button>
                     </div>
                 </div>
@@ -190,10 +211,10 @@
 
                 <!-- Sidebar -->
                 <aside class="lg:sticky lg:top-32 lg:self-start">
-                    <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                    <div class="h-fit rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Sections</h3>
-                            <span class="rounded-full bg-red-400/10 px-3 py-1 text-xs font-black text-red-300">
+                            <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-300">
                                 Risk
                             </span>
                         </div>
@@ -201,14 +222,14 @@
                         <div id="riskNavList" class="space-y-2"></div>
                     </div>
 
-                    <div class="mt-6 rounded-[2rem] border border-red-400/20 bg-red-400/[0.06] p-5 backdrop-blur-xl">
+                    <div class="mt-6 h-fit rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
                         <h3 class="text-xl font-black">Need clarification?</h3>
 
                         <p class="mt-3 leading-7 text-slate-400">
                             Contact support before using futures, options, margin or wallet features.
                         </p>
 
-                        <a href="./contact.html" class="mt-5 inline-flex w-full justify-center rounded-full bg-red-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-red-300">
+                        <a href="./contact.html" class="mt-5 inline-flex w-full justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300">
                             Contact Support
                         </a>
                     </div>
@@ -230,10 +251,10 @@
 
         <!-- ACKNOWLEDGEMENT -->
         <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="rounded-[2.5rem] border border-red-400/20 bg-gradient-to-br from-red-500/20 via-orange-500/10 to-slate-950 p-6 sm:p-10">
+            <div class="rounded-[2.5rem] border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 via-orange-500/10 to-slate-950 p-6 sm:p-10">
                 <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                     <div>
-                        <p class="text-sm font-black uppercase tracking-[0.20em] text-red-300">
+                        <p class="text-sm font-black uppercase tracking-[0.20em] text-cyan-300">
                             User Risk Acknowledgement
                         </p>
 
@@ -250,14 +271,14 @@
 
                     <div class="rounded-[2rem] border border-white/10 bg-slate-950/70 p-5">
                         <label class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-6 text-slate-300">
-                            <input id="riskAcknowledgeCheckbox" type="checkbox" class="mt-1 accent-red-400" />
+                            <input id="riskAcknowledgeCheckbox" type="checkbox" class="mt-1 accent-cyan-400" />
                             <span>
                                 I understand that crypto futures, options and leveraged trading are highly risky
                                 and may result in loss of capital.
                             </span>
                         </label>
 
-                        <button id="saveRiskAcknowledgementBtn" type="button" class="mt-5 w-full rounded-2xl bg-red-400 px-5 py-4 text-sm font-black text-slate-950 hover:bg-red-300">
+                        <button id="saveRiskAcknowledgementBtn" type="button" class="mt-5 w-full rounded-2xl bg-cyan-400 px-5 py-4 text-sm font-black text-slate-950 hover:bg-cyan-300">
                             Save Risk Acknowledgement
                         </button>
 
@@ -276,6 +297,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="../js/risk-disclosure.js"></script>
     <script src="../js/responsive.js"></script>
 </body>

@@ -60,10 +60,46 @@ def _wallet_bucket(available=0.0, locked=0.0, wallet_type="main_wallet", address
 
 
 def build_demo_wallet_addresses(user_id=None):
-    # Deposit addresses are company-level addresses, not per-user generated text.
-    # The user sends USDT to the configured company address, then submits TXID.
-    # Withdrawals still use the user's own external wallet address and admin approval.
-    return _company_deposit_addresses()
+    if not user_id:
+        return _company_deposit_addresses()
+    
+    import hashlib
+    # Deterministic generation using user_id
+    def gen_addr(network):
+        h = hashlib.sha256(f"{user_id}_{network}".encode()).hexdigest()
+        if network == "BITCOIN":
+            return "1" + h[:33]
+        elif network in ("ERC20", "BEP20"):
+            return "0x" + h[:40]
+        elif network == "TRC20":
+            return "T" + h[:33]
+        elif network == "SOLANA":
+            alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+            seed = int(h, 16)
+            res = []
+            while seed > 0 and len(res) < 44:
+                res.append(alphabet[seed % 58])
+                seed = seed // 58
+            return "".join(res).zfill(44)
+        elif network == "RIPPLE":
+            return "r" + h[:33]
+        elif network == "CARDANO":
+            return "Ae2td" + h[:28]
+        elif network == "INTERNAL":
+            return "txinr" + h[:35]
+        return "T" + h[:33]
+
+    return {
+        "TRC20": gen_addr("TRC20"),
+        "ERC20": gen_addr("ERC20"),
+        "BEP20": gen_addr("BEP20"),
+        "BITCOIN": gen_addr("BITCOIN"),
+        "SOLANA": gen_addr("SOLANA"),
+        "RIPPLE": gen_addr("RIPPLE"),
+        "CARDANO": gen_addr("CARDANO"),
+        "INTERNAL": gen_addr("INTERNAL"),
+    }
+
 
 
 def get_wallets_collection():
@@ -120,12 +156,32 @@ def normalize_wallet_currency(wallet):
     main_addresses = build_demo_wallet_addresses(user_id)
 
     SUPPORTED_ASSETS = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+    
+    coin_to_network = {
+        "USDT": "TRC20",
+        "USDC": "ERC20",
+        "BTC": "BITCOIN",
+        "ETH": "ERC20",
+        "SOL": "SOLANA",
+        "BNB": "BEP20",
+        "XRP": "RIPPLE",
+        "ADA": "CARDANO",
+        "INR": "INTERNAL"
+    }
 
     # 1. Initialize and normalize all currency buckets
     for asset in SUPPORTED_ASSETS:
         asset_lower = asset.lower()
         main_key = f"main_wallet_{asset_lower}"
         trading_key = f"trading_wallet_{asset_lower}"
+
+        # Get primary address map for this asset
+        asset_addresses = None
+        if main_addresses:
+            expected_net = coin_to_network.get(asset)
+            expected_addr = main_addresses.get(expected_net)
+            if expected_net and expected_addr:
+                asset_addresses = {expected_net: expected_addr}
 
         # Initialize/normalize main_wallet_<asset>
         main_bucket = wallet.get(main_key)
@@ -139,23 +195,33 @@ def normalize_wallet_currency(wallet):
                 locked = _money(legacy_main.get("locked_balance", 0.0))
 
         if not main_bucket or not isinstance(main_bucket, dict):
-            main_bucket = _wallet_bucket(avail, locked, main_key, main_addresses if asset != "INR" else None)
+            main_bucket = _wallet_bucket(avail, locked, main_key, asset_addresses)
             main_bucket["currency"] = asset
             updates[main_key] = main_bucket
         else:
             inr_avail = _money(main_bucket.get("available_balance", 0.0))
             inr_locked = _money(main_bucket.get("locked_balance", 0.0))
             inr_total = _money(inr_avail + inr_locked)
+            
+            is_legacy = False
+            expected_net = coin_to_network.get(asset)
+            expected_addr = main_addresses.get(expected_net) if expected_net else None
+            
+            if expected_net and expected_addr:
+                stored_addresses = main_bucket.get("addresses") or {}
+                if len(stored_addresses) != 1 or expected_net not in stored_addresses or stored_addresses[expected_net] != expected_addr:
+                    is_legacy = True
+
             if (
                 main_bucket.get("currency") != asset
                 or main_bucket.get("wallet_type") != main_key
                 or _money(main_bucket.get("available_balance", 0.0)) != inr_avail
                 or _money(main_bucket.get("locked_balance", 0.0)) != inr_locked
                 or _money(main_bucket.get("total_balance", 0.0)) != inr_total
-                or (asset != "INR" and not main_bucket.get("addresses"))
+                or (expected_net and (not main_bucket.get("addresses") or is_legacy))
             ):
                 main_bucket = {
-                    **_wallet_bucket(inr_avail, inr_locked, main_key, main_addresses if asset != "INR" else None),
+                    **_wallet_bucket(inr_avail, inr_locked, main_key, asset_addresses),
                     "currency": asset,
                     "available_balance": inr_avail,
                     "locked_balance": inr_locked,

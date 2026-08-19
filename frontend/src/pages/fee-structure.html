@@ -163,6 +163,7 @@
         }
     </style>
 
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="fees">
@@ -191,8 +192,7 @@
                         </h1>
 
                         <p class="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
-                            Trading, options and crypto-wallet fees are loaded from TraidiumX backend configuration.
-                            No INR, UPI or bank-transfer fee rails are used on this platform.
+                            View the latest trading, options, and secure crypto wallet transaction fees. TraidiumX operates as a pure digital-asset platform.
                         </p>
 
                         <div class="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -238,9 +238,7 @@
                             </div>
                         </div>
 
-                        <p id="feeUpdatedAt" class="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm leading-6 text-emerald-200">
-                            Loading backend fee configuration...
-                        </p>
+                        <p id="feeUpdatedAt" class="hidden"></p>
                     </div>
 
                 </div>
@@ -254,7 +252,7 @@
                     <div>
                         <h2 class="text-3xl font-black">Fee Tables</h2>
                         <p class="mt-1 text-sm text-slate-400">
-                            Product-wise fee policy served from the backend.
+                            Product-wise fee policy and transaction structures.
                         </p>
                     </div>
 
@@ -272,7 +270,7 @@
                 <div class="border-b border-white/10 p-5">
                     <h3 id="feeTableTitle" class="text-2xl font-black">Loading fee table...</h3>
                     <p id="feeTableSubtitle" class="mt-1 text-sm text-slate-400">
-                        Please wait while fee configuration loads from backend.
+                        Please wait while current fee rates load.
                     </p>
                 </div>
 
@@ -299,7 +297,7 @@
                 </h2>
 
                 <p class="mx-auto mt-4 max-w-2xl leading-8 text-slate-400">
-                    VIP levels are calculated from backend fee configuration and can be changed from database/config policy later.
+                    VIP tiers are based on your 30-day cumulative trading volume.
                 </p>
             </div>
 
@@ -315,11 +313,11 @@
                     </p>
 
                     <h2 class="mt-4 text-4xl font-black sm:text-5xl">
-                        Estimate your backend-configured order fee.
+                        Estimate your order transaction fee.
                     </h2>
 
                     <p class="mt-5 max-w-xl leading-8 text-slate-300">
-                        Enter order value, choose product, maker/taker type and VIP tier. Calculator uses fee rates fetched from backend API.
+                        Enter order details to calculate Maker and Taker fees based on your current VIP tier.
                     </p>
 
                     <div class="mt-6 grid gap-4 sm:grid-cols-2">
@@ -361,7 +359,7 @@
                     <div class="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
                         <p class="text-sm text-slate-400">Estimated Fee</p>
                         <h3 id="estimatedFeeAmount" class="mt-2 text-4xl font-black text-cyan-400">0.000000 USDT</h3>
-                        <p id="feeBreakdown" class="mt-2 text-sm text-slate-400">Waiting for backend fee configuration...</p>
+                        <p id="feeBreakdown" class="mt-2 text-sm text-slate-400">Waiting for fee calculations...</p>
                     </div>
 
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
@@ -384,20 +382,32 @@
             </div>
         </section>
 
-        <section class="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="mb-10 text-center">
-                <h2 class="text-3xl font-black sm:text-5xl">
-                    Fee Policy Notes
-                </h2>
+        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div class="grid gap-12 lg:grid-cols-[1fr_1.8fr] lg:items-start">
+                
+                <!-- Left Column: Heading & CTA -->
+                <div class="tx-fade-up">
+                    <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
+                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
+                        Platform Fees
+                    </span>
+                    <h2 class="text-3xl font-black leading-tight sm:text-5xl">
+                        Fee Policy Notes.
+                    </h2>
+                    <p class="mt-5 text-base leading-8 text-slate-400">
+                        Detailed policy notes for trading, deposits, and asset management on TraidiumX.
+                    </p>
+                    <div class="mt-8">
+                        <a href="./contact.html" class="inline-flex rounded-full bg-cyan-400 px-8 py-4 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-400/20 hover:bg-cyan-300">
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
 
-                <p class="mt-4 text-slate-400">
-                    Detailed policy notes for trading, deposits, and asset management.
-                </p>
+                <!-- Right Column: Accordion List -->
+                <div id="feePolicyNotes" class="tx-fade-up space-y-4"></div>
+
             </div>
-
-            <div id="feePolicyNotes" class="space-y-4"></div>
-
-
         </section>
 
     </main>

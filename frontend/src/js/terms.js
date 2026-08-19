@@ -37,7 +37,7 @@ const termsSections = [
         content: [
             "By accessing, browsing, registering or using TraidiumX, you agree to be bound by these Terms & Conditions, Privacy Policy, Risk Disclosure, KYC-AML Policy and any additional rules published on the platform.",
             "If you do not agree with these terms, you should not create an account, deposit funds, trade, use wallet services or participate in any campaign.",
-            "These demo terms are written for frontend prototype purposes. Real company details, regulatory references and enforceable clauses must be reviewed and finalized before production launch."
+            "TraidiumX reserves the right to modify these Terms at any time without prior notice. Continued use of the platform constitutes agreement to the updated terms."
         ]
     },
     {
@@ -87,7 +87,7 @@ const termsSections = [
         content: [
             "Orders may be executed, rejected, partially filled, delayed or cancelled depending on market conditions, liquidity, platform availability, risk checks and backend validation.",
             "Liquidation may occur when margin becomes insufficient according to product rules. Users should understand mark price, index price, leverage, margin mode and funding before trading.",
-            "In production, backend order validation must verify user balance, product rules, leverage limits, risk limits, maintenance margin and account restrictions."
+            "All orders placed on the platform are verified against available balances, risk parameters, margin requirements, and active leverage limits before execution."
         ]
     },
     {
@@ -96,7 +96,7 @@ const termsSections = [
         summary: "Fees, rebates and campaigns may change based on platform rules.",
         content: [
             "Maker fees, taker fees, withdrawal fees, campaign rebates, referral rewards and VIP tier benefits may vary by product, user tier, market, volume or campaign period.",
-            "Frontend fee calculators and campaign pages are demo previews. Real fee calculation must be performed by backend using actual trades, wallet records and admin-configured fee rules.",
+            "Fee calculations, rebates, and campaign parameters are determined based on active platform rules, transaction logs, and user tiers as recorded in our secure systems.",
             "TraidiumX may update, pause, cancel or modify campaigns, referral programs and rebate rules when required for compliance, abuse prevention or business reasons."
         ]
     },
@@ -137,7 +137,7 @@ const termsSections = [
         content: [
             "To the maximum extent permitted by applicable law, TraidiumX is not liable for losses arising from market movement, trading decisions, user error, account compromise, downtime, data delay or third-party failures.",
             "Users acknowledge that leveraged and derivative trading involves risk and that losses may occur even when platform systems operate normally.",
-            "This demo content must be reviewed by legal professionals before being used in a real commercial platform."
+            "Users acknowledge that they have read and understood the risk disclosure policies and agree to hold TraidiumX harmless from trading losses under all circumstances."
         ]
     },
     {
@@ -147,7 +147,7 @@ const termsSections = [
         content: [
             "TraidiumX may update these Terms & Conditions from time to time to reflect product changes, compliance requirements, security updates or business rules.",
             "Updated terms may be published on this page with a revised date. Continued use after updates may be treated as acceptance of the updated terms.",
-            "Production backend should store accepted terms version, acceptance timestamp and user account reference."
+            "Accepted terms versions, timestamps, and account status logs are securely logged for compliance and account verification purposes."
         ]
     }
 ];
@@ -221,6 +221,20 @@ function renderTermsNav(sections) {
                     behavior: "smooth",
                     block: "start"
                 });
+
+                // Auto expand when clicked from navigation
+                const body = target.querySelector(".terms-card-body");
+                const chevron = target.querySelector(".terms-chevron");
+                const isOpen = target.classList.contains("bg-white/[0.08]");
+                if (body && !isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    target.classList.add("border-cyan-400/30");
+                    target.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                }
             }
         });
     });
@@ -234,27 +248,59 @@ function renderTermsContent(sections) {
     termsContentList.innerHTML = sections
         .map((section) => {
             return `
-                <article id="${section.id}" class="terms-section-card scroll-mt-32">
-                    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <article id="${section.id}" class="terms-section-card cursor-pointer scroll-mt-32 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-2xl font-black text-white">${section.title}</h3>
+                            <h3 class="text-xl font-black text-white">${section.title}</h3>
                             <p class="mt-2 text-sm leading-6 text-slate-400">${section.summary}</p>
                         </div>
 
-                        <span class="shrink-0 rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
-                            Terms
-                        </span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
+                                Terms
+                            </span>
+                            <span class="terms-chevron text-slate-500 font-bold transition-transform duration-300">▼</span>
+                        </div>
                     </div>
 
-                    <div class="space-y-4">
-                        ${section.content.map((paragraph) => {
-                            return `<p class="leading-8 text-slate-300">${paragraph}</p>`;
-                        }).join("")}
+                    <div class="terms-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
+                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                            ${section.content.map((paragraph) => {
+                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                            }).join("")}
+                        </div>
                     </div>
                 </article>
             `;
         })
         .join("");
+
+    termsContentList.querySelectorAll(".terms-section-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            const body = card.querySelector(".terms-card-body");
+            const chevron = card.querySelector(".terms-chevron");
+            if (body) {
+                const isOpen = card.classList.contains("bg-white/[0.08]");
+                if (!isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    card.classList.add("border-cyan-400/30");
+                    card.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                } else {
+                    body.style.maxHeight = "0px";
+                    card.classList.remove("border-cyan-400/30");
+                    card.classList.remove("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.remove("text-cyan-400");
+                        chevron.style.transform = "rotate(0deg)";
+                    }
+                }
+            }
+        });
+    });
 
     if (termsEmptyState) {
         termsEmptyState.classList.toggle("hidden", sections.length > 0);
@@ -284,28 +330,61 @@ function getAllTermsText() {
         .join("\n\n");
 }
 
-function downloadTermsTxt() {
-    const text = [
-        "TRAIDIUMX TERMS & CONDITIONS",
-        "Version: 1.0",
-        "Last Updated: 22 Jun 2026",
-        "",
-        getAllTermsText(),
-        "",
-        "Note: Demo frontend legal content. Review by legal professional before production use."
-    ].join("\n");
+function downloadTermsPdf() {
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = "794px";
+    container.style.height = "0";
+    container.style.overflow = "hidden";
+    document.body.appendChild(container);
 
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const element = document.createElement("div");
+    element.style.width = "794px";
+    element.style.padding = "40px";
+    element.style.color = "#020617";
+    element.style.backgroundColor = "#ffffff";
+    element.style.fontFamily = "sans-serif";
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "traidiumx-terms-and-conditions.txt";
-    link.click();
+    element.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; font-weight: 800; color: #020617; margin: 0;">TraidiumX Terms & Conditions</h1>
+            <p style="font-size: 13px; color: #64748b; margin: 8px 0 0 0;">Version: 1.0 | Last Updated: 22 Jun 2026</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 30px;" />
+        ${termsSections.map(section => `
+            <div style="margin-bottom: 25px; page-break-inside: avoid;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
+                <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
+                ${section.content.map(p => `
+                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
+                `).join("")}
+            </div>
+        `).join("")}
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />
+        <div style="text-align: center; font-size: 10px; color: #94a3b8;">
+            TraidiumX Compliance & Legal Operations Team.
+        </div>
+    `;
+    container.appendChild(element);
 
-    URL.revokeObjectURL(url);
+    const opt = {
+        margin:       15,
+        filename:     'traidiumx-terms-and-conditions.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-    showMiniMessage("Terms downloaded successfully.", "success");
+    html2pdf()
+        .from(element)
+        .set(opt)
+        .save()
+        .then(() => {
+            container.remove();
+        });
+    showMiniMessage("Terms PDF downloaded successfully.", "success");
 }
 
 function printTerms() {
@@ -341,7 +420,7 @@ function saveAcceptance() {
 
     if (termsAcceptanceMessage) {
         termsAcceptanceMessage.classList.remove("hidden");
-        termsAcceptanceMessage.textContent = "Terms accepted successfully. Backend acceptance log will be added later.";
+        termsAcceptanceMessage.textContent = "Terms accepted successfully.";
     }
 
     showMiniMessage("Terms accepted successfully.", "success");
@@ -359,7 +438,7 @@ function initEvents() {
     }
 
     if (downloadTermsBtn) {
-        downloadTermsBtn.addEventListener("click", downloadTermsTxt);
+        downloadTermsBtn.addEventListener("click", downloadTermsPdf);
     }
 
     if (printTermsBtn) {

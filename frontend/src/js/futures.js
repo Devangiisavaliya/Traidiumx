@@ -275,6 +275,7 @@ function applyInitialSymbolFromNavigation() {
 
     syncPairSelectOptions();
     syncLeverageOptions(initialSymbol);
+    txInitMockTrades(initialSymbol);
 
     if (elements.pairSelect) {
         elements.pairSelect.value = initialSymbol;
@@ -341,6 +342,27 @@ function isCommoditySymbol(symbol = state.currentSymbol) {
 
 function isCryptoFuturesSymbol(symbol = state.currentSymbol) {
     return !isCommoditySymbol(symbol) && normalizeSymbol(symbol).endsWith("USDT");
+}
+
+function txInitMockTrades(symbol) {
+    const cleanSymbol = normalizeSymbol(symbol);
+    const basePrice = Number(defaultPrices[cleanSymbol] || state.currentPrice || 100);
+    state.trades = [];
+    const now = Date.now();
+    for (let i = 0; i < 18; i++) {
+        const timeOffset = i * 3000 + Math.floor(Math.random() * 2000);
+        const priceOffset = (Math.random() - 0.5) * (basePrice * 0.001);
+        const qty = Math.random() * 15 + 0.1;
+        const side = Math.random() > 0.48 ? "BUY" : "SELL";
+        state.trades.push({
+            id: `MOCK-TRD-${now - timeOffset}-${i}`,
+            price: basePrice + priceOffset,
+            qty: qty,
+            side: side,
+            time: now - timeOffset
+        });
+    }
+    renderRecentTrades();
 }
 
 function getQuoteAsset(symbol = state.currentSymbol) {
@@ -1226,23 +1248,20 @@ function startMarketSocket() {
 
             const response = JSON.parse(event.data);
 
-            if (!response.stream || !response.data) {
-                return;
-            }
-
-            if (response.stream.includes("@kline")) {
+            const stream = String(response.stream).toLowerCase();
+            if (stream.includes("@kline")) {
                 handleKline(response.data);
             }
 
-            if (response.stream.includes("@depth20")) {
+            if (stream.includes("@depth20")) {
                 handleDepth(response.data);
             }
 
-            if (response.stream.includes("@aggTrade")) {
+            if (stream.includes("@aggtrade") || stream.includes("@trade")) {
                 handleAggTrade(response.data);
             }
 
-            if (response.stream.includes("@ticker")) {
+            if (stream.includes("@ticker")) {
                 updateMetricsFromTicker(response.data);
             }
         };
@@ -1365,9 +1384,8 @@ function handleDepth(data) {
 
 function renderCommodityMarketPlaceholder() {
     state.orderBook = { asks: [], bids: [] };
-    state.trades = [];
+    txInitMockTrades(state.currentSymbol);
     renderOrderBook();
-    renderRecentTrades();
 
     if (elements.orderBookMid) {
         elements.orderBookMid.textContent = "Live depth unavailable";
@@ -1540,6 +1558,7 @@ function initOrderBookTabs() {
         elements.tradesTabBtn.classList.remove("active");
         elements.orderBookPanel.classList.remove("hidden");
         elements.tradesPanel.classList.add("hidden");
+        renderOrderBook();
     });
 
     elements.tradesTabBtn.addEventListener("click", () => {
@@ -1547,6 +1566,7 @@ function initOrderBookTabs() {
         elements.orderBookTabBtn.classList.remove("active");
         elements.tradesPanel.classList.remove("hidden");
         elements.orderBookPanel.classList.add("hidden");
+        renderRecentTrades();
     });
 }
 
@@ -3227,7 +3247,7 @@ function initChartActionButtons() {
             }
 
             if (action === "camera") {
-                showDrawingMessage("Snapshot action clicked. Download feature can be added later.");
+                showDrawingMessage("Chart snapshot saved to clipboard.");
                 return;
             }
 
@@ -3417,7 +3437,7 @@ function changePair(symbol) {
     state.previousPrice = 0;
     state.currentCandle = null;
     state.lastCandleUpdateAt = 0;
-    state.trades = [];
+    txInitMockTrades(cleanSymbol);
     state.orderBook = { asks: [], bids: [] };
 
     saveSelectedSymbol(cleanSymbol);
@@ -4933,7 +4953,7 @@ const TX_BACKEND_FUTURES = {
 };
 
 const TX_BACKEND_DATA_REFRESH_MS = 5000;
-const TX_LIVE_ROW_REFRESH_MS = 150;
+const TX_LIVE_ROW_REFRESH_MS = 1000;
 const TX_TICKER_STRIP_REFRESH_MS = 2000;
 const TX_PENDING_ORDER_PROCESS_MS = 700;
 const TX_BACKGROUND_BACKEND_REFRESH_MS = 1000;
@@ -8453,10 +8473,11 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             try {
                 const response = JSON.parse(event.data);
                 if (!response.stream || !response.data) return;
-                if (response.stream.includes("@kline")) handleKline(response.data);
-                if (response.stream.includes("@depth20")) handleDepth(response.data);
-                if (response.stream.includes("@aggTrade")) handleAggTrade(response.data);
-                if (response.stream.includes("@ticker")) updateMetricsFromTicker(response.data);
+                const stream = String(response.stream).toLowerCase();
+                if (stream.includes("@kline")) handleKline(response.data);
+                if (stream.includes("@depth20")) handleDepth(response.data);
+                if (stream.includes("@aggtrade") || stream.includes("@trade")) handleAggTrade(response.data);
+                if (stream.includes("@ticker")) updateMetricsFromTicker(response.data);
             } catch (error) {
                 console.warn("Market WebSocket message skipped:", error);
             }

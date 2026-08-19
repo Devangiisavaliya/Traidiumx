@@ -576,128 +576,442 @@ function bindButtonListeners(user) {
         updateOnestepUI();
     });
 
-    // Link X Account
-    document.getElementById("linkXBtn")?.addEventListener("click", () => {
-        showModal("Link X (Twitter) Account", `
-            <div class="space-y-4 p-5 text-center text-sm">
-                <p class="text-slate-400">Link your X (Twitter) account to receive live system notices and updates.</p>
-                <button type="button" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black py-2.5 rounded-xl text-xs transition" onclick="completeLinkX()">Authorize on X</button>
-                <button type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="closeSettingsModal()">Cancel</button>
-            </div>
-        `);
-    });
 
     // Download Data
-    document.getElementById("downloadDataBtn")?.addEventListener("click", () => {
-        showToast("Personal data bundle download initiated!", "success");
+    document.getElementById("downloadDataBtn")?.addEventListener("click", async () => {
+        showToast("Personal data PDF download initiated!", "success");
         try {
-            const personalData = {
-                platform: "TraidiumX",
-                generated_at: new Date().toISOString(),
-                user_profile: {
-                    name: user.name || "User",
-                    email: user.email || "user@email.com",
-                    kyc_status: "Verified"
-                },
-                settings_preferences: {
-                    language: localStorage.getItem("tx_language") || "English",
-                    color_preference: localStorage.getItem("tx_color_pref") || "Green Up / Red Down",
-                    style_preference: localStorage.getItem("tx_style_pref") || "Fresh",
-                    timezone: localStorage.getItem("tx_timezone") || "Last 24 hours (UTC)",
-                    withdraw_setting: localStorage.getItem("tx_withdraw_setting") || "Off-Chain Withdrawal"
-                }
+            const [profileRes, walletRes] = await Promise.all([
+                apiRequest("/user/profile"),
+                apiRequest("/wallet/balance")
+            ]);
+            
+            const userProfile = (profileRes && profileRes.success && profileRes.data && profileRes.data.user) || user;
+            const walletData = (walletRes && walletRes.success && walletRes.data && walletRes.data.wallet) || {};
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4"
+            });
+
+            // Colors
+            const primaryColor = [16, 185, 129]; // Emerald Green
+            const textColor = [30, 41, 59]; // Dark Slate
+
+            // Title Header
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text("TRAIDIUMX EXCHANGE", 20, 25);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 116, 139); // Muted slate
+            doc.text("PERSONAL PROFILE & PREFERENCES STATEMENT", 20, 31);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 36);
+
+            // Draw line
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.5);
+            doc.line(20, 42, 190, 42);
+
+            // Section 1: Profile Information
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(textColor[0], textColor[1], textColor[textColor.length - 1]);
+            doc.text("1. User Profile Details", 20, 54);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor(71, 85, 105);
+
+            doc.text(`Full Name:`, 25, 64);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.name || "User"}`, 75, 64);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Email Address:`, 25, 71);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.email || "user@email.com"}`, 75, 71);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Mobile Number:`, 25, 78);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.mobile || "Not Linked"}`, 75, 78);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`KYC Status:`, 25, 85);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${(userProfile.kyc_status || "Verified").toUpperCase()}`, 75, 85);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Client ID:`, 25, 92);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.client_id || "N/A"}`, 75, 92);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Auth Provider:`, 25, 99);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${(userProfile.auth_provider || "password").toUpperCase()}`, 75, 99);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Two-Factor Auth:`, 25, 106);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.two_factor_enabled ? "ENABLED" : "DISABLED"}`, 75, 106);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Date Registered:`, 25, 113);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.created_at ? new Date(userProfile.created_at).toLocaleDateString() : "N/A"}`, 75, 113);
+
+            // Section 2: Preferences
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(textColor[0], textColor[1], textColor[textColor.length - 1]);
+            doc.text("2. Settings & Preferences", 20, 129);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor(71, 85, 105);
+
+            const language = localStorage.getItem("tx_language") || "English";
+            const colorPreference = localStorage.getItem("tx_color_pref") || "Green Up / Red Down";
+            const stylePreference = localStorage.getItem("tx_style_pref") || "Fresh";
+            const timezone = localStorage.getItem("tx_timezone") || "Last 24 hours (UTC)";
+            const withdrawSetting = localStorage.getItem("tx_withdraw_setting") || "Off-Chain Withdrawal";
+
+            doc.text(`Default Language:`, 25, 139);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${language}`, 75, 139);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Color Scheme:`, 25, 146);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${colorPreference}`, 75, 146);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Style Theme:`, 25, 153);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${stylePreference}`, 75, 153);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Default Timezone:`, 25, 160);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${timezone}`, 75, 160);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`Withdrawal Mode:`, 25, 167);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${withdrawSetting}`, 75, 167);
+
+            // Section 3: Wallet Addresses
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(textColor[0], textColor[1], textColor[textColor.length - 1]);
+            doc.text("3. Wallet Deposit Addresses", 20, 183);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(71, 85, 105);
+
+            const getAddr = (coin, net) => {
+                const bucket = walletData[`main_wallet_${coin.toLowerCase()}`];
+                return (bucket && bucket.addresses && bucket.addresses[net]) || "None generated";
             };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(personalData, null, 4));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "traidiumx_personal_data.json");
-            document.body.appendChild(dlAnchor);
-            dlAnchor.click();
-            dlAnchor.remove();
+
+            doc.text(`INR Address:`, 25, 193);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${userProfile.client_id || "None generated"}`, 75, 193);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`USDT (TRC20) Address:`, 25, 200);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${getAddr("USDT", "TRC20")}`, 75, 200);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`BTC (BITCOIN) Address:`, 25, 207);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${getAddr("BTC", "BITCOIN")}`, 75, 207);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`ETH (ERC20) Address:`, 25, 214);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${getAddr("ETH", "ERC20")}`, 75, 214);
+
+            doc.setFont("helvetica", "normal");
+            doc.text(`SOL (SOLANA) Address:`, 25, 221);
+            doc.setFont("helvetica", "bold");
+            doc.text(`${getAddr("SOL", "SOLANA")}`, 75, 221);
+
+            // Footer
+            doc.setDrawColor(226, 232, 240);
+            doc.line(20, 260, 190, 260);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(148, 163, 184);
+            doc.text("TraidiumX Exchange — Secure Digital Assets Workspace Statement.", 20, 268);
+            doc.text("Page 1 of 1", 170, 268);
+
+            doc.save("traidiumx_personal_data.pdf");
         } catch (err) {
-            console.error("Download failed", err);
+            console.error("PDF Download failed", err);
+            showToast("Failed to generate PDF.", "error");
         }
     });
 
     // Export Records
     document.getElementById("exportRecordsBtn")?.addEventListener("click", async () => {
-        showToast("Accounting statements statement export initiated!", "success");
+        showToast("Accounting statement export initiated!", "success");
         try {
-            const [depositsRes, withdrawalsRes, tradesRes] = await Promise.all([
+            const [ledgerRes, depositRes, withdrawalRes] = await Promise.allSettled([
+                apiRequest("/wallet/ledger"),
                 apiRequest("/deposit/history"),
-                apiRequest("/withdrawal/history"),
-                apiRequest("/trading/trades")
+                apiRequest("/withdrawal/history")
             ]);
 
-            const deposits = (depositsRes && depositsRes.success && depositsRes.data && depositsRes.data.history) || [];
-            const withdrawals = (withdrawalsRes && withdrawalsRes.success && withdrawalsRes.data && withdrawalsRes.data.history) || [];
-            const trades = (tradesRes && tradesRes.success && tradesRes.data && tradesRes.data.trades) || [];
+            const ledgerData = (ledgerRes.status === "fulfilled" && ledgerRes.value?.success && ledgerRes.value?.data?.ledger) || [];
+            const depositsData = (depositRes.status === "fulfilled" && depositRes.value?.success && (depositRes.value?.data?.deposits || depositRes.value?.data)) || [];
+            const withdrawalsData = (withdrawalRes.status === "fulfilled" && withdrawalRes.value?.success && (withdrawalRes.value?.data?.withdrawals || withdrawalRes.value?.data)) || [];
 
-            const allTransactions = [];
+            const typeLabels = {
+                "DEPOSIT": "Deposit",
+                "WITHDRAWAL": "Withdrawal",
+                "INTERNAL_TRANSFER_CREDIT": "Internal Transfer (In)",
+                "INTERNAL_TRANSFER_DEBIT": "Internal Transfer (Out)",
+                "TRADING_CREDIT": "Trading Income",
+                "TRADING_DEBIT": "Trading Expense",
+                "PLAN_FILL": "Trading Margin Fill",
+                "PLAN_CLOSE_PROFIT": "Trading Profit Realized",
+                "PLATFORM_FEE": "Platform Maintenance Fee"
+            };
 
-            // 1. Format Deposits
-            deposits.forEach(d => {
-                allTransactions.push({
-                    Date: d.created_at || d.updated_at || "",
-                    Type: "Deposit",
-                    Asset: d.asset || d.currency || "USDT",
-                    Amount: d.amount || "",
-                    Price: "-",
-                    Status: d.status || "Completed"
-                });
-            });
-
-            // 2. Format Withdrawals
-            withdrawals.forEach(w => {
-                allTransactions.push({
-                    Date: w.created_at || w.updated_at || "",
-                    Type: "Withdrawal",
-                    Asset: w.asset || w.currency || "USDT",
-                    Amount: w.amount || "",
-                    Price: "-",
-                    Status: w.status || "Completed"
-                });
-            });
-
-            // 3. Format Trades
-            trades.forEach(t => {
-                allTransactions.push({
-                    Date: t.created_at || t.timestamp || "",
-                    Type: `Trade (${t.side ? t.side.toUpperCase() : 'BUY'})`,
-                    Asset: t.symbol || "BTC-USDT",
-                    Amount: t.quantity || t.qty || "",
-                    Price: t.price || "",
-                    Status: "Executed"
-                });
-            });
-
-            // Sort transactions by date descending
-            allTransactions.sort((a, b) => new Date(b.Date) - new Date(a.Date));
-
-            // Default mock fallback so CSV is never empty
-            if (allTransactions.length === 0) {
-                allTransactions.push(
-                    { Date: "2026-08-05 10:24:12", Type: "Deposit", Asset: "USDT", Amount: "1500.00", Price: "-", Status: "Completed" },
-                    { Date: "2026-08-04 14:15:30", Type: "Trade (Buy)", Asset: "BTC-USDT", Amount: "0.05 BTC", Price: "95450.00", Status: "Executed" },
-                    { Date: "2026-08-03 09:12:05", Type: "Withdrawal", Asset: "USDT", Amount: "200.00", Price: "-", Status: "Completed" }
-                );
+            function formatTxType(type) {
+                if (!type) return "Transaction";
+                const upper = String(type).toUpperCase();
+                if (typeLabels[upper]) return typeLabels[upper];
+                return upper.split("_").map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(" ");
             }
 
-            const csvRows = [
-                "Date,Type,Asset,Amount,Price,Status",
-                ...allTransactions.map(t => {
-                    const formattedDate = t.Date.includes("T") ? t.Date.replace("T", " ").substring(0, 19) : t.Date;
-                    return `"${formattedDate}","${t.Type}","${t.Asset}","${t.Amount}","${t.Price}","${t.Status}"`;
-                })
-            ];
+            function formatDateStr(val) {
+                if (!val) return "--";
+                return String(val).replace("T", " ").substring(0, 19);
+            }
 
-            const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join("\n"));
-            const link = document.createElement("a");
-            link.setAttribute("href", csvContent);
-            link.setAttribute("download", "traidiumx_transaction_records.csv");
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            // 1. Format Deposits Rows
+            const depositRows = (Array.isArray(depositsData) ? depositsData : []).map(d => {
+                const date = formatDateStr(d.created_at);
+                const ref = d.deposit_reference || d.reference_id || d.id || "--";
+                const assetNet = `${d.crypto_asset || d.currency || "USDT"}${d.crypto_network ? " / " + d.crypto_network : ""}`;
+                const cur = String(d.crypto_asset || d.currency || "USDT").toUpperCase();
+                const sign = cur === "INR" || cur === "₹" ? "₹" : (cur === "USDT" || cur === "$" ? "$" : "");
+                const amt = `+${sign}${Number(d.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+                const st = String(d.status || d.verification_status || "completed").toUpperCase().replaceAll("_", " ");
+                return [date, ref, assetNet, amt, st];
+            });
+            depositRows.sort((a, b) => new Date(b[0] || 0) - new Date(a[0] || 0));
+
+            // 2. Format Withdrawals Rows
+            const withdrawalRows = (Array.isArray(withdrawalsData) ? withdrawalsData : []).map(w => {
+                const date = formatDateStr(w.created_at);
+                const ref = w.withdrawal_reference || w.reference_id || w.id || "--";
+                const assetNet = `${w.crypto_asset || w.currency || "USDT"}${w.crypto_network ? " / " + w.crypto_network : ""}`;
+                const dest = w.withdrawal_address ? (w.withdrawal_address.length > 25 ? w.withdrawal_address.substring(0, 22) + "..." : w.withdrawal_address) : (w.bank_name ? `${w.bank_name} (${w.account_number || ""})` : "--");
+                const cur = String(w.crypto_asset || w.currency || "USDT").toUpperCase();
+                const sign = cur === "INR" || cur === "₹" ? "₹" : (cur === "USDT" || cur === "$" ? "$" : "");
+                const amt = `-${sign}${Number(w.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+                const st = String(w.status_label || w.status || "completed").toUpperCase().replaceAll("_", " ");
+                return [date, ref, assetNet, dest, amt, st];
+            });
+            withdrawalRows.sort((a, b) => new Date(b[0] || 0) - new Date(a[0] || 0));
+
+            // 3. Format Ledger Rows
+            const ledgerRows = (Array.isArray(ledgerData) ? ledgerData : []).map(t => {
+                const date = formatDateStr(t.created_at);
+                const type = formatTxType(t.transaction_type);
+                const desc = t.description || "--";
+                const cur = String(t.currency || "USDT").toUpperCase();
+                const sign = t.direction === "debit" ? "-" : "+";
+                const amt = `${sign}${Number(t.amount || 0).toFixed(2)}`;
+                const st = String(t.status || "completed").toUpperCase();
+                return [date, type, desc, cur, amt, st];
+            });
+            ledgerRows.sort((a, b) => new Date(b[0] || 0) - new Date(a[0] || 0));
+
+            if (depositRows.length === 0) {
+                depositRows.push(["--", "No deposit history found", "--", "--", "--"]);
+            }
+            if (withdrawalRows.length === 0) {
+                withdrawalRows.push(["--", "No withdrawal history found", "--", "--", "--", "--"]);
+            }
+            if (ledgerRows.length === 0) {
+                ledgerRows.push(["--", "No ledger history found", "--", "--", "--", "--"]);
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4"
+            });
+
+            // Title Header
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(15, 23, 42); // Black / Dark Slate
+            doc.text("TRAIDIUMX EXCHANGE", 14, 18);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 116, 139); // Muted slate
+            doc.text("ACCOUNTING & TRANSACTION STATEMENT", 14, 24);
+            
+            // User info summary
+            doc.setFontSize(9.5);
+            doc.setTextColor(71, 85, 105);
+            doc.text(`Client Name: ${user.name || "User"}`, 14, 32);
+            doc.text(`Client Email: ${user.email || "user@email.com"}`, 14, 37);
+            doc.text(`Statement Period: All-Time Complete History`, 14, 42);
+            doc.text(`Issued On: ${new Date().toLocaleString()}`, 14, 47);
+
+            // Divider line
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.4);
+            doc.line(14, 51, 196, 51);
+
+            let currentY = 58;
+
+            const drawPageFooter = function (data) {
+                doc.setFontSize(8);
+                doc.setTextColor(148, 163, 184);
+                doc.text("TraidiumX Exchange — Official Transaction & Balance Statement.", 14, 285);
+                doc.text(`Page ${data.pageNumber}`, 180, 285);
+            };
+
+            function ensureSpace(heightNeeded = 25) {
+                if (currentY + heightNeeded > 270) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+            }
+
+            // ==========================================
+            // SECTION 1: DEPOSITS HISTORY
+            // ==========================================
+            ensureSpace(25);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42); // Black / Dark Slate
+            doc.text("1. DEPOSIT TRANSACTIONS HISTORY", 14, currentY);
+            currentY += 4;
+
+            doc.autoTable({
+                head: [["Date", "Reference", "Asset / Network", "Amount", "Status"]],
+                body: depositRows,
+                startY: currentY,
+                theme: "striped",
+                headStyles: {
+                    fillColor: [15, 23, 42], // Black / Dark Slate
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold",
+                    fontSize: 9
+                },
+                bodyStyles: {
+                    textColor: [51, 65, 85],
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    0: { cellWidth: 38 }, // Date
+                    1: { cellWidth: 46 }, // Ref
+                    2: { cellWidth: 36 }, // Asset/Net
+                    3: { cellWidth: 34 }, // Amount
+                    4: { cellWidth: 28 }  // Status
+                },
+                margin: { left: 14, right: 14 },
+                didDrawPage: drawPageFooter
+            });
+
+            currentY = doc.lastAutoTable.finalY + 10;
+
+            // ==========================================
+            // SECTION 2: WITHDRAWALS HISTORY
+            // ==========================================
+            ensureSpace(25);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42); // Black / Dark Slate
+            doc.text("2. WITHDRAWAL TRANSACTIONS HISTORY", 14, currentY);
+            currentY += 4;
+
+            doc.autoTable({
+                head: [["Date", "Reference", "Asset / Network", "Destination", "Amount", "Status"]],
+                body: withdrawalRows,
+                startY: currentY,
+                theme: "striped",
+                headStyles: {
+                    fillColor: [15, 23, 42], // Black / Dark Slate
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold",
+                    fontSize: 9
+                },
+                bodyStyles: {
+                    textColor: [51, 65, 85],
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    0: { cellWidth: 34 }, // Date
+                    1: { cellWidth: 40 }, // Ref
+                    2: { cellWidth: 30 }, // Asset/Net
+                    3: { cellWidth: 36 }, // Dest
+                    4: { cellWidth: 22 }, // Amount
+                    5: { cellWidth: 20 }  // Status
+                },
+                margin: { left: 14, right: 14 },
+                didDrawPage: drawPageFooter
+            });
+
+            currentY = doc.lastAutoTable.finalY + 10;
+
+            // ==========================================
+            // SECTION 3: GENERAL LEDGER & TRADING HISTORY
+            // ==========================================
+            ensureSpace(25);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42); // Black / Dark Slate
+            doc.text("3. ACCOUNT LEDGER & TRADING HISTORY", 14, currentY);
+            currentY += 4;
+
+            doc.autoTable({
+                head: [["Date", "Type", "Description", "Currency", "Amount", "Status"]],
+                body: ledgerRows,
+                startY: currentY,
+                theme: "striped",
+                headStyles: {
+                    fillColor: [15, 23, 42], // Slate 900
+                    textColor: [255, 255, 255],
+                    fontStyle: "bold",
+                    fontSize: 9
+                },
+                bodyStyles: {
+                    textColor: [51, 65, 85],
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    0: { cellWidth: 35 }, // Date
+                    1: { cellWidth: 35 }, // Type
+                    2: { cellWidth: 50 }, // Description
+                    3: { cellWidth: 18 }, // Currency
+                    4: { cellWidth: 24 }, // Amount
+                    5: { cellWidth: 20 }  // Status
+                },
+                margin: { left: 14, right: 14 },
+                didDrawPage: drawPageFooter
+            });
+
+            doc.save("traidiumx_transaction_statement.pdf");
         } catch (err) {
             console.error("Export failed", err);
             showToast("Failed to fetch live history records.", "error");
@@ -1094,12 +1408,6 @@ window.setFeeDeduction = function (val) {
     closeSettingsModal();
 };
 
-window.completeLinkX = function () {
-    document.getElementById("linkXDisplay").className = "tx-settings-value text-emerald-400";
-    document.getElementById("linkXDisplay").textContent = "Linked (@traidiumx_user)";
-    document.getElementById("linkXBtn").textContent = "Unlink";
-    closeSettingsModal();
-};
 
 window.confirmDeleteAccount = function () {
     showToast("Account deletion request submitted!", "success");

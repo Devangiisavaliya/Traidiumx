@@ -221,7 +221,7 @@ function renderLoggedInDesktop(container, user) {
                 </button>
 
                 <!-- Dropdown Card -->
-                <div id="txProfileDropdown" class="hidden absolute right-0 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
+                <div id="txProfileDropdown" class="hidden absolute left-1/2 -translate-x-1/2 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
                     <!-- Header -->
                     <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
                         <div class="tx-profile-avatar w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
@@ -248,7 +248,7 @@ function renderLoggedInDesktop(container, user) {
                             Regular User
                         </span>
                         ${user.kyc_status === 'approved' ? `
-                        <a href="/src/pages/profile.html" class="flex items-center gap-1 text-[10px] font-black text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-emerald-500/20 transition cursor-pointer">
+                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-emerald-500/20 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 <path d="m9 11 2 2 4-4"></path>
@@ -256,8 +256,17 @@ function renderLoggedInDesktop(container, user) {
                             <span>Verified</span>
                             <span class="ml-0.5 text-emerald-400/80">›</span>
                         </a>
+                        ` : user.kyc_status === 'rejected' ? `
+                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-red-400 border border-red-500/20 bg-red-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-red-500/20 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="m15 9-6 6M9 9l6 6"></path>
+                            </svg>
+                            <span>Rejected</span>
+                            <span class="ml-0.5 text-red-400/80">›</span>
+                        </a>
                         ` : `
-                        <a href="/src/pages/profile.html" class="flex items-center gap-1 text-[10px] font-black text-amber-400 border border-amber-500/20 bg-amber-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer">
+                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-amber-400 border border-amber-500/20 bg-amber-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer">
                             <span>Unverified</span>
                             <span class="ml-0.5 text-amber-400/80">›</span>
                         </a>
@@ -273,14 +282,44 @@ function renderLoggedInDesktop(container, user) {
                     </div>
 
                     <!-- Options -->
-                    <div class="space-y-1 py-1">
-                        <a href="/src/pages/wallet.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                            </svg>
-                            <span>Assets</span>
-                        </a>
+                    <div class="space-y-1">
+                        <!-- Assets Accordion -->
+                        <div>
+                            <button type="button" id="txAssetsToggle" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold focus:outline-none">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                                    <span class="whitespace-nowrap">Assets</span>
+                                </div>
+                                <svg id="txAssetsArrow" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                            <div id="txAssetsSubMenu" class="hidden space-y-0.5 my-1 pl-4 pr-1">
+                                <a href="/src/pages/wallet.html#overview" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                                    <span class="whitespace-nowrap">Overview</span>
+                                </a>
+                                <a href="/src/pages/wallet.html#deposit" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+                                    <span class="whitespace-nowrap">Deposit</span>
+                                </a>
+                                <a href="/src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4"/></svg>
+                                    <span class="whitespace-nowrap">Withdraw</span>
+                                </a>
+                                <a href="/src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
+                                    <span class="whitespace-nowrap">Transfer</span>
+                                </a>
+                                <a href="/src/pages/wallet.html#exchange" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/></svg>
+                                    <span class="whitespace-nowrap">Exchange</span>
+                                </a>
+                                <a href="/src/pages/wallet.html#history" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                                    <span class="whitespace-nowrap">History</span>
+                                </a>
+                            </div>
+                        </div>
+
                         <a href="/src/pages/orders.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -297,6 +336,18 @@ function renderLoggedInDesktop(container, user) {
                             </svg>
                             <span>Account</span>
                         </a>
+
+                        <!-- Sub Accounts -->
+                        <button type="button" id="txNavbarSubAccountsBtn" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold focus:outline-none">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>Sub Accounts</span>
+                        </button>
+
                         <a href="/src/pages/contact.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -1083,6 +1134,11 @@ function preventStepLinkClick(e) {
 
 
 function initNavbarCurrencyToggle() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCurrency = urlParams.get("currency") || urlParams.get("quote");
+    if (urlCurrency && ["INR", "USDT"].includes(urlCurrency.toUpperCase())) {
+        localStorage.setItem("tx_navbar_currency", urlCurrency.toUpperCase());
+    }
     const activeCurrency = localStorage.getItem("tx_navbar_currency") || "USDT";
     localStorage.setItem("tx_navbar_currency", activeCurrency);
     updateNavbarToggleUI(activeCurrency);
@@ -1127,6 +1183,68 @@ function bindNavbarDropdown(user) {
     const copyBtn = document.getElementById("txCopyIdBtn");
     const copyFeedback = document.getElementById("txCopyFeedback");
     const createSubLink = document.getElementById("txNavbarCreateSubAccountLink");
+
+    // Assets toggle & sub-menu click handlers
+    const assetsToggle = document.getElementById("txAssetsToggle");
+    const assetsSubMenu = document.getElementById("txAssetsSubMenu");
+    const assetsArrow = document.getElementById("txAssetsArrow");
+    if (assetsToggle && assetsSubMenu) {
+        assetsToggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            const isOpen = !assetsSubMenu.classList.contains("hidden");
+            assetsSubMenu.classList.toggle("hidden", isOpen);
+            if (assetsArrow) {
+                assetsArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+            }
+        });
+
+        assetsSubMenu.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (dropdown) dropdown.classList.add("hidden");
+                
+                const href = this.getAttribute("href") || "";
+                const hashIndex = href.indexOf("#");
+                const action = hashIndex !== -1 ? href.substring(hashIndex + 1).toLowerCase() : "overview";
+
+                try {
+                    sessionStorage.setItem("traidiumx_wallet_focus_action", action);
+                } catch (err) {}
+
+                const currentPath = window.location.pathname.toLowerCase();
+                const isWalletPage = currentPath.includes("wallet") || (typeof window.focusWalletSectionFromNavigation === "function") || (typeof window.openWalletActionModal === "function");
+
+                if (isWalletPage) {
+                    if (window.location.hash !== "#" + action) {
+                        try {
+                            history.pushState(null, "", href);
+                        } catch (err) {
+                            window.location.hash = "#" + action;
+                        }
+                    }
+                    if (typeof window.focusWalletSectionFromNavigation === "function") {
+                        window.focusWalletSectionFromNavigation();
+                    } else if (typeof window.openWalletActionModal === "function") {
+                        if (["deposit", "withdraw", "transfer", "exchange"].includes(action)) {
+                            window.openWalletActionModal(action);
+                        }
+                    }
+                } else {
+                    window.location.href = href;
+                }
+            });
+        });
+    }
+
+    // Sub Accounts button — always redirect to profile sub-accounts tab
+    const subAccountsBtn = document.getElementById("txNavbarSubAccountsBtn");
+    if (subAccountsBtn) {
+        subAccountsBtn.addEventListener("click", function () {
+            if (dropdown) dropdown.classList.add("hidden");
+            window.location.href = "/src/pages/profile.html#sub-accounts";
+        });
+    }
 
     if (profileBtn && dropdown) {
         profileBtn.addEventListener("click", function (e) {

@@ -9,22 +9,22 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
         :root {
-            --tx-settings-bg: #020617;
-            --tx-settings-card: rgba(11, 15, 26, 0.85);
-            --tx-settings-border: rgba(148, 163, 184, 0.1);
+            --tx-settings-bg: #060d1e;
+            --tx-settings-card: linear-gradient(145deg, rgba(15, 23, 42, 0.84), rgba(8, 15, 32, 0.84));
+            --tx-settings-border: rgba(255, 255, 255, 0.08);
             --tx-settings-text: #f8fafc;
-            --tx-settings-muted: #64748b;
+            --tx-settings-muted: #94a3b8;
         }
 
         body[data-page="settings"] {
             min-height: 100vh;
             background:
-                radial-gradient(circle at 12% 10%, rgba(34, 211, 238, 0.08), transparent 30rem),
-                radial-gradient(circle at 88% 20%, rgba(59, 130, 246, 0.08), transparent 30rem),
+                radial-gradient(circle at 18% 12%, rgba(34, 211, 238, 0.12), transparent 32rem),
+                radial-gradient(circle at 82% 18%, rgba(99, 102, 241, 0.10), transparent 32rem),
                 var(--tx-settings-bg);
         }
 
@@ -42,15 +42,18 @@
             background: var(--tx-settings-card);
             border: 1px solid var(--tx-settings-border);
             border-radius: 1.5rem;
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px);
             margin-bottom: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            box-shadow:
+                0 20px 50px rgba(2, 6, 23, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
             overflow: hidden;
         }
 
         .tx-settings-section-header {
             padding: 1.5rem 1.5rem 1.25rem;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.015);
         }
 
         .tx-settings-section-title {
@@ -66,12 +69,12 @@
             justify-content: space-between;
             gap: 1.5rem;
             padding: 1.25rem 1.5rem;
-            border-top: 1px solid rgba(148, 163, 184, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             transition: background-color 0.2s ease;
         }
 
         .tx-settings-row:hover {
-            background-color: rgba(255, 255, 255, 0.01);
+            background-color: rgba(255, 255, 255, 0.025);
         }
 
         .tx-settings-left {
@@ -87,8 +90,8 @@
         }
 
         .tx-settings-desc {
-            color: #64748b;
-            font-size: 0.78rem;
+            color: #94a3b8;
+            font-size: 0.8rem;
             line-height: 1.45;
             font-weight: 500;
         }
@@ -110,11 +113,12 @@
         }
 
         .tx-settings-btn {
-            background-color: #1e293b;
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: #f8fafc;
             font-size: 0.78rem;
             font-weight: 800;
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 1.1rem;
             border-radius: 0.75rem;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -123,7 +127,9 @@
         }
 
         .tx-settings-btn:hover {
-            background-color: #334155;
+            background-color: rgba(51, 65, 85, 0.9);
+            border-color: rgba(34, 211, 238, 0.4);
+            color: #22d3ee;
         }
 
         .tx-settings-btn-danger {
@@ -575,23 +581,6 @@
                 </div>
             </div>
 
-            <!-- Link Account -->
-            <div class="tx-settings-section-card">
-                <div class="tx-settings-section-header">
-                    <h2 class="tx-settings-section-title">Link Account</h2>
-                </div>
-
-                <div class="tx-settings-row">
-                    <div class="tx-settings-left">
-                        <h3 class="tx-settings-label">Link X Account</h3>
-                        <p class="tx-settings-desc">Link your X account to TraidiumX for updates.</p>
-                    </div>
-                    <div class="tx-settings-right">
-                        <span class="tx-settings-value text-slate-400" id="linkXDisplay">Not Linked</span>
-                        <button type="button" class="tx-settings-btn" id="linkXBtn">Link</button>
-                    </div>
-                </div>
-            </div>
 
             <!-- Privacy -->
             <div class="tx-settings-section-card">
@@ -652,6 +641,10 @@
     <script src="../js/api-config.js"></script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/auth-state.js"></script>
+    <!-- jsPDF libraries for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
     <script src="../js/settings.js?v=28"></script>
 </body>
 </html>

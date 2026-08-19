@@ -15,34 +15,58 @@ const aboutValuesGrid = document.getElementById("aboutValuesGrid");
 
 const values = [
     {
-        icon: "⚖️",
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>`,
         title: "Compliance First",
-        description: "Product flow is prepared for KYC, AML, risk disclosures and legal policy pages."
+        description: "Adherence to highest compliance standards, including active KYC verification and AML monitoring."
     },
     {
-        icon: "🧠",
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 shadow-[0_0_20px_rgba(244,63,94,0.15)] text-rose-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+        </div>`,
         title: "Trader Education",
-        description: "Blog, challenge and risk pages help users understand futures and options before trading."
+        description: "Dedicated blog posts, options challenges, and risk disclosures to help traders understand derivatives."
     },
     {
-        icon: "🚀",
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)] text-amber-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+        </div>`,
         title: "Execution Clarity",
-        description: "Trading screens are designed to show price, pair, leverage, order mode and risk clearly."
+        description: "Intuitive layouts displaying real-time price feeds, asset pairs, leverage ratios, and transparent order details."
     },
     {
-        icon: "💰",
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V15a2 2 0 01-2 2z"></path>
+            </svg>
+        </div>`,
         title: "Transparent Fees",
-        description: "Maker, taker, VIP tier and campaign calculations are kept visible to the user."
+        description: "Fully transparent maker-taker schedules, VIP tier calculations, and direct referral campaign reporting."
     },
     {
-        icon: "🔐",
-        title: "Security Planning",
-        description: "Backend phase should include secure auth, audit logs, wallet checks and admin verification."
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] text-blue-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+        </div>`,
+        title: "Advanced Security",
+        description: "Equipped with secure user authentication, complete ledger audit logs, and automated wallet verification checks."
     },
     {
-        icon: "🇮🇳",
+        icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.15)] text-orange-400">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h2a2.5 2.5 0 002.5-2.5V10a2 2 0 00-2-2h-1.5a2 2 0 01-2-2V4.833A8.001 8.001 0 0012 3a8 8 0 00-8.945 3.935z"></path>
+            </svg>
+        </div>`,
         title: "India Focused",
-        description: "INR support, local compliance preparation and India-first trading experience are planned."
+        description: "Customized for the Indian market, featuring local currency support, compliance readiness, and an India-first trading experience."
     }
 ];
 
@@ -101,7 +125,7 @@ function renderValues() {
         .map((value) => {
             return `
                 <article class="about-value-card">
-                    <div class="text-5xl">${value.icon}</div>
+                    <div>${value.icon}</div>
                     <h3 class="mt-5 text-2xl font-black text-white">${value.title}</h3>
                     <p class="mt-3 leading-7 text-slate-400">${value.description}</p>
                 </article>
@@ -120,6 +144,17 @@ function renderValues() {
 function initAboutPage() {
     animateCounters();
     renderValues();
+
+    const signUpBtn = document.getElementById("aboutHeroSignUpBtn");
+    const createAccountBtn = document.getElementById("aboutCtaCreateAccountBtn");
+    const loggedIn = typeof isLoggedIn === "function" && isLoggedIn();
+
+    if (signUpBtn && loggedIn) {
+        signUpBtn.style.display = "none";
+    }
+    if (createAccountBtn && loggedIn) {
+        createAccountBtn.style.display = "none";
+    }
 }
 
 document.addEventListener("DOMContentLoaded", initAboutPage);

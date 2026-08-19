@@ -203,7 +203,7 @@ function validateForm() {
     }
 
     if (!agreed) {
-        setError(contactAgreeError, "Please accept demo support note.");
+        setError(contactAgreeError, "Please accept the support note.");
         isValid = false;
     }
 
@@ -320,12 +320,12 @@ async function copyTicketId() {
 
 function handleSupportChannel(channel) {
     if (channel === "Email Support") {
-        window.location.href = "mailto:support@traidiumx.demo?subject=TraidiumX Support Request";
+        window.location.href = "mailto:support@traidiumx.com?subject=TraidiumX Support Request";
         return;
     }
 
     if (channel === "Live Chat") {
-        showMiniMessage("Live chat demo opened. Real chat will be connected later.", "success");
+        showMiniMessage("Live chat starting... Our team will connect with you shortly.", "success");
         return;
     }
 
@@ -478,10 +478,26 @@ function initEvents() {
     initChannelButtons();
 }
 
+function initFaqAccordion() {
+    const details = document.querySelectorAll("section details");
+    details.forEach((item) => {
+        item.addEventListener("toggle", () => {
+            if (item.open) {
+                details.forEach((otherItem) => {
+                    if (otherItem !== item) {
+                        otherItem.removeAttribute("open");
+                    }
+                });
+            }
+        });
+    });
+}
+
 function initContactPage() {
     updatePriorityPreview();
     updateMessageCounter();
     initEvents();
+    initFaqAccordion();
     loadUserTickets();
 }
 

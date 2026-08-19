@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 </head>
 
 <body class="bg-[#020617] text-white" data-page="privacy">
@@ -18,7 +19,7 @@
     <div data-component="navbar"></div>
 
     <!-- ================= MAIN START ================= -->
-    <main class="overflow-hidden pt-32">
+    <main class="overflow-clip pt-32">
 
         <!-- HERO -->
         <section class="relative">
@@ -55,11 +56,6 @@
                             Print Policy
                         </button>
                     </div>
-
-                    <div class="mt-8 rounded-2xl border border-orange-400/20 bg-orange-400/10 p-4 text-sm leading-7 text-orange-100">
-                        This is frontend demo legal content. Before company handover or production launch,
-                        replace it with lawyer-reviewed and company-specific privacy policy.
-                    </div>
                 </div>
 
                 <!-- Right Card -->
@@ -91,7 +87,7 @@
 
                             <div class="rounded-2xl bg-slate-950/70 p-5">
                                 <p class="text-xs text-slate-500">Applies To</p>
-                                <h3 class="mt-2 text-xl font-black text-purple-300">All Users</h3>
+                                <h3 class="mt-2 text-xl font-black text-cyan-400">All Users</h3>
                             </div>
 
                             <div class="rounded-2xl bg-slate-950/70 p-5">
@@ -102,8 +98,7 @@
 
                         <div class="mt-6 rounded-3xl border border-white/10 bg-slate-950/70 p-5">
                             <p class="text-sm leading-7 text-slate-400">
-                                Privacy controls shown here are frontend demo preferences.
-                                Production consent records must be stored in backend.
+                                Privacy controls are managed directly from this settings panel, providing transparency over data collection and user preferences.
                             </p>
                         </div>
                     </div>
@@ -134,25 +129,49 @@
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
                 <div class="privacy-principle-card">
-                    <div class="privacy-principle-icon">🔐</div>
+                    <div class="privacy-principle-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)] text-cyan-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Secure By Design</h3>
                     <p>Data protection, access control and secure backend storage should be implemented before launch.</p>
                 </div>
 
                 <div class="privacy-principle-card">
-                    <div class="privacy-principle-icon">📄</div>
+                    <div class="privacy-principle-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] text-blue-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Transparent Use</h3>
                     <p>Users should understand what data is collected and why it is needed for platform services.</p>
                 </div>
 
                 <div class="privacy-principle-card">
-                    <div class="privacy-principle-icon">⚖️</div>
+                    <div class="privacy-principle-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>Compliance Ready</h3>
                     <p>KYC, AML, tax, legal and regulatory requirements may require secure data processing.</p>
                 </div>
 
                 <div class="privacy-principle-card">
-                    <div class="privacy-principle-icon">🧭</div>
+                    <div class="privacy-principle-icon">
+                        <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] text-purple-400">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                        </div>
+                    </div>
                     <h3>User Choices</h3>
                     <p>Users should have options for cookies, marketing communication and data-related requests.</p>
                 </div>
@@ -185,7 +204,7 @@
                         </div>
 
                         <button id="downloadPrivacyBtn" type="button" class="privacy-action-btn">
-                            Download TXT
+                            Download PDF
                         </button>
                     </div>
                 </div>
@@ -195,7 +214,7 @@
 
                 <!-- Sidebar -->
                 <aside class="lg:sticky lg:top-32 lg:self-start">
-                    <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
+                    <div class="h-fit rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 backdrop-blur-xl">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Sections</h3>
                             <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">
@@ -206,7 +225,7 @@
                         <div id="privacyNavList" class="space-y-2"></div>
                     </div>
 
-                    <div class="mt-6 rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
+                    <div class="mt-6 h-fit rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
                         <h3 class="text-xl font-black">Grievance / Privacy Help</h3>
 
                         <p class="mt-3 leading-7 text-slate-400">
@@ -243,12 +262,11 @@
                         </p>
 
                         <h2 class="mt-4 text-4xl font-black sm:text-5xl">
-                            Manage demo data preferences.
+                            Manage your data preferences.
                         </h2>
 
                         <p class="mt-5 leading-8 text-slate-300">
-                            In this frontend version, preferences are saved in browser localStorage.
-                            Production system must save privacy preferences in backend with user ID, timestamp and policy version.
+                            Toggle the settings to customize how your trading metrics and preferences are managed. Settings are updated dynamically to reflect your active preferences.
                         </p>
                     </div>
 
@@ -300,6 +318,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="../js/privacy-policy.js"></script>
     <script src="../js/responsive.js"></script>
 </body>

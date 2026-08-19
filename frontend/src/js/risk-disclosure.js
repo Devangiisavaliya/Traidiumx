@@ -183,7 +183,7 @@ function showMiniMessage(message, type = "success") {
     }
 
     if (type === "error") {
-        messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-red-400/30 bg-red-400/15 px-5 py-4 text-sm font-black text-red-300 shadow-2xl transition";
+        messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-cyan-400/30 bg-cyan-400/15 px-5 py-4 text-sm font-black text-cyan-300 shadow-2xl transition";
     } else {
         messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-emerald-400/30 bg-emerald-400/15 px-5 py-4 text-sm font-black text-emerald-300 shadow-2xl transition";
     }
@@ -242,6 +242,20 @@ function renderRiskNav(sections) {
                     behavior: "smooth",
                     block: "start"
                 });
+
+                // Auto expand when clicked from navigation
+                const body = target.querySelector(".risk-card-body");
+                const chevron = target.querySelector(".risk-chevron");
+                const isOpen = target.classList.contains("bg-white/[0.08]");
+                if (body && !isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    target.classList.add("border-cyan-400/30");
+                    target.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                }
             }
         });
     });
@@ -255,27 +269,59 @@ function renderRiskContent(sections) {
     riskContentList.innerHTML = sections
         .map((section) => {
             return `
-                <article id="${section.id}" class="risk-section-card scroll-mt-32">
-                    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <article id="${section.id}" class="risk-section-card cursor-pointer scroll-mt-32 transition-all duration-300">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-2xl font-black text-white">${section.title}</h3>
+                            <h3 class="text-xl font-black text-white">${section.title}</h3>
                             <p class="mt-2 text-sm leading-6 text-slate-400">${section.summary}</p>
                         </div>
 
-                        <span class="shrink-0 rounded-full bg-red-400/10 px-3 py-1 text-xs font-black text-red-300">
-                            High Risk
-                        </span>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-300">
+                                Risk
+                            </span>
+                            <span class="risk-chevron text-slate-500 font-bold transition-transform duration-300">▼</span>
+                        </div>
                     </div>
 
-                    <div class="space-y-4">
-                        ${section.content.map((paragraph) => {
-                            return `<p class="leading-8 text-slate-300">${paragraph}</p>`;
-                        }).join("")}
+                    <div class="risk-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
+                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                            ${section.content.map((paragraph) => {
+                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                            }).join("")}
+                        </div>
                     </div>
                 </article>
             `;
         })
         .join("");
+
+    riskContentList.querySelectorAll(".risk-section-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            const body = card.querySelector(".risk-card-body");
+            const chevron = card.querySelector(".risk-chevron");
+            if (body) {
+                const isOpen = card.classList.contains("bg-white/[0.08]");
+                if (!isOpen) {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    card.classList.add("border-cyan-400/30");
+                    card.classList.add("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.add("text-cyan-400");
+                        chevron.style.transform = "rotate(180deg)";
+                    }
+                } else {
+                    body.style.maxHeight = "0px";
+                    card.classList.remove("border-cyan-400/30");
+                    card.classList.remove("bg-white/[0.08]");
+                    if (chevron) {
+                        chevron.classList.remove("text-cyan-400");
+                        chevron.style.transform = "rotate(0deg)";
+                    }
+                }
+            }
+        });
+    });
 
     if (riskEmptyState) {
         riskEmptyState.classList.toggle("hidden", sections.length > 0);
@@ -305,28 +351,61 @@ function getAllRiskText() {
         .join("\n\n");
 }
 
-function downloadRiskTxt() {
-    const text = [
-        "TRAIDIUMX RISK DISCLOSURE",
-        "Version: 1.0",
-        "Last Updated: 22 Jun 2026",
-        "",
-        getAllRiskText(),
-        "",
-        "Note: Demo frontend legal content. Review by legal and compliance professionals before production use."
-    ].join("\n");
+function downloadRiskPdf() {
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    container.style.width = "794px";
+    container.style.height = "0";
+    container.style.overflow = "hidden";
+    document.body.appendChild(container);
 
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const element = document.createElement("div");
+    element.style.width = "794px";
+    element.style.padding = "40px";
+    element.style.color = "#020617";
+    element.style.backgroundColor = "#ffffff";
+    element.style.fontFamily = "sans-serif";
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "traidiumx-risk-disclosure.txt";
-    link.click();
+    element.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 28px; font-weight: 800; color: #020617; margin: 0;">TraidiumX Risk Disclosure</h1>
+            <p style="font-size: 13px; color: #64748b; margin: 8px 0 0 0;">Version: 1.0 | Last Updated: 22 Jun 2026</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 30px;" />
+        ${riskSections.map(section => `
+            <div style="margin-bottom: 25px; page-break-inside: avoid;">
+                <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
+                <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
+                ${section.content.map(p => `
+                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
+                `).join("")}
+            </div>
+        `).join("")}
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />
+        <div style="text-align: center; font-size: 10px; color: #94a3b8;">
+            TraidiumX Compliance & Legal Operations Team.
+        </div>
+    `;
+    container.appendChild(element);
 
-    URL.revokeObjectURL(url);
+    const opt = {
+        margin:       15,
+        filename:     'traidiumx-risk-disclosure.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, scrollX: 0, scrollY: 0 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-    showMiniMessage("Risk disclosure downloaded successfully.", "success");
+    html2pdf()
+        .from(element)
+        .set(opt)
+        .save()
+        .then(() => {
+            container.remove();
+        });
+    showMiniMessage("Risk disclosure PDF downloaded successfully.", "success");
 }
 
 function printRisk() {
@@ -361,18 +440,7 @@ function saveRiskAcknowledgement() {
 
     updateAcknowledgedStatus();
 
-    if (riskAcknowledgementMessage) {
-        riskAcknowledgementMessage.classList.remove("hidden");
-        riskAcknowledgementMessage.textContent = "Risk acknowledgement saved successfully. Backend log will be added later.";
-    }
-
     showMiniMessage("Risk acknowledgement saved successfully.", "success");
-
-    window.setTimeout(() => {
-        if (riskAcknowledgementMessage) {
-            riskAcknowledgementMessage.classList.add("hidden");
-        }
-    }, 3000);
 }
 
 function initEvents() {
@@ -381,7 +449,7 @@ function initEvents() {
     }
 
     if (downloadRiskBtn) {
-        downloadRiskBtn.addEventListener("click", downloadRiskTxt);
+        downloadRiskBtn.addEventListener("click", downloadRiskPdf);
     }
 
     if (printRiskBtn) {

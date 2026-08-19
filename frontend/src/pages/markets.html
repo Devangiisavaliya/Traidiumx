@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
         .market-sync-visual {
@@ -490,7 +490,7 @@
                         </p>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
                         <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
                             <p class="text-sm text-slate-400">Listed Contracts</p>
                             <h3 id="totalContracts" class="mt-2 text-3xl font-black text-white">—</h3>
@@ -499,16 +499,6 @@
                         <div class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
                             <p class="text-sm text-slate-400">Max Leverage</p>
                             <h3 id="maxLeverageText" class="mt-2 text-3xl font-black text-cyan-400">—</h3>
-                        </div>
-
-                        <div class="rounded-[2rem] border border-cyan-400/30 bg-cyan-400/[0.06] p-5 backdrop-blur-xl">
-                            <p class="text-sm text-slate-400">Market Status</p>
-                            <div id="marketStatusText" class="mt-2 flex min-h-8 items-center text-cyan-300" aria-live="polite">
-                                <span class="market-sync-visual" aria-hidden="true">
-                                    <span></span><span></span><span></span><span></span><span></span>
-                                </span>
-                                <span class="sr-only">Market status is being prepared</span>
-                            </div>
                         </div>
                     </div>
 
