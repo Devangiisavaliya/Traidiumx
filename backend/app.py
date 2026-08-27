@@ -183,10 +183,45 @@ def create_app():
     def admin_support_page():
         return serve_admin_page("support/support-list.html")
 
+    def _serve_index_html():
+        index_path = os.path.join(FRONTEND_DIR, "index.html")
+        with open(index_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        current_origin = request.host_url.rstrip("/")
+        if current_origin.startswith("http://") and not ("127.0.0.1" in current_origin or "localhost" in current_origin):
+            current_origin = "https://" + current_origin[7:]
+
+        if "http" in current_origin:
+            html_content = html_content.replace(
+                '<meta property="og:image" content="/assets/logo-share.jpg" />',
+                f'<meta property="og:image" content="{current_origin}/assets/logo-share.jpg" />\n    <meta property="og:image:secure_url" content="{current_origin}/assets/logo-share.jpg" />\n    <meta property="og:url" content="{current_origin}/"'
+            ).replace(
+                '<meta name="twitter:image" content="/assets/logo-share.jpg" />',
+                f'<meta name="twitter:image" content="{current_origin}/assets/logo-share.jpg" />'
+            ).replace(
+                '<meta itemprop="image" content="/assets/logo-share.jpg" />',
+                f'<meta itemprop="image" content="{current_origin}/assets/logo-share.jpg" />'
+            ).replace(
+                '<link rel="image_src" href="/assets/logo-share.jpg" />',
+                f'<link rel="image_src" href="{current_origin}/assets/logo-share.jpg" />'
+            )
+
+        response = app.make_response(html_content)
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
+        response.headers["Cache-Control"] = "public, max-age=3600"
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        return response
+
     # Frontend Home
     @app.get("/")
     def frontend_home():
-        return send_from_directory(FRONTEND_DIR, "index.html")
+        return _serve_index_html()
+
+    # Frontend Portfolio Page
+    @app.get("/portfolio")
+    def frontend_portfolio():
+        return redirect("/src/pages/portfolio.html")
 
     # Backend Health API
     @app.get("/api/health")
@@ -301,7 +336,10 @@ def create_app():
 
     @app.after_request
     def add_header(response):
-        if request.path.startswith("/src/") or request.path.startswith("/admin/static/") or request.path.endswith(".js") or request.path.endswith(".css") or request.path.endswith(".html"):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        if request.path.endswith(".jpg") or request.path.endswith(".png") or request.path == "/" or request.path.endswith(".html"):
+            response.headers["Cache-Control"] = "public, max-age=3600"
+        elif request.path.startswith("/src/") or request.path.startswith("/admin/static/") or request.path.endswith(".js") or request.path.endswith(".css"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"

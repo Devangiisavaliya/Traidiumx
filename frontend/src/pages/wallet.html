@@ -451,17 +451,27 @@
             cursor: pointer;
         }
 
-        .tx-history-table-wrap table {
-            min-width: 580px !important;
+        @media (min-width: 1025px) {
+            .tx-history-table-wrap table {
+                min-width: 580px !important;
+            }
+        }
+        @media (max-width: 1024px) {
+            .tx-history-table-wrap table {
+                min-width: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
 
         @media (min-width: 641px) and (max-width: 768px) {
             .overflow-x-auto table {
-                min-width: 580px !important;
+                min-width: 0 !important;
+                width: 100% !important;
             }
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 1024px) {
             /* Hide the standard table header for assets */
             .overflow-x-auto table thead {
                 display: none !important;
@@ -985,6 +995,11 @@
                                     <select id="ledgerAccountFilter" class="hidden font-bold text-cyan-300" style="background-color:#020617; border-color: rgba(34, 211, 238, 0.2);">
                                         <option value="main">Main Account</option>
                                     </select>
+                                    <select id="ledgerPageSize">
+                                        <option value="5">5 / page</option>
+                                        <option value="10">10 / page</option>
+                                        <option value="20">20 / page</option>
+                                    </select>
                                     <input id="ledgerSearchInput" type="search" placeholder="Search ledger" />
                                     <select id="ledgerCurrencyFilter">
                                         <option value="all">All currencies</option>
@@ -1000,22 +1015,17 @@
                                         <option value="transfer">Transfer</option>
                                         <option value="fee">Fee</option>
                                     </select>
-                                    <select id="ledgerPageSize">
-                                        <option value="5">5 / page</option>
-                                        <option value="10">10 / page</option>
-                                        <option value="20">20 / page</option>
-                                    </select>
                                 </div>
                             </div>
                             <div class="tx-history-table-wrap">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Type</th>
-                                            <th>Direction</th>
-                                            <th>Amount</th>
-                                            <th>After</th>
+                                            <th class="tx-desktop-only">Date</th>
+                                            <th class="tx-desktop-only">Type</th>
+                                            <th class="tx-desktop-only">Direction</th>
+                                            <th class="tx-desktop-only">Amount</th>
+                                            <th class="tx-desktop-only">After</th>
                                         </tr>
                                     </thead>
                                     <tbody id="ledgerTableBody"></tbody>
@@ -1055,17 +1065,17 @@
                             </div>
                             <div class="tx-history-table-wrap">
                                 <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Reference</th>
-                                            <th>Network</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Verification</th>
-                                            <th class="text-right">Action</th>
-                                        </tr>
-                                    </thead>
+                                     <thead>
+                                         <tr>
+                                             <th class="tx-desktop-only">Date</th>
+                                             <th class="tx-desktop-only">Reference</th>
+                                             <th class="tx-desktop-only">Network</th>
+                                             <th class="tx-desktop-only">Amount</th>
+                                             <th class="tx-desktop-only">Status</th>
+                                             <th class="tx-desktop-only">Verification</th>
+                                             <th class="tx-desktop-only text-right">Action</th>
+                                         </tr>
+                                     </thead>
                                     <tbody id="depositTableBody"></tbody>
                                 </table>
                             </div>
@@ -1104,18 +1114,18 @@
                             </div>
                             <div class="tx-history-table-wrap">
                                 <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Reference</th>
-                                            <th>Network</th>
-                                            <th>Address</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Remark</th>
-                                            <th class="text-right">Action</th>
-                                        </tr>
-                                    </thead>
+                                     <thead>
+                                         <tr>
+                                             <th class="tx-desktop-only">Date</th>
+                                             <th class="tx-desktop-only">Reference</th>
+                                             <th class="tx-desktop-only">Network</th>
+                                             <th class="tx-desktop-only">Address</th>
+                                             <th class="tx-desktop-only">Amount</th>
+                                             <th class="tx-desktop-only">Status</th>
+                                             <th class="tx-desktop-only">Remark</th>
+                                             <th class="tx-desktop-only text-right">Action</th>
+                                         </tr>
+                                     </thead>
                                     <tbody id="withdrawalTableBody"></tbody>
                                 </table>
                             </div>

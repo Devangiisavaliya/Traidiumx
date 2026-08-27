@@ -3457,6 +3457,11 @@ function changePair(symbol) {
         elements.pairSelect.value = cleanSymbol;
     }
 
+    const mobPairSel = document.getElementById("pairSelectMobile");
+    if (mobPairSel) {
+        mobPairSel.value = cleanSymbol;
+    }
+
     if (elements.limitPriceInput) {
         elements.limitPriceInput.value = "";
     }
@@ -3553,7 +3558,133 @@ function txUpdateEstimatedMargin() {
     elements.walletEstMargin.textContent = `${formatNumber(estMargin, 2)} USDT`;
 }
 
+function initMobileFuturesDrawer() {
+    const mobileBuyBtn = document.getElementById("futuresMobileBuyBtn");
+    const mobileSellBtn = document.getElementById("futuresMobileSellBtn");
+    const mobileDrawer = document.getElementById("futuresMobileOrderDrawer");
+    const mobileDrawerClose = document.getElementById("futuresMobileDrawerClose");
+    const drawerTitle = document.getElementById("futuresMobileDrawerTitle");
+    const drawerSlot = document.getElementById("futuresMobileOrderFormSlot");
+    const orderPanelCard = document.querySelector(".rt-order-panel-card");
+
+    if (!mobileBuyBtn || !mobileSellBtn || !mobileDrawer || !drawerSlot || !orderPanelCard) return;
+
+    function openMobileDrawer(side) {
+        if (orderPanelCard.parentElement !== drawerSlot) {
+            drawerSlot.appendChild(orderPanelCard);
+        }
+
+        setOrderSide(side);
+
+        const cleanSym = state.currentSymbol || "BTCUSDT";
+        const coinName = cleanSym.replace("USDT", "").replace("USD", "");
+        if (drawerTitle) {
+            drawerTitle.textContent = side === "BUY" ? `Buy / Long ${coinName}` : `Sell / Short ${coinName}`;
+        }
+
+        mobileDrawer.classList.remove("hidden");
+        mobileDrawer.classList.add("flex");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeMobileDrawer() {
+        mobileDrawer.classList.add("hidden");
+        mobileDrawer.classList.remove("flex");
+        document.body.style.overflow = "";
+    }
+
+    mobileBuyBtn.addEventListener("click", () => openMobileDrawer("BUY"));
+    mobileSellBtn.addEventListener("click", () => openMobileDrawer("SELL"));
+
+    if (mobileDrawerClose) {
+        mobileDrawerClose.addEventListener("click", closeMobileDrawer);
+    }
+
+    mobileDrawer.addEventListener("click", (e) => {
+        if (e.target === mobileDrawer) {
+            closeMobileDrawer();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 1024) {
+            const rightPanel = document.querySelector(".rt-right-panel");
+            if (rightPanel && orderPanelCard.parentElement !== rightPanel) {
+                rightPanel.appendChild(orderPanelCard);
+            }
+            closeMobileDrawer();
+        }
+    });
+}
+
+function initMobileSubNav() {
+    const subNavButtons = document.querySelectorAll("[data-mobile-tab]");
+    if (!subNavButtons.length) return;
+
+    subNavButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const tabKey = button.getAttribute("data-mobile-tab");
+
+            subNavButtons.forEach((btn) => {
+                const isActive = btn === button;
+                btn.classList.toggle("active", isActive);
+                btn.classList.toggle("text-white", isActive);
+                btn.classList.toggle("text-slate-400", !isActive);
+                const indicator = btn.querySelector(".tab-indicator");
+                if (indicator) indicator.classList.toggle("hidden", !isActive);
+            });
+
+            const leftTerminal = document.querySelector(".rt-left-terminal");
+            const chartCard = document.querySelector(".rt-chart-card");
+            const positionsWrapper = document.querySelector(".rt-positions-wrapper-col");
+
+            // Strictly apply visibility toggles ONLY on mobile viewport (<= 1024px)
+            if (window.innerWidth <= 1024) {
+                if (leftTerminal) leftTerminal.style.display = "block";
+                if (chartCard) chartCard.style.display = "block";
+                if (positionsWrapper) positionsWrapper.style.display = "block";
+            } else {
+                // On Desktop (> 1024px), NEVER hide chart or positions wrapper!
+                if (leftTerminal) leftTerminal.style.display = "";
+                if (chartCard) chartCard.style.display = "";
+                if (positionsWrapper) positionsWrapper.style.display = "";
+            }
+
+            const tabMap = {
+                "positions": "positions",
+                "orders": "openOrders",
+                "openOrders": "openOrders",
+                "history": "orderHistory",
+                "orderHistory": "orderHistory",
+                "tradeHistory": "tradeHistory",
+                "transactionHistory": "transactionHistory"
+            };
+            const targetTerminalTab = tabMap[tabKey] || "positions";
+            state.activeBottomTab = targetTerminalTab;
+
+            document.querySelectorAll("[data-terminal-tab]").forEach((tab) => {
+                tab.classList.toggle("active", tab.getAttribute("data-terminal-tab") === targetTerminalTab);
+            });
+
+            renderBottomTable();
+        });
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 1024) {
+            const leftTerminal = document.querySelector(".rt-left-terminal");
+            const chartCard = document.querySelector(".rt-chart-card");
+            const positionsWrapper = document.querySelector(".rt-positions-wrapper-col");
+            if (leftTerminal) leftTerminal.style.display = "";
+            if (chartCard) chartCard.style.display = "";
+            if (positionsWrapper) positionsWrapper.style.display = "";
+        }
+    });
+}
+
 function initEvents() {
+    initMobileFuturesDrawer();
+    initMobileSubNav();
     if (elements.quantityInput) {
         elements.quantityInput.addEventListener("input", txUpdateEstimatedMargin);
         elements.quantityInput.addEventListener("change", txUpdateEstimatedMargin);
@@ -3605,6 +3736,66 @@ function initEvents() {
     if (elements.pairSelect) {
         elements.pairSelect.addEventListener("change", () => {
             changePair(elements.pairSelect.value);
+        });
+    }
+
+    const pairSelectMobile = document.getElementById("pairSelectMobile");
+    if (pairSelectMobile) {
+        pairSelectMobile.addEventListener("change", () => {
+            changePair(pairSelectMobile.value);
+        });
+    }
+
+    const walletQuickBtn = document.getElementById("futuresMobileWalletQuickBtn");
+    if (walletQuickBtn) {
+        walletQuickBtn.addEventListener("click", () => {
+            goToFuturesWalletAction("transfer");
+        });
+    }
+
+    document.getElementById("mobileWalletTransferBtn")?.addEventListener("click", () => goToFuturesWalletAction("transfer"));
+    document.getElementById("mobileWalletDepositBtn")?.addEventListener("click", () => goToFuturesWalletAction("deposit"));
+    document.getElementById("mobileWalletWithdrawBtn")?.addEventListener("click", () => goToFuturesWalletAction("withdraw"));
+
+    // Bind USD / INR Currency Toggle Pill inside Mobile Quick Bar
+    const mobileCurrToggleContainer = document.getElementById("mobileQuickBarCurrencyToggle");
+    if (mobileCurrToggleContainer) {
+        const currBtns = mobileCurrToggleContainer.querySelectorAll("[data-currency-switch]");
+
+        const syncActiveMobileCurrencyUI = () => {
+            const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+            currBtns.forEach((btn) => {
+                const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
+                const isActive = btnCurr === activeCurr;
+                btn.classList.toggle("text-cyan-300", isActive);
+                btn.classList.toggle("bg-cyan-500/20", isActive);
+                btn.classList.toggle("border", isActive);
+                btn.classList.toggle("border-cyan-400/40", isActive);
+                btn.classList.toggle("text-slate-400", !isActive);
+            });
+        };
+
+        currBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
+                localStorage.setItem("tx_navbar_currency", targetCurr);
+                syncActiveMobileCurrencyUI();
+                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: targetCurr } }));
+                if (typeof txUpdateFuturesWalletModalBalances === "function") {
+                    txUpdateFuturesWalletModalBalances();
+                }
+                if (typeof renderPositionsTable === "function") {
+                    renderPositionsTable();
+                }
+            });
+        });
+
+        syncActiveMobileCurrencyUI();
+        window.addEventListener("traidiumx:currency-change", syncActiveMobileCurrencyUI);
+        window.addEventListener("storage", (e) => {
+            if (e.key === "tx_navbar_currency") {
+                syncActiveMobileCurrencyUI();
+            }
         });
     }
 
@@ -5028,8 +5219,12 @@ function txRenderRecentSymbols() {
 }
 
 async function txLoadRecentSymbols(force = false) {
+    try {
+        let local = JSON.parse(localStorage.getItem("tx_recent_futures_symbols") || "[]");
+        if (local.length > 0) state.recentSymbols = local;
+    } catch (e) {}
+
     if (!isLoggedIn() || !txApiReady()) {
-        state.recentSymbols = [];
         state.recentSymbolsLoading = false;
         txRenderRecentSymbols();
         return;
@@ -5041,10 +5236,12 @@ async function txLoadRecentSymbols(force = false) {
         state.recentSymbolsLoading = true;
         txRenderRecentSymbols();
 
-        const response = await txApiRequestWithTimeout("/trading/recent-symbols", {}, 3000);
-        state.recentSymbols = Array.isArray(response?.data?.symbols) ? response.data.symbols : [];
+        const response = await txApiRequestWithTimeout("/trading/recent-symbols", {}, 1500);
+        if (Array.isArray(response?.data?.symbols) && response.data.symbols.length > 0) {
+            state.recentSymbols = response.data.symbols;
+        }
     } catch (error) {
-        console.warn("Unable to load server-backed Futures wishlist:", error);
+        // Silent fallback to local storage
     } finally {
         state.recentSymbolsLoading = false;
         txRenderRecentSymbols();
@@ -5053,6 +5250,13 @@ async function txLoadRecentSymbols(force = false) {
 
 async function txRecordRecentSymbol(symbol = state.currentSymbol) {
     const cleanSymbol = normalizeSymbol(symbol);
+    if (!cleanSymbol) return;
+
+    try {
+        let local = JSON.parse(localStorage.getItem("tx_recent_futures_symbols") || "[]");
+        local = [cleanSymbol, ...local.filter(s => s !== cleanSymbol)].slice(0, 10);
+        localStorage.setItem("tx_recent_futures_symbols", JSON.stringify(local));
+    } catch (e) {}
 
     if (!isLoggedIn() || !txApiReady() || !isSupportedSymbol(cleanSymbol)) {
         txRenderRecentSymbols();
@@ -5065,7 +5269,7 @@ async function txRecordRecentSymbol(symbol = state.currentSymbol) {
         const response = await txApiRequestWithTimeout("/trading/recent-symbols", {
             method: "POST",
             body: JSON.stringify({ symbol: cleanSymbol })
-        }, 3000);
+        }, 1500);
 
         if (sequence >= state.recentSymbolsAppliedSequence) {
             state.recentSymbolsAppliedSequence = sequence;
@@ -5073,7 +5277,7 @@ async function txRecordRecentSymbol(symbol = state.currentSymbol) {
             txRenderRecentSymbols();
         }
     } catch (error) {
-        console.warn("Unable to save recently viewed Futures symbol:", error);
+        // Silent fallback to local storage
     }
 }
 
@@ -6706,6 +6910,22 @@ function updateWalletUI() {
         txApplyMoneyCellColor(elements.futuresTradingPnl, unrealizedPnl);
     }
 
+    const mobPnlDisp = document.getElementById("mobileWalletPnlDisplay");
+    const mobTradBal = document.getElementById("mobileWalletTradingBalance");
+    const mobMainBal = document.getElementById("mobileWalletMainBalance");
+
+    if (mobPnlDisp) {
+        const dispVal = unrealizedPnl;
+        mobPnlDisp.textContent = `P/L ${dispVal >= 0 ? "+" : ""}$${formatNumber(Math.abs(dispVal), 2)}`;
+        txApplyMoneyCellColor(mobPnlDisp, unrealizedPnl);
+    }
+    if (mobTradBal && elements.futuresTotalBalance) {
+        mobTradBal.textContent = elements.futuresTotalBalance.textContent;
+    }
+    if (mobMainBal && elements.futuresEstimatedBalance) {
+        mobMainBal.textContent = elements.futuresEstimatedBalance.textContent;
+    }
+
     if (elements.marginRatioBar) {
         const ratio = wallet.total <= 0
             ? 0
@@ -7860,7 +8080,7 @@ function renderOrderHistoryTable() {
         state.orderHistoryPage = 1;
     }
 
-    const itemsPerPage = 10;
+    const itemsPerPage = window.innerWidth <= 1024 ? 1000 : 10;
     const totalItems = orders.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
@@ -7960,7 +8180,7 @@ function renderTradeHistoryTable() {
         state.tradeHistoryPage = 1;
     }
 
-    const itemsPerPage = 10;
+    const itemsPerPage = window.innerWidth <= 1024 ? 1000 : 10;
     const totalItems = trades.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
@@ -8061,7 +8281,7 @@ function renderTransactionHistoryTable() {
         state.transactionHistoryPage = 1;
     }
 
-    const itemsPerPage = 10;
+    const itemsPerPage = window.innerWidth <= 1024 ? 1000 : 10;
     const totalItems = ledger.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
@@ -8324,6 +8544,16 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         if (elements.indexPrice) elements.indexPrice.textContent = index > 0 ? formatNumber(index, index < 1 ? 6 : 2) : "--";
         if (elements.orderBookMid) elements.orderBookMid.textContent = `${formatNumber(numericPrice, decimals)} ${getQuoteAsset()}`;
         if (elements.limitPriceInput && !elements.limitPriceInput.value) elements.limitPriceInput.value = numericPrice.toFixed(decimals);
+
+        const mobBuyP = document.getElementById("futuresMobileBuyPrice");
+        const mobSellP = document.getElementById("futuresMobileSellPrice");
+        if (mobBuyP) mobBuyP.textContent = formatNumber(numericPrice, decimals);
+        if (mobSellP) mobSellP.textContent = formatNumber(numericPrice, decimals);
+
+        const mobHeaderTitle = document.getElementById("futuresMobileSymbolTitle");
+        const mobHeaderPrice = document.getElementById("futuresMobileHeaderPrice");
+        if (mobHeaderTitle) mobHeaderTitle.textContent = state.currentSymbol || "BTCUSDT";
+        if (mobHeaderPrice) mobHeaderPrice.textContent = `${formatNumber(numericPrice, decimals)} ${getQuoteAsset()}`;
 
         flashPriceBadge(numericPrice);
         txRefreshVisibleTradingRows();
@@ -8925,12 +9155,33 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 opt.textContent = sub.name;
                 selector.appendChild(opt);
             });
+            const createOpt = document.createElement("option");
+            createOpt.value = "__create_new__";
+            createOpt.textContent = "+ Create Sub Account";
+            selector.appendChild(createOpt);
             
             let activeSubId = localStorage.getItem("traidiumx_active_user_id");
             if (activeSubId) {
                 selector.value = activeSubId;
             } else {
                 selector.value = "main";
+            }
+
+            const mobSelector = document.getElementById("tradingAccountSelectorMobile");
+            if (mobSelector) {
+                mobSelector.innerHTML = `<option value="main">Main Account</option>`;
+                subAccounts.forEach(sub => {
+                    const opt = document.createElement("option");
+                    opt.value = sub.id;
+                    opt.textContent = sub.name;
+                    mobSelector.appendChild(opt);
+                });
+                const mobCreateOpt = document.createElement("option");
+                mobCreateOpt.value = "__create_new__";
+                mobCreateOpt.textContent = "+ Create Sub Account";
+                mobSelector.appendChild(mobCreateOpt);
+
+                mobSelector.value = activeSubId || "main";
             }
 
             const transferSelect = document.getElementById("subTransferAccount");
@@ -9049,25 +9300,53 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             });
         }
 
+        const handleSubAccountSelectorChange = (e) => {
+            const val = e.target.value;
+            if (val === "__create_new__") {
+                const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+                e.target.value = activeSubId;
+
+                const subModal = document.getElementById("subAccountModal");
+                if (subModal) {
+                    subModal.classList.remove("hidden");
+                    subModal.classList.add("flex");
+                    txRenderSubAccountsList();
+                }
+                return;
+            }
+
+            if (val === "main") {
+                localStorage.removeItem("traidiumx_active_user_id");
+            } else {
+                localStorage.setItem("traidiumx_active_user_id", val);
+            }
+            window.location.reload();
+        };
+
         const selector = document.getElementById("tradingAccountSelector");
         if (selector) {
-            selector.addEventListener("change", (e) => {
-                const val = e.target.value;
-                if (val === "main") {
-                    localStorage.removeItem("traidiumx_active_user_id");
-                } else {
-                    localStorage.setItem("traidiumx_active_user_id", val);
-                }
-                window.location.reload();
-            });
+            selector.addEventListener("change", handleSubAccountSelectorChange);
+        }
+
+        const mobSelector = document.getElementById("tradingAccountSelectorMobile");
+        if (mobSelector) {
+            mobSelector.addEventListener("change", handleSubAccountSelectorChange);
         }
 
         const subModal = document.getElementById("subAccountModal");
         const subOpenBtn = document.getElementById("subAccountSettingsBtn");
+        const mobSubOpenBtn = document.getElementById("subAccountSettingsBtnMobile");
         const subCloseBtn = document.getElementById("subAccountModalClose");
 
         if (subOpenBtn && subModal) {
             subOpenBtn.addEventListener("click", () => {
+                subModal.classList.remove("hidden");
+                subModal.classList.add("flex");
+                txRenderSubAccountsList();
+            });
+        }
+        if (mobSubOpenBtn && subModal) {
+            mobSubOpenBtn.addEventListener("click", () => {
                 subModal.classList.remove("hidden");
                 subModal.classList.add("flex");
                 txRenderSubAccountsList();

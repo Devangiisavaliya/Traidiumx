@@ -864,7 +864,7 @@ function isMarketSliderMobile() {
 function updateMarketSliderDots(index, dots) {
     dots.forEach((dot, dotIndex) => {
         dot.className = dotIndex === index
-            ? "h-1.5 w-5 rounded-full bg-violet-500 transition-all duration-300 cursor-pointer"
+            ? "h-1.5 w-5 rounded-full bg-cyan-400 shadow-md shadow-cyan-400/50 transition-all duration-300 cursor-pointer"
             : "h-1.5 w-1.5 rounded-full bg-slate-700 transition-all duration-300 cursor-pointer";
     });
 }

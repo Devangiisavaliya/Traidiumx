@@ -606,6 +606,11 @@ function applyWallet(wallet) {
         estBalNode.textContent = symbol + formatNumber(mainBal, 2);
     }
 
+    const mobTradBal = document.getElementById("optionsMobileTradingBalance");
+    const mobMainBal = document.getElementById("optionsMobileMainBalance");
+    if (mobTradBal && totalBalNode) mobTradBal.textContent = totalBalNode.textContent;
+    if (mobMainBal && estBalNode) mobMainBal.textContent = estBalNode.textContent;
+
     renderWalletBox();
     updateOptionsWalletModalBalances();
     return true;
@@ -2275,7 +2280,7 @@ async function renderBottomTable() {
             state.terminalCache.fills = data.fills || [];
             
             const fills = state.terminalCache.fills;
-            const itemsPerPage = 10;
+            const itemsPerPage = window.innerWidth <= 1024 ? 1000 : 10;
             const totalItems = fills.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
             
@@ -2297,7 +2302,7 @@ async function renderBottomTable() {
             state.terminalCache.orderHistory = data.orders || [];
             
             const orders = state.terminalCache.orderHistory;
-            const itemsPerPage = 10;
+            const itemsPerPage = window.innerWidth <= 1024 ? 1000 : 10;
             const totalItems = orders.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
             
@@ -2350,6 +2355,7 @@ function refreshOrderButton() {
 
     const required = getRequiredFunds();
     el.placeOrderBtn.textContent = `${state.activeAction} ${state.activeSide}`;
+    el.placeOrderBtn.setAttribute("data-action-side", state.activeAction || "BUY");
     el.placeOrderBtn.disabled = false;
 }
 
@@ -2494,6 +2500,11 @@ function initEvents() {
     if (el.placeOrderBtn) {
         el.placeOrderBtn.addEventListener("click", placeBackendOptionOrder);
     }
+
+    initMobileOptionsSubNav();
+    initOptionsMobileWalletBar();
+    initOptionsMobileMainToggle();
+initMobileOptionsDrawer();
 }
 
 function initMobileToggleEvents() {
@@ -2521,6 +2532,272 @@ function initMobileToggleEvents() {
             renderChain();
         });
     }
+}
+
+function initMobileOptionsSubNav() {
+    const subNavBtns = document.querySelectorAll("#optionsMobileSubNav [data-mobile-tab]");
+    const chainCard = document.querySelector(".os-chain-card");
+    const bottomCard = document.querySelector(".os-bottom-card");
+
+    if (!subNavBtns.length || !chainCard || !bottomCard) return;
+
+    function switchOptionsMobileTab(tabKey) {
+        subNavBtns.forEach((btn) => {
+            const isActive = btn.getAttribute("data-mobile-tab") === tabKey;
+            btn.classList.toggle("active", isActive);
+            btn.classList.toggle("text-white", isActive);
+            btn.classList.toggle("text-slate-400", !isActive);
+            const indicator = btn.querySelector(".tab-indicator");
+            if (indicator) {
+                indicator.classList.toggle("hidden", !isActive);
+            }
+        });
+
+        if (window.innerWidth <= 1024) {
+            chainCard.style.display = "flex";
+            bottomCard.style.display = "block";
+
+            const targetTabBtn = document.querySelector(`.os-bottom-card [data-bottom-tab="${tabKey}"]`) ||
+                document.querySelector(`.os-bottom-card button[data-tab="${tabKey}"]`);
+            if (targetTabBtn) {
+                targetTabBtn.click();
+            }
+        }
+    }
+
+    subNavBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const tabKey = btn.getAttribute("data-mobile-tab");
+            switchOptionsMobileTab(tabKey);
+        });
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 1024) {
+            chainCard.style.display = "";
+            bottomCard.style.display = "";
+        }
+    });
+}
+
+function initOptionsMobileWalletBar() {
+    const mobTrans = document.getElementById("mobileOptionsTransferBtn");
+    const mobDep = document.getElementById("mobileOptionsDepositBtn");
+    const mobWith = document.getElementById("mobileOptionsWithdrawBtn");
+    const mobCurrToggle = document.getElementById("optionsMobileCurrencyToggle");
+
+    mobTrans?.addEventListener("click", () => openOptionsWalletModal("transfer"));
+    mobDep?.addEventListener("click", () => openOptionsWalletModal("deposit"));
+    mobWith?.addEventListener("click", () => openOptionsWalletModal("withdraw"));
+
+    if (mobCurrToggle) {
+        const currBtns = mobCurrToggle.querySelectorAll("[data-currency-switch]");
+        const syncActiveCurrencyUI = () => {
+            const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+            currBtns.forEach((btn) => {
+                const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
+                const isActive = btnCurr === activeCurr;
+                btn.classList.toggle("text-cyan-300", isActive);
+                btn.classList.toggle("bg-cyan-500/20", isActive);
+                btn.classList.toggle("border", isActive);
+                btn.classList.toggle("border-cyan-400/40", isActive);
+                btn.classList.toggle("text-slate-400", !isActive);
+            });
+        };
+
+        currBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
+                localStorage.setItem("tx_navbar_currency", targetCurr);
+                syncActiveCurrencyUI();
+                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: targetCurr } }));
+                if (typeof renderOptionsWalletBalances === "function") {
+                    renderOptionsWalletBalances();
+                }
+            });
+        });
+
+        syncActiveCurrencyUI();
+        window.addEventListener("traidiumx:currency-change", syncActiveCurrencyUI);
+    }
+}
+
+
+function initOptionsMobileMainToggle() {
+    const chainBtn = document.getElementById("optionsTitleChainBtn");
+    const bookBtn = document.getElementById("optionsTitleBookBtn");
+    const subText = document.getElementById("chainSubText");
+    const osChainCard = document.querySelector(".os-chain-card");
+    const orderBookCard = document.querySelector(".os-book-card");
+    const sideMarketCard = document.querySelector(".os-side-market-card");
+
+    if (!chainBtn || !bookBtn || !osChainCard || !orderBookCard || !sideMarketCard) return;
+
+    function resetDesktopLayout() {
+        if (orderBookCard.parentElement !== sideMarketCard) {
+            sideMarketCard.appendChild(orderBookCard);
+        }
+        orderBookCard.style.display = "";
+        orderBookCard.style.marginTop = "";
+
+        Array.from(osChainCard.children).forEach(child => {
+            if (child !== orderBookCard) {
+                child.style.display = "";
+            }
+        });
+
+        if (chainBtn) chainBtn.className = "text-xl sm:text-2xl font-black text-white cursor-pointer transition border-b-2 border-cyan-400 pb-0.5";
+        if (bookBtn) bookBtn.className = "text-xl sm:text-2xl font-black text-slate-500 hover:text-white cursor-pointer transition border-b-2 border-transparent pb-0.5 lg:hidden";
+        if (subText) {
+            const sym = state.activeUnderlying || "BTC";
+            subText.textContent = `${sym} live options chain · select strike to trade`;
+        }
+    }
+
+    function showChainView() {
+        if (window.innerWidth > 1024) {
+            resetDesktopLayout();
+            return;
+        }
+        chainBtn.className = "text-xl sm:text-2xl font-black text-white cursor-pointer transition border-b-2 border-cyan-400 pb-0.5";
+        bookBtn.className = "text-xl sm:text-2xl font-black text-slate-500 hover:text-white cursor-pointer transition border-b-2 border-transparent pb-0.5 lg:hidden";
+        
+        if (subText) {
+            const sym = state.activeUnderlying || "BTC";
+            subText.textContent = `${sym} live options chain · select strike to trade`;
+        }
+
+        if (orderBookCard.parentElement !== sideMarketCard) {
+            sideMarketCard.appendChild(orderBookCard);
+        }
+        orderBookCard.style.setProperty("display", "none", "important");
+        orderBookCard.style.marginTop = "";
+
+        Array.from(osChainCard.children).forEach(child => {
+            if (child !== orderBookCard) {
+                child.style.display = "";
+            }
+        });
+    }
+
+    function showBookView() {
+        if (window.innerWidth > 1024) {
+            resetDesktopLayout();
+            return;
+        }
+        bookBtn.className = "text-xl sm:text-2xl font-black text-cyan-300 cursor-pointer transition border-b-2 border-cyan-400 pb-0.5 lg:hidden";
+        chainBtn.className = "text-xl sm:text-2xl font-black text-slate-500 hover:text-white cursor-pointer transition border-b-2 border-transparent pb-0.5";
+        
+        if (subText) {
+            const sym = state.activeUnderlying || "BTC";
+            subText.textContent = `${sym} live order book · bids & asks depth`;
+        }
+
+        if (orderBookCard.parentElement !== osChainCard) {
+            osChainCard.appendChild(orderBookCard);
+        }
+
+        Array.from(osChainCard.children).forEach(child => {
+            if (child.classList.contains("os-chain-header")) {
+                child.style.display = "";
+            } else if (child === orderBookCard) {
+                child.style.setProperty("display", "block", "important");
+                child.style.marginTop = "16px";
+            } else {
+                child.style.display = "none";
+            }
+        });
+
+        orderBookCard.style.setProperty("display", "block", "important");
+        orderBookCard.style.marginTop = "16px";
+    }
+
+    chainBtn.addEventListener("click", showChainView);
+    bookBtn.addEventListener("click", showBookView);
+
+    if (window.innerWidth > 1024) {
+        resetDesktopLayout();
+    } else {
+        showChainView();
+    }
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 1024) {
+            resetDesktopLayout();
+        } else {
+            const isBookActive = bookBtn.classList.contains("text-cyan-300");
+            if (isBookActive) {
+                showBookView();
+            } else {
+                showChainView();
+            }
+        }
+    });
+}
+
+function initMobileOptionsDrawer() {
+    const mobileBuyBtn = document.getElementById("optionsMobileBuyBtn");
+    const mobileSellBtn = document.getElementById("optionsMobileSellBtn");
+    const mobileTradeBtn = document.getElementById("optionsMobileTradeBtn");
+    const mobileDrawer = document.getElementById("optionsMobileOrderDrawer");
+    const mobileDrawerClose = document.getElementById("optionsMobileDrawerClose");
+    const drawerTitle = document.getElementById("optionsMobileDrawerTitle");
+    const drawerSlot = document.getElementById("optionsMobileOrderFormSlot");
+    const orderCard = document.querySelector(".os-order-card");
+
+    if (!mobileDrawer || !drawerSlot || !orderCard) return;
+
+    function openOptionsMobileDrawer(side) {
+        if (orderCard.parentElement !== drawerSlot) {
+            drawerSlot.appendChild(orderCard);
+            orderCard.style.display = "block";
+        }
+
+        if (side) {
+            state.activeAction = side;
+            const buyTabBtn = document.querySelector('.os-buy-sell-tabs button[data-action="BUY"]');
+            const sellTabBtn = document.querySelector('.os-buy-sell-tabs button[data-action="SELL"]');
+            if (side === "BUY" && buyTabBtn) buyTabBtn.click();
+            if (side === "SELL" && sellTabBtn) sellTabBtn.click();
+        }
+
+        if (drawerTitle) {
+            const sym = state.activeUnderlying || "BTC";
+            drawerTitle.textContent = side ? `${side === "SELL" ? "Sell" : "Buy"} ${sym} Option` : `Trade ${sym} Options`;
+        }
+
+        mobileDrawer.classList.remove("hidden");
+        mobileDrawer.classList.add("flex");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeOptionsMobileDrawer() {
+        mobileDrawer.classList.add("hidden");
+        mobileDrawer.classList.remove("flex");
+        document.body.style.overflow = "";
+    }
+
+    mobileBuyBtn?.addEventListener("click", () => openOptionsMobileDrawer("BUY"));
+    mobileSellBtn?.addEventListener("click", () => openOptionsMobileDrawer("SELL"));
+    mobileTradeBtn?.addEventListener("click", () => openOptionsMobileDrawer("BUY"));
+    mobileDrawerClose?.addEventListener("click", closeOptionsMobileDrawer);
+
+    mobileDrawer.addEventListener("click", (e) => {
+        if (e.target === mobileDrawer) {
+            closeOptionsMobileDrawer();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 1024) {
+            const grid = document.querySelector(".os-terminal-grid");
+            if (grid && orderCard.parentElement !== grid) {
+                grid.appendChild(orderCard);
+                orderCard.style.display = "";
+            }
+            closeOptionsMobileDrawer();
+        }
+    });
 }
 
 function startOptionsPriceSocket() {

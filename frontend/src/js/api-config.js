@@ -211,7 +211,6 @@ function isCurrentPagePublic() {
         "fee-structure.html",
         "blog.html",
         "blog-details.html",
-        "challenge.html",
         "kyc-aml-policy.html"
     ];
 

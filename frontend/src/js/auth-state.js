@@ -6,7 +6,9 @@
         "/refer-earn.html",
         "/profile.html",
         "/dashboard.html",
-        "/orders.html"
+        "/orders.html",
+        "/portfolio.html",
+        "/portfolio"
     ];
     const currentPath = window.location.pathname.toLowerCase();
     const isProtected = protectedPages.some(page => currentPath.endsWith(page));
@@ -320,6 +322,15 @@ function renderLoggedInDesktop(container, user) {
                             </div>
                         </div>
 
+                        <a href="/src/pages/portfolio.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 3v18h18"></path>
+                                <path d="M18 17V9"></path>
+                                <path d="M13 17V5"></path>
+                                <path d="M8 17v-3"></path>
+                            </svg>
+                            <span>Portfolio</span>
+                        </a>
                         <a href="/src/pages/orders.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>

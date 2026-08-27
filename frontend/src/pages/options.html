@@ -641,18 +641,19 @@
 
         .rt-pair-funds-btn.transfer {
             background: rgba(245, 158, 11, 0.16);
-            border: 1px solid rgba(245, 158, 11, 0.34);
+            border: 1px solid rgba(234, 179, 8, 0.6);
             color: #fde68a;
         }
 
         .rt-pair-funds-btn.deposit {
-            background: linear-gradient(135deg, #34d399, #22d3ee);
-            color: #020617;
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(52, 211, 153, 0.6);
+            color: #34d399;
         }
 
         .rt-pair-funds-btn.withdraw {
             background: rgba(248, 113, 113, 0.15);
-            border: 1px solid rgba(248, 113, 113, 0.28);
+            border: 1px solid rgba(244, 63, 94, 0.5);
             color: #fecaca;
         }
 
@@ -727,6 +728,44 @@
     <div data-component="navbar"></div>
 
     <main class="os-page pt-32">
+        <!-- MOBILE TRADING WALLET QUICK BAR -->
+        <div id="optionsMobileWalletQuickBar" class="bg-[#08111e] p-2.5 border-b border-white/10 lg:hidden">
+            <!-- Top Row: 3 Action Buttons -->
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <button id="mobileOptionsTransferBtn" type="button" class="rounded-xl border border-amber-500/60 bg-amber-500/15 py-1.5 text-center text-xs font-black text-amber-300 hover:bg-amber-500/25 active:scale-95 transition cursor-pointer">
+                    Transfer
+                </button>
+                <button id="mobileOptionsDepositBtn" type="button" class="rounded-xl border border-emerald-500/60 bg-emerald-500/15 py-1.5 text-center text-xs font-black text-emerald-400 hover:bg-emerald-500/25 active:scale-95 transition cursor-pointer">
+                    Deposit
+                </button>
+                <button id="mobileOptionsWithdrawBtn" type="button" class="rounded-xl border border-rose-500/60 bg-rose-500/15 py-1.5 text-center text-xs font-black text-rose-400 hover:bg-rose-500/25 active:scale-95 transition cursor-pointer">
+                    Withdraw
+                </button>
+            </div>
+
+            <!-- Middle Row: USD / INR Currency Toggle Pill & P/L Display -->
+            <div class="flex items-center justify-between mt-2.5 mb-2 px-1 gap-2">
+                <!-- USD / INR Toggle Pill -->
+                <div id="optionsMobileCurrencyToggle" class="inline-flex items-center rounded-xl border border-cyan-400/25 bg-slate-900/90 p-0.5 text-xs font-black shadow-sm">
+                    <button type="button" data-currency-switch="USDT" class="tx-mobile-curr-btn rounded-lg px-2.5 py-1 transition cursor-pointer text-cyan-300 bg-cyan-500/20 border border-cyan-400/40">
+                        USD ($)
+                    </button>
+                    <button type="button" data-currency-switch="INR" class="tx-mobile-curr-btn rounded-lg px-2.5 py-1 transition cursor-pointer text-slate-400 hover:text-white">
+                        INR (₹)
+                    </button>
+                </div>
+
+                <!-- P/L Display -->
+                <div id="optionsMobilePnlDisplay" class="text-sm font-black text-emerald-400">P/L $0.00</div>
+            </div>
+
+            <!-- Bottom: Trading & Main Wallet Balances -->
+            <div class="flex items-center justify-between gap-2 mt-1.5 px-1 text-xs font-bold text-slate-400 border-t border-white/5 pt-1.5">
+                <div>Trading <strong id="optionsMobileTradingBalance" class="text-white">$0.00</strong></div>
+                <div>Main Wallet <strong id="optionsMobileMainBalance" class="text-cyan-300">$0.00</strong></div>
+            </div>
+        </div>
+
         <section class="mx-auto max-w-[1800px] px-3 pb-10 sm:px-4 lg:px-6">
 
             <!-- MOVING MARKET TICKER -->
@@ -828,31 +867,43 @@
             <!-- OPTIONS TERMINAL GRID -->
             <section class="os-terminal-grid mt-4">
 
+                <!-- MOBILE SUB-NAV TABS (Positions, Fills, Order History) -->
+                <div id="optionsMobileSubNav" class="grid grid-cols-3 items-center border border-white/10 rounded-2xl bg-[#07111f] p-1 text-xs font-black lg:hidden mb-3 w-full box-border">
+                    <button type="button" data-mobile-tab="positions" class="mobile-sub-tab active relative py-2 px-1 text-white cursor-pointer text-center w-full justify-center">
+                        Positions
+                        <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400"></span>
+                    </button>
+                    <button type="button" data-mobile-tab="fills" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                        Fills
+                        <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                    </button>
+                    <button type="button" data-mobile-tab="orderHistory" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                        Order History
+                        <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                    </button>
+                </div>
+
                 <!-- LEFT: OPTIONS CHAIN -->
                 <div class="os-chain-card">
                     <div class="os-chain-header">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2 hidden">
-                                <button class="os-view-tab active" type="button" data-view-tab="prices">Prices</button>
-                                <button class="os-view-tab" type="button" data-view-tab="greeks">Greeks</button>
-                                <button class="os-view-tab" type="button" data-view-tab="data">Data</button>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-4 sm:gap-6 mt-1 mb-0.5">
+                                <h2 id="optionsTitleChainBtn" class="text-xl sm:text-2xl font-black text-white cursor-pointer transition border-b-2 border-cyan-400 pb-0.5">Options Chain</h2>
+                                <h2 id="optionsTitleBookBtn" class="text-xl sm:text-2xl font-black text-slate-500 hover:text-white cursor-pointer transition border-b-2 border-transparent pb-0.5 lg:hidden">Order Book</h2>
                             </div>
-
-                            <h2 class="mt-4 text-xl font-black text-white sm:text-2xl">Options Chain</h2>
-                            <p id="chainSubText" class="mt-1 text-xs font-semibold text-slate-500">BTC live options chain · select strike to trade</p>
+                            <p id="chainSubText" class="mt-0.5 text-xs font-semibold text-slate-500 truncate">BTC live options chain · select strike to trade</p>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-3">
-                            <div id="expiryTabs" class="os-expiry-tabs">
+                        <div class="flex flex-wrap lg:flex-nowrap items-center gap-2.5 shrink-0 mt-2 sm:mt-0">
+                            <div id="expiryTabs" class="os-expiry-tabs flex items-center">
                                 <button class="active" type="button" data-expiry-days="1">Today</button>
                                 <button type="button" data-expiry-days="7">7D</button>
                                 <button type="button" data-expiry-days="14">14D</button>
                                 <button type="button" data-expiry-days="30">30D</button>
                             </div>
 
-                            <div class="flex flex-row items-center gap-2">
+                            <div class="flex items-center gap-2">
                                 <input id="strikeSearchInput" type="search" class="os-search-input" placeholder="Search strike" />
-
                                 <button id="resetChainBtn" class="os-small-btn" type="button">Reset</button>
                             </div>
                         </div>
@@ -1359,6 +1410,29 @@
                         <div id="subTransferMessage" class="hidden text-xs font-bold p-3 rounded-xl"></div>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE FLOATING ACTION BAR (Buy / Sell Buttons) -->
+    <div id="optionsMobileActionBar" class="fixed bottom-0 left-0 right-0 z-40 bg-[#07111f]/95 border-t border-white/10 p-3 backdrop-blur-lg lg:hidden flex items-center gap-3">
+        <button id="optionsMobileSellBtn" type="button" style="background-color: #ef4444 !important; background: #ef4444 !important; color: #ffffff !important;" class="flex-1 rounded-2xl py-3.5 text-center font-black text-white shadow-lg shadow-red-500/40 active:scale-95 transition cursor-pointer">
+            <span class="block text-sm font-black uppercase tracking-wider text-white">SELL</span>
+        </button>
+        <button id="optionsMobileBuyBtn" type="button" style="background-color: #10b981 !important; background: #10b981 !important; color: #020617 !important;" class="flex-1 rounded-2xl py-3.5 text-center font-black text-slate-950 shadow-lg shadow-emerald-500/40 active:scale-95 transition cursor-pointer">
+            <span class="block text-sm font-black uppercase tracking-wider text-slate-950">BUY</span>
+        </button>
+    </div>
+
+    <!-- Mobile Order Drawer Modal -->
+    <div id="optionsMobileOrderDrawer" class="fixed inset-0 z-[9999] hidden items-end sm:items-center justify-center bg-slate-950/80 backdrop-blur-md p-0 sm:p-4 lg:hidden">
+        <div class="relative max-h-[75vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] border border-white/10 bg-[#07111f] p-4 shadow-2xl">
+            <div class="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#07111f] pb-3 mb-3 pt-1">
+                <h3 id="optionsMobileDrawerTitle" class="text-base font-black text-white">Trade Options</h3>
+                <button id="optionsMobileDrawerClose" type="button" class="px-3.5 py-1.5 text-xs font-black text-slate-300 hover:text-white bg-slate-800/90 rounded-xl border border-white/15 transition cursor-pointer">Close</button>
+            </div>
+            <div id="optionsMobileOrderFormSlot">
+                <!-- Order form will be moved here on mobile when opened -->
             </div>
         </div>
     </div>

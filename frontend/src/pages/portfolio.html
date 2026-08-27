@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>My Portfolio | TraidiumX Command Center</title>
+    <link rel="stylesheet" href="/dist/output.css" />
+    <link rel="stylesheet" href="/src/css/custom.css" />
+    <link rel="stylesheet" href="/src/css/animations.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --color-bg: #030712;
+            --color-card-bg: rgba(15, 23, 42, 0.75);
+            --color-card-border: rgba(255, 255, 255, 0.08);
+            --color-accent-cyan: #22d3ee;
+            --color-accent-emerald: #10b981;
+            --color-accent-purple: #a855f7;
+            --color-accent-amber: #f59e0b;
+        }
+
+        body {
+            background: #020617 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .pf-shell {
+            max-width: 1720px;
+            margin: 0 auto;
+            padding: 130px 16px 80px;
+        }
+
+        @media (min-width: 640px) {
+            .pf-shell {
+                padding-left: 24px;
+                padding-right: 24px;
+                padding-top: 136px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .pf-shell {
+                padding-left: 32px;
+                padding-right: 32px;
+                padding-top: 140px;
+            }
+
+            .pf-mobile-only,
+            td.pf-mobile-only,
+            .rt-mobile-card-cell {
+                display: none !important;
+            }
+
+            th.pf-desktop-only,
+            td.pf-desktop-only {
+                display: table-cell !important;
+            }
+        }
+
+        /* Glassmorphism Card System */
+        .pf-glass-card {
+            background: rgba(12, 24, 48, 0.8) !important;
+            border: 1px solid rgba(34, 211, 238, 0.2) !important;
+            border-radius: 2rem !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .pf-glass-card:hover {
+            border-color: rgba(34, 211, 238, 0.35) !important;
+            box-shadow: 0 30px 60px -12px rgba(34, 211, 238, 0.12) !important;
+        }
+
+        /* Master Hero Header */
+        .pf-master-hero {
+            border: 1px solid rgba(34, 211, 238, 0.25) !important;
+            border-radius: 2.5rem !important;
+            background: linear-gradient(135deg, rgba(12, 24, 48, 0.95) 0%, rgba(7, 16, 33, 0.98) 50%, rgba(8, 47, 73, 0.4) 100%) !important;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(20px) !important;
+        }
+
+        /* Action Buttons */
+        .pf-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 9999px !important;
+            padding: 10px 22px;
+            color: #22d3ee;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .pf-btn:hover {
+            background: #22d3ee;
+            color: #020617;
+            border-color: #22d3ee;
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
+        }
+
+        .pf-btn-primary {
+            border: none !important;
+            background: #22d3ee !important;
+            color: #020617 !important;
+            font-weight: 900 !important;
+            box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3) !important;
+        }
+
+        .pf-btn-primary:hover {
+            background: #67e8f9 !important;
+            color: #020617 !important;
+            transform: translateY(-2px);
+        }
+
+        .pf-btn-success {
+            border: 1px solid rgba(34, 211, 238, 0.3) !important;
+            background: rgba(34, 211, 238, 0.15) !important;
+            color: #22d3ee !important;
+            font-weight: 800 !important;
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.15) !important;
+            backdrop-filter: blur(12px) !important;
+        }
+
+        .pf-btn-success:hover {
+            background: #22d3ee !important;
+            color: #020617 !important;
+            border-color: #22d3ee !important;
+            box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Chart Range Pill Buttons */
+        .pf-chart-pill-btn {
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pf-chart-pill-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .pf-chart-pill-btn.active {
+            color: #020617;
+            background: #22d3ee;
+            border-color: #22d3ee;
+            box-shadow: 0 4px 16px rgba(34, 211, 238, 0.4);
+        }
+
+        /* Floating Price Badge */
+        .pf-price-badge {
+            position: absolute;
+            right: 24px;
+            top: 24px;
+            z-index: 10;
+            background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 7px 16px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(34, 211, 238, 0.35);
+            letter-spacing: 0.02em;
+        }
+
+        /* Nav Tab Pills */
+        .pf-pill-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #94a3b8;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0 !important;
+        }
+
+        .pf-pill-tab:hover {
+            color: #f1f5f9;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .pf-pill-tab.active {
+            color: #22d3ee;
+            background: rgba(34, 211, 238, 0.12);
+            border-color: rgba(34, 211, 238, 0.35);
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.18);
+        }
+
+        .pf-badge-pill {
+            padding: 3px 9px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .pf-pill-tab.active .pf-badge-pill {
+            background: rgba(34, 211, 238, 0.25);
+            color: #22d3ee;
+        }
+
+        .pf-pill-tab:not(.active) .pf-badge-pill {
+            background: rgba(255, 255, 255, 0.08);
+            color: #64748b;
+        }
+
+        /* Modern Table System */
+        .pf-table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 16px;
+        }
+
+        .pf-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-align: left;
+        }
+
+        .pf-table th {
+            padding: 16px 20px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            background: rgba(15, 23, 42, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pf-table td {
+            padding: 18px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+            transition: background 0.2s ease;
+        }
+
+        .pf-table tr:hover td {
+            background: rgba(34, 211, 238, 0.04);
+        }
+
+        .pf-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .pf-side-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 11px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .pf-side-badge.long {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .pf-side-badge.short {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+        }
+
+        .pf-side-badge.call {
+            background: rgba(34, 211, 238, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+
+        .pf-side-badge.put {
+            background: rgba(34, 211, 238, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
+        }
+
+        /* Progress Bar */
+        .pf-progress-bar-container {
+            width: 100%;
+            height: 14px;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            display: flex;
+            padding: 2px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .pf-progress-segment {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Stat Card Micro Glow */
+        .pf-stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pf-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+
+        /* Portfolio Market Intro Loading Screen */
+        .tx-pf-page-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle at 50% 40%, rgba(12, 24, 48, 0.98), #020617 85%);
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .tx-pf-page-intro.is-leaving {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .tx-pf-intro-icon-wrap {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tx-pf-intro-icon-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            box-shadow: 0 0 40px rgba(34, 211, 238, 0.25), inset 0 0 20px rgba(34, 211, 238, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tx-pf-intro-pulse-ring {
+            position: absolute;
+            inset: -10px;
+            border-radius: 32px;
+            border: 1.5px dashed rgba(34, 211, 238, 0.4);
+            animation: txPfSpinRing 10s linear infinite;
+        }
+
+        @keyframes txPfSpinRing {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .tx-pf-intro-bar-wrap {
+            width: 220px;
+            height: 4px;
+            border-radius: 9999px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tx-pf-intro-bar {
+            height: 100%;
+            width: 60%;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #06b6d4, #10b981, #22d3ee);
+            animation: txPfIntroBarAnim 1.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes txPfIntroBarAnim {
+            0% { transform: translateX(-40%); }
+            100% { transform: translateX(110%); }
+        }
+
+        /* Comprehensive Responsive System (Mobile 320px -> 4K Desktop) */
+        @media (max-width: 639px) {
+            .pf-shell {
+                padding-top: 104px !important;
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                padding-bottom: 60px !important;
+            }
+
+            .pf-master-hero {
+                padding: 1.25rem !important;
+                border-radius: 1.5rem !important;
+            }
+
+            .pf-glass-card {
+                border-radius: 1.5rem !important;
+                padding: 1.25rem !important;
+            }
+
+            .pf-hero-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.625rem !important;
+            }
+
+            .pf-btn {
+                width: 100% !important;
+                justify-content: center !important;
+                padding: 10px 16px !important;
+                font-size: 12px !important;
+            }
+
+            .pf-table th {
+                padding: 12px 14px !important;
+                font-size: 10px !important;
+            }
+
+            .pf-table td {
+                padding: 12px 14px !important;
+                font-size: 12px !important;
+            }
+
+            .pf-chart-pill-btn {
+                padding: 5px 10px !important;
+                font-size: 11px !important;
+            }
+
+            .pf-pill-tab {
+                padding: 8px 12px !important;
+                font-size: 11.5px !important;
+                border-radius: 12px !important;
+                gap: 6px !important;
+            }
+        }
+
+        @media (min-width: 640px) and (max-width: 1023px) {
+            .pf-shell {
+                padding-top: 120px !important;
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+        }
+
+        /* Custom Scrollbar for Touch Tables */
+        .pf-table-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .pf-table-wrapper::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 9999px;
+        }
+
+        .pf-table-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(34, 211, 238, 0.25);
+            border-radius: 9999px;
+        }
+
+        .pf-table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 211, 238, 0.5);
+        }
+    </style>
+</head>
+<body data-page="portfolio" class="min-h-screen bg-[#020617] text-white selection:bg-cyan-500 selection:text-slate-950">
+    <!-- Portfolio Market Intro Loader Overlay -->
+    <div id="txPfPageIntro" class="tx-pf-page-intro">
+        <div class="text-center p-6">
+            <div class="tx-pf-intro-icon-wrap">
+                <div class="tx-pf-intro-pulse-ring"></div>
+                <div class="tx-pf-intro-icon-box">
+                    <svg class="w-9 h-9 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-wider text-white">TRAIDIUM<span class="text-cyan-400">X</span></h1>
+                <p class="text-[11px] font-black uppercase tracking-[0.3em] text-cyan-400/80 mt-1">Portfolio & Market Analytics</p>
+            </div>
+
+            <div class="mt-8 flex flex-col items-center gap-3">
+                <p id="txPfIntroStatus" class="text-xs font-extrabold tracking-widest text-slate-300 uppercase animate-pulse">
+                    SYNCING PORTFOLIO EQUITY CURVE...
+                </p>
+                <div class="tx-pf-intro-bar-wrap">
+                    <div class="tx-pf-intro-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed inset-0 -z-20 pointer-events-none" style="background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.03) 45%, transparent 70%), radial-gradient(circle at top right, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.02) 45%, transparent 70%);"></div>
+
+    <!-- Navigation Component -->
+    <div data-component="navbar"></div>
+
+    <main class="pf-shell">
+        <!-- Master Hero Header Section -->
+        <section class="pf-master-hero p-6 sm:p-8 lg:p-10 mb-8 relative overflow-hidden">
+            <!-- Background Decorative Glows -->
+            <div class="absolute -right-24 -top-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-24 -bottom-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 flex flex-wrap items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 shadow-sm">
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            Live Portfolio Analytics
+                        </span>
+                        <span id="pfKycBadge" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 hidden">
+                            ✓ Verified
+                        </span>
+                    </div>
+
+                    <h1 class="mt-3.5 text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                        Portfolio Command Center
+                    </h1>
+
+                    <p id="pfUserGreeting" class="mt-2 text-sm sm:text-base font-medium text-slate-300 max-w-2xl leading-relaxed">
+                        Track live account net worth, performance equity curve, futures collateral & options positions in real time.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 pf-hero-actions">
+                    <button id="pfRefreshBtn" type="button" class="pf-btn" title="Refresh Live Data">
+                        <svg id="pfRefreshIcon" class="w-4 h-4 text-cyan-400 transition-transform duration-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Refresh Data</span>
+                    </button>
+
+                    <a href="/src/pages/wallet.html#deposit" class="pf-btn pf-btn-success">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m-8-8h16"/></svg>
+                        <span>Deposit</span>
+                    </a>
+
+                    <a href="/src/pages/futures.html" class="pf-btn pf-btn-primary">
+                        <span>Trade Futures →</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Message Alert Box -->
+        <div id="pfMessage" class="mb-6 hidden"></div>
+
+        <!-- CHARTS SECTION: 2/3 Performance Line Chart + 1/3 Asset Allocation Donut Chart -->
+        <section class="grid gap-6 lg:grid-cols-3 mb-8">
+            <!-- Left 2/3 Box: Portfolio Performance Line Chart -->
+            <div class="pf-glass-card p-6 sm:p-7 lg:col-span-2 relative overflow-hidden flex flex-col justify-between" style="background: linear-gradient(145deg, rgba(13, 19, 34, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%); border-color: rgba(255,255,255,0.08);">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4 z-10">
+                    <div>
+                        <h2 class="text-xl font-bold text-white tracking-tight">Portfolio Performance</h2>
+                        <p class="text-xs font-semibold text-slate-400 mt-0.5">Historical equity curve & account valuation trends</p>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 shadow-inner">
+                        <button type="button" class="pf-chart-pill-btn" data-range="1d">1D</button>
+                        <button type="button" class="pf-chart-pill-btn" data-range="1w">1W</button>
+                        <button type="button" class="pf-chart-pill-btn active" data-range="1m">1M</button>
+                        <button type="button" class="pf-chart-pill-btn" data-range="3m">3M</button>
+                        <button type="button" class="pf-chart-pill-btn" data-range="1y">1Y</button>
+                        <button type="button" class="pf-chart-pill-btn" data-range="all">All</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Line Chart Container -->
+                <div class="w-full h-72 relative mt-4">
+                    <canvas id="pfEquityChartCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Right 1/3 Box: Asset Allocation Donut Chart -->
+            <div class="pf-glass-card p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between" style="background: linear-gradient(145deg, rgba(13, 19, 34, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%); border-color: rgba(255,255,255,0.08);">
+                <div class="flex items-center justify-between mb-3 z-10">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">Asset Allocation</h2>
+                        <p class="text-xs font-semibold text-slate-400 mt-0.5">Capital breakdown across vaults</p>
+                    </div>
+                    <a href="/src/pages/wallet.html" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition">View Details →</a>
+                </div>
+
+                <div class="flex flex-col items-center justify-center gap-5 my-auto w-full py-2">
+                    <!-- Donut Canvas Container with Center Text -->
+                    <div class="relative w-36 h-36 flex items-center justify-center flex-shrink-0">
+                        <canvas id="pfDonutChartCanvas"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none p-1">
+                            <span id="pfDonutCenterVal" class="text-sm sm:text-base font-black text-white block leading-tight">₹ 6.47L</span>
+                            <span class="text-[9px] sm:text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mt-0.5">Total Assets</span>
+                        </div>
+                    </div>
+
+                    <!-- Donut Legend Items -->
+                    <div class="space-y-2.5 text-xs w-full">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 transition hover:border-slate-700/80">
+                            <div class="flex items-center gap-2.5">
+                                <span style="background-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);" class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"></span>
+                                <span class="font-bold text-slate-200">Main Wallet</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-right">
+                                <span id="pfLegendMainPct" class="font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md text-[11px] border border-emerald-500/20">99.7%</span>
+                                <span id="pfLegendMainAmt" class="font-extrabold text-white text-xs">₹6,45,780.00</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 transition hover:border-slate-700/80">
+                            <div class="flex items-center gap-2.5">
+                                <span style="background-color: #06b6d4; box-shadow: 0 0 8px rgba(6, 182, 212, 0.6);" class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"></span>
+                                <span class="font-bold text-slate-200">Futures Trading</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-right">
+                                <span id="pfLegendFuturesPct" class="font-black text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md text-[11px] border border-cyan-500/20">0.3%</span>
+                                <span id="pfLegendFuturesAmt" class="font-extrabold text-white text-xs">₹2,160.63</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/60 transition hover:border-slate-700/80">
+                            <div class="flex items-center gap-2.5">
+                                <span style="background-color: #a855f7; box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);" class="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0"></span>
+                                <span class="font-bold text-slate-200">Options Premium</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-right">
+                                <span id="pfLegendOptionsPct" class="font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md text-[11px] border border-purple-500/20">0.0%</span>
+                                <span id="pfLegendOptionsAmt" class="font-extrabold text-white text-xs">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Wallets Grid Section -->
+        <section class="grid gap-6 lg:grid-cols-2 mb-8">
+            <!-- Left Vault: Main Wallet (Green Emerald Theme) -->
+            <div class="pf-glass-card p-6 sm:p-8 border border-emerald-500/30 rounded-3xl flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-500/50 inline-block"></span>
+                        <h3 class="text-xl sm:text-2xl font-black text-white">Main Wallet</h3>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-400 mb-6">Deposit · Withdraw · Vault Storage</p>
+
+                    <strong id="pfMainWalletBigBalance" class="text-4xl sm:text-5xl font-black text-emerald-400 block tracking-tight">
+                        $0.00
+                    </strong>
+
+                    <p class="text-xs font-medium text-slate-300 mt-3 leading-relaxed">
+                        Deposit adds $ / ₹ here. Open Transfer to fund Trading.
+                    </p>
+
+                    <div class="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-300">
+                        <span id="pfMainWalletInrNotice">Also ₹0.00 INR — use Transfer → Use INR</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                    <span>Deposits land here. Withdraw from this wallet only.</span>
+                    <a href="/src/pages/wallet.html#transfer" class="text-emerald-400 hover:text-emerald-300 font-bold transition">Transfer →</a>
+                </div>
+            </div>
+
+            <!-- Right Hub: Trading Wallet (Cyan Blue Theme) -->
+            <div class="pf-glass-card p-6 sm:p-8 border border-cyan-500/30 rounded-3xl flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center gap-3">
+                            <span class="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-lg shadow-cyan-500/50 inline-block"></span>
+                            <h3 class="text-xl sm:text-2xl font-black text-white">Trading Wallet</h3>
+                        </div>
+
+                        <a href="/src/pages/wallet.html#transfer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
+                            <span>Transfer</span>
+                        </a>
+                    </div>
+
+                    <div class="mt-2 inline-flex items-center">
+                        <select id="pfTradingSubAccountSelect" style="color: #ffffff !important; background-color: #0f172a !important;" class="border border-slate-700/80 text-xs font-extrabold rounded-xl px-3.5 py-2 focus:outline-none focus:border-cyan-400 cursor-pointer shadow-sm">
+                            <option value="main" style="color: #ffffff !important; background-color: #0f172a !important;" class="font-bold py-1">Trading Account 1 (Default)</option>
+                        </select>
+                    </div>
+
+                    <p class="text-xs font-semibold text-slate-400 mt-2 mb-3">Trading · Margin · Profit/Loss</p>
+
+                    <strong id="pfTradingWalletBigBalance" class="text-4xl sm:text-5xl font-black text-cyan-400 block tracking-tight">
+                        $0.00
+                    </strong>
+
+                    <p id="pfTradingWalletSubInr" class="text-xs font-semibold text-slate-500 mt-1 mb-5">
+                        Transfers 1:1 between Main and Trading
+                    </p>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                            <span id="pfTradingAvailLabel" class="text-slate-400 font-medium">Available (USD)</span>
+                            <strong id="pfTradingAvailRow" class="text-white font-extrabold text-sm">$0.00</strong>
+                        </div>
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400 font-medium">Margin locked</span>
+                            <strong id="pfTradingMarginRow" class="text-amber-400 font-extrabold text-sm">$0.00</strong>
+                        </div>
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400 font-medium">Unrealized P&L</span>
+                            <strong id="pfTradingUnrealizedRow" class="text-emerald-400 font-extrabold text-sm">+$0.00</strong>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 font-medium">Realized P&L</span>
+                            <strong id="pfTradingRealizedRow" class="text-red-400 font-extrabold text-sm">-$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 Performance Metrics Cards Grid -->
+        <section class="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-8">
+            <!-- Box 1: Total Equity -->
+            <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Total Equity</span>
+                </div>
+                <div class="mt-4">
+                    <strong id="pfEquityVal" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 block tracking-tight truncate">
+                        $0.00
+                    </strong>
+                </div>
+            </article>
+
+            <!-- Box 2: Available -->
+            <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Available</span>
+                </div>
+                <div class="mt-4">
+                    <strong id="pfAvailVal" class="text-2xl sm:text-3xl font-extrabold text-white block tracking-tight truncate">
+                        $0.00
+                    </strong>
+                </div>
+            </article>
+
+            <!-- Box 3: Margin Locked -->
+            <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Margin Locked</span>
+                </div>
+                <div class="mt-4">
+                    <strong id="pfMarginLockedVal" class="text-2xl sm:text-3xl font-extrabold text-amber-400 block tracking-tight truncate">
+                        $0.00
+                    </strong>
+                    <p id="pfMarginSplit" class="text-[11px] font-bold text-slate-500 mt-1">F: $0 - O: $0</p>
+                </div>
+            </article>
+
+            <!-- Box 4: Unrealized PNL -->
+            <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Unrealized PNL</span>
+                </div>
+                <div class="mt-4">
+                    <strong id="pfUnrealizedVal" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 block tracking-tight truncate">
+                        +$0.00
+                    </strong>
+                </div>
+            </article>
+
+            <!-- Box 5: Realized PNL -->
+            <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Realized PNL</span>
+                </div>
+                <div class="mt-4">
+                    <strong id="pfRealizedVal" class="text-2xl sm:text-3xl font-extrabold text-red-400 block tracking-tight truncate">
+                        -$0.00
+                    </strong>
+                </div>
+            </article>
+        </section>
+
+        <!-- Asset Allocation Progress & Summary Section -->
+        <section class="grid gap-6 lg:grid-cols-3 mb-8">
+            <!-- Left 2 Cols: Asset Allocation Progress -->
+            <div class="pf-glass-card p-6 sm:p-8 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                        <div>
+                            <h2 class="text-xl font-black text-white tracking-tight">Asset Distribution</h2>
+                            <p class="text-xs font-medium text-slate-400 mt-1">Live distribution of total assets across Trading Wallet & Position Margins</p>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs font-extrabold">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50"></span> Main Wallet</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500 shadow-sm shadow-indigo-500/50"></span> Futures Margin</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50"></span> Options Premium</span>
+                        </div>
+                    </div>
+
+                    <div class="pf-progress-bar-container mb-6">
+                        <div id="pfBarWallet" class="pf-progress-segment bg-cyan-400" style="width: 100%;"></div>
+                        <div id="pfBarFutures" class="pf-progress-segment bg-indigo-500" style="width: 0%;"></div>
+                        <div id="pfBarOptions" class="pf-progress-segment bg-purple-500" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-inner">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Available Funds</span>
+                        <strong id="pfAllocAvail" class="block mt-1.5 text-base font-black text-cyan-300">$0.00</strong>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-inner">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Futures Collateral</span>
+                        <strong id="pfAllocFuturesMargin" class="block mt-1.5 text-base font-black text-indigo-300">$0.00</strong>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800/80 shadow-inner">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Options Value</span>
+                        <strong id="pfAllocOptionsPrem" class="block mt-1.5 text-base font-black text-white">$0.00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right 1 Col: Account Stats Card -->
+            <div class="pf-glass-card p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-black text-white tracking-tight mb-4">Account Stats</h2>
+
+                    <div class="space-y-3.5 text-xs">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                            <span class="text-slate-400 font-medium">Total Lifetime Deposits</span>
+                            <strong id="pfTotalDeposits" class="text-white font-extrabold">$0.00 USDT</strong>
+                        </div>
+
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                            <span class="text-slate-400 font-medium">Total Lifetime Withdrawals</span>
+                            <strong id="pfTotalWithdrawals" class="text-white font-extrabold">$0.00 USDT</strong>
+                        </div>
+
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                            <span class="text-slate-400 font-medium">Primary Account Currency</span>
+                            <strong id="pfPrimaryCurrency" class="text-cyan-300 font-extrabold">USDT</strong>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-400 font-medium">USDT / INR Conversion Rate</span>
+                            <strong id="pfUsdtRate" class="text-emerald-400 font-extrabold">1 USDT = ₹88.50</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-semibold">Need to transfer funds?</span>
+                    <a href="/src/pages/wallet.html#transfer" class="text-cyan-400 hover:text-cyan-300 font-bold transition">Transfer Wallet →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Positions & Activity Workspace Section -->
+        <section class="pf-glass-card mb-8 overflow-hidden">
+            <div class="pf-tab-nav-bar flex items-center gap-1.5 p-3 sm:p-4 border-b border-slate-800/80 overflow-x-auto no-scrollbar flex-nowrap w-full box-border">
+                <button type="button" class="pf-pill-tab active" data-tab="futures">
+                    <svg class="w-4 h-4 hidden sm:inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span class="pf-tab-label-full hidden sm:inline">Futures Positions</span>
+                    <span class="pf-tab-label-short sm:hidden">Futures</span>
+                    <span id="pfFuturesBadgeCount" class="pf-badge-pill">0</span>
+                </button>
+
+                <button type="button" class="pf-pill-tab" data-tab="options">
+                    <svg class="w-4 h-4 hidden sm:inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span class="pf-tab-label-full hidden sm:inline">Options Contracts</span>
+                    <span class="pf-tab-label-short sm:hidden">Options</span>
+                    <span id="pfOptionsBadgeCount" class="pf-badge-pill">0</span>
+                </button>
+
+                <button type="button" class="pf-pill-tab" data-tab="activity">
+                    <svg class="w-4 h-4 hidden sm:inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    <span class="pf-tab-label-full hidden sm:inline">Ledger Activity & Fills</span>
+                    <span class="pf-tab-label-short sm:hidden">Ledger</span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Futures Positions -->
+            <div id="pfTabFutures" class="p-2 sm:p-4">
+                <div class="pf-table-wrapper">
+                    <table class="pf-table">
+                        <thead id="pfFuturesThead">
+                            <tr>
+                                <th class="pf-desktop-only">Symbol</th>
+                                <th class="pf-desktop-only">Side / Leverage</th>
+                                <th class="pf-desktop-only">Position Size</th>
+                                <th class="pf-desktop-only">Entry Price</th>
+                                <th class="pf-desktop-only">Mark Price</th>
+                                <th class="pf-desktop-only">Margin Collateral</th>
+                                <th class="pf-desktop-only">Unrealized P&L</th>
+                                <th class="pf-desktop-only text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pfFuturesTbody">
+                            <tr>
+                                <td colspan="8" class="text-center py-12 text-slate-500 font-semibold">
+                                    Loading live futures positions...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Futures Table Pagination Controls -->
+                <div id="pfFuturesPagination" class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 hidden">
+                    <div id="pfFuturesPaginationInfo">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    <div class="flex items-center gap-1.5" id="pfFuturesPaginationNav">
+                        <!-- Dynamic Prev, Page Numbers, Next -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Options Positions -->
+            <div id="pfTabOptions" class="p-2 sm:p-4 hidden">
+                <div class="pf-table-wrapper">
+                    <table class="pf-table">
+                        <thead id="pfOptionsThead">
+                            <tr>
+                                <th class="pf-desktop-only">Option Contract</th>
+                                <th class="pf-desktop-only">Type</th>
+                                <th class="pf-desktop-only">Strike Price</th>
+                                <th class="pf-desktop-only">Contracts Count</th>
+                                <th class="pf-desktop-only">Total Premium</th>
+                                <th class="pf-desktop-only">Expiry Time</th>
+                                <th class="pf-desktop-only text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pfOptionsTbody">
+                            <tr>
+                                <td colspan="7" class="text-center py-12 text-slate-500 font-semibold">
+                                    Loading active options contracts...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Options Table Pagination Controls -->
+                <div id="pfOptionsPagination" class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 hidden">
+                    <div id="pfOptionsPaginationInfo">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    <div class="flex items-center gap-1.5" id="pfOptionsPaginationNav">
+                        <!-- Dynamic Prev, Page Numbers, Next -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Ledger Activity -->
+            <div id="pfTabActivity" class="p-2 sm:p-4 hidden">
+                <div class="pf-table-wrapper">
+                    <table class="pf-table">
+                        <thead id="pfActivityThead">
+                            <tr>
+                                <th class="pf-desktop-only">Reference ID</th>
+                                <th class="pf-desktop-only">Type</th>
+                                <th class="pf-desktop-only">Amount</th>
+                                <th class="pf-desktop-only">Direction</th>
+                                <th class="pf-desktop-only">Balance After</th>
+                                <th class="pf-desktop-only text-right">Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pfActivityTbody">
+                            <tr>
+                                <td colspan="6" class="text-center py-12 text-slate-500 font-semibold">
+                                    Loading transaction history...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Activity Table Pagination Controls -->
+                <div id="pfActivityPagination" class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 hidden">
+                    <div id="pfActivityPaginationInfo">
+                        Showing 0 to 0 of 0 entries
+                    </div>
+                    <div class="flex items-center gap-1.5" id="pfActivityPaginationNav">
+                        <!-- Dynamic Prev, Page Numbers, Next -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Component -->
+    <div data-component="footer"></div>
+
+    <script src="/src/js/components-loader.js"></script>
+    <script src="/src/js/api-config.js"></script>
+    <script src="/src/js/auth-state.js"></script>
+    <script src="/src/js/portfolio.js"></script>
+    <script src="/src/js/responsive.js"></script>
+</body>
+</html>

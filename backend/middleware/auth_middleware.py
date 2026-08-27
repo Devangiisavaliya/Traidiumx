@@ -66,12 +66,13 @@ def _load_authenticated_user(enforce_active_status=True):
         from bson import ObjectId
         db = get_database()
         try:
-            sub_user = db.users.find_one({
-                "_id": ObjectId(active_user_id),
-                "parent_user_id": str(user["_id"])
-            })
-            if sub_user:
-                user = sub_user
+            if ObjectId.is_valid(active_user_id):
+                sub_user = db.users.find_one({
+                    "_id": ObjectId(active_user_id),
+                    "parent_user_id": str(user["_id"])
+                })
+                if sub_user:
+                    user = sub_user
         except Exception:
             pass
 
@@ -79,12 +80,17 @@ def _load_authenticated_user(enforce_active_status=True):
     nav_curr = request.headers.get("X-Navbar-Currency")
     if nav_curr and nav_curr in ("INR", "USDT"):
         from config.database import get_database
+        from bson import ObjectId
         db = get_database()
-        db.users.update_one(
-            {"_id": user["_id"]},
-            {"$set": {"last_navbar_currency": nav_curr}}
-        )
-        user["last_navbar_currency"] = nav_curr
+        try:
+            u_id = user["_id"] if isinstance(user["_id"], ObjectId) else (ObjectId(user["_id"]) if ObjectId.is_valid(str(user["_id"])) else user["_id"])
+            db.users.update_one(
+                {"_id": u_id},
+                {"$set": {"last_navbar_currency": nav_curr}}
+            )
+            user["last_navbar_currency"] = nav_curr
+        except Exception:
+            pass
 
     g.current_user = user
     g.current_user_id = str(user["_id"])

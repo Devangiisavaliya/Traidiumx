@@ -2512,14 +2512,39 @@ function renderLedgerTable() {
 
         return `
             <tr class="transition hover:bg-cyan-400/[0.04]">
-                <td class="text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
-                <td class="text-sm font-bold text-white">
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
+                <td class="tx-desktop-only text-sm font-bold text-white">
                     ${walletEscape(prettyType(item.transaction_type))}
                     <p class="mt-1 max-w-[420px] truncate text-xs font-normal text-slate-500" title="${walletEscape(description)}">${walletEscape(description)}</p>
                 </td>
-                <td class="text-sm font-black ${amountClass}">${walletEscape(prettyType(direction))}</td>
-                <td class="text-sm font-black ${amountClass}">${amountCell}</td>
-                <td class="text-sm text-slate-300">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</td>
+                <td class="tx-desktop-only text-sm font-black ${amountClass}">${walletEscape(prettyType(direction))}</td>
+                <td class="tx-desktop-only text-sm font-black ${amountClass}">${amountCell}</td>
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</td>
+
+                <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="5">
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[65%]">${walletEscape(prettyType(item.transaction_type))}</span>
+                            <span class="text-xs sm:text-sm font-black ${amountClass} shrink-0">${amountCell}</span>
+                        </div>
+                        <div class="text-[10px] font-bold uppercase mb-2 tracking-wide ${amountClass}">
+                            ${walletEscape(prettyType(direction))}
+                        </div>
+                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider shrink-0">Balance After</span>
+                                <strong class="text-white font-bold shrink-0">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</strong>
+                            </div>
+                            <div class="flex flex-col gap-0.5">
+                                <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Description</span>
+                                <span class="text-slate-300 text-xs font-medium leading-relaxed break-words" title="${walletEscape(description)}">${walletEscape(description || "--")}</span>
+                            </div>
+                        </div>
+                        <div class="text-right text-[10px] text-slate-500 font-bold">
+                            ${walletEscape(formatWalletDate(item.created_at))}
+                        </div>
+                    </div>
+                </td>
             </tr>
         `;
     }).join("");
@@ -2576,20 +2601,45 @@ function renderDepositTable() {
 
         return `
             <tr class="transition hover:bg-cyan-400/[0.04]">
-                <td class="text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
-                <td class="text-sm font-bold text-white">
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
+                <td class="tx-desktop-only text-sm font-bold text-white">
                     ${walletEscape(item.deposit_reference || "--")}
                     <p class="mt-1 text-xs font-normal text-slate-500">${getExplorerLink(item.explorer_url, "Explorer")}</p>
                 </td>
-                <td class="text-sm text-slate-300">${walletEscape(item.crypto_asset || "USDT")} / ${walletEscape(item.crypto_network || "--")}</td>
-                <td class="text-sm font-black text-white">${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</td>
-                <td><span class="rounded-full px-3 py-1 text-xs font-black ${statusClass(item.status)}">${walletEscape(prettyType(item.status))}</span></td>
-                <td class="max-w-[360px] text-sm text-slate-400">
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(item.crypto_asset || "USDT")} / ${walletEscape(item.crypto_network || "--")}</td>
+                <td class="tx-desktop-only text-sm font-black text-white">${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</td>
+                <td class="tx-desktop-only"><span class="rounded-full px-3 py-1 text-xs font-black ${statusClass(item.status)}">${walletEscape(prettyType(item.status))}</span></td>
+                <td class="tx-desktop-only max-w-[360px] text-sm text-slate-400">
                     <span class="font-bold text-slate-300">${walletEscape(prettyType(item.verification_status || "pending"))}</span>
                     <p class="mt-1 text-xs text-slate-500">Confirmations: ${confirmations}</p>
                     <p class="mt-1 line-clamp-2 text-xs text-slate-500">${walletEscape(verificationText)}</p>
                 </td>
-                <td class="text-right">${action}</td>
+                <td class="tx-desktop-only text-right">${action}</td>
+
+                <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="7">
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[65%]">${walletEscape(item.deposit_reference || "Deposit")}</span>
+                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black shrink-0 ${statusClass(item.status)}">${walletEscape(prettyType(item.status))}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
+                            <span>${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")})</span>
+                            <span class="text-sm font-black text-emerald-400 shrink-0">${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
+                        </div>
+                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Verification</span>
+                                <span class="font-bold text-slate-300">${walletEscape(prettyType(item.verification_status || "pending"))}</span>
+                            </div>
+                            ${item.explorer_url ? `<div class="flex items-center justify-between text-[11px]"><span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Tx Hash</span><span>${getExplorerLink(item.explorer_url, "Explorer")}</span></div>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                            <span>Confirmations: ${confirmations}</span>
+                            <span>${walletEscape(formatWalletDate(item.created_at))}</span>
+                        </div>
+                        ${canVerify ? `<div class="mt-2.5 pt-2 border-t border-slate-800/60 text-right">${action}</div>` : ''}
+                    </div>
+                </td>
             </tr>
         `;
     }).join("");
@@ -2641,28 +2691,53 @@ function renderWithdrawalTable() {
 
         return `
             <tr class="transition hover:bg-cyan-400/[0.04]">
-                <td class="text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
-                <td class="text-sm font-bold text-white">
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(formatWalletDate(item.created_at))}</td>
+                <td class="tx-desktop-only text-sm font-bold text-white">
                     ${walletEscape(item.withdrawal_reference || "--")}
                     <p class="mt-1 text-xs font-normal text-slate-500">${explorer}</p>
                 </td>
-                <td class="text-sm text-slate-300">${walletEscape(item.crypto_asset || "USDT")} / ${walletEscape(item.crypto_network || "--")}</td>
-                <td class="max-w-[240px] truncate text-sm text-slate-300" title="${walletEscape(item.withdrawal_address || "")}">${walletEscape(item.withdrawal_address || "--")}</td>
-                <td class="text-sm font-black text-white">
+                <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(item.crypto_asset || "USDT")} / ${walletEscape(item.crypto_network || "--")}</td>
+                <td class="tx-desktop-only max-w-[240px] truncate text-sm text-slate-300" title="${walletEscape(item.withdrawal_address || "")}">${walletEscape(item.withdrawal_address || "--")}</td>
+                <td class="tx-desktop-only text-sm font-black text-white">
                     ${walletEscape(formatWalletMoney(item.amount, itemCurrency))}
                     <p class="mt-1 text-xs font-normal text-slate-500">Receive: ${walletEscape(formatWalletMoney(item.final_amount ?? item.amount, itemCurrency))}</p>
                     <p class="mt-1 text-xs font-normal text-slate-500">Wallet debit: ${walletEscape(formatWalletMoney(lockedAmount, itemCurrency))}</p>
                 </td>
-                <td>
+                <td class="tx-desktop-only">
                     <span class="rounded-full px-3 py-1 text-xs font-black ${statusClass(item.status, meta.tone)}">${walletEscape(meta.label)}</span>
                     ${decisionText ? `<p class="mt-2 text-xs text-slate-500">${walletEscape(decisionText)}</p>` : ""}
                 </td>
-                <td class="max-w-[320px] text-sm text-slate-400">
+                <td class="tx-desktop-only max-w-[320px] text-sm text-slate-400">
                     <span class="font-bold text-slate-300">${walletEscape(prettyType(item.processing_mode || "admin_approval"))}</span>
                     <p class="mt-1 line-clamp-2 text-xs text-slate-500">${walletEscape(meta.message || item.remark || "--")}</p>
                     ${adminText ? `<p class="mt-1 text-xs text-slate-600">Admin: ${walletEscape(adminText)}</p>` : ""}
                 </td>
-                <td class="text-right">${action}</td>
+                <td class="tx-desktop-only text-right">${action}</td>
+
+                <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="8">
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[60%]">${walletEscape(item.withdrawal_reference || "Withdrawal")}</span>
+                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black shrink-0 ${statusClass(item.status, meta.tone)}">${walletEscape(meta.label)}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
+                            <span>${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")})</span>
+                            <span class="text-sm font-black text-rose-400 shrink-0">-${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
+                        </div>
+                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1.5">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Payout Address / Bank</span>
+                                <span class="text-slate-300 text-xs font-mono font-medium leading-relaxed break-all" title="${walletEscape(item.withdrawal_address || "")}">${walletEscape(item.withdrawal_address || "--")}</span>
+                            </div>
+                            ${meta.message || item.remark ? `<div class="flex flex-col gap-0.5"><span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Remark</span><span class="text-slate-400 text-xs leading-relaxed break-words">${walletEscape(meta.message || item.remark)}</span></div>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                            <span>Receive: ${walletEscape(formatWalletMoney(item.final_amount ?? item.amount, itemCurrency))}</span>
+                            <span>${walletEscape(formatWalletDate(item.created_at))}</span>
+                        </div>
+                        ${meta.canCancel ? `<div class="mt-2.5 pt-2 border-t border-slate-800/60 text-right">${action}</div>` : ''}
+                    </div>
+                </td>
             </tr>
         `;
     }).join("");
@@ -5166,7 +5241,7 @@ function txRenderAssetLists() {
                 <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.symbol}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                 <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : `${asset.symbol}${asset.pending.toFixed(2)}`}</td>
                 <td class="py-4 text-right">
-                    <div class="flex justify-end gap-3 text-xs">
+                    <div class="wallet-action-grid flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-cyan-400 hover:text-cyan-300 font-black">Withdraw</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'transfer')" class="text-cyan-400 hover:text-cyan-300 font-black">Transfer</button>
@@ -5195,7 +5270,7 @@ function txRenderAssetLists() {
                 <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.code === "USDT" ? "$" : ""}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`}</td>
                 <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : asset.pending.toFixed(2)}</td>
                 <td class="py-4 text-right">
-                    <div class="flex justify-end gap-3 text-xs">
+                    <div class="wallet-action-grid flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-cyan-400 hover:text-cyan-300 font-black">Withdraw</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'internal_transfer')" class="text-cyan-400 hover:text-cyan-300 font-black">Internal</button>

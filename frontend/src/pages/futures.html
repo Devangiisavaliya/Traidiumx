@@ -349,18 +349,19 @@
 
         .rt-pair-funds-btn.transfer {
             background: rgba(245, 158, 11, 0.16);
-            border: 1px solid rgba(245, 158, 11, 0.34);
+            border: 1px solid rgba(234, 179, 8, 0.6);
             color: #fde68a;
         }
 
         .rt-pair-funds-btn.deposit {
-            background: linear-gradient(135deg, #34d399, #22d3ee);
-            color: #020617;
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(52, 211, 153, 0.6);
+            color: #34d399;
         }
 
         .rt-pair-funds-btn.withdraw {
             background: rgba(248, 113, 113, 0.15);
-            border: 1px solid rgba(248, 113, 113, 0.28);
+            border: 1px solid rgba(244, 63, 94, 0.5);
             color: #fecaca;
         }
 
@@ -1111,8 +1112,8 @@
         /* Small screens (Mobile / Tablet: <= 1024px) */
         @media (max-width: 1024px) {
             section.rt-terminal-main-grid.rt-terminal-focused {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
             section.rt-terminal-main-grid.rt-terminal-focused .rt-middle-orderbook,
             section.rt-terminal-main-grid.rt-terminal-focused .rt-right-panel {
@@ -1131,7 +1132,7 @@
 
     <main class="rt-page pt-32">
         <!-- PAIR INFO BAR -->
-        <section class="mx-auto mt-4 max-w-[1800px] px-4">
+        <section class="mx-auto mt-4 w-full px-6">
             <div class="rt-pair-bar rt-pair-bar-with-funds">
                 <div class="rt-pair-main">
                     <div class="rt-coin-badge" id="coinBadge">₿</div>
@@ -1230,7 +1231,6 @@
                             <select id="tradingAccountSelector" class="rt-select text-xs py-1 px-2 border border-slate-700 bg-slate-900 text-white rounded cursor-pointer font-bold outline-none focus:border-cyan-400">
                                 <option value="main">Main Trading Account</option>
                             </select>
-                            <button id="subAccountSettingsBtn" type="button" class="text-slate-400 hover:text-cyan-400 text-sm p-1" title="Manage Sub Accounts">⚙️</button>
                         </div>
                     </div>
 
@@ -1266,8 +1266,76 @@
             </div>
         </section>
 
+        <!-- MOBILE TRADING WALLET QUICK BAR (Image 2 - Transfer, Deposit, Withdraw, P/L & Balances) -->
+        <div id="futuresMobileWalletQuickBar" class="bg-[#08111e] p-3 border-b border-white/10 lg:hidden">
+            <!-- Top Row: 3 Action Buttons -->
+            <div class="grid grid-cols-3 gap-2.5 mb-2.5">
+                <button id="mobileWalletTransferBtn" type="button" class="rounded-xl border border-amber-500/60 bg-amber-500/15 py-2 text-center text-xs font-black text-amber-300 hover:bg-amber-500/25 active:scale-95 transition cursor-pointer">
+                    Transfer
+                </button>
+                <button id="mobileWalletDepositBtn" type="button" class="rounded-xl border border-emerald-500/60 bg-emerald-500/15 py-2 text-center text-xs font-black text-emerald-400 hover:bg-emerald-500/25 active:scale-95 transition cursor-pointer">
+                    Deposit
+                </button>
+                <button id="mobileWalletWithdrawBtn" type="button" class="rounded-xl border border-rose-500/60 bg-rose-500/15 py-2 text-center text-xs font-black text-rose-400 hover:bg-rose-500/25 active:scale-95 transition cursor-pointer">
+                    Withdraw
+                </button>
+            </div>
+
+            <!-- Middle Row: USD / INR Currency Toggle Pill & P/L Display -->
+            <div class="flex items-center justify-between mt-2.5 mb-2 px-1 gap-2">
+                <!-- USD / INR Toggle Pill -->
+                <div id="mobileQuickBarCurrencyToggle" class="inline-flex items-center rounded-xl border border-cyan-400/25 bg-slate-900/90 p-0.5 text-xs font-black shadow-sm">
+                    <button type="button" data-currency-switch="USDT" class="tx-mobile-curr-btn rounded-lg px-2.5 py-1 transition cursor-pointer text-cyan-300 bg-cyan-500/20 border border-cyan-400/40">
+                        USD ($)
+                    </button>
+                    <button type="button" data-currency-switch="INR" class="tx-mobile-curr-btn rounded-lg px-2.5 py-1 transition cursor-pointer text-slate-400 hover:text-white">
+                        INR (₹)
+                    </button>
+                </div>
+
+                <!-- P/L Display -->
+                <div id="mobileWalletPnlDisplay" class="text-sm font-black text-emerald-400">P/L $0.00</div>
+            </div>
+
+            <!-- Bottom: Trading & Main Wallet Balances (Respects INR / USD toggle) -->
+            <div class="flex items-center justify-between gap-2 mt-1.5 px-1 text-xs font-bold text-slate-400 border-t border-white/5 pt-1.5">
+                <div>Trading <strong id="mobileWalletTradingBalance" class="text-white">$0.00</strong></div>
+                <div>Main Wallet <strong id="mobileWalletMainBalance" class="text-cyan-300">$0.00</strong></div>
+            </div>
+        </div>
+
+        <!-- MOBILE SYMBOL HEADER -->
+        <div id="futuresMobileSymbolHeader" class="flex items-center justify-between px-3 py-2 bg-[#07111f]/95 border-b border-white/10 lg:hidden gap-2 w-full box-border overflow-hidden">
+            <div class="flex items-center shrink-0">
+                <select id="pairSelectMobile" class="rt-select text-xs font-extrabold py-1 px-2.5 border border-cyan-500/40 bg-slate-900 text-cyan-400 rounded-xl cursor-pointer outline-none focus:border-cyan-400 shadow-sm">
+                    <option value="BTCUSDT">BTC-USDT</option>
+                    <option value="ETHUSDT">ETH-USDT</option>
+                    <option value="BNBUSDT">BNB-USDT</option>
+                    <option value="SOLUSDT">SOL-USDT</option>
+                    <option value="XRPUSDT">XRP-USDT</option>
+                    <option value="DOGEUSDT">DOGE-USDT</option>
+                    <option value="ADAUSDT">ADA-USDT</option>
+                    <option value="AVAXUSDT">AVAX-USDT</option>
+                    <option value="LINKUSDT">LINK-USDT</option>
+                    <option value="LTCUSDT">LTC-USDT</option>
+                    <option value="TRXUSDT">TRX-USDT</option>
+                    <option value="DOTUSDT">DOT-USDT</option>
+                    <option value="BCHUSDT">BCH-USDT</option>
+                    <option value="ATOMUSDT">ATOM-USDT</option>
+                    <option value="UNIUSDT">UNI-USDT</option>
+                    <option value="APTUSDT">APT-USDT</option>
+                    <option value="XAUUSD">XAUUSD</option>
+                </select>
+            </div>
+            <div class="flex items-center shrink-0">
+                <select id="tradingAccountSelectorMobile" class="rt-select text-xs font-extrabold py-1 px-2.5 border border-slate-700/80 bg-slate-900/90 text-cyan-300 rounded-xl cursor-pointer outline-none focus:border-cyan-400 shadow-sm">
+                    <option value="main" class="bg-slate-950 text-white font-bold">Main Account</option>
+                </select>
+            </div>
+        </div>
+
         <!-- TERMINAL GRID - MAIN LAYOUT -->
-        <section class="rt-terminal-main-grid rt-terminal-focused mx-auto mt-4 max-w-[1800px] px-4 pb-8">
+        <section class="rt-terminal-main-grid rt-terminal-focused mx-auto mt-2 max-w-[1800px] px-2 sm:px-4 pb-8">
 
             <!-- ================= LEFT: CHART ================= -->
             <div class="rt-left-terminal">
@@ -1487,6 +1555,30 @@
                 </div>
             </aside>
 
+            <!-- MOBILE SUB-NAV TABS (Positioned between Chart & Tables) -->
+            <div id="futuresMobileSubNav" class="grid grid-cols-5 items-center border border-white/10 rounded-2xl bg-[#07111f] p-1 text-xs font-black lg:hidden mb-3 w-full box-border">
+                <button type="button" data-mobile-tab="positions" class="mobile-sub-tab active relative py-2 px-1 text-white cursor-pointer text-center w-full justify-center">
+                    Positions
+                    <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400"></span>
+                </button>
+                <button type="button" data-mobile-tab="openOrders" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                    Orders
+                    <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                </button>
+                <button type="button" data-mobile-tab="orderHistory" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                    History
+                    <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                </button>
+                <button type="button" data-mobile-tab="tradeHistory" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                    Fills
+                    <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                </button>
+                <button type="button" data-mobile-tab="transactionHistory" class="mobile-sub-tab relative py-2 px-1 text-slate-400 hover:text-white cursor-pointer text-center w-full justify-center">
+                    Ledger
+                    <span class="tab-indicator absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 hidden"></span>
+                </button>
+            </div>
+
             <!-- ================= BOTTOM: POSITIONS / ORDERS TABLE ================= -->
             <div class="rt-positions-wrapper-col">
                 <div class="rt-card rt-positions-card">
@@ -1496,7 +1588,6 @@
                         <button type="button" data-terminal-tab="orderHistory">Order History</button>
                         <button type="button" data-terminal-tab="tradeHistory">Trade History</button>
                         <button type="button" data-terminal-tab="transactionHistory">Transaction History</button>
-                        <button type="button" data-terminal-tab="deliveryHistory">Delivery History</button>
                     </div>
 
                     <div class="rt-table-wrap">
@@ -1509,8 +1600,9 @@
 
     </main>
 
-    <div id="futuresWalletModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
-        <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
+    <!-- Trading Wallet Quick Action Modal (Mobile Bottom Sheet / Desktop Centered) -->
+    <div id="futuresWalletModal" class="fixed inset-0 z-[99999] hidden items-end sm:items-center justify-center bg-slate-950/80 p-0 sm:p-4 backdrop-blur-md">
+        <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] sm:rounded-[2.5rem] border border-cyan-400/30 bg-[#07111f] shadow-2xl">
             <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
                 <div>
                     <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Trading Wallet Quick Action</p>
@@ -1818,7 +1910,30 @@
         </div>
     </div>
 
+    <!-- Mobile Fixed Bottom Action Bar (Buy / Sell Buttons) -->
+    <div id="futuresMobileActionBar" class="fixed bottom-0 left-0 right-0 z-[99999] flex items-center gap-3 bg-[#07111f]/98 p-3 backdrop-blur-xl border-t border-white/10 lg:hidden" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 99999 !important;">
+        <button id="futuresMobileSellBtn" type="button" style="background: #ef4444 !important; color: #ffffff !important;" class="flex-1 rounded-2xl py-3 text-center font-black text-white shadow-lg shadow-red-500/40 active:scale-95 transition cursor-pointer">
+            <span class="block text-[11px] font-extrabold uppercase tracking-wider" style="color: #ffffff !important;">Sell / Short</span>
+            <span id="futuresMobileSellPrice" class="block text-sm font-black mt-0.5" style="color: #ffffff !important;">--</span>
+        </button>
+        <button id="futuresMobileBuyBtn" type="button" style="background: #10b981 !important; color: #020617 !important;" class="flex-1 rounded-2xl py-3 text-center font-black text-slate-950 shadow-lg shadow-emerald-500/40 active:scale-95 transition cursor-pointer">
+            <span class="block text-[11px] font-extrabold uppercase tracking-wider" style="color: #020617 !important;">Buy / Long</span>
+            <span id="futuresMobileBuyPrice" class="block text-sm font-black mt-0.5" style="color: #020617 !important;">--</span>
+        </button>
+    </div>
 
+    <!-- Mobile Order Drawer Modal -->
+    <div id="futuresMobileOrderDrawer" class="fixed inset-0 z-[9999] hidden items-end sm:items-center justify-center bg-slate-950/80 backdrop-blur-md p-0 sm:p-4 lg:hidden">
+        <div class="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] border border-white/10 bg-[#07111f] p-4 shadow-2xl">
+            <div class="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#07111f] pb-3 mb-3 pt-1">
+                <h3 id="futuresMobileDrawerTitle" class="text-base font-black text-white">Buy / Long BTC</h3>
+                <button id="futuresMobileDrawerClose" type="button" class="px-3.5 py-1.5 text-xs font-black text-slate-300 hover:text-white bg-slate-800/90 rounded-xl border border-white/15 transition cursor-pointer">Close</button>
+            </div>
+            <div id="futuresMobileOrderFormSlot">
+                <!-- Order form will be moved here on mobile when opened -->
+            </div>
+        </div>
+    </div>
 
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>

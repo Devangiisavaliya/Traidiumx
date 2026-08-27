@@ -6,6 +6,14 @@
 
     <title>Refer & Earn | TraidiumX</title>
 
+    <!-- Open Graph / WhatsApp Preview Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Refer & Earn | TraidiumX" />
+    <meta property="og:description" content="Invite friends to TraidiumX and earn recurring referral rewards from their trading activity." />
+    <meta property="og:image" content="../../assets/logo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
     <!-- Tailwind Output CSS -->
     <link rel="stylesheet" href="../../dist/output.css" />
 
@@ -61,8 +69,6 @@
 </head>
 
 <body class="bg-[#020617] text-white" data-page="refer">
-    <div class="fixed inset-0 -z-20 pointer-events-none" style="background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.03) 45%, transparent 70%), radial-gradient(circle at top right, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.02) 45%, transparent 70%);"></div>
-
     <!-- Reusable Navbar -->
     <div data-component="navbar"></div>
 
@@ -71,16 +77,11 @@
 
         <!-- ================= REFER HERO START ================= -->
         <section class="relative">
-            <div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-                <div class="absolute -left-20 -top-20 h-[550px] w-[750px] rounded-full bg-cyan-500/20 blur-[140px] transform-gpu"></div>
-                <div class="absolute -right-20 top-20 h-[550px] w-[750px] rounded-full bg-blue-600/20 blur-[140px] transform-gpu"></div>
-                <div class="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[140px] transform-gpu"></div>
-            </div>
 
             <div class="mx-auto grid min-h-[82vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
 
                 <!-- Hero Left -->
-                <div class="tx-fade-up">
+                <div id="referHeroLeft" class="tx-fade-up refer-hero-left">
                     <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
                         <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
                         Invite friends. Earn rewards.
