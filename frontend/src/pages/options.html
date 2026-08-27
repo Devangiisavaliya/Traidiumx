@@ -1339,18 +1339,18 @@
 
 
     <!-- Sub-Account Management Modal -->
-    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-4 backdrop-blur-sm">
-        <div class="w-full max-w-lg rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
-            <div class="flex items-start justify-between border-b border-slate-800 px-5 py-4">
+    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-3 sm:px-4 backdrop-blur-sm">
+        <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
+            <div class="flex items-start justify-between border-b border-slate-800 px-4 sm:px-5 py-4">
                 <div>
                     <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Sub Accounts settings</p>
-                    <h3 class="mt-1 text-2xl font-black text-white">Manage Sub Accounts</h3>
+                    <h3 class="mt-1 text-xl sm:text-2xl font-black text-white">Manage Sub Accounts</h3>
                     <p class="mt-1 text-xs font-semibold text-slate-400">Create, view, and transfer funds between your trading sub-accounts.</p>
                 </div>
-                <button id="subAccountModalClose" type="button" class="rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300">✕</button>
+                <button id="subAccountModalClose" type="button" class="shrink-0 rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300 transition">✕</button>
             </div>
 
-            <div class="px-5 pb-5 pt-4">
+            <div class="px-4 sm:px-5 pb-5 pt-4">
                 <!-- Tabs to switch between List and Transfer -->
                 <div class="mb-4 hidden gap-2 border-b border-slate-800 pb-2">
                     <button id="subTabListBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400">Sub Accounts</button>
@@ -1359,11 +1359,11 @@
 
                 <!-- Panel 1: Sub Accounts List & Creation -->
                 <div id="subPanelList" class="space-y-4">
-                    <form id="createSubForm" class="grid gap-3">
+                    <form id="createSubForm" class="grid gap-2.5">
                         <label class="block text-xs font-black uppercase tracking-wide text-slate-400">Create New Sub Account</label>
-                        <div class="flex gap-2">
-                            <input id="newSubNameInput" type="text" placeholder="Sub account name (e.g. Sub Account 1)" class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white outline-none focus:border-cyan-400" required />
-                            <button type="submit" class="rounded-xl bg-cyan-400 px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-300">Create</button>
+                        <div class="flex gap-2 min-w-0 w-full">
+                            <input id="newSubNameInput" type="text" placeholder="Sub account name (e.g. Sub 1)" class="flex-1 min-w-0 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white outline-none focus:border-cyan-400 placeholder:text-slate-500" required />
+                            <button type="submit" class="shrink-0 rounded-xl bg-cyan-400 px-3.5 sm:px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-300 transition">Create</button>
                         </div>
                         <p id="createSubMessage" class="hidden text-xs font-bold"></p>
                     </form>

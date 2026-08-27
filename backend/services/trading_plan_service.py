@@ -520,8 +520,8 @@ def require_internal_trading_ready(user_id):
     return None
 
 
-def pip_size_for_symbol(symbol, price_precision=None):
-    symbol = str(symbol or "").upper()
+def pip_size_for_symbol(symbol, price_precision=None, base_price=None):
+    symbol = str(symbol or "").upper().replace("-", "").replace("_", "")
     explicit = {
         "XAUUSD": 0.01,
         "XAUUSDT": 0.01,
@@ -530,6 +530,22 @@ def pip_size_for_symbol(symbol, price_precision=None):
     }
     if symbol in explicit:
         return explicit[symbol]
+
+    if base_price is not None and base_price > 0:
+        p = float(base_price)
+        if p < 0.01:
+            return 0.000001
+        elif p < 1.0:
+            return 0.0001
+        elif p < 10.0:
+            return 0.001
+        elif p < 100.0:
+            return 0.01
+        elif p < 1000.0:
+            return 0.05
+        else:
+            return 0.1
+
     try:
         precision = int(price_precision if price_precision is not None else 2)
     except Exception:
@@ -554,7 +570,7 @@ def apply_plan_spread_to_price(user_id, symbol, side, base_price, price_precisio
         spread_type = locked_spread_type or "fixed"
         spread_value = max(0.0, _number(locked_spread_pips))
 
-    pip_size = pip_size_for_symbol(symbol, price_precision)
+    pip_size = pip_size_for_symbol(symbol, price_precision, base_price=base_price)
 
     if spread_type == "percentage":
         total_spread_price = base_price * (spread_value / 100.0)

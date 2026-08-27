@@ -425,8 +425,11 @@
     position: relative;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
     overflow: hidden;
+    white-space: nowrap;
+    max-width: max-content;
     border: 1px solid rgba(34, 211, 238, 0.38);
     border-radius: 999px;
     background:
@@ -446,6 +449,11 @@
         0 0 24px rgba(34, 211, 238, 0.10);
     backdrop-filter: blur(16px);
     animation: txSectionPillPulse 3s ease-in-out infinite;
+}
+
+.tx-section-pill span {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .tx-section-pill::before {

@@ -359,7 +359,10 @@ def get_execution_price(order, user_id=None):
                 "message": "Unable to fetch live execution price.",
                 "errors": ticker_result.get("errors", {})
             }
-        base_price = float(ticker_result["data"]["last_price"])
+        data = ticker_result.get("data", {})
+        base_price = float(data.get("last_price") or data.get("mark_price") or 0.0)
+        if base_price <= 0 and data.get("mark_price"):
+            base_price = float(data.get("mark_price"))
 
     spread = apply_plan_spread_to_price(
         user_id=user_id or order.get("user_id"),
@@ -1470,7 +1473,7 @@ def process_liquidations(user_id):
             liquidation_price = float(pos.get("liquidation_price") or 0.0)
             
             should_liquidate_pos = False
-            if liquidation_price > 0:
+            if liquidation_price > 0 and current_price > 0:
                 if position_side == "long" and current_price <= liquidation_price:
                     should_liquidate_pos = True
                 elif position_side == "short" and current_price >= liquidation_price:

@@ -752,6 +752,11 @@ function setFormLocked(locked) {
 function startOtpCountdown(secondsLeft) {
     if (kycState.otpTimer) clearInterval(kycState.otpTimer);
 
+    if (kycEl.sendOtpBtn) {
+        kycEl.sendOtpBtn.disabled = true;
+        kycEl.sendOtpBtn.textContent = "Resend OTP";
+    }
+
     function renderTimer() {
         if (secondsLeft <= 0) {
             if (kycEl.mobileOtpTimer) {
@@ -1348,6 +1353,34 @@ async function handleOpenDigioKyc() {
         const digioObj = new Digio(options);
         digioObj.init();
         digioObj.submit(kid, customerIdentifier, accessToken);
+
+        // Dynamically enforce mobile responsive dimensions on Digio iframe & parent modal container
+        const enforceDigioMobileResponsive = () => {
+            document.querySelectorAll("iframe").forEach(iframe => {
+                if (iframe.src && (iframe.src.includes("digio.in") || iframe.id?.includes("digio"))) {
+                    iframe.style.setProperty("width", "100%", "important");
+                    iframe.style.setProperty("max-width", "100vw", "important");
+                    iframe.style.setProperty("min-width", "0px", "important");
+                    iframe.style.setProperty("box-sizing", "border-box", "important");
+
+                    let p = iframe.parentElement;
+                    while (p && p !== document.body) {
+                        p.style.setProperty("width", "100%", "important");
+                        p.style.setProperty("max-width", "100vw", "important");
+                        p.style.setProperty("min-width", "0px", "important");
+                        p.style.setProperty("left", "0", "important");
+                        p.style.setProperty("right", "0", "important");
+                        p.style.setProperty("margin", "0 auto", "important");
+                        p.style.setProperty("padding", "0", "important");
+                        p.style.setProperty("box-sizing", "border-box", "important");
+                        p = p.parentElement;
+                    }
+                }
+            });
+        };
+
+        const digioStyleTimer = setInterval(enforceDigioMobileResponsive, 150);
+        setTimeout(() => clearInterval(digioStyleTimer), 12000);
 
         // Silent background polling to detect completion when callback is stuck or delayed in Sandbox
         if (kycState.digioPollInterval) clearInterval(kycState.digioPollInterval);

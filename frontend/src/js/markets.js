@@ -203,12 +203,57 @@ function getPriceDecimals(price) {
     return 2;
 }
 
-function getPairInitials(pair) {
-    return String(pair || "")
+function getCoinLogoSvg(pair) {
+    const symbolKey = String(pair || "")
         .replace(" Options", "")
         .split("-")[0]
-        .slice(0, 4)
         .toUpperCase();
+
+    const logos = {
+        "BTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f7931a"/><path fill="#fff" d="M23.18 13.84c.34-2.28-1.4-3.5-3.78-4.31l.77-3.1-1.89-.47-.75 3c-.5 0-1-.13-1.5-.24l.76-3.05-1.89-.47-.77 3.09c-.41-.09-.82-.19-1.22-.29l-2.61-.65-.5 2.02s1.4.32 1.37.34c.77.19.9.7.88 1.1l-.88 3.53c.05.01.12.04.2.08l-.2-.05-1.23 4.94c-.09.23-.33.58-.87.45.02.03-1.37-.34-1.37-.34l-.94 2.18 2.47.62c.46.12.91.24 1.36.36l-.78 3.14 1.89.47.77-3.1c.52.14 1.02.27 1.52.39l-.77 3.09 1.89.47.78-3.13c3.22.61 5.64.36 6.66-2.55.82-2.34-.04-3.69-1.74-4.57 1.24-.29 2.17-1.1 2.42-2.77zm-4.33 6.05c-.58 2.35-4.53 1.08-5.8.76l1.04-4.16c1.28.32 5.37.95 4.76 3.4zm.59-6.08c-.53 2.14-3.83.99-4.89.73l.94-3.77c1.06.27 4.49.77 3.95 3.04z"/></svg>`,
+        
+        "BCH": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8dc351"/><path fill="#fff" d="M22.5 13.5c.3-2.1-1.3-3.2-3.5-4l.7-2.9-1.7-.4-.7 2.8c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.7-.4-.7 2.8c-.4-.1-.8-.2-1.1-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.6.8 1l-.8 3.3c.1 0 .1 0 .2.1l-.2 0-1.1 4.6c-.1.2-.3.5-.8.4 0 0-1.3-.3-1.3-.3l-.9 2 2.3.6c.4.1.8.2 1.3.3l-.7 2.9 1.7.4.7-2.9c.5.1.9.2 1.4.3l-.7 2.9 1.7.4.7-2.9c3 .6 5.2.3 6.2-2.3.8-2.1 0-3.4-1.6-4.2 1.1-.3 2-1 2.2-2.5zm-4 5.6c-.5 2.1-4.1 1-5.3.7l.9-3.8c1.2.3 4.9.9 4.4 3.1zm.5-5.6c-.5 1.9-3.5.9-4.4.7l.8-3.4c.9.2 4.1.7 3.6 2.7z"/></svg>`,
+        
+        "ETH": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#627eea"/><path fill="#fff" fill-opacity=".6" d="M16 4v8.87l7.5 3.35z"/><path fill="#fff" d="M16 4L8.5 16.22l7.5-3.35z"/><path fill="#fff" fill-opacity=".6" d="M16 21.97v6.03l7.5-10.46z"/><path fill="#fff" d="M16 28v-6.03L8.5 17.54z"/><path fill="#fff" fill-opacity=".2" d="M16 20.57l7.5-4.35L16 12.87z"/><path fill="#fff" fill-opacity=".6" d="M8.5 16.22l7.5 4.35v-7.7z"/></svg>`,
+        
+        "BNB": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f3ba2f"/><path fill="#fff" d="M12.12 13.84L16 9.96l3.88 3.88 2.2-2.2L16 5.56l-6.08 6.08zm-6.56 2.16l2.2-2.2L11.64 16l-3.88 3.88-2.2-2.2L7.68 16zm12.32 0l3.88-3.88 2.2 2.2L24.32 16l3.88 3.88-2.2 2.2zm-5.76 2.16L16 22.04l-3.88-3.88-2.2 2.2L16 26.44l6.08-6.08zm0-4.32L16 12.12l1.72 1.72L16 15.56l-1.72-1.72zm0 4.32L16 16.44l1.72 1.72L16 19.88l-1.72-1.72z"/></svg>`,
+        
+        "SOL": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#12141d"/><defs><linearGradient id="solGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00ffa3"/><stop offset="100%" stop-color="#dc1fff"/></linearGradient></defs><path fill="url(#solGrad)" d="M8 20.7l2.1-2.1h13.9l-2.1 2.1H8zm5.9-6.3l-2.1 2.1h13.9l2.1-2.1H13.9zM8 9.3l2.1-2.1h13.9l-2.1 2.1H8z"/></svg>`,
+        
+        "XRP": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#23292f"/><path fill="#fff" d="M22.67 8h2.66l-6.4 6.34 6.47 6.46h-2.66l-5.14-5.13-5.14 5.13H9.8l6.47-6.46L9.87 8h2.66l5.14 5.13L22.67 8z"/></svg>`,
+        
+        "DOGE": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#c2a633"/><path fill="#fff" d="M12 9h5.5c3.5 0 6.5 2.5 6.5 7s-3 7-6.5 7H12V9zm4 3v8h1.5c2 0 3.5-1.5 3.5-4s-1.5-4-3.5-4H16z"/><path fill="#fff" d="M9 15h9v2H9z"/></svg>`,
+        
+        "XAU": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#d4af37"/><path fill="#fff" d="M16 6l8 4.5v11.5L16 26.5 8 22V10.5L16 6zm0 3.5L11 12.3v7.4l5 2.8 5-2.8v-7.4L16 9.5z"/></svg>`,
+        
+        "ATOM": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e3148"/><circle cx="16" cy="16" r="3" fill="#fff"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(30 16 16)"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(-30 16 16)"/></svg>`,
+        
+        "DOT": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#e6007a"/><circle cx="16" cy="9" r="2.5" fill="#fff"/><circle cx="16" cy="23" r="2.5" fill="#fff"/><circle cx="9" cy="16" r="2.5" fill="#fff"/><circle cx="23" cy="16" r="2.5" fill="#fff"/></svg>`,
+        
+        "ADA": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0033ad"/><circle cx="16" cy="16" r="4" fill="#fff"/><circle cx="16" cy="8" r="1.5" fill="#fff"/><circle cx="16" cy="24" r="1.5" fill="#fff"/><circle cx="8" cy="16" r="1.5" fill="#fff"/><circle cx="24" cy="16" r="1.5" fill="#fff"/></svg>`,
+        
+        "AVAX": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#e84142"/><path fill="#fff" d="M16 7l8.5 15h-4.5L16 15l-4 7H7.5L16 7z"/></svg>`,
+        
+        "LINK": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#375bd2"/><path fill="#fff" d="M16 6l7 4v8l-7 4-7-4v-8l7-4zm0 3.5L11.5 12v4L16 18.5l4.5-2.5v-4L16 9.5z"/></svg>`,
+        
+        "LTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#345d9d"/><path fill="#fff" d="M12 9h3v10h6v3H12V9zm-1 6l8-3v2l-8 3v-2z"/></svg>`,
+        
+        "TRX": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ef0027"/><path fill="#fff" d="M7 8l18 3-7 14L7 8zm4 3l4.5 9 4.5-9H11z"/></svg>`,
+        
+        "UNI": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ff007a"/><path fill="#fff" d="M18 8c1 0 3 2 3 4s-2 5-5 7l-2 1c-1 0-2-1-2-2s1-3 3-5l3-5zm-5 11l-3 4-2-2 3-4 2 2z"/></svg>`,
+        
+        "APT": `<svg viewBox="0 0 32 32" class="coin-logo-svg w-8 h-8 rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#18181b"/><path fill="#fff" d="M16 6l9 16H7l9-16zm0 5l-5 9h10l-5-9z"/></svg>`
+    };
+
+    if (logos[symbolKey]) {
+        return logos[symbolKey];
+    }
+
+    return `<div class="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-400/20 text-xs font-black text-cyan-400">${escapeHtml(symbolKey.slice(0, 3))}</div>`;
+}
+
+function getPairInitials(pair) {
+    return getCoinLogoSvg(pair);
 }
 
 function getChangeClass(change) {
@@ -458,17 +503,17 @@ function renderSideList(container, markets) {
     }
 
     container.innerHTML = markets.slice(0, 4).map((market) => `
-        <a href="${escapeHtml(getTradeLink(market))}" data-trade-symbol="${escapeHtml(market.symbol)}" class="flex items-center justify-between gap-3 rounded-2xl bg-slate-950/70 p-3 transition hover:bg-cyan-400/10">
-            <div class="flex min-w-0 items-center gap-3">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-xs font-black text-cyan-400">
-                    ${escapeHtml(getPairInitials(market.pair))}
+        <a href="${escapeHtml(getTradeLink(market))}" data-trade-symbol="${escapeHtml(market.symbol)}" class="flex items-center justify-between gap-2.5 rounded-2xl bg-slate-950/70 p-3 transition hover:bg-cyan-400/10">
+            <div class="flex min-w-0 items-center gap-2.5">
+                <div class="flex shrink-0 items-center justify-center">
+                    ${getCoinLogoSvg(market.pair)}
                 </div>
-                <div class="min-w-0">
-                    <p class="truncate text-sm font-black text-white">${escapeHtml(market.pair)}</p>
-                    <p class="truncate text-xs text-slate-500">${escapeHtml(market.ltp)}</p>
+                <div class="flex min-w-0 flex-col sm:flex-row sm:items-center sm:gap-2">
+                    <span class="truncate text-sm font-black text-white">${escapeHtml(market.pair)}</span>
+                    <span class="truncate text-xs font-medium text-slate-400">${escapeHtml(market.ltp)}</span>
                 </div>
             </div>
-            <p class="shrink-0 text-xs font-black ${getChangeClass(market.change)}">${escapeHtml(formatChange(market.change))}</p>
+            <span class="shrink-0 text-xs font-black ${getChangeClass(market.change)}">${escapeHtml(formatChange(market.change))}</span>
         </a>
     `).join("");
 
@@ -514,8 +559,8 @@ function renderDesktopTable(markets) {
             <tr class="transition hover:bg-cyan-400/[0.04]">
                 <td class="px-5 py-5">
                     <div class="flex items-center gap-4">
-                        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-400/10 text-sm font-black text-cyan-400">
-                            ${escapeHtml(getPairInitials(market.pair))}
+                        <div class="flex shrink-0 items-center justify-center">
+                            ${getCoinLogoSvg(market.pair)}
                         </div>
                         <div>
                             <a href="${escapeHtml(getTradeLink(market))}" class="font-black text-white hover:text-cyan-400" data-trade-symbol="${escapeHtml(market.symbol)}">
@@ -546,30 +591,67 @@ function renderDesktopTable(markets) {
 function renderMobileCards(markets) {
     if (!mobileCards) return;
 
-    mobileCards.innerHTML = markets.map((market) => `
-        <article class="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
-            <div class="flex items-start justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-sm font-black text-cyan-400">
-                        ${escapeHtml(getPairInitials(market.pair))}
-                    </div>
-                    <div>
-                        <h3 class="font-black text-white">${escapeHtml(market.pair)}</h3>
-                        <p class="mt-1 text-xs text-slate-500">${escapeHtml(market.category)}</p>
-                    </div>
-                </div>
-                <span class="rounded-full px-3 py-1 text-xs font-black ${getChangeBadgeClass(market.change)}">${escapeHtml(formatChange(market.change))}</span>
-            </div>
-            <div class="mt-5 grid grid-cols-2 gap-3">
-                <div class="rounded-2xl bg-slate-950/70 p-4"><p class="text-xs text-slate-500">Leverage / Mode</p><p class="mt-1 font-black text-cyan-400">${escapeHtml(market.leverage)}</p></div>
-                <div class="rounded-2xl bg-slate-950/70 p-4"><p class="text-xs text-slate-500">LTP</p><p class="mt-1 font-black text-white">${escapeHtml(market.ltp)}</p></div>
-                <div class="col-span-2 rounded-2xl bg-slate-950/70 p-4"><p class="text-xs text-slate-500">Volume</p><p class="mt-1 font-black text-white">${escapeHtml(market.volume)}</p></div>
-            </div>
-            <a href="${escapeHtml(getTradeLink(market))}" class="mt-5 inline-flex w-full items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300" data-trade-symbol="${escapeHtml(market.symbol)}">
-                ${escapeHtml(getTradeText(market))}
-            </a>
-        </article>
-    `).join("");
+    if (!markets.length) {
+        mobileCards.innerHTML = "";
+        return;
+    }
+
+    mobileCards.innerHTML = `
+        <div class="rounded-2xl border border-[#1c283d] bg-[#0f1524] divide-y divide-[#192338] overflow-hidden shadow-2xl">
+            ${markets.map((market) => {
+                const changeVal = Number(market.change) || 0;
+                const changeColorClass = changeVal >= 0 ? "text-emerald-400" : "text-rose-400";
+                
+                const pairStr = String(market.pair || market.symbol || "");
+                const parts = pairStr.split("-");
+                const baseSymbol = parts[0] || pairStr;
+                const quoteSymbol = parts[1] ? `-${parts[1]}` : "";
+                
+                const rawPriceText = String(market.ltp || "")
+                    .replace(" USDT", "")
+                    .replace(" USD", "")
+                    .trim();
+
+                return `
+                    <a href="${escapeHtml(getTradeLink(market))}" data-trade-symbol="${escapeHtml(market.symbol)}" class="flex items-center justify-between px-4 py-3.5 transition active:bg-[#182238] hover:bg-[#141c2e] group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <!-- Circular Coin Icon -->
+                            <div class="flex shrink-0 items-center justify-center">
+                                ${getCoinLogoSvg(market.pair)}
+                            </div>
+                            
+                            <!-- Symbol & Leverage Subtext -->
+                            <div class="min-w-0">
+                                <div class="flex items-baseline gap-0.5 leading-none">
+                                    <span class="font-black text-white text-sm tracking-wide">${escapeHtml(baseSymbol)}</span>
+                                    <span class="text-xs font-bold text-slate-400">${escapeHtml(quoteSymbol)}</span>
+                                </div>
+                                <p class="text-[11px] font-bold text-slate-400 mt-1.5 leading-none">${escapeHtml(market.leverage)}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 shrink-0">
+                            <!-- Price & 24H % Change -->
+                            <div class="text-right leading-none">
+                                <div class="flex items-baseline justify-end gap-1">
+                                    <span class="font-black text-white text-sm tracking-tight">${escapeHtml(rawPriceText)}</span>
+                                    <span class="text-[10px] font-bold text-slate-400">${escapeHtml(market.quoteAsset || "USDT")}</span>
+                                </div>
+                                <p class="text-[11px] font-extrabold ${changeColorClass} mt-1.5">${escapeHtml(formatChange(market.change))}</p>
+                            </div>
+
+                            <!-- Three Vertical Dots Menu Icon -->
+                            <div class="text-slate-500 group-hover:text-slate-300 transition-colors pl-1">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            }).join("")}
+        </div>
+    `;
 
     initTradeLinkStorage();
 }

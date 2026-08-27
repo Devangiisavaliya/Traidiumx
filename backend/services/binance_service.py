@@ -11,12 +11,17 @@ _SESSION = requests.Session()
 # Symbol mapping helper
 BINANCE_SYMBOL_ALIASES = {
     "XAUUSD": "XAUUSDT",
-    "GOLDUSD": "XAUUSDT"
+    "GOLDUSD": "XAUUSDT",
+    "PEPEUSDT": "1000PEPEUSDT",
+    "SHIBUSDT": "1000SHIBUSDT",
+    "BONKUSDT": "1000BONKUSDT",
+    "FLOKIUSDT": "1000FLOKIUSDT",
+    "LUNCUSDT": "1000LUNCUSDT",
 }
 
 def _map_symbol(symbol):
-    symbol_upper = str(symbol).upper().strip()
-    return BINANCE_SYMBOL_ALIASES.get(symbol_upper, symbol_upper)
+    clean = str(symbol or "").upper().replace("-", "").replace("_", "").strip()
+    return BINANCE_SYMBOL_ALIASES.get(clean, clean)
 
 def _get_binance_credentials():
     # Attempt to load from database system settings

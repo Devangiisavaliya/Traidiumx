@@ -323,6 +323,45 @@
             to { opacity: 1; transform: scaleY(1.05); }
         }
 
+        .tx-mobile-simple-loader {
+            display: none;
+            margin-top: 36px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .tx-simple-spinner {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 3.5px solid rgba(34, 211, 238, 0.15);
+            border-top-color: #22d3ee;
+            border-right-color: #38bdf8;
+            animation: txSimpleSpin 0.85s linear infinite;
+            box-shadow: 0 0 24px rgba(34, 211, 238, 0.25);
+        }
+
+        .tx-simple-loading-text {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            animation: txSimplePulse 1.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes txSimpleSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes txSimplePulse {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
         @media (max-width: 680px) {
             .tx-wallet-intro-brand {
                 gap: 10px;
@@ -339,27 +378,15 @@
                 letter-spacing: 0.20em;
             }
 
-            .tx-wallet-flow {
-                grid-template-columns: 1fr;
-                width: min(100%, 370px);
-                gap: 12px;
-                margin-top: 28px;
+            /* Hide complex desktop flow cards on mobile view */
+            .tx-wallet-flow,
+            .tx-wallet-intro-bars {
+                display: none !important;
             }
 
-            .tx-wallet-transfer-rail {
-                height: 62px;
-                transform: rotate(90deg);
-                width: 110px;
-                justify-self: center;
-            }
-
-            .tx-wallet-usdt {
-                animation-name: txWalletCoinMoveMobile;
-            }
-
-            .tx-wallet-flow-card {
-                border-radius: 20px;
-                padding: 16px;
+            /* Display clean simple loading spinner on mobile view */
+            .tx-mobile-simple-loader {
+                display: flex !important;
             }
         }
 
@@ -641,6 +668,12 @@
                 </div>
             </div>
 
+            <!-- Simple Loading Spinner (Mobile View Only) -->
+            <div class="tx-mobile-simple-loader">
+                <div class="tx-simple-spinner"></div>
+                <p class="tx-simple-loading-text">Loading Wallet...</p>
+            </div>
+
             <div class="tx-wallet-flow">
                 <div class="tx-wallet-flow-card main">
                     <span class="tx-wallet-flow-card-label">Main Wallet</span>
@@ -679,26 +712,70 @@
 
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <!-- Top Navigation Tab Bar -->
-            <div class="mb-8 flex gap-6 border-b border-white/10 pb-3">
-                <button id="mainTabOverview" class="px-2 py-1 text-sm font-bold border-b-2 border-cyan-400 text-cyan-300 transition">Overview</button>
-                <button id="mainTabTradingAccounts" class="px-2 py-1 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">Trading accounts</button>
-                <button id="mainTabWallet" class="px-2 py-1 text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition">Wallet</button>
+            <div class="mb-6 flex gap-2 sm:gap-6 border-b border-white/10 pb-3 overflow-x-auto whitespace-nowrap">
+                <button id="mainTabOverview" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-cyan-400 text-cyan-300 transition flex-shrink-0">Overview</button>
+                <button id="mainTabTradingAccounts" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition flex-shrink-0">Trading accounts</button>
+                <button id="mainTabWallet" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition flex-shrink-0">Wallet</button>
             </div>
 
             <!-- Tab Content: Overview (Active by Default) -->
             <div id="contentOverview" class="block">
                 <!-- Large Balance Display -->
-                <div class="mb-8">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-black uppercase tracking-wider text-slate-500">Total balance</span>
-                        <button id="txToggleBalancePrivacy" type="button" class="text-slate-400 hover:text-cyan-400 transition focus:outline-none p-1 rounded-md cursor-pointer" title="Hide/Show Balance">
-                            <svg id="txEyeOpenIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                            <svg id="txEyeClosedIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A9.954 9.954 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-6.155-1.41a3 3 0 104.243-4.243M3 3l18 18"/></svg>
+                <div class="mb-8 relative">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-500">Total balance</span>
+                            <button id="txToggleBalancePrivacy" type="button" class="text-slate-400 hover:text-cyan-400 transition focus:outline-none p-1 rounded-md cursor-pointer" title="Hide/Show Balance">
+                                <svg id="txEyeOpenIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg id="txEyeClosedIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A9.954 9.954 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-6.155-1.41a3 3 0 104.243-4.243M3 3l18 18"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Mobile Currency Toggle Switch (INR / USDT) - ONLY ON MOBILE -->
+                        <div class="inline-flex items-center p-1 rounded-2xl bg-slate-950/90 border border-cyan-400/30 shadow-inner sm:hidden">
+                            <button type="button" data-currency="INR" class="flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black transition-all duration-300 bg-cyan-400 text-slate-950 shadow-sm min-w-[46px]">₹ INR</button>
+                            <button type="button" data-currency="USDT" class="flex items-center justify-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black transition-all duration-300 bg-transparent text-slate-400 hover:text-slate-200 min-w-[46px]">$ USDT</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight" id="portfolioTotalBalance">≈ $8,517.18 USD</h2>
+                        <button id="txInfoBalanceBtn" type="button" class="text-slate-400 hover:text-cyan-400 transition focus:outline-none p-1 rounded-full cursor-pointer flex items-center justify-center flex-shrink-0" title="View Balance Breakdown">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9" />
+                                <path stroke-linecap="round" d="M12 8h.01M12 11v5" />
+                            </svg>
                         </button>
                     </div>
-                    <div class="flex items-baseline gap-2 mt-1">
-                        <h2 class="text-4xl font-black text-white" id="portfolioTotalBalance">≈ $8,517.18 USD</h2>
-                        <span class="text-slate-500 cursor-pointer text-sm" title="Total consolidated asset worth.">ⓘ</span>
+
+                    <!-- Total Balance Breakdown Popover Tooltip (Guaranteed 100% Centered Alignment on all Mobile devices) -->
+                    <div id="txBalanceBreakdownTooltip" class="hidden absolute left-0 right-0 sm:left-[200px] sm:right-auto top-full mt-2.5 w-full max-w-[285px] sm:w-72 mx-auto sm:mx-0 p-4 rounded-2xl bg-[#080f1e]/98 border border-cyan-400/40 shadow-[0_10px_35px_rgba(34,211,238,0.3)] backdrop-blur-xl z-50 text-left transition-all duration-300">
+                        <!-- Top Arrow Pointer -->
+                        <div class="absolute -top-1.5 left-1/2 sm:left-6 -translate-x-1/2 sm:translate-x-0 w-3 h-3 bg-[#080f1e] border-l border-t border-cyan-400/40 transform rotate-45"></div>
+
+                        <div class="flex items-center justify-between border-b border-cyan-400/20 pb-2 mb-3">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-cyan-400">Total Balance Breakdown</span>
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        </div>
+
+                        <div class="space-y-2.5 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-bold">Available Balance</span>
+                                <span id="txBreakdownAvail" class="font-extrabold text-white font-mono">₹ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-bold">Locked Margin</span>
+                                <span id="txBreakdownLocked" class="font-extrabold text-white font-mono">₹ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-bold">Unrealized PnL</span>
+                                <span id="txBreakdownPnl" class="font-extrabold text-cyan-400 font-mono">₹ 0.00</span>
+                            </div>
+                        </div>
+
+                        <p class="text-[10.5px] text-slate-400 font-medium mt-3 border-t border-cyan-400/15 pt-2.5 leading-relaxed">
+                            Total balance includes available funds, active position margins, and live PnL.
+                        </p>
                     </div>
                 </div>
 
@@ -708,7 +785,7 @@
                     <button id="quickWithdrawBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Withdraw</button>
                     <button id="quickTransferBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Transfer</button>
                     <button id="quickExchangeBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Exchange</button>
-                    <button id="quickInternalTransferBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white">Internal Transfer</button>
+                    <button id="quickInternalTransferBtn" class="rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 transition px-6 py-3 text-xs font-black text-white"><span class="sm:hidden">Internal</span><span class="hidden sm:inline">Internal Transfer</span></button>
                 </div>
 
                 <!-- Inner sub-navigation / search bar row -->
@@ -727,7 +804,7 @@
                 </div>
 
                 <!-- Money Listing Section -->
-                <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl mb-6">
+                <div class="pf-wallet-section-card rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl mb-6">
                     <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                         <h3 class="text-sm font-black text-slate-400">Money <span id="moneySubVal" class="text-xs text-slate-500 font-semibold ml-1">| ≈ $0 USD</span></h3>
                     </div>
@@ -749,7 +826,7 @@
                 </div>
 
                 <!-- Crypto wallet Listing Section -->
-                <div class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+                <div class="pf-wallet-section-card rounded-3xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
                     <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                         <h3 class="text-sm font-black text-slate-400">Crypto wallet <span id="cryptoSubVal" class="text-xs text-slate-500 font-semibold ml-1">| ≈ $0 USD</span></h3>
                     </div>
@@ -1165,7 +1242,6 @@
                 })();
             </script>
         </div>
-    </main>
     </main>
 
     <div id="walletActionModal" class="fixed inset-0 z-[9999] hidden items-center justify-center px-4 py-6" aria-hidden="true">

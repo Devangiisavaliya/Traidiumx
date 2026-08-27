@@ -21,7 +21,12 @@ from utils.validators import clean_string, validate_market_symbol
 GOLD_SYMBOLS = ["XAUUSD", "GOLDUSD"]
 BINANCE_SYMBOL_ALIASES = {
     "XAUUSD": "XAUUSDT",
-    "GOLDUSD": "XAUUSDT"
+    "GOLDUSD": "XAUUSDT",
+    "PEPEUSDT": "1000PEPEUSDT",
+    "SHIBUSDT": "1000SHIBUSDT",
+    "BONKUSDT": "1000BONKUSDT",
+    "FLOKIUSDT": "1000FLOKIUSDT",
+    "LUNCUSDT": "1000LUNCUSDT",
 }
 
 _PREMIUM_INDEX_CACHE = {}
@@ -245,6 +250,240 @@ DEFAULT_SYMBOLS = [
         "sort_order": 16
     },
     {
+        "symbol": "NEARUSDT",
+        "base_asset": "NEAR",
+        "quote_asset": "USDT",
+        "display_name": "Near Protocol / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 17
+    },
+    {
+        "symbol": "SUIUSDT",
+        "base_asset": "SUI",
+        "quote_asset": "USDT",
+        "display_name": "Sui / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 18
+    },
+    {
+        "symbol": "1000PEPEUSDT",
+        "base_asset": "PEPE",
+        "quote_asset": "USDT",
+        "display_name": "1000PEPE / USDT",
+        "market_type": "futures",
+        "min_qty": 10,
+        "max_leverage": 25,
+        "price_precision": 6,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 19
+    },
+    {
+        "symbol": "1000SHIBUSDT",
+        "base_asset": "SHIB",
+        "quote_asset": "USDT",
+        "display_name": "1000SHIB / USDT",
+        "market_type": "futures",
+        "min_qty": 10,
+        "max_leverage": 25,
+        "price_precision": 6,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 20
+    },
+    {
+        "symbol": "MATICUSDT",
+        "base_asset": "MATIC",
+        "quote_asset": "USDT",
+        "display_name": "Polygon / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 21
+    },
+    {
+        "symbol": "ARBUSDT",
+        "base_asset": "ARB",
+        "quote_asset": "USDT",
+        "display_name": "Arbitrum / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 22
+    },
+    {
+        "symbol": "OPUSDT",
+        "base_asset": "OP",
+        "quote_asset": "USDT",
+        "display_name": "Optimism / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 23
+    },
+    {
+        "symbol": "INJUSDT",
+        "base_asset": "INJ",
+        "quote_asset": "USDT",
+        "display_name": "Injective / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 24
+    },
+    {
+        "symbol": "WIFUSDT",
+        "base_asset": "WIF",
+        "quote_asset": "USDT",
+        "display_name": "dogwifhat / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 25
+    },
+    {
+        "symbol": "FETUSDT",
+        "base_asset": "FET",
+        "quote_asset": "USDT",
+        "display_name": "FET / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 26
+    },
+    {
+        "symbol": "TIAUSDT",
+        "base_asset": "TIA",
+        "quote_asset": "USDT",
+        "display_name": "Celestia / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 27
+    },
+    {
+        "symbol": "FILUSDT",
+        "base_asset": "FIL",
+        "quote_asset": "USDT",
+        "display_name": "Filecoin / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 28
+    },
+    {
+        "symbol": "ETCUSDT",
+        "base_asset": "ETC",
+        "quote_asset": "USDT",
+        "display_name": "Ethereum Classic / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 29
+    },
+    {
+        "symbol": "XLMUSDT",
+        "base_asset": "XLM",
+        "quote_asset": "USDT",
+        "display_name": "Stellar / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 30
+    },
+    {
+        "symbol": "RENDERUSDT",
+        "base_asset": "RENDER",
+        "quote_asset": "USDT",
+        "display_name": "Render / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 31
+    },
+    {
+        "symbol": "SEIUSDT",
+        "base_asset": "SEI",
+        "quote_asset": "USDT",
+        "display_name": "Sei / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 32
+    },
+    {
+        "symbol": "ICPUSDT",
+        "base_asset": "ICP",
+        "quote_asset": "USDT",
+        "display_name": "Internet Computer / USDT",
+        "market_type": "futures",
+        "min_qty": 0.1,
+        "max_leverage": 25,
+        "price_precision": 3,
+        "quantity_precision": 1,
+        "is_active": True,
+        "sort_order": 33
+    },
+    {
+        "symbol": "FTMUSDT",
+        "base_asset": "FTM",
+        "quote_asset": "USDT",
+        "display_name": "Fantom / USDT",
+        "market_type": "futures",
+        "min_qty": 1,
+        "max_leverage": 25,
+        "price_precision": 4,
+        "quantity_precision": 0,
+        "is_active": True,
+        "sort_order": 34
+    },
+    {
         "symbol": "XAUUSD",
         "base_asset": "XAU",
         "quote_asset": "USDT",
@@ -258,7 +497,7 @@ DEFAULT_SYMBOLS = [
         "price_precision": 2,
         "quantity_precision": 2,
         "is_active": True,
-        "sort_order": 17
+        "sort_order": 35
     }
 ]
 
@@ -267,9 +506,26 @@ DEFAULT_SYMBOL_MAP = {item["symbol"]: item for item in DEFAULT_SYMBOLS}
 
 
 def get_default_symbol_config(symbol):
-    symbol = clean_string(symbol).upper()
-    config = DEFAULT_SYMBOL_MAP.get(symbol)
-    return config.copy() if config else None
+    clean = clean_string(symbol).upper().replace("-", "").replace("_", "")
+    config = DEFAULT_SYMBOL_MAP.get(clean) or DEFAULT_SYMBOL_MAP.get(symbol)
+    if config:
+        return config.copy()
+    if clean.endswith("USDT") or clean.endswith("USD"):
+        base = clean[:-4] if clean.endswith("USDT") else clean[:-3]
+        return {
+            "symbol": clean,
+            "base_asset": base,
+            "quote_asset": "USDT",
+            "display_name": f"{base} / USDT",
+            "market_type": "futures",
+            "min_qty": 0.01,
+            "max_leverage": 25,
+            "price_precision": 4,
+            "quantity_precision": 2,
+            "is_active": True,
+            "sort_order": 99
+        }
+    return None
 
 
 def ensure_default_market_symbol(symbol):
@@ -521,11 +777,11 @@ def get_provider_symbol(stored_symbol):
     User-facing symbols can differ from the exchange/provider symbol.
     Example: UI/internal symbol XAUUSD maps to Binance Futures XAUUSDT.
     """
-    internal_symbol = clean_string(stored_symbol.get("symbol")).upper()
-    provider_symbol = clean_string(stored_symbol.get("provider_symbol")).upper()
+    internal_symbol = clean_string((stored_symbol or {}).get("symbol")).upper().replace("-", "").replace("_", "")
+    provider_symbol = clean_string((stored_symbol or {}).get("provider_symbol")).upper().replace("-", "").replace("_", "")
 
     if provider_symbol:
-        return provider_symbol
+        return BINANCE_SYMBOL_ALIASES.get(provider_symbol, provider_symbol)
 
     return BINANCE_SYMBOL_ALIASES.get(internal_symbol, internal_symbol)
 

@@ -132,6 +132,83 @@
         "trend": false
     },
     {
+        "symbol": "NEAR",
+        "pair": "NEAR-USDT",
+        "name": "Near Protocol",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "4.85 USDT",
+        "change": 2.15,
+        "volume": "4,12,39,620.0",
+        "trend": true
+    },
+    {
+        "symbol": "SUI",
+        "pair": "SUI-USDT",
+        "name": "Sui Network",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "1.65 USDT",
+        "change": 3.42,
+        "volume": "8,95,12,400.0",
+        "trend": true
+    },
+    {
+        "symbol": "MATIC",
+        "pair": "MATIC-USDT",
+        "name": "Polygon",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "0.42 USDT",
+        "change": -0.85,
+        "volume": "2,15,40,100.0",
+        "trend": false
+    },
+    {
+        "symbol": "ARB",
+        "pair": "ARB-USDT",
+        "name": "Arbitrum",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "0.55 USDT",
+        "change": 1.12,
+        "volume": "1,85,90,300.0",
+        "trend": true
+    },
+    {
+        "symbol": "OP",
+        "pair": "OP-USDT",
+        "name": "Optimism",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "1.42 USDT",
+        "change": 0.95,
+        "volume": "1,45,20,800.0",
+        "trend": true
+    },
+    {
+        "symbol": "INJ",
+        "pair": "INJ-USDT",
+        "name": "Injective",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "18.50 USDT",
+        "change": 4.10,
+        "volume": "3,10,80,500.0",
+        "trend": true
+    },
+    {
+        "symbol": "WIF",
+        "pair": "WIF-USDT",
+        "name": "dogwifhat",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "1.75 USDT",
+        "change": 5.25,
+        "volume": "9,42,10,300.0",
+        "trend": true
+    },
+    {
         "symbol": "BTC",
         "pair": "BTC-INR",
         "name": "Bitcoin INR",

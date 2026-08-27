@@ -99,6 +99,7 @@
             transition: all 0.25s ease;
             background: rgba(34, 211, 238, 0.1);
             border: 1px solid rgba(34, 211, 238, 0.3);
+            white-space: nowrap !important;
         }
 
         .pf-btn:hover {
@@ -428,17 +429,17 @@
         }
 
         /* Comprehensive Responsive System (Mobile 320px -> 4K Desktop) */
-        @media (max-width: 639px) {
+        @media (max-width: 1024px) {
             .pf-shell {
-                padding-top: 104px !important;
-                padding-left: 12px !important;
-                padding-right: 12px !important;
-                padding-bottom: 60px !important;
+                padding-top: 100px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                padding-bottom: 70px !important;
             }
 
             .pf-master-hero {
                 padding: 1.25rem !important;
-                border-radius: 1.5rem !important;
+                border-radius: 1.75rem !important;
             }
 
             .pf-glass-card {
@@ -448,16 +449,23 @@
 
             .pf-hero-actions {
                 width: 100% !important;
-                display: flex !important;
-                flex-direction: column !important;
-                gap: 0.625rem !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+                margin-top: 1rem !important;
+            }
+
+            .pf-hero-actions > a:last-child,
+            .pf-hero-actions > button:last-child {
+                grid-column: span 2 !important;
             }
 
             .pf-btn {
                 width: 100% !important;
                 justify-content: center !important;
-                padding: 10px 16px !important;
-                font-size: 12px !important;
+                padding: 10px 12px !important;
+                font-size: 12.5px !important;
+                box-sizing: border-box !important;
             }
 
             .pf-table th {
@@ -480,6 +488,104 @@
                 font-size: 11.5px !important;
                 border-radius: 12px !important;
                 gap: 6px !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pf-shell {
+                padding-top: 84px !important;
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                padding-bottom: 80px !important;
+            }
+
+            .pf-btn {
+                padding: 9px 6px !important;
+                font-size: 11.5px !important;
+                white-space: nowrap !important;
+            }
+
+            .pf-btn svg {
+                flex-shrink: 0 !important;
+            }
+
+            .pf-chart-pill-btn {
+                padding: 4px 6px !important;
+                font-size: 10px !important;
+                min-width: 0 !important;
+                flex: 1 !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+            }
+
+            .pf-pill-container-mobile {
+                width: 100% !important;
+                max-width: 100% !important;
+                justify-content: space-between !important;
+                gap: 3px !important;
+                padding: 4px !important;
+                overflow-x: auto !important;
+                scrollbar-width: none !important;
+            }
+
+            /* Remove bulky outer container card & inner box borders around history workspace on mobile view */
+            #pfHistorySection,
+            section#pfHistorySection,
+            .pf-history-workspace {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                backdrop-filter: none !important;
+                border-radius: 0 !important;
+            }
+
+            .pf-history-workspace .pf-tab-nav-bar {
+                background: #07111f !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 16px !important;
+                padding: 4px !important;
+                margin-bottom: 12px !important;
+                justify-content: space-between !important;
+                gap: 4px !important;
+            }
+
+            .pf-history-workspace .pf-pill-tab {
+                flex: 1 !important;
+                justify-content: center !important;
+                padding: 8px 4px !important;
+                font-size: 11.5px !important;
+                border-radius: 12px !important;
+            }
+
+            .pf-history-workspace #pfTabFutures,
+            .pf-history-workspace #pfTabOptions,
+            .pf-history-workspace #pfTabActivity {
+                padding: 0 !important;
+                background: transparent !important;
+                border: none !important;
+            }
+
+            .pf-history-workspace .pf-table-wrapper {
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+
+            .pf-history-workspace .rt-mobile-card-cell {
+                padding: 0 !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            }
+
+            /* Flat borderless list items without inner box borders */
+            .pf-history-workspace .rt-mobile-position-card {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                backdrop-filter: none !important;
+                border-radius: 0 !important;
+                padding: 10px 2px !important;
+                margin-bottom: 0 !important;
             }
         }
 
@@ -555,11 +661,11 @@
             <div class="relative z-10 flex flex-wrap items-center justify-between gap-6">
                 <div>
                     <div class="flex items-center gap-3">
-                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 shadow-sm">
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 shadow-sm">
                             <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
                             Live Portfolio Analytics
                         </span>
-                        <span id="pfKycBadge" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 hidden">
+                        <span id="pfKycBadge" class="hidden sm:inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25">
                             ✓ Verified
                         </span>
                     </div>
@@ -606,13 +712,22 @@
                         <p class="text-xs font-semibold text-slate-400 mt-0.5">Historical equity curve & account valuation trends</p>
                     </div>
 
-                    <div class="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 shadow-inner">
-                        <button type="button" class="pf-chart-pill-btn" data-range="1d">1D</button>
-                        <button type="button" class="pf-chart-pill-btn" data-range="1w">1W</button>
-                        <button type="button" class="pf-chart-pill-btn active" data-range="1m">1M</button>
-                        <button type="button" class="pf-chart-pill-btn" data-range="3m">3M</button>
-                        <button type="button" class="pf-chart-pill-btn" data-range="1y">1Y</button>
-                        <button type="button" class="pf-chart-pill-btn" data-range="all">All</button>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <!-- Currency Toggle Switch (INR / USDT) - ONLY ON MOBILE -->
+                        <div class="inline-flex items-center p-1 rounded-2xl bg-slate-950/90 border border-cyan-400/30 shadow-inner sm:hidden">
+                            <button type="button" data-currency="INR" class="flex items-center justify-center gap-1 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 bg-cyan-400 text-slate-950 shadow-sm min-w-[50px]">₹ INR</button>
+                            <button type="button" data-currency="USDT" class="flex items-center justify-center gap-1 px-3 py-1 rounded-xl text-xs font-black transition-all duration-300 bg-transparent text-slate-400 hover:text-slate-200 min-w-[50px]">$ USDT</button>
+                        </div>
+
+                        <!-- Timeframe Range Pills -->
+                        <div class="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 shadow-inner pf-pill-container-mobile">
+                            <button type="button" class="pf-chart-pill-btn" data-range="1d">1D</button>
+                            <button type="button" class="pf-chart-pill-btn" data-range="1w">1W</button>
+                            <button type="button" class="pf-chart-pill-btn active" data-range="1m">1M</button>
+                            <button type="button" class="pf-chart-pill-btn" data-range="3m">3M</button>
+                            <button type="button" class="pf-chart-pill-btn" data-range="1y">1Y</button>
+                            <button type="button" class="pf-chart-pill-btn" data-range="all">All</button>
+                        </div>
                     </div>
                 </div>
 
@@ -884,25 +999,25 @@
                 <div>
                     <h2 class="text-xl font-black text-white tracking-tight mb-4">Account Stats</h2>
 
-                    <div class="space-y-3.5 text-xs">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-                            <span class="text-slate-400 font-medium">Total Lifetime Deposits</span>
-                            <strong id="pfTotalDeposits" class="text-white font-extrabold">$0.00 USDT</strong>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2">
+                            <span class="text-slate-400 font-medium whitespace-nowrap">Lifetime Deposits</span>
+                            <strong id="pfTotalDeposits" class="text-white font-extrabold text-right truncate font-mono min-w-0">$0.00 USDT</strong>
                         </div>
 
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-                            <span class="text-slate-400 font-medium">Total Lifetime Withdrawals</span>
-                            <strong id="pfTotalWithdrawals" class="text-white font-extrabold">$0.00 USDT</strong>
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2">
+                            <span class="text-slate-400 font-medium whitespace-nowrap">Lifetime Withdrawals</span>
+                            <strong id="pfTotalWithdrawals" class="text-white font-extrabold text-right truncate font-mono min-w-0">$0.00 USDT</strong>
                         </div>
 
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-                            <span class="text-slate-400 font-medium">Primary Account Currency</span>
-                            <strong id="pfPrimaryCurrency" class="text-cyan-300 font-extrabold">USDT</strong>
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800/80 gap-2">
+                            <span class="text-slate-400 font-medium whitespace-nowrap">Account Currency</span>
+                            <strong id="pfPrimaryCurrency" class="text-cyan-300 font-extrabold text-right shrink-0">USDT</strong>
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-400 font-medium">USDT / INR Conversion Rate</span>
-                            <strong id="pfUsdtRate" class="text-emerald-400 font-extrabold">1 USDT = ₹88.50</strong>
+                        <div class="flex items-center justify-between gap-2 pt-0.5">
+                            <span class="text-slate-400 font-medium whitespace-nowrap">USDT / INR Rate</span>
+                            <strong id="pfUsdtRate" class="text-emerald-400 font-extrabold text-right whitespace-nowrap shrink-0">1 USDT = ₹88.50</strong>
                         </div>
                     </div>
                 </div>
@@ -915,7 +1030,7 @@
         </section>
 
         <!-- Positions & Activity Workspace Section -->
-        <section class="pf-glass-card mb-8 overflow-hidden">
+        <section id="pfHistorySection" class="pf-glass-card pf-history-workspace mb-8 overflow-hidden">
             <div class="pf-tab-nav-bar flex items-center gap-1.5 p-3 sm:p-4 border-b border-slate-800/80 overflow-x-auto no-scrollbar flex-nowrap w-full box-border">
                 <button type="button" class="pf-pill-tab active" data-tab="futures">
                     <svg class="w-4 h-4 hidden sm:inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>

@@ -313,17 +313,16 @@ function renderPortfolio(data, selectedSubAccountId = null) {
         pfUserGreeting.textContent = `Welcome back, ${escapeHtml(userName)}! Track your net worth, positions & performance in real-time.`;
     }
 
-    // KYC badge
+    // KYC badge (Hidden on mobile < 640px)
     const kycBadge = document.getElementById("pfKycBadge");
     if (kycBadge) {
         if (user.kyc_status === "approved") {
             kycBadge.textContent = "✓ Verified";
-            kycBadge.className = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25";
+            kycBadge.className = "hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-cyan-400/10 text-cyan-300 border border-cyan-400/25";
         } else {
             kycBadge.textContent = "Unverified";
-            kycBadge.className = "inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            kycBadge.className = "hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20";
         }
-        kycBadge.classList.remove("hidden");
     }
 
     // Stat 1: Net Worth Card
@@ -799,36 +798,28 @@ function renderFuturesPositionsTable(positions, page = 1) {
                 </td>
 
                 <td class="pf-mobile-only rt-mobile-card-cell" colspan="8">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[60%]">${escapeHtml(p.symbol || "USDT-M")}</span>
-                            <div class="flex items-center gap-1.5 shrink-0">
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-0.5">
+                        <!-- Line 1: Symbol, Badges, PnL & Cross (✕) Close Button -->
+                        <div class="flex items-center justify-between gap-1.5 mb-1">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-xs font-black text-white truncate max-w-[90px] sm:max-w-[120px]">${escapeHtml(p.symbol || "USDT-M")}</span>
                                 ${sideBadge}
-                                <span class="text-[10px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded-md">${p.leverage || 1}x</span>
+                                <span class="text-[9px] font-bold text-slate-400 bg-slate-900 border border-slate-800 px-1 py-0.5 rounded">${p.leverage || 1}x</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-xs font-black ${pnlClass}">${pnl >= 0 ? "+" : ""}$${formatNumber(pnl, 2)} (${pnlPct >= 0 ? "+" : ""}${formatNumber(pnlPct, 2)}%)</span>
+                                <button type="button" onclick="handleClosePosition('${p.position_id || p.id || p._id}')" class="px-2 py-0.5 text-xs font-black bg-red-500/15 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md transition cursor-pointer flex items-center gap-1" title="Close Position">
+                                    ✕
+                                </button>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
-                            <span>Size: ${formatNumber(p.position_size || p.size || 0, 4)}</span>
-                            <span class="text-sm font-black ${pnlClass}">${pnl >= 0 ? "+" : ""}$${formatNumber(pnl, 2)} (${pnlPct >= 0 ? "+" : ""}${formatNumber(pnlPct, 2)}%)</span>
-                        </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid grid-cols-3 gap-1 text-center">
-                            <div>
-                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px] block">Entry</span>
-                                <span class="font-mono text-slate-300 text-[11px]">$${formatNumber(p.entry_price || 0, 2)}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px] block">Mark</span>
-                                <span class="font-mono text-slate-300 text-[11px]">$${formatNumber(p.mark_price || p.current_price || p.entry_price || 0, 2)}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px] block">Margin</span>
-                                <span class="font-mono text-slate-300 text-[11px]">$${formatNumber(p.margin || 0, 2)}</span>
-                            </div>
-                        </div>
-                        <div class="mt-2 text-right">
-                            <button type="button" onclick="handleClosePosition('${p.position_id || p.id || p._id}')" class="w-full py-2 text-xs font-extrabold bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30 rounded-xl transition cursor-pointer">
-                                Market Close
-                            </button>
+
+                        <!-- Line 2: Size, Entry, Mark & Margin in 1 Compact Line -->
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium pt-1 border-t border-slate-800/60 gap-1 overflow-x-auto no-scrollbar">
+                            <span>Size: <strong class="text-slate-200 font-mono">${formatNumber(p.position_size || p.size || 0, 4)}</strong></span>
+                            <span>Entry: <strong class="text-slate-200 font-mono">$${formatNumber(p.entry_price || 0, 2)}</strong></span>
+                            <span>Mark: <strong class="text-slate-200 font-mono">$${formatNumber(p.mark_price || p.current_price || p.entry_price || 0, 2)}</strong></span>
+                            <span>Margin: <strong class="text-slate-200 font-mono">$${formatNumber(p.margin || 0, 2)}</strong></span>
                         </div>
                     </div>
                 </td>
@@ -958,22 +949,18 @@ function renderOptionsPositionsTable(positions, page = 1) {
                 </td>
 
                 <td class="pf-mobile-only rt-mobile-card-cell" colspan="7">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[65%]">${escapeHtml(contractSymbol)}</span>
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-1">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs font-black text-white truncate max-w-[65%]">${escapeHtml(contractSymbol)}</span>
                             ${typeBadge}
                         </div>
-                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
-                            <span>Contracts: ${qty}</span>
-                            <span class="text-sm font-black text-white">$${formatNumber(premiumAmt, 2)}</span>
+                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-1">
+                            <span class="text-[11px]">Contracts: ${qty}</span>
+                            <span class="text-xs font-black text-white">$${formatNumber(premiumAmt, 2)}</span>
                         </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 flex items-center justify-between">
-                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Strike Price</span>
-                            <span class="font-mono text-slate-300 font-bold">$${formatNumber(strikePrice, 2)}</span>
-                        </div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold pt-1 border-t border-slate-800/60">
+                            <span>Strike: <strong class="font-mono text-slate-200">$${formatNumber(strikePrice, 2)}</strong></span>
                             <span>Expiry: ${escapeHtml(expiryTxt)}</span>
-                            <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">Active</span>
                         </div>
                     </div>
                 </td>
@@ -999,28 +986,24 @@ function renderOptionsPagination(totalItems, start, end, totalPages) {
     container.classList.remove("hidden");
     info.innerHTML = `Showing <span class="text-white font-bold">${start}</span> to <span class="text-white font-bold">${end}</span> of <span class="text-white font-bold">${totalItems}</span> entries`;
 
-    let navHtml = "";
     const isPrevDisabled = pfOptionsCurrentPage <= 1;
-    navHtml += `
+    const isNextDisabled = pfOptionsCurrentPage >= totalPages;
+
+    let navHtml = `
         <button type="button" class="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 font-bold transition hover:bg-slate-800 hover:text-white ${isPrevDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}" ${isPrevDisabled ? 'disabled' : ''} onclick="changeOptionsPage(${pfOptionsCurrentPage - 1})">
             Previous
         </button>
     `;
 
     for (let p = 1; p <= totalPages; p++) {
-        if (p === 1 || p === totalPages || (p >= pfOptionsCurrentPage - 1 && p <= pfOptionsCurrentPage + 1)) {
-            const isActive = p === pfOptionsCurrentPage;
-            navHtml += `
+        const isActive = p === pfOptionsCurrentPage;
+        navHtml += `
                 <button type="button" class="w-8 h-8 rounded-xl border ${isActive ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300 font-black' : 'border-slate-800 bg-slate-900/90 text-slate-400 hover:text-white hover:bg-slate-800'} font-bold transition cursor-pointer text-xs flex items-center justify-center" onclick="changeOptionsPage(${p})">
                     ${p}
                 </button>
             `;
-        } else if (p === pfOptionsCurrentPage - 2 || p === pfOptionsCurrentPage + 2) {
-            navHtml += `<span class="px-1 text-slate-600">...</span>`;
-        }
     }
 
-    const isNextDisabled = pfOptionsCurrentPage >= totalPages;
     navHtml += `
         <button type="button" class="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 font-bold transition hover:bg-slate-800 hover:text-white ${isNextDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}" ${isNextDisabled ? 'disabled' : ''} onclick="changeOptionsPage(${pfOptionsCurrentPage + 1})">
             Next
@@ -1050,8 +1033,12 @@ function renderActivityTable(ledger, page = 1) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="text-center py-12 px-4 text-slate-500 font-semibold border-0">
-                    <div class="w-full text-center">
-                        No recent transaction activity found.
+                    <div class="flex flex-col items-center justify-center gap-2">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        </div>
+                        <p class="text-sm font-bold text-slate-300">No Ledger Activity Found</p>
+                        <p class="text-xs text-slate-500 max-w-xs">Your deposits, withdrawals, and trade transaction history will be recorded here.</p>
                     </div>
                 </td>
             </tr>
@@ -1075,8 +1062,8 @@ function renderActivityTable(ledger, page = 1) {
         const type = escapeHtml(item.transaction_type || "transfer");
         const dir = (item.direction || "credit").toLowerCase();
         const dirBadge = dir === "credit"
-            ? `<span class="px-2.5 py-1 text-[10px] font-black uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+ CREDIT</span>`
-            : `<span class="px-2.5 py-1 text-[10px] font-black uppercase rounded-full bg-red-500/10 text-red-400 border border-red-500/20">- DEBIT</span>`;
+            ? `<span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+ CREDIT</span>`
+            : `<span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-red-500/10 text-red-400 border border-red-500/20">- DEBIT</span>`;
 
         return `
             <tr>
@@ -1090,21 +1077,14 @@ function renderActivityTable(ledger, page = 1) {
                 <td class="pf-desktop-only text-right text-xs text-slate-400">${formatDate(item.created_at)}</td>
 
                 <td class="pf-mobile-only rt-mobile-card-cell" colspan="6">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="text-xs sm:text-sm font-black text-white capitalize truncate max-w-[60%]">${type.replace(/_/g, " ")}</span>
-                            ${dirBadge}
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-1">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs font-black text-white capitalize truncate max-w-[60%]">${type.replace(/_/g, " ")}</span>
+                            <span class="text-xs font-black ${dir === "credit" ? "text-emerald-400" : "text-red-400"}">${dir === "credit" ? "+" : "-"}$${formatNumber(item.amount || 0, 2)}</span>
                         </div>
-                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
-                            <span class="font-mono text-xs text-slate-400 truncate max-w-[50%]">${escapeHtml(item.reference_id || item._id || "--")}</span>
-                            <span class="text-sm font-black ${dir === "credit" ? "text-emerald-400" : "text-red-400"}">${dir === "credit" ? "+" : "-"}$${formatNumber(item.amount || 0, 2)}</span>
-                        </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 flex items-center justify-between">
-                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Balance After</span>
-                            <span class="font-mono text-slate-300 font-bold">$${formatNumber(item.balance_after || 0, 2)}</span>
-                        </div>
-                        <div class="text-right text-[10px] text-slate-500 font-bold">
-                            <span>${formatDate(item.created_at)}</span>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold">
+                            <span class="font-mono text-[10px] text-slate-500 truncate max-w-[45%]">${escapeHtml(item.reference_id || item._id || "--")}</span>
+                            <span>Bal: <strong class="font-mono text-slate-300">$${formatNumber(item.balance_after || 0, 2)}</strong> • ${formatDate(item.created_at)}</span>
                         </div>
                     </div>
                 </td>
@@ -1319,11 +1299,35 @@ function renderEquityChart(equityVal, isINR, range = "1m", ledgerData = []) {
     const { labels, points } = generateTimeframeData(equityVal, currentRange, ledgerData);
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, "rgba(6, 182, 212, 0.30)");
+    gradient.addColorStop(0, "rgba(6, 182, 212, 0.35)");
     gradient.addColorStop(1, "rgba(6, 182, 212, 0.0)");
+
+    const crosshairPlugin = {
+        id: "crosshairPlugin",
+        afterDraw: (chart) => {
+            if (chart.tooltip?._active && chart.tooltip._active.length) {
+                const activePoint = chart.tooltip._active[0];
+                const { ctx } = chart;
+                const x = activePoint.element.x;
+                const topY = chart.scales.y.top;
+                const bottomY = chart.scales.y.bottom;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.setLineDash([4, 4]);
+                ctx.moveTo(x, topY);
+                ctx.lineTo(x, bottomY);
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = "rgba(34, 211, 238, 0.65)";
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+    };
 
     equityChartInstance = new Chart(ctx, {
         type: "line",
+        plugins: [crosshairPlugin],
         data: {
             labels: labels,
             datasets: [{
@@ -1338,23 +1342,41 @@ function renderEquityChart(equityVal, isINR, range = "1m", ledgerData = []) {
                 pointBorderColor: "#06b6d4",
                 pointBorderWidth: 3,
                 pointRadius: 5,
-                pointHoverRadius: 7
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: "#ffffff",
+                pointHoverBorderColor: "#22d3ee",
+                pointHoverBorderWidth: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: "index",
+                intersect: false
+            },
+            hover: {
+                mode: "index",
+                intersect: false
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: "rgba(15, 23, 42, 0.95)",
+                    enabled: true,
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "rgba(7, 13, 26, 0.95)",
                     titleColor: "#94a3b8",
-                    bodyColor: "#06b6d4",
-                    bodyFont: { weight: "bold" },
+                    titleFont: { size: 11, weight: "bold" },
+                    bodyColor: "#22d3ee",
+                    bodyFont: { size: 14, weight: "900" },
                     padding: 12,
-                    borderColor: "rgba(255,255,255,0.1)",
+                    cornerRadius: 12,
+                    borderColor: "rgba(34, 211, 238, 0.35)",
                     borderWidth: 1,
+                    displayColors: false,
                     callbacks: {
+                        title: (items) => items[0]?.label || "",
                         label: (ctx) => `${isINR ? "₹" : "$"}${formatNumber(ctx.parsed.y, 2)}`
                     }
                 }

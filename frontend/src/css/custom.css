@@ -2496,6 +2496,20 @@ details[open] {
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #020617 inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+}
+
 .auth-input:focus {
     border-color: rgba(34, 211, 238, 0.75);
     box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.08);
@@ -7951,12 +7965,134 @@ html.light {
 
 html.light img,
 html.light video,
-html.light iframe,
 html.light canvas,
 html.light [style*="background-image"],
 html.light #txNavbarProfileBtn,
-html.light .tx-profile-avatar {
-    filter: invert(1) hue-rotate(180deg);
+html.light .tx-profile-avatar,
+html.light .rt-tp-sl-label,
+html.light input[type="checkbox"] {
+    filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Light Mode Form Controls, Inputs, Dropdowns & Select Buttons */
+html.light select,
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light textarea,
+html.light .rt-select,
+html.light .rt-input,
+html.light #pairSelect,
+html.light #tradingAccountSelector,
+html.light #pairSelectMobile,
+html.light #tradingAccountSelectorMobile,
+html.light #leverageSelect,
+html.light #quantityInput,
+html.light #limitPriceInput,
+html.light #stopPriceInput,
+html.light #takeProfitInput,
+html.light #stopLossInput,
+html.light .rt-pair-funds-card select,
+html.light .rt-pair-main select {
+    background-color: #070d19 !important;
+    background: #070d19 !important;
+    color: #ffffff !important;
+    filter: none !important;
+}
+
+/* Custom Bulletproof Checkbox Styling (Works in Dark & Light Mode) */
+#tpSlCheckbox,
+.rt-tp-sl-label input[type="checkbox"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 17px !important;
+    height: 17px !important;
+    min-width: 17px !important;
+    min-height: 17px !important;
+    border: 2px solid #64748b !important;
+    border-radius: 4px !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    outline: none !important;
+    filter: none !important;
+}
+
+#tpSlCheckbox:checked,
+.rt-tp-sl-label input[type="checkbox"]:checked {
+    background-color: #0284c7 !important;
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+}
+
+#tpSlCheckbox:checked::after,
+.rt-tp-sl-label input[type="checkbox"]:checked::after {
+    content: "" !important;
+    display: block !important;
+    width: 4px !important;
+    height: 8px !important;
+    border: solid #ffffff !important;
+    border-width: 0 2.5px 2.5px 0 !important;
+    transform: rotate(45deg) translate(-0.5px, -0.5px) !important;
+}
+
+html.light #tpSlCheckbox,
+html.light .rt-tp-sl-label input[type="checkbox"] {
+    background-color: #070d19 !important;
+    background: #070d19 !important;
+    border-color: #475569 !important;
+    filter: none !important;
+}
+
+html.light #tpSlCheckbox:checked,
+html.light .rt-tp-sl-label input[type="checkbox"]:checked {
+    background-color: #0284c7 !important;
+    background: #0284c7 !important;
+    border-color: #0284c7 !important;
+}
+
+html.light .rt-tp-sl-label {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    filter: none !important;
+}
+
+/* Light Mode Option List Items (OS Popup Window) */
+html.light option,
+html.light select option,
+html.light .rt-select option,
+html.light #marginModeMenu,
+html.light .margin-mode-option {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+html.light select option:checked,
+html.light select option:hover,
+html.light .rt-select option:checked,
+html.light .rt-select option:hover,
+html.light .margin-mode-option:hover {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+/* Ensure TradingView Chart converts seamlessly to Light Mode under html.light */
+html.light .tradingview-widget-container,
+html.light #chartContainer,
+html.light .rt-tv-widget-wrap,
+html.light .rt-perfect-tv-wrap,
+html.light #tv_chart_container,
+html.light .tradingview-widget-container iframe,
+html.light #chartContainer iframe,
+html.light .rt-perfect-tv-wrap iframe {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    filter: invert(1) hue-rotate(180deg) !important;
 }
 
 #txProfileDropdown {
@@ -8204,4 +8340,38 @@ body.tx-modal-open #futuresMobileActionBar {
     #futuresMobileActionBar {
         display: none !important;
     }
+}
+
+/* Google Sign-In Button Light & Dark Theme Styling */
+#googleManualButton {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+html.dark #googleManualButton,
+body.dark #googleManualButton {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Under html.light (global invert), #0f172a inverts to pure #ffffff white pill button */
+html.light #googleManualButton,
+body.light #googleManualButton {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Un-invert Google SVG logo in html.light so Google 4-color G logo remains authentic */
+html.light #googleManualButton svg,
+body.light #googleManualButton svg {
+    filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Un-invert crypto SVG coin logos in html.light so brand colors remain authentic */
+html.light .coin-logo-svg,
+body.light .coin-logo-svg {
+    filter: invert(1) hue-rotate(180deg) !important;
 }

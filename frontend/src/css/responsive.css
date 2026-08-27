@@ -458,8 +458,7 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
    FUTURES TERMINAL BOTTOM TABS HORIZONTAL SCROLL OVERRIDE
    ------------------------------------------------------------- */
 @media (max-width: 1024px) {
-    /* Mobile View - Hide Pagination (<= 1024px) */
-    .tx-pagination,
+    /* Mobile View - Hide Futures/Options Pagination (<= 1024px) */
     .rt-pagination,
     [data-pagination],
     html body[data-page="futures"] .tx-pagination,
@@ -802,7 +801,7 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
 
     /* Reduce top gap between navbar and mobile quick bar */
     html body[data-page="futures"] main.rt-page {
-        padding-top: 86px !important;
+        padding-top: 68px !important;
     }
 
     /* Hide bulky desktop pair bar header on mobile */
@@ -831,7 +830,7 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         height: auto !important;
         min-height: 380px !important;
         width: 100% !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 6px !important;
     }
     
     /* Ensure internal chart elements have explicit heights and displays */
@@ -846,21 +845,32 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     /* Mobile Sub-Nav Tab Bar sits between Chart and Tables (order: 2) */
     html body[data-page="futures"] #futuresMobileSubNav {
         order: 2 !important;
-        margin-top: 8px !important;
-        margin-bottom: 10px !important;
+        margin-top: 4px !important;
+        margin-bottom: 6px !important;
         display: grid !important;
         grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
         align-items: center !important;
         box-sizing: border-box !important;
         width: 100% !important;
         border-radius: 16px !important;
-        padding: 4px !important;
+        padding: 3px !important;
     }
+
+    html body[data-page="futures"] .rt-positions-wrapper-col {
+        order: 3 !important;
+        margin-top: 0 !important;
+    }
+
+    html body[data-page="futures"] .rt-positions-card {
+        padding: 8px 10px !important;
+        border-radius: 16px !important;
+    }
+
     html body[data-page="futures"] #futuresMobileSubNav .mobile-sub-tab {
         width: 100% !important;
         white-space: nowrap !important;
         font-size: 11px !important;
-        padding: 7px 2px !important;
+        padding: 6px 2px !important;
         text-align: center !important;
         justify-content: center !important;
     }
@@ -967,65 +977,151 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         margin-top: 4px !important;
     }
     
-    /* Positions & Orders table wrapper card goes to the very bottom (order: 3) */
-    html body[data-page="futures"] .rt-terminal-focused .rt-positions-wrapper-col {
+    /* Allow main page to scroll smoothly on mobile for Futures and Options */
+    html body[data-page="futures"],
+    html body[data-page="futures"] main,
+    html body[data-page="options"],
+    html body[data-page="options"] main,
+    html body[data-page="options"] main.os-page {
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+
+    /* Positions & Orders table wrapper card goes to the very bottom for Futures and Options */
+    html body[data-page="futures"] .rt-terminal-focused .rt-positions-wrapper-col,
+    html body[data-page="options"] .rt-positions-wrapper-col,
+    html body[data-page="options"] .os-bottom-card {
         order: 3 !important;
         display: block !important;
         width: 100% !important;
         min-height: 0 !important;
         height: auto !important;
-        margin-bottom: 0 !important;
+        margin-bottom: 95px !important; /* Margin clearance for sticky SELL/BUY bottom bar */
+        padding-bottom: 10px !important;
     }
 
     html body[data-page="futures"] .rt-positions-wrapper-col .rt-card,
+    html body[data-page="futures"] .rt-positions-card,
+    html body[data-page="options"] .rt-positions-card,
+    html body[data-page="options"] .os-positions-card,
+    html body[data-page="options"] .os-table-wrap,
+    html body[data-page="options"] .rt-mobile-position-card {
+        min-height: 0 !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        border-radius: 0 !important;
+    }
+
+    html body[data-page="options"] .os-bottom-card {
+        margin-bottom: 80px !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    html body[data-page="options"] #optionsTerminalTable {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Clamp .rt-table-wrap, .os-table-wrap and #terminalTable to dynamic auto height with max-height 215px on mobile */
     html body[data-page="futures"] .rt-positions-wrapper-col .rt-table-wrap,
-    html body[data-page="futures"] #terminalTable {
+    html body[data-page="futures"] .rt-positions-card .rt-table-wrap,
+    html body[data-page="futures"] #terminalTable .rt-table-wrap,
+    html body[data-page="futures"] .rt-table-wrap,
+    html body[data-page="futures"] #terminalTable,
+    html body[data-page="options"] .rt-table-wrap,
+    html body[data-page="options"] .os-table-wrap,
+    html body[data-page="options"] #terminalTable {
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: 215px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Position action header bar on mobile */
+    html body[data-page="futures"] .rt-position-action-bar {
+        padding: 0 0 10px 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        margin-bottom: 10px !important;
+    }
+
+    /* Hide desktop table headers and desktop cells on mobile for ALL tabs (Positions, Orders, History, Fills, Ledger) */
+    html body[data-page="futures"] .rt-table-wrap table.rt-table thead,
+    html body[data-page="options"] table.rt-table thead,
+    html body[data-page="options"] table.os-table thead {
+        display: none !important;
+    }
+    
+    html body[data-page="futures"] .rt-table-wrap table.rt-table td.rt-desktop-only,
+    html body[data-page="futures"] .rt-table-wrap table.rt-table th.rt-desktop-only,
+    html body[data-page="options"] table td.rt-desktop-only,
+    html body[data-page="options"] table th.rt-desktop-only {
+        display: none !important;
+    }
+    
+    html body[data-page="futures"] .rt-table-wrap table.rt-table tbody,
+    html body[data-page="options"] table tbody,
+    html body[data-page="portfolio"] .pf-table tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        width: 100% !important;
         min-height: 0 !important;
         height: auto !important;
         max-height: none !important;
-        padding-bottom: 0 !important;
-        margin-bottom: 0 !important;
-    }
-    /* Hide desktop table headers and desktop cells on mobile */
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table thead {
-        display: none !important;
-    }
-    
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table td.rt-desktop-only,
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table th.rt-desktop-only {
-        display: none !important;
-    }
-    
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table tbody {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px !important;
-        width: 100% !important;
-        max-height: 462px !important;
-        overflow-y: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         padding: 0 !important;
         margin: 0 !important;
     }
 
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table tbody::-webkit-scrollbar,
-    html body[data-page="futures"] .rt-positions-card .rt-table-wrap::-webkit-scrollbar {
+    html body[data-page="futures"] .rt-table-wrap table.rt-table tbody::-webkit-scrollbar,
+    html body[data-page="futures"] .rt-positions-card .rt-table-wrap::-webkit-scrollbar,
+    html body[data-page="options"] table tbody::-webkit-scrollbar,
+    html body[data-page="portfolio"] .pf-table tbody::-webkit-scrollbar {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
     }
     
-    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table tr {
+    /* Transform position, order, history, fill, and ledger rows into clean borderless flat list items on mobile */
+    html body[data-page="futures"] .rt-table-wrap table.rt-table tr,
+    html body[data-page="options"] table tr,
+    html body[data-page="portfolio"] .pf-table tr {
         display: block !important;
         width: 100% !important;
-        background: #090f1d !important;
-        border: 1px solid rgba(148, 163, 184, 0.15) !important;
-        border-radius: 16px !important;
-        padding: 12px !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 6px 0 !important;
         margin-bottom: 0 !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: none !important;
         box-sizing: border-box !important;
+    }
+
+    html body[data-page="futures"] .rt-table-wrap #terminalTable table.rt-table tr:last-child {
+        border-bottom: none !important;
     }
     
     /* Override min-width and force table, header and cards to fit 100% within mobile viewport */
@@ -1373,15 +1469,17 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     body[data-page="options"] #optionsTerminalTable .os-table-scroll {
         display: flex !important;
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 0 !important;
         width: 100% !important;
         background: transparent !important;
-        max-height: 462px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: 215px !important;
         overflow-y: auto !important;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         padding: 0 !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 0 !important;
     }
 
     body[data-page="options"] #optionsTerminalTable .os-table-scroll::-webkit-scrollbar,
@@ -1395,13 +1493,14 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills tr {
         display: block !important;
         width: 100% !important;
-        background: #090f1d !important;
-        border: 1px solid rgba(148, 163, 184, 0.12) !important;
-        border-radius: 16px !important;
-        padding: 12px 14px !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 6px 0 !important;
         margin-bottom: 0 !important;
+        box-shadow: none !important;
         box-sizing: border-box !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
     }
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions tr td.rt-mobile-only,
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders tr td.rt-mobile-only,
@@ -1453,6 +1552,10 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     .tx-history-controls select,
     .tx-history-controls input {
         width: 100% !important;
+        font-size: 11px !important;
+        padding: 6px 10px !important;
+        height: auto !important;
+        border-radius: 10px !important;
         box-sizing: border-box !important;
     }
 
@@ -1474,13 +1577,18 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        background: rgba(9, 15, 29, 0.95) !important;
-        border: 1px solid rgba(148, 163, 184, 0.15) !important;
-        border-radius: 16px !important;
-        padding: 12px !important;
-        margin-bottom: 10px !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 10px 0 !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: none !important;
+    }
+
+    .tx-history-table-wrap table tr:last-child {
+        border-bottom: none !important;
     }
 
     .tx-history-table-wrap td.tx-desktop-only,
@@ -1611,15 +1719,17 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     body[data-page="options"] #optionsTerminalTable .os-table-scroll {
         display: flex !important;
         flex-direction: column !important;
-        gap: 10px !important;
+        gap: 0 !important;
         width: 100% !important;
         background: transparent !important;
-        max-height: 462px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: 215px !important;
         overflow-y: auto !important;
         scrollbar-width: none !important;
         -ms-overflow-style: none !important;
         padding: 0 !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 0 !important;
     }
 
     body[data-page="options"] #optionsTerminalTable .os-table-scroll::-webkit-scrollbar,
@@ -1633,13 +1743,14 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-fills tr {
         display: block !important;
         width: 100% !important;
-        background: #090f1d !important;
-        border: 1px solid rgba(148, 163, 184, 0.12) !important;
-        border-radius: 16px !important;
-        padding: 12px 14px !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 6px 0 !important;
         margin-bottom: 0 !important;
+        box-shadow: none !important;
         box-sizing: border-box !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
     }
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-positions tr td.rt-mobile-only,
     body[data-page="options"] #optionsTerminalTable .os-demo-table.os-mobile-orders tr td.rt-mobile-only,
@@ -1712,13 +1823,18 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 0 !important;
-        background: rgba(9, 15, 29, 0.95) !important;
-        border: 1px solid rgba(148, 163, 184, 0.15) !important;
-        border-radius: 16px !important;
-        padding: 12px !important;
-        margin-bottom: 10px !important;
+        background: transparent !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 10px 0 !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: none !important;
+    }
+
+    .tx-history-table-wrap table tr:last-child {
+        border-bottom: none !important;
     }
 
     .tx-history-table-wrap td.tx-desktop-only,
@@ -1908,6 +2024,23 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         box-sizing: border-box !important;
     }
 
+    html, body,
+    html body[data-page="wallet"] {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+    }
+
+    html body[data-page="wallet"] .max-w-7xl,
+    html body[data-page="wallet"] main,
+    html body[data-page="wallet"] #contentOverview,
+    html body[data-page="wallet"] #contentWallet,
+    html body[data-page="wallet"] #contentTradingAccounts {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
     html body[data-page="wallet"] .max-w-7xl,
     html body[data-page="wallet"] .rounded-3xl,
     html body[data-page="wallet"] .overflow-x-auto {
@@ -1930,51 +2063,87 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
     }
 
     /* Top main navigation tabs (Overview / Trading accounts / Wallet) */
-    html body[data-page="wallet"] .mb-8.flex.gap-6.border-b {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 4px !important;
-        padding-bottom: 8px !important;
-        margin-bottom: 20px !important;
+    html body[data-page="wallet"] div.border-b.overflow-x-auto,
+    html body[data-page="wallet"] div.mb-6.flex.border-b,
+    html body[data-page="wallet"] div.mb-8.flex.border-b {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 6px !important;
+        padding-bottom: 6px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
-    html body[data-page="wallet"] .mb-8.flex.gap-6.border-b button {
-        width: 100% !important;
+    html body[data-page="wallet"] div.border-b.overflow-x-auto button,
+    html body[data-page="wallet"] div.mb-6.flex.border-b button,
+    html body[data-page="wallet"] div.mb-8.flex.border-b button {
+        flex: 0 0 auto !important;
+        width: auto !important;
         text-align: center !important;
-        padding: 8px 2px !important;
+        padding: 7px 12px !important;
         white-space: nowrap !important;
         font-size: 12px !important;
         justify-content: center !important;
+        min-width: 0 !important;
     }
 
     /* Total Balance Header Typography */
     html body[data-page="wallet"] #portfolioTotalBalance {
-        font-size: clamp(1.4rem, 6vw, 2.25rem) !important;
+        font-size: clamp(1rem, 4.8vw, 1.8rem) !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+        max-width: 100% !important;
+    }
+
+    /* Section Headers (Money / Crypto wallet) responsive alignment */
+    html body[data-page="wallet"] .pf-wallet-section-card h3 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: baseline !important;
+        gap: 4px !important;
+        font-size: 0.95rem !important;
+    }
+
+    html body[data-page="wallet"] #moneySubVal,
+    html body[data-page="wallet"] #cryptoSubVal {
+        font-size: 0.75rem !important;
+        color: #94a3b8 !important;
         word-break: break-word !important;
     }
 
     /* Quick Action Buttons Grid on Overview */
     html body[data-page="wallet"] #contentOverview .flex.flex-wrap.gap-3.mb-8 {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 8px !important;
-        margin-bottom: 20px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 5px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        padding-bottom: 4px !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
     html body[data-page="wallet"] #contentOverview .flex.flex-wrap.gap-3.mb-8 button {
-        width: 100% !important;
-        padding: 10px 4px !important;
-        text-align: center !important;
+        flex: 1 0 auto !important;
+        min-width: 64px !important;
+        width: auto !important;
+        padding: 7px 10px !important;
         font-size: 11px !important;
+        font-weight: 800 !important;
         white-space: nowrap !important;
         justify-content: center !important;
-        border-radius: 14px !important;
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
     }
 
     /* Trading Accounts list balance text protection */
     html body[data-page="wallet"] #tradingAccountsList > div {
-        padding: 14px 16px !important;
-        border-radius: 20px !important;
+        padding: 12px 14px !important;
+        border-radius: 16px !important;
     }
 
     html body[data-page="wallet"] #tradingAccountsList strong.text-sm {
@@ -1982,88 +2151,179 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         word-break: break-word !important;
     }
 
-    /* Hide standard table headers for Money and Crypto asset tables on mobile/tablet */
-    html body[data-page="wallet"] .overflow-x-auto table thead {
-        display: none !important;
-    }
-
-    /* Transform asset tables into card layout for all screens <= 1024px */
-    html body[data-page="wallet"] .overflow-x-auto table,
-    html body[data-page="wallet"] .overflow-x-auto tbody,
-    html body[data-page="wallet"] .overflow-x-auto tr {
-        display: block !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    html body[data-page="wallet"] .overflow-x-auto tr {
-        padding: 14px 16px !important;
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px !important;
-        margin-bottom: 12px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    html body[data-page="wallet"] .overflow-x-auto td {
-        display: block !important;
-        width: 100% !important;
-        padding-top: 4px !important;
-        padding-bottom: 4px !important;
-        text-align: left !important;
+    /* Remove nested outer box container for Money, Crypto, and History sections on mobile */
+    html body[data-page="wallet"] .pf-wallet-section-card,
+    html body[data-page="wallet"] .tx-history-card {
+        background: transparent !important;
         border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Heading typography protection on mobile - prevent left edge text clipping */
+    html body[data-page="wallet"] .tx-history-head,
+    html body[data-page="wallet"] .tx-history-head h3,
+    html body[data-page="wallet"] .tx-history-card h3,
+    html body[data-page="wallet"] .pf-wallet-section-card h3 {
+        padding-left: 4px !important;
+        overflow: visible !important;
+    }
+
+    /* Mobile Pagination for Wallet Page (Ledger, Deposits, Withdrawals) */
+    html body[data-page="wallet"] .tx-pagination {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        margin-top: 14px !important;
+        margin-bottom: 8px !important;
+        padding: 6px 4px !important;
+        width: 100% !important;
         box-sizing: border-box !important;
+    }
+
+    html body[data-page="wallet"] .tx-pagination button {
+        height: 28px !important;
+        min-width: 28px !important;
+        padding: 0 8px !important;
+        font-size: 11px !important;
+        font-weight: 800 !important;
+        border-radius: 6px !important;
+        border: 1px solid rgba(34, 211, 238, 0.3) !important;
+        background: rgba(15, 23, 42, 0.7) !important;
+        color: #94a3b8 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+    }
+
+    html body[data-page="wallet"] .tx-pagination button.active {
+        background: #22d3ee !important;
+        border-color: #22d3ee !important;
+        color: #0f172a !important;
+    }
+
+    html body[data-page="wallet"] .tx-pagination button:disabled {
+        opacity: 0.35 !important;
+        cursor: not-allowed !important;
+    }
+
+    html body[data-page="wallet"] .tx-pagination span {
+        font-size: 11px !important;
+        color: #64748b !important;
+        margin: 0 2px !important;
+    }
+
+    html body[data-page="wallet"] .pf-wallet-section-card > div:first-child {
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* Ultra-Compact Space-Saving Asset Rows on Mobile (<= 1024px) */
+    html body[data-page="wallet"] .overflow-x-auto table,
+    html body[data-page="wallet"] .overflow-x-auto tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+
+    html body[data-page="wallet"] .overflow-x-auto tr {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 12px 14px !important;
+        margin-bottom: 10px !important;
+        background: rgba(15, 23, 42, 0.75) !important;
+        border: 1px solid rgba(30, 41, 59, 0.7) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    html body[data-page="wallet"] .overflow-x-auto tr:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* Col 1: Icon, Code & Name */
+    html body[data-page="wallet"] .overflow-x-auto td:nth-child(1) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 0 8px 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        margin-bottom: 6px !important;
+        width: 100% !important;
+    }
+
+    html body[data-page="wallet"] .overflow-x-auto td:nth-child(1) > div:first-child {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+
+    /* Col 2: Balance (Right Aligned) */
+    html body[data-page="wallet"] .overflow-x-auto td:nth-child(2) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 2px 0 !important;
+        width: 100% !important;
     }
 
     html body[data-page="wallet"] .overflow-x-auto td:nth-child(2):before {
-        content: "Balance: " !important;
+        content: "Balance" !important;
+        font-size: 11px !important;
         color: #64748b !important;
-        font-size: 0.75rem !important;
-        font-weight: 600 !important;
-        margin-right: 6px !important;
+        font-weight: 700 !important;
     }
 
-    html body[data-page="wallet"] .overflow-x-auto td:nth-child(3):before {
-        content: "Pending: " !important;
-        color: #64748b !important;
-        font-size: 0.75rem !important;
-        font-weight: 600 !important;
-        margin-right: 6px !important;
+    /* Hide Pending td on mobile to save vertical height */
+    html body[data-page="wallet"] .overflow-x-auto td:nth-child(3) {
+        display: none !important;
     }
 
-    /* Action buttons grid inside asset cards */
+    /* Row 2: Compact horizontal action buttons row */
     html body[data-page="wallet"] .overflow-x-auto table tbody tr td:nth-child(4) {
-        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-        margin-top: 8px !important;
-        padding-top: 10px !important;
+        padding: 6px 0 0 0 !important;
+        margin-top: 4px !important;
+        border-top: none !important;
+        width: 100% !important;
     }
 
+    /* Ultra-Clean Single-Row Equal-Width Action Pill Bar for Mobile View */
     html body[data-page="wallet"] .overflow-x-auto table tbody tr td .flex.justify-end,
     html body[data-page="wallet"] .overflow-x-auto table tbody tr td:nth-child(4) .flex,
     html body[data-page="wallet"] .wallet-action-grid,
     .wallet-action-grid {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 6px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 4px !important;
         width: 100% !important;
-        justify-content: stretch !important;
+        margin-top: 4px !important;
+        padding: 0 0 3px 0 !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
     }
 
     html body[data-page="wallet"] .overflow-x-auto table tbody tr td .flex.justify-end button,
     html body[data-page="wallet"] .overflow-x-auto table tbody tr td:nth-child(4) .flex button,
     html body[data-page="wallet"] .wallet-action-grid button,
     .wallet-action-grid button {
-        width: 100% !important;
-        font-size: 11px !important;
+        flex: 1 0 auto !important;
+        min-width: 58px !important;
+        font-size: 10.5px !important;
         font-weight: 800 !important;
-        padding: 7px 4px !important;
+        padding: 5px 8px !important;
         text-align: center !important;
-        border-radius: 10px !important;
-        background: rgba(34, 211, 238, 0.12) !important;
-        border: 1px solid rgba(34, 211, 238, 0.28) !important;
+        border-radius: 8px !important;
+        background: rgba(34, 211, 238, 0.09) !important;
+        border: 1px solid rgba(34, 211, 238, 0.25) !important;
         color: #38bdf8 !important;
         white-space: nowrap !important;
-        display: flex !important;
+        display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         box-sizing: border-box !important;
@@ -2086,25 +2346,37 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
 
     html body[data-page="wallet"] #mainWithdrawFeePreview p {
         display: flex !important;
-        align-items: center !important;
         justify-content: space-between !important;
-        width: 100% !important;
         font-size: 12px !important;
     }
 }
 
 @media (max-width: 640px) {
+    /* Align main top padding to match all other pages (86px) so floating navbar does not overlap top content */
+    html body[data-page="wallet"] main {
+        padding-top: 86px !important;
+    }
+
+    html body[data-page="wallet"] .mx-auto.max-w-7xl {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
     /* Top Main Navigation Tabs Bar */
-    html body[data-page="wallet"] div.mb-8.flex.gap-6.border-b {
+    html body[data-page="wallet"] div.border-b.overflow-x-auto,
+    html body[data-page="wallet"] div.mb-6.flex.border-b,
+    html body[data-page="wallet"] div.mb-8.flex.border-b {
         display: grid !important;
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 4px !important;
         padding-bottom: 8px !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 16px !important;
         width: 100% !important;
     }
 
-    html body[data-page="wallet"] div.mb-8.flex.gap-6.border-b button {
+    html body[data-page="wallet"] div.border-b.overflow-x-auto button,
+    html body[data-page="wallet"] div.mb-6.flex.border-b button,
+    html body[data-page="wallet"] div.mb-8.flex.border-b button {
         width: 100% !important;
         text-align: center !important;
         padding: 8px 2px !important;
@@ -2114,13 +2386,33 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
         min-width: 0 !important;
     }
 
-    /* Quick Action Buttons small mobile 2-column fallback */
+    /* Top Quick Action Buttons on Overview Tab - 5 Equal Pill Buttons Row */
     html body[data-page="wallet"] #contentOverview .flex.flex-wrap.gap-3.mb-8 {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 3px !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    html body[data-page="wallet"] #contentOverview .flex.flex-wrap.gap-3.mb-8 button {
+        flex: 1 1 0px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        padding: 7px 1px !important;
+        font-size: 9.5px !important;
+        font-weight: 800 !important;
+        white-space: nowrap !important;
+        border-radius: 8px !important;
+        text-align: center !important;
+        justify-content: center !important;
     }
 
     html body[data-page="wallet"] #quickInternalTransferBtn {
-        grid-column: 1 / -1 !important;
+        grid-column: auto !important;
     }
 
     /* Wallet sub-tab navigation */
@@ -2139,10 +2431,107 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
 }
 
 @media (max-width: 380px) {
-    /* 2-column action button grid inside asset cards for small screens */
-    html body[data-page="wallet"] .overflow-x-auto table tbody tr td .flex.justify-end,
-    html body[data-page="wallet"] .overflow-x-auto table tbody tr td:nth-child(4) .flex {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    /* Optimize font size for 320px ultra-small screens so all 5 action buttons stay in 1 row */
+    html body[data-page="wallet"] .overflow-x-auto table tbody tr td .flex.justify-end button,
+    html body[data-page="wallet"] .overflow-x-auto table tbody tr td:nth-child(4) .flex button,
+    html body[data-page="wallet"] .wallet-action-grid button,
+    .wallet-action-grid button {
+        font-size: 8.5px !important;
+        padding: 3.5px 0.5px !important;
+        letter-spacing: -0.03em !important;
+    }
+
+    html body[data-page="wallet"] #contentOverview .flex.flex-wrap.gap-3.mb-8 button {
+        font-size: 9px !important;
+        padding: 6px 1px !important;
+    }
+}
+
+/* ==========================================
+   INDEX / LANDING PAGE SMALL MOBILE RESPONSIVENESS (320px - 640px)
+   ========================================== */
+@media (max-width: 640px) {
+    /* Prevent horizontal viewport overflow on small screens */
+    html, body {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Phone preview card clamp on small screens (320px - 430px) */
+    .tx-phone-card {
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .tx-phone-card > div {
+        border-radius: 1.8rem !important;
+        padding: 8px !important;
+    }
+
+    .tx-phone-card > div > div {
+        border-radius: 1.5rem !important;
+        padding: 16px 12px !important;
+        min-height: auto !important;
+    }
+
+    /* Container padding and border radius clamp */
+    section {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Heading font size scaling for 320px - 400px screens */
+    h1, .text-4xl, .text-5xl, .text-6xl {
+        font-size: clamp(20px, 6vw, 28px) !important;
+        line-height: 1.2 !important;
+        word-break: break-word !important;
+    }
+
+    h2, .text-3xl {
+        font-size: clamp(17px, 5vw, 22px) !important;
+        line-height: 1.25 !important;
+    }
+
+    /* CTA buttons on small mobile */
+    a.rounded-2xl, button.rounded-2xl {
+        padding: 12px 14px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Small screen navbar single-line fit (320px - 420px) */
+    .tx-pill-header {
+        padding-right: 6px !important;
+        padding-left: 6px !important;
+    }
+
+    .tx-pill-navbar {
+        padding: 8px 10px !important;
+        min-height: 54px !important;
+    }
+
+    .tx-pill-brand h1 {
+        font-size: 15px !important;
+        letter-spacing: -0.02em !important;
+        white-space: nowrap !important;
+    }
+
+    .tx-pill-brand p {
+        margin-top: 1px !important;
+        font-size: 7.5px !important;
+        letter-spacing: 0.16em !important;
+    }
+
+    .tx-mobile-header-notice-btn,
+    #mobileNavbarProfileBtn,
+    .tx-pill-mobile-btn {
+        width: 34px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        font-size: 13px !important;
     }
 }
 
@@ -2486,27 +2875,66 @@ body[data-page="options"] .os-chain-table td.text-slate-400 {
 }
 
 
-/* Mobile Position Close Button Red Styling */
+/* Mobile Position Close Button (Compact ✕ Cross Icon) */
 .rt-mobile-close-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 100% !important;
-    padding: 8px 12px !important;
-    font-size: 12px !important;
+    width: 26px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    font-size: 11px !important;
     font-weight: 900 !important;
-    border-radius: 12px !important;
-    background: rgba(239, 68, 68, 0.18) !important;
-    border: 1px solid rgba(248, 113, 113, 0.45) !important;
+    border-radius: 8px !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(248, 113, 113, 0.35) !important;
     color: #fca5a5 !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2) !important;
+    flex-shrink: 0 !important;
 }
 
 .rt-mobile-close-btn:hover,
 .rt-mobile-close-btn:active {
-    background: rgba(239, 68, 68, 0.32) !important;
-    border-color: rgba(248, 113, 113, 0.75) !important;
+    background: rgba(239, 68, 68, 0.85) !important;
+    border-color: rgba(239, 68, 68, 1) !important;
     color: #ffffff !important;
+}
+
+/* Responsive Digio / DigiLocker Modal & Iframe Overlay Fix for Mobile View */
+iframe[src*="digio.in"],
+iframe[id*="digio"],
+iframe[class*="digio"] {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+    iframe[src*="digio.in"],
+    iframe[id*="digio"],
+    iframe[class*="digio"] {
+        width: 100% !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+    }
+
+    body > div:has(iframe[src*="digio.in"]),
+    body > div:has(iframe[id*="digio"]),
+    div[id*="digio"],
+    div[class*="digio"] {
+        width: 100% !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
 }

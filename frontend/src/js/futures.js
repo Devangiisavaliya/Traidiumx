@@ -40,6 +40,24 @@ const pairs = [
     { symbol: "ATOMUSDT", label: "ATOM-USDT", icon: "M", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
     { symbol: "UNIUSDT", label: "UNI-USDT", icon: "U", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
     { symbol: "APTUSDT", label: "APT-USDT", icon: "P", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
+    { symbol: "NEARUSDT", label: "NEAR-USDT", icon: "N", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "SUIUSDT", label: "SUI-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "1000PEPEUSDT", label: "PEPE-USDT", icon: "P", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", providerSymbol: "1000PEPEUSDT" },
+    { symbol: "1000SHIBUSDT", label: "SHIB-USDT", icon: "S", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", providerSymbol: "1000SHIBUSDT" },
+    { symbol: "MATICUSDT", label: "MATIC-USDT", icon: "M", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "ARBUSDT", label: "ARB-USDT", icon: "A", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "OPUSDT", label: "OP-USDT", icon: "O", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "INJUSDT", label: "INJ-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "WIFUSDT", label: "WIF-USDT", icon: "W", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "FETUSDT", label: "FET-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "TIAUSDT", label: "TIA-USDT", icon: "T", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "FILUSDT", label: "FIL-USDT", icon: "F", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "ETCUSDT", label: "ETC-USDT", icon: "E", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "XLMUSDT", label: "XLM-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "RENDERUSDT", label: "RENDER-USDT", icon: "R", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "SEIUSDT", label: "SEI-USDT", icon: "S", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "ICPUSDT", label: "ICP-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
+    { symbol: "FTMUSDT", label: "FTM-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
     { symbol: "XAUUSD", label: "XAUUSD", icon: "G", minQty: 0.01, step: 0.01, maxLeverage: 20, marketType: "commodity", quoteAsset: "USDT", providerSymbol: "XAUUSDT" }
 ];
 
@@ -60,6 +78,24 @@ const defaultPrices = {
     ATOMUSDT: 7.2,
     UNIUSDT: 9.5,
     APTUSDT: 8.7,
+    NEARUSDT: 4.85,
+    SUIUSDT: 1.65,
+    "1000PEPEUSDT": 0.0092,
+    "1000SHIBUSDT": 0.0185,
+    MATICUSDT: 0.42,
+    ARBUSDT: 0.55,
+    OPUSDT: 1.42,
+    INJUSDT: 18.5,
+    WIFUSDT: 1.75,
+    FETUSDT: 1.25,
+    TIAUSDT: 5.20,
+    FILUSDT: 3.80,
+    ETCUSDT: 19.5,
+    XLMUSDT: 0.095,
+    RENDERUSDT: 5.40,
+    SEIUSDT: 0.32,
+    ICPUSDT: 7.80,
+    FTMUSDT: 0.65,
     XAUUSD: 2350
 };
 
@@ -236,7 +272,9 @@ function normalizeSymbol(symbol) {
 }
 
 function isSupportedSymbol(symbol) {
-    return pairs.some((pair) => pair.symbol === symbol);
+    if (!symbol) return false;
+    if (pairs.some((pair) => pair.symbol === symbol)) return true;
+    return symbol.endsWith("USDT") || symbol.endsWith("USD");
 }
 
 function getInitialSymbolFromNavigation() {
@@ -299,7 +337,23 @@ function saveSelectedSymbol(symbol) {
 ========================= */
 
 function getPair(symbol = state.currentSymbol) {
-    return pairs.find((pair) => pair.symbol === symbol) || pairs[0];
+    const found = pairs.find((pair) => pair.symbol === symbol);
+    if (found) return found;
+    let label = symbol;
+    if (symbol.endsWith("USDT")) {
+        label = symbol.replace("USDT", "-USDT");
+    } else if (symbol.endsWith("USD")) {
+        label = symbol.replace("USD", "-USD");
+    }
+    return {
+        symbol: symbol,
+        label: label,
+        icon: symbol.charAt(0),
+        minQty: 0.01,
+        step: 0.01,
+        maxLeverage: 50,
+        quoteAsset: "USDT"
+    };
 }
 
 function getMaxLeverageForPair(symbol = state.currentSymbol) {
@@ -908,6 +962,7 @@ function loadTradingViewChart() {
     elements.chartContainer.innerHTML = "";
     elements.chartContainer.appendChild(widgetWrap);
 
+    const isLight = document.documentElement.classList.contains("light") || (localStorage.getItem("traidiumx_theme") || "dark") === "light";
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.async = true;
@@ -917,12 +972,13 @@ function loadTradingViewChart() {
         symbol: tvSymbol,
         interval: tvInterval,
         timezone: "Asia/Kolkata",
-        theme: "dark",
+        theme: isLight ? "light" : "dark",
+        colorTheme: isLight ? "light" : "dark",
         style: "1",
         locale: "en",
-        toolbar_bg: "#0b111d",
-        backgroundColor: "rgba(2, 6, 23, 1)",
-        gridColor: "rgba(30, 41, 59, 0.55)",
+        toolbar_bg: isLight ? "#ffffff" : "#0b111d",
+        backgroundColor: isLight ? "#ffffff" : "#020617",
+        gridColor: isLight ? "#f1f5f9" : "#1e293b",
         enable_publishing: false,
         hide_top_toolbar: false,
         hide_legend: false,
@@ -946,6 +1002,8 @@ function loadTradingViewChart() {
         elements.terminalCandleInfo.textContent = "TradingView chart loaded.";
     }
 }
+
+window.loadTradingViewChart = loadTradingViewChart;
 
 function initChart() {
     loadTradingViewChart();
@@ -5442,11 +5500,11 @@ function txBuildPositionRowHtml(position) {
             </td>
             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(side)}">${txEscapeHtml(displaySide)}</td>
             <td class="rt-desktop-only" data-label="Qty" data-mobile-field="qty">${formatQty(qty)}</td>
-            <td class="rt-desktop-only" data-label="Avg" data-mobile-field="entry">${formatNumber(entryPrice)}</td>
+            <td class="rt-desktop-only" data-label="Avg" data-mobile-field="entry">${formatNumber(entryPrice, entryPrice < 1 ? 4 : 2)}</td>
             <td class="rt-desktop-only" data-label="LTP" data-mobile-field="mark" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</td>
             <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${marginDisplay}</td>
             <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x<br/><span class="text-[10px] text-slate-500 uppercase font-black">${txEscapeHtml(position.margin_mode || "isolated")}</span></td>
-            <td class="rt-desktop-only" data-label="Liq. Price" data-mobile-field="liquidation">${liquidationPrice > 0 ? formatNumber(liquidationPrice) : "--"}</td>
+            <td class="rt-desktop-only" data-label="Liq. Price" data-mobile-field="liquidation">${liquidationPrice > 0 ? formatNumber(liquidationPrice, liquidationPrice < 1 ? 4 : 2) : "--"}</td>
             <td class="rt-desktop-only" data-label="TP / SL" data-mobile-field="tp_sl">${tpText} / ${slText}</td>
             <td class="rt-desktop-only" data-label="P&L" data-mobile-field="pnl" ${pnlColorStyle} data-live-position-pnl="${txEscapeHtml(positionId)}">${pnlText}</td>
             <td class="rt-desktop-only" data-label="Action" data-mobile-field="action">
@@ -5456,38 +5514,37 @@ function txBuildPositionRowHtml(position) {
             </td>
             
             <td class="rt-mobile-only rt-mobile-card-cell" colspan="11">
-                <div class="rt-mobile-position-card">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm font-black text-white flex items-center gap-2">
-                            <span>${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                <div class="rt-mobile-position-card py-1">
+                    <!-- Line 1: Symbol, Badges, PnL & ✕ Close Icon -->
+                    <div class="flex justify-between items-center mb-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(symbol))}</span>
                             ${currencyBadgeHtml}
-                        </span>
-                        <span class="text-sm font-black animate-pulse" ${pnlColorStyle} data-live-position-mobile-pnl="${txEscapeHtml(positionId)}">${sign}${absPnlText} (${pnlPercentText})</span>
-                    </div>
-                    <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                        FUTURES | ${txEscapeHtml(position.margin_mode || "isolated").toUpperCase()} | ${leverage}x · <span class="${txSideClass(side)}">${displaySide}</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                        <div>
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                            <strong class="text-xs font-black ${txSideClass(side)}">${formatQty(qty)}</strong>
+                            <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(side)}">${displaySide} ${leverage}x</span>
                         </div>
-                        <div class="text-center">
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">AVG</span>
-                            <strong class="text-xs font-black text-white">${formatNumber(entryPrice)}</strong>
-                        </div>
-                        <div class="text-right">
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">LTP</span>
-                            <strong class="text-xs font-black text-white" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</strong>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black animate-pulse" ${pnlColorStyle} data-live-position-mobile-pnl="${txEscapeHtml(positionId)}">${sign}${absPnlText} (${pnlPercentText})</span>
+                            <button class="rt-mobile-close-btn" type="button" data-close-position="${txEscapeHtml(positionId)}" title="Close Position">
+                                ✕
+                            </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 items-center">
-                        <div class="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2 text-center text-xs font-bold text-slate-400">
-                            TP/SL&nbsp;<span class="text-emerald-400 font-black">${tpValText}</span>/<span class="text-red-400 font-black">${slValText}</span>
+
+                    <!-- Line 2: 3-Col Grid for QTY | AVG | LTP -->
+                    <div class="grid grid-cols-3 gap-1 text-[10.5px] font-semibold text-slate-400 mb-1 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono font-black ${txSideClass(side)}">${formatQty(qty)}</span></div>
+                        <div class="text-center"><span class="text-slate-500 text-[8.5px] font-bold mr-1">AVG</span><span class="font-mono text-white font-bold">${formatNumber(entryPrice, entryPrice < 1 ? 4 : 2)}</span></div>
+                        <div class="text-right"><span class="text-slate-500 text-[8.5px] font-bold mr-1">LTP</span><span class="font-mono text-white font-bold" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</span></div>
+                    </div>
+
+                    <!-- Line 3: Dedicated TP/SL Bar (Zero Text Collision) -->
+                    <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 bg-slate-950/20 px-2 py-0.5 rounded border border-slate-800/30">
+                        <span class="text-slate-500 text-[8.5px] uppercase tracking-wider">TP / SL</span>
+                        <div class="font-mono truncate ml-2">
+                            <span class="text-emerald-400 font-bold">${tpValText}</span>
+                            <span class="text-slate-600 mx-1">/</span>
+                            <span class="text-red-400 font-bold">${slValText}</span>
                         </div>
-                        <button class="rt-mobile-close-btn" type="button" data-close-position="${txEscapeHtml(positionId)}">
-                            Close
-                        </button>
                     </div>
                 </div>
             </td>
@@ -7036,7 +7093,12 @@ function getOrderPrice() {
         return Number(elements.limitPriceInput?.value || 0);
     }
 
-    return Number(state.currentPrice || 0);
+    let price = Number(state.currentPrice || 0);
+    if (price <= 0 && elements.markPrice) {
+        const text = (elements.markPrice.textContent || "").replace(/[^0-9.]/g, "");
+        price = Number(text || 0);
+    }
+    return price;
 }
 
 function placeOrderPayload() {
@@ -7417,7 +7479,14 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
             if (spreadType === "percentage") {
                 adjustment = price * (spreadValue / 100);
             } else {
-                adjustment = spreadValue;
+                let pip = 0.01;
+                if (price < 0.01) pip = 0.000001;
+                else if (price < 1.0) pip = 0.0001;
+                else if (price < 10.0) pip = 0.001;
+                else if (price < 100.0) pip = 0.01;
+                else if (price < 1000.0) pip = 0.05;
+                else pip = 0.1;
+                adjustment = spreadValue * pip;
             }
             if (isBuy) {
                 price = price + adjustment;
@@ -7976,33 +8045,27 @@ function renderOpenOrdersTable() {
                             </td>
                             
                             <td class="rt-mobile-only rt-mobile-card-cell" colspan="10">
-                                <div class="rt-mobile-position-card">
+                                <div class="rt-mobile-position-card py-0.5">
+                                    <!-- Line 1: Symbol, Badge, Status & ✕ Cancel Button -->
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-sm font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
-                                        <span class="text-sm font-black ${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</span>
-                                    </div>
-                                    <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                                        ${txEscapeHtml(String(order.order_type || "--").toUpperCase())} · <span class="${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))}</span>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                                        <div>
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                            <strong class="text-xs font-black text-white">${formatQty(order.quantity)}</strong>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                            <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))} · ${txEscapeHtml(String(order.order_type || "LIMIT").toUpperCase())}</span>
                                         </div>
-                                        <div class="text-center">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">PRICE</span>
-                                            <strong class="text-xs font-black text-white">${orderPrice > 0 ? formatNumber(orderPrice) : "Market"}</strong>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">LTP</span>
-                                            <strong class="text-xs font-black text-white" data-live-order-mark="${txEscapeHtml(orderId)}">${txFormatFastPrice(markPrice)}</strong>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] font-black ${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</span>
+                                            <button class="rt-mobile-close-btn" type="button" data-cancel-order="${txEscapeHtml(orderId)}" title="Cancel Order">
+                                                ✕
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="flex justify-between items-center gap-3">
-                                        <div class="text-slate-400 font-bold text-[10px]">Ref: <span class="font-mono text-slate-300">${txEscapeHtml(order.order_reference || orderId).substring(0, 12)}</span></div>
-                                        <button class="rt-mobile-close-btn" type="button" data-cancel-order="${txEscapeHtml(orderId)}">
-                                            Cancel
-                                        </button>
+
+                                    <!-- Line 2: Dense 1-Line Stats (QTY, PRICE, LTP, Ref) -->
+                                    <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatQty(order.quantity)}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${orderPrice > 0 ? formatNumber(orderPrice) : "Market"}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">LTP</span><span class="font-mono text-white font-bold" data-live-order-mark="${txEscapeHtml(orderId)}">${txFormatFastPrice(markPrice)}</span></div>
+                                        <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${txEscapeHtml(order.order_reference || orderId).substring(0, 6)}</div>
                                     </div>
                                 </div>
                             </td>
@@ -8014,6 +8077,8 @@ function renderOpenOrdersTable() {
     `;
 
     elements.terminalTable.querySelectorAll("[data-cancel-order]").forEach((button) => {
+        if (button.dataset.txCancelWired === "1") return;
+        button.dataset.txCancelWired = "1";
         button.addEventListener("click", () => cancelOrder(button.getAttribute("data-cancel-order")));
     });
 }
@@ -8111,7 +8176,7 @@ function renderOrderHistoryTable() {
             </thead>
             <tbody>
                 ${paginatedOrders.map((order) => {
-                    const status = order.status || "--";
+                    const status = String(order.status || "filled").toLowerCase();
                     const price = txToNumber(order.limit_price ?? order.average_fill_price ?? order.estimated_price ?? order.price, 0);
 
                     return `
@@ -8127,31 +8192,22 @@ function renderOrderHistoryTable() {
                             <td class="rt-desktop-only" data-label="Time" data-mobile-field="time">${txFormatDateTime(order.created_at || order.createdAt)}</td>
                             
                             <td class="rt-mobile-only rt-mobile-card-cell" colspan="9">
-                                <div class="rt-mobile-position-card">
+                                <div class="rt-mobile-position-card py-0.5">
+                                    <!-- Line 1: Symbol, Badge & Status -->
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-sm font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
-                                        <span class="text-sm font-black ${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</span>
-                                    </div>
-                                    <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                                        ${txEscapeHtml(String(order.order_type || "--").toUpperCase())} · <span class="${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))}</span>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                                        <div>
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                            <strong class="text-xs font-black text-white">${formatQty(order.quantity)}</strong>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                            <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))} · ${txEscapeHtml(String(order.order_type || "--").toUpperCase())}</span>
                                         </div>
-                                        <div class="text-center">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">PRICE</span>
-                                            <strong class="text-xs font-black text-white">${price > 0 ? formatNumber(price) : "Market"}</strong>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">MARGIN</span>
-                                            <strong class="text-xs font-black text-white">${formatNumber(order.margin_amount)} USDT</strong>
-                                        </div>
+                                        <span class="text-[11px] font-black ${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</span>
                                     </div>
-                                    <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold">
-                                        <div>Ref: <span class="font-mono text-slate-400">${txEscapeHtml(order.order_reference || txGetId(order)).substring(0, 12)}</span></div>
-                                        <div>${txFormatDateTime(order.created_at || order.createdAt)}</div>
+
+                                    <!-- Line 2: Dense 1-Line Stats (QTY, PRICE, MARGIN, Ref) -->
+                                    <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatQty(order.quantity)}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${price > 0 ? formatNumber(price) : "Market"}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">MARGIN</span><span class="font-mono text-white font-bold">${formatNumber(order.margin_amount)}</span></div>
+                                        <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${txEscapeHtml(order.order_reference || txGetId(order)).substring(0, 6)}</div>
                                     </div>
                                 </div>
                             </td>
@@ -8228,31 +8284,22 @@ function renderTradeHistoryTable() {
                             <td class="rt-desktop-only" data-label="Time" data-mobile-field="time">${txFormatDateTime(trade.created_at || trade.createdAt)}</td>
                             
                             <td class="rt-mobile-only rt-mobile-card-cell" colspan="9">
-                                <div class="rt-mobile-position-card">
+                                <div class="rt-mobile-position-card py-0.5">
+                                    <!-- Line 1: Symbol, Badge & PnL -->
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-sm font-black text-white">${txEscapeHtml(txFormatSymbol(trade.symbol))}</span>
-                                        <span class="text-sm font-black" ${pnlColorStyle}>${pnlText}</span>
-                                    </div>
-                                    <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                                        ${txEscapeHtml(String(trade.trade_type || "--").toUpperCase())} · <span class="${txSideClass(trade.side)}">${txEscapeHtml(txFormatSide(trade.side))}</span>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                                        <div>
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                            <strong class="text-xs font-black text-white">${formatQty(trade.quantity)}</strong>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(trade.symbol))}</span>
+                                            <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(trade.side)}">${txEscapeHtml(txFormatSide(trade.side))} · ${txEscapeHtml(String(trade.trade_type || "TRADE").toUpperCase())}</span>
                                         </div>
-                                        <div class="text-center">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">PRICE</span>
-                                            <strong class="text-xs font-black text-white">${formatNumber(trade.price)}</strong>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">FEE</span>
-                                            <strong class="text-xs font-black text-white">${formatNumber(trade.fee_amount)} USDT</strong>
-                                        </div>
+                                        <span class="text-xs font-black" ${pnlColorStyle}>${pnlText}</span>
                                     </div>
-                                    <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold">
-                                        <div>Ref: <span class="font-mono text-slate-400">${txEscapeHtml(trade.trade_reference || txGetId(trade)).substring(0, 12)}</span></div>
-                                        <div>${txFormatDateTime(trade.created_at || trade.createdAt)}</div>
+
+                                    <!-- Line 2: Dense 1-Line Stats (QTY, PRICE, FEE, Ref) -->
+                                    <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatQty(trade.quantity)}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${formatNumber(trade.price)}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">FEE</span><span class="font-mono text-slate-300 font-bold">${formatNumber(trade.fee_amount)}</span></div>
+                                        <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${txEscapeHtml(trade.trade_reference || txGetId(trade)).substring(0, 6)}</div>
                                     </div>
                                 </div>
                             </td>
@@ -8323,26 +8370,17 @@ function renderTransactionHistoryTable() {
                             <td class="rt-desktop-only" data-label="Time" data-mobile-field="time">${txFormatDateTime(item.created_at || item.createdAt)}</td>
                             
                             <td class="rt-mobile-only rt-mobile-card-cell" colspan="6">
-                                <div class="rt-mobile-position-card">
+                                <div class="rt-mobile-position-card py-0.5">
+                                    <!-- Line 1: Type, Direction & Amount -->
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-sm font-black text-white">${txEscapeHtml(txLedgerTypeLabel(item.transaction_type || item.type || "--"))}</span>
-                                        <span class="text-sm font-black ${amountClass}">${sign}${formatNumber(item.amount)} USDT</span>
+                                        <span class="text-xs font-black text-white">${txEscapeHtml(txLedgerTypeLabel(item.transaction_type || item.type || "--"))}</span>
+                                        <span class="text-xs font-black ${amountClass}">${sign}${formatNumber(item.amount)} USDT</span>
                                     </div>
-                                    <div class="text-[10px] font-bold uppercase mb-2 tracking-wide ${amountClass}">
-                                        ${txEscapeHtml(direction.toUpperCase() || "--")}
-                                    </div>
-                                    <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2">
-                                        <div class="flex justify-between mb-1">
-                                            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Balance After</span>
-                                            <strong class="text-white">${formatNumber(item.balance_after)} USDT</strong>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Description</span>
-                                            <span class="text-slate-300 font-medium text-right text-ellipsis overflow-hidden">${txEscapeHtml(txLedgerTypeLabel(item.description || "--"))}</span>
-                                        </div>
-                                    </div>
-                                    <div class="text-right text-[10px] text-slate-500 font-bold">
-                                        ${txFormatDateTime(item.created_at || item.createdAt)}
+
+                                    <!-- Line 2: Balance After & Description -->
+                                    <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">BAL AFTER</span><span class="font-mono text-white font-bold">${formatNumber(item.balance_after)} USDT</span></div>
+                                        <div class="text-[9px] text-slate-400 font-medium truncate max-w-[140px] text-right">${txEscapeHtml(txLedgerTypeLabel(item.description || "--"))}</div>
                                     </div>
                                 </div>
                             </td>
@@ -8927,7 +8965,8 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const reminderList = reminders.split(",").map(s => s.trim());
         const orderTypeLabel = orderType === "LIMIT" ? "Limit" : orderType === "MARKET" ? "Market" : "Stop-Limit";
 
-        if (reminderList.includes(orderTypeLabel)) {
+        const isMobileView = window.innerWidth <= 1024;
+        if (!isMobileView && reminderList.includes(orderTypeLabel)) {
             txShowFuturesConfirm({
                 title: "Confirm Order Placement",
                 message: `Are you sure you want to submit a ${orderTypeLabel} ${payload.side.toUpperCase()} order for ${qty} ${pair.label}?`,
@@ -9215,12 +9254,12 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             subAccounts.forEach(sub => {
                 const bal = sub.wallet ? sub.wallet.available_balance : 0.0;
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs">
-                        <div>
-                            <strong class="text-white font-black">${escapeHtml(sub.name)}</strong>
-                            <p class="text-[10px] text-slate-500 mt-0.5">ID: ${sub.id}</p>
+                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs gap-2 min-w-0">
+                        <div class="min-w-0 flex-1 pr-1">
+                            <strong class="text-white font-black truncate block">${escapeHtml(sub.name)}</strong>
+                            <p class="text-[10px] text-slate-500 mt-0.5 truncate">ID: ${sub.id}</p>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right shrink-0">
                             <strong class="text-cyan-300 font-black">${bal.toFixed(2)} USDT</strong>
                             <p class="text-[10px] text-slate-500 mt-0.5">Trading Balance</p>
                         </div>

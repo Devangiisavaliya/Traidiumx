@@ -77,10 +77,32 @@ function waitForNavbarAndApplyAuthState() {
 }
 
 
+function getUserDisplayName(user) {
+    if (!user) return "User";
+    if (user.kyc_status === "approved" && (user.name || user.full_name)) {
+        return (user.name || user.full_name).trim();
+    }
+    const regName = user.register_name || user.registration_name || user.initial_name || user.email_name;
+    if (regName) return regName.trim();
+    const email = user.email || "";
+    if (email.includes("@")) {
+        const prefix = email.split("@")[0];
+        return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    }
+    return email || "User";
+}
+
+function getUserInitial(user) {
+    const name = getUserDisplayName(user);
+    return name.charAt(0).toUpperCase() || "S";
+}
+
 function applyNavbarAuthState() {
     const desktopAuthArea = document.getElementById("desktopAuthArea");
     const mobileAuthArea = document.getElementById("mobileAuthArea");
     const mobileHeaderNoticeRoot = document.getElementById("mobileHeaderNotificationRoot");
+    const mobileProfileArea = document.getElementById("mobileProfileArea");
+    const dropdownContainer = document.getElementById("txProfileDropdownContainer");
 
     const loggedIn = isLoggedIn();
     const user = getAuthUser();
@@ -95,17 +117,33 @@ function applyNavbarAuthState() {
         }
     }
 
+    if (mobileProfileArea) {
+        if (loggedIn && user) {
+            const firstLetter = getUserInitial(user);
+            mobileProfileArea.classList.remove("hidden");
+            mobileProfileArea.style.display = "flex";
+            const mobileBtn = mobileProfileArea.querySelector("#mobileNavbarProfileBtn");
+            if (mobileBtn) mobileBtn.textContent = firstLetter;
+        } else {
+            mobileProfileArea.classList.add("hidden");
+            mobileProfileArea.style.display = "none";
+        }
+    }
+
     if (loggedIn && user) {
         renderLoggedInDesktop(desktopAuthArea, user);
         renderLoggedInMobile(mobileAuthArea, user);
+        renderProfileDropdown(dropdownContainer || desktopAuthArea, user);
         initNavbarCurrencyToggle();
         bindNavbarDropdown(user);
     } else {
+        if (dropdownContainer) dropdownContainer.innerHTML = "";
         renderLoggedOutDesktop(desktopAuthArea);
         renderLoggedOutMobile(mobileAuthArea);
     }
 
     bindNavbarLogoutButtons();
+    updateMobileThemeToggleUI();
     if (typeof applyRegisterStepLinkAuthState === "function") {
         applyRegisterStepLinkAuthState();
     }
@@ -117,15 +155,32 @@ function renderLoggedOutDesktop(container) {
         return;
     }
 
+    const resolveRoute = (r) => typeof resolveAppPath === "function" ? resolveAppPath(r) : "./" + r;
+
     container.innerHTML = `
+        <button id="txThemeToggleBtn" type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer mr-1" title="Toggle Theme">
+            <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
+
         <a
-            href="/src/pages/login.html"
+            href="${resolveRoute('src/pages/login.html')}"
+            data-route="src/pages/login.html"
             class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/[0.06] px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15 hover:text-cyan-100"
         >
             Login
         </a>
 
-        <a href="/src/pages/register.html" class="tx-pill-trade-btn">
+        <a href="${resolveRoute('src/pages/register.html')}" data-route="src/pages/register.html" class="tx-pill-trade-btn">
             <span>TRADE NOW</span>
             <span class="tx-pill-arrow">→</span>
         </a>
@@ -138,19 +193,72 @@ function renderLoggedOutMobile(container) {
         return;
     }
 
+    const resolveRoute = (r) => typeof resolveAppPath === "function" ? resolveAppPath(r) : "./" + r;
+    const curTheme = localStorage.getItem("traidiumx_theme") || "dark";
+    const isDark = curTheme !== "light";
+    const darkBtnClass = isDark
+        ? "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-cyan-400 text-slate-950 font-black shadow-sm"
+        : "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-transparent text-slate-400 hover:text-slate-200";
+    const lightBtnClass = !isDark
+        ? "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-cyan-400 text-slate-950 font-black shadow-sm"
+        : "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-transparent text-slate-400 hover:text-slate-200";
+
     container.innerHTML = `
+        <div class="flex justify-between items-center my-3 px-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Theme Mode</span>
+            <div class="tx-theme-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40">
+                <button type="button" id="txMobileThemeDarkBtn" class="${darkBtnClass}" onclick="applyMobileTheme('dark')">
+                    🌙 Dark
+                </button>
+                <button type="button" id="txMobileThemeLightBtn" class="${lightBtnClass}" onclick="applyMobileTheme('light')">
+                    ☀️ Light
+                </button>
+            </div>
+        </div>
+
         <a
-            href="/src/pages/login.html"
-            class="flex w-full items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/[0.06] px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15 hover:text-cyan-100"
+            href="${resolveRoute('src/pages/login.html')}"
+            data-route="src/pages/login.html"
+            class="flex w-full items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/[0.06] px-5 py-3 text-sm font-black text-cyan-200 transition hover:bg-cyan-400/15 hover:text-cyan-100 mb-2"
         >
             Login
         </a>
 
-        <a href="/src/pages/register.html" class="tx-pill-mobile-trade">
+        <a href="${resolveRoute('src/pages/register.html')}" data-route="src/pages/register.html" class="tx-pill-mobile-trade">
             TRADE NOW →
         </a>
     `;
 }
+
+window.applyMobileTheme = function(theme) {
+    localStorage.setItem("traidiumx_theme", theme);
+    if (typeof applySiteTheme === "function") {
+        applySiteTheme(theme);
+    }
+    updateMobileThemeToggleUI();
+    if (typeof updateThemeToggleUI === "function") {
+        updateThemeToggleUI(theme);
+    }
+};
+
+window.updateMobileThemeToggleUI = function() {
+    const theme = localStorage.getItem("traidiumx_theme") || "dark";
+    const darkBtn = document.getElementById("txMobileThemeDarkBtn");
+    const lightBtn = document.getElementById("txMobileThemeLightBtn");
+
+    if (!darkBtn || !lightBtn) return;
+
+    const activeClasses = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-cyan-400 text-slate-950 font-black shadow-sm";
+    const inactiveClasses = "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-transparent text-slate-400 hover:text-slate-200";
+
+    if (theme === "light") {
+        lightBtn.className = activeClasses;
+        darkBtn.className = inactiveClasses;
+    } else {
+        darkBtn.className = activeClasses;
+        lightBtn.className = inactiveClasses;
+    }
+};
 
 
 function renderLoggedInDesktop(container, user) {
@@ -158,22 +266,8 @@ function renderLoggedInDesktop(container, user) {
         return;
     }
 
-    let displayName = "";
-    if (user.kyc_status === "approved") {
-        const nameParts = (user.name || "").trim().split(/\s+/);
-        displayName = nameParts[0] || "User";
-    } else {
-        const email = user.email || "";
-        if (email.includes("@")) {
-            const prefix = email.split("@")[0];
-            displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
-        } else {
-            displayName = email || "User";
-        }
-    }
-    const userName = escapeHtml(displayName);
-    const fullName = escapeHtml(user.name || user.email || "User");
-    const userInitial = userName.charAt(0).toUpperCase() || "U";
+    const fullName = escapeHtml(getUserDisplayName(user));
+    const userInitial = getUserInitial(user);
 
     const currentPath = window.location.pathname.toLowerCase();
     const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/");
@@ -216,14 +310,34 @@ function renderLoggedInDesktop(container, user) {
                 </button>
             </div>
 
-            <!-- Profile Avatar and Dropdown wrapper -->
-            <div class="relative ml-1">
+            <!-- Profile Avatar wrapper -->
+            <div id="txDesktopProfileWrapper" class="relative ml-1">
                 <button id="txNavbarProfileBtn" type="button" class="w-10 h-10 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-cyan-950/25">
                     ${userInitial}
                 </button>
+            </div>
+        </div>
+    `;
+}
 
-                <!-- Dropdown Card -->
-                <div id="txProfileDropdown" class="hidden absolute left-1/2 -translate-x-1/2 mt-3.5 w-80 bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
+function renderProfileDropdown(container, user) {
+    if (!container) {
+        return;
+    }
+
+    const fullName = escapeHtml(getUserDisplayName(user));
+    const userInitial = getUserInitial(user);
+
+    const resolveRoute = (route) => {
+        if (typeof resolveAppPath === "function") {
+            return resolveAppPath(route);
+        }
+        const isPages = window.location.pathname.replace(/\\/g, "/").includes("/src/pages/");
+        return (isPages ? "../../" : "./") + route;
+    };
+
+    container.innerHTML = `
+        <div id="txProfileDropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-80 max-w-[calc(100vw-32px)] bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
                     <!-- Header -->
                     <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
                         <div class="tx-profile-avatar w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
@@ -250,7 +364,7 @@ function renderLoggedInDesktop(container, user) {
                             Regular User
                         </span>
                         ${user.kyc_status === 'approved' ? `
-                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-emerald-500/20 transition cursor-pointer">
+                        <a href="${resolveRoute('src/pages/profile.html#kyc')}" data-route="src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-emerald-400 border border-emerald-500/20 bg-emerald-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-emerald-500/20 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                                 <path d="m9 11 2 2 4-4"></path>
@@ -259,7 +373,7 @@ function renderLoggedInDesktop(container, user) {
                             <span class="ml-0.5 text-emerald-400/80">›</span>
                         </a>
                         ` : user.kyc_status === 'rejected' ? `
-                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-red-400 border border-red-500/20 bg-red-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-red-500/20 transition cursor-pointer">
+                        <a href="${resolveRoute('src/pages/profile.html#kyc')}" data-route="src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-red-400 border border-red-500/20 bg-red-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-red-500/20 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <path d="m15 9-6 6M9 9l6 6"></path>
@@ -268,7 +382,7 @@ function renderLoggedInDesktop(container, user) {
                             <span class="ml-0.5 text-red-400/80">›</span>
                         </a>
                         ` : `
-                        <a href="/src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-amber-400 border border-amber-500/20 bg-amber-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer">
+                        <a href="${resolveRoute('src/pages/profile.html#kyc')}" data-route="src/pages/profile.html#kyc" class="flex items-center gap-1 text-[10px] font-black text-amber-400 border border-amber-500/20 bg-amber-500/10 rounded-lg px-2.5 py-1 uppercase tracking-wider hover:bg-amber-500/20 transition cursor-pointer">
                             <span>Unverified</span>
                             <span class="ml-0.5 text-amber-400/80">›</span>
                         </a>
@@ -277,7 +391,7 @@ function renderLoggedInDesktop(container, user) {
 
                     <!-- Create Account Link -->
                     <div class="mb-4">
-                        <a href="#" id="txNavbarCreateSubAccountLink" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition">
+                        <a href="${resolveRoute('src/pages/profile.html#sub-accounts')}" id="txNavbarCreateSubAccountLink" data-route="src/pages/profile.html#sub-accounts" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition cursor-pointer">
                             <span class="text-sm font-black">+</span>
                             <span>Create an Account</span>
                         </a>
@@ -287,7 +401,7 @@ function renderLoggedInDesktop(container, user) {
                     <div class="space-y-1">
                         <!-- Assets Accordion -->
                         <div>
-                            <button type="button" id="txAssetsToggle" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold focus:outline-none">
+                            <button type="button" id="txAssetsToggle" class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold focus:outline-none cursor-pointer">
                                 <div class="flex items-center gap-3">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                                     <span class="whitespace-nowrap">Assets</span>
@@ -295,104 +409,53 @@ function renderLoggedInDesktop(container, user) {
                                 <svg id="txAssetsArrow" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
                             <div id="txAssetsSubMenu" class="hidden space-y-0.5 my-1 pl-4 pr-1">
-                                <a href="/src/pages/wallet.html#overview" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#overview')}" data-route="src/pages/wallet.html#overview" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
                                     <span class="whitespace-nowrap">Overview</span>
                                 </a>
-                                <a href="/src/pages/wallet.html#deposit" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#deposit')}" data-route="src/pages/wallet.html#deposit" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
                                     <span class="whitespace-nowrap">Deposit</span>
                                 </a>
-                                <a href="/src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#withdraw')}" data-route="src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4"/></svg>
                                     <span class="whitespace-nowrap">Withdraw</span>
                                 </a>
-                                <a href="/src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#transfer')}" data-route="src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
                                     <span class="whitespace-nowrap">Transfer</span>
                                 </a>
-                                <a href="/src/pages/wallet.html#exchange" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#exchange')}" data-route="src/pages/wallet.html#exchange" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/></svg>
                                     <span class="whitespace-nowrap">Exchange</span>
                                 </a>
-                                <a href="/src/pages/wallet.html#history" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
+                                <a href="${resolveRoute('src/pages/wallet.html#history')}" data-route="src/pages/wallet.html#history" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                                     <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
                                     <span class="whitespace-nowrap">History</span>
                                 </a>
                             </div>
                         </div>
 
-                        <a href="/src/pages/portfolio.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M3 3v18h18"></path>
-                                <path d="M18 17V9"></path>
-                                <path d="M13 17V5"></path>
-                                <path d="M8 17v-3"></path>
-                            </svg>
-                            <span>Portfolio</span>
-                        </a>
-                        <a href="/src/pages/orders.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="9" y1="9" x2="15" y2="9"></line>
-                                <line x1="9" y1="13" x2="15" y2="13"></line>
-                                <line x1="9" y1="17" x2="15" y2="17"></line>
-                            </svg>
-                            <span>Orders</span>
-                        </a>
-                        <a href="/src/pages/profile.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            <span>Account</span>
+                        <a href="${resolveRoute('src/pages/orders.html')}" data-route="src/pages/orders.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1.5"/></svg>
+                            <span class="whitespace-nowrap">Orders & History</span>
                         </a>
 
-                        <!-- Sub Accounts -->
-                        <button type="button" id="txNavbarSubAccountsBtn" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold focus:outline-none">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            <span>Sub Accounts</span>
+                        <a href="${resolveRoute('src/pages/profile.html')}" data-route="src/pages/profile.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <span class="whitespace-nowrap">Account Details</span>
+                        </a>
+
+                        <a href="${resolveRoute('src/pages/settings.html')}" data-route="src/pages/settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span class="whitespace-nowrap">Settings</span>
+                        </a>
+
+                        <button type="button" data-navbar-logout="true" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-300 transition text-xs font-bold cursor-pointer">
+                            <svg class="w-4 h-4 shrink-0 text-red-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            <span class="whitespace-nowrap">Logout</span>
                         </button>
-
-                        <a href="/src/pages/contact.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <circle cx="12" cy="12" r="4"></circle>
-                                <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
-                                <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
-                                <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
-                                <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
-                            </svg>
-                            <span>Support</span>
-                        </a>
-                        <a href="/src/pages/settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                            </svg>
-                            <span>Settings</span>
-                        </a>
                     </div>
-
-                    <!-- Separator -->
-                    <div class="h-[1.5px] bg-slate-800/60 my-2"></div>
-
-                    <!-- Logout -->
-                    <button type="button" data-navbar-logout="true" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-300 transition text-xs font-black focus:outline-none cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        <span>Log Out</span>
-                    </button>
-                </div>
-            </div>
         </div>
     `;
 }
@@ -421,8 +484,18 @@ function renderLoggedInMobile(container, user) {
     const currentPath = window.location.pathname.toLowerCase();
     const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/");
 
+    const resolveRoute = (r) => typeof resolveAppPath === "function" ? resolveAppPath(r) : "./" + r;
+    const curTheme = localStorage.getItem("traidiumx_theme") || "dark";
+    const isDark = curTheme !== "light";
+    const darkBtnClass = isDark
+        ? "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-cyan-400 text-slate-950 font-black shadow-sm"
+        : "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-transparent text-slate-400 hover:text-slate-200";
+    const lightBtnClass = !isDark
+        ? "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-cyan-400 text-slate-950 font-black shadow-sm"
+        : "flex items-center justify-center gap-1 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[68px] cursor-pointer bg-transparent text-slate-400 hover:text-slate-200";
+
     container.innerHTML = `
-        <a href="/src/pages/profile.html" class="tx-mobile-auth-profile" title="Open account details">
+        <a href="${resolveRoute('src/pages/profile.html')}" data-route="src/pages/profile.html" class="tx-mobile-auth-profile" title="Open account details">
             <span class="min-w-0">
                 <strong>${userName}</strong>
                 <span>View account details</span>
@@ -444,11 +517,23 @@ function renderLoggedInMobile(container, user) {
             </div>
         </div>
 
+        <div class="flex justify-between items-center my-3 px-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Theme Mode</span>
+            <div class="tx-theme-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40">
+                <button type="button" id="txMobileThemeDarkBtn" class="${darkBtnClass}" onclick="applyMobileTheme('dark')">
+                    🌙 Dark
+                </button>
+                <button type="button" id="txMobileThemeLightBtn" class="${lightBtnClass}" onclick="applyMobileTheme('light')">
+                    ☀️ Light
+                </button>
+            </div>
+        </div>
+
         <div class="tx-mobile-auth-actions" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; display: grid;">
-            <a href="/src/pages/settings.html" class="tx-mobile-logout-btn flex items-center justify-center gap-2 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;">
+            <a href="${resolveRoute('src/pages/settings.html')}" data-route="src/pages/settings.html" class="tx-mobile-logout-btn flex items-center justify-center gap-2 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;">
                 <svg viewBox="0 0 24 24" aria-hidden="true" class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
                 <span>Settings</span>
             </a>
@@ -1069,19 +1154,19 @@ function escapeHtml(value) {
             .tx-navbar-notification-list{flex:1 1 auto;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:rgba(103,232,249,.28) transparent;}
             .tx-navbar-notification-list::-webkit-scrollbar{width:6px;}
             .tx-navbar-notification-list::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(103,232,249,.28);}
-            .tx-navbar-notification-item{--notice-color:#22d3ee;--notice-soft:rgba(34,211,238,.07);--notice-border:rgba(34,211,238,.22);--notice-text:#a5f3fc;position:relative;display:grid;grid-template-columns:10px 1fr;gap:10px;border-radius:18px;border:1px solid transparent;border-left:3px solid var(--notice-border);padding:12px 11px;transition:background .16s ease,border-color .16s ease,opacity .16s ease;opacity:.65;}
-            .tx-navbar-notification-item.info{--notice-color:#22d3ee;--notice-soft:rgba(34,211,238,.07);--notice-border:rgba(34,211,238,.24);--notice-text:#a5f3fc;}
-            .tx-navbar-notification-item.success{--notice-color:#34d399;--notice-soft:rgba(52,211,153,.08);--notice-border:rgba(52,211,153,.28);--notice-text:#bbf7d0;}
-            .tx-navbar-notification-item.warning{--notice-color:#fbbf24;--notice-soft:rgba(251,191,36,.08);--notice-border:rgba(251,191,36,.30);--notice-text:#fef3c7;}
-            .tx-navbar-notification-item.alert,.tx-navbar-notification-item.danger,.tx-navbar-notification-item.error{--notice-color:#fb7185;--notice-soft:rgba(251,113,133,.08);--notice-border:rgba(251,113,133,.32);--notice-text:#ffe4e6;}
-            .tx-navbar-notification-item:hover{border-color:var(--notice-border);background:var(--notice-soft);opacity:.85;}
-            .tx-navbar-notification-item.is-unread{opacity:1;border-color:var(--notice-border);background:linear-gradient(135deg,var(--notice-soft),rgba(255,255,255,.025));}
+            .tx-navbar-notification-item{--notice-color:#38bdf8;--notice-soft:rgba(56,189,248,.12);--notice-border:rgba(56,189,248,.35);--notice-text:#38bdf8;position:relative;display:grid;grid-template-columns:12px 1fr;gap:12px;border-radius:18px;border:1px solid rgba(255,255,255,.06)!important;padding:12px 14px;transition:background .16s ease,border-color .16s ease,opacity .16s ease;opacity:.95;}
+            .tx-navbar-notification-item.info{--notice-color:#38bdf8;--notice-soft:rgba(56,189,248,.14);--notice-border:rgba(56,189,248,.45);--notice-text:#38bdf8;}
+            .tx-navbar-notification-item.success{--notice-color:#34d399;--notice-soft:rgba(52,211,153,.14);--notice-border:rgba(52,211,153,.45);--notice-text:#34d399;}
+            .tx-navbar-notification-item.warning{--notice-color:#fbbf24;--notice-soft:rgba(251,191,36,.14);--notice-border:rgba(251,191,36,.45);--notice-text:#fbbf24;}
+            .tx-navbar-notification-item.alert,.tx-navbar-notification-item.danger,.tx-navbar-notification-item.error{--notice-color:#f43f5e;--notice-soft:rgba(244,63,94,.14);--notice-border:rgba(244,63,94,.45);--notice-text:#f43f5e;}
+            .tx-navbar-notification-item:hover{border-color:var(--notice-border)!important;background:var(--notice-soft);opacity:1;}
+            .tx-navbar-notification-item.is-unread{opacity:1;border-color:var(--notice-border)!important;background:linear-gradient(135deg,var(--notice-soft),rgba(255,255,255,.03));}
             .tx-navbar-notification-item.is-unread:hover{opacity:1;}
-            .tx-navbar-notification-dot{margin-top:6px;width:8px;height:8px;border-radius:999px;background:var(--notice-color);box-shadow:0 0 16px color-mix(in srgb,var(--notice-color) 55%,transparent);opacity:0;transition:opacity .16s ease;}
-            .tx-navbar-notification-item.is-unread .tx-navbar-notification-dot{opacity:1;box-shadow:0 0 18px color-mix(in srgb,var(--notice-color) 66%,transparent);}
+            .tx-navbar-notification-dot{margin-top:5px;width:9px;height:9px;border-radius:999px;background:var(--notice-color)!important;box-shadow:0 0 14px var(--notice-color)!important;opacity:1!important;transition:all .16s ease;}
+            .tx-navbar-notification-item.is-unread .tx-navbar-notification-dot{box-shadow:0 0 18px var(--notice-color)!important;}
             .tx-navbar-notification-meta{display:flex;align-items:center;gap:8px;color:#94a3b8;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;flex-wrap:wrap;}
             .tx-navbar-notification-meta span:last-child{margin-left:auto;}
-            .tx-navbar-notification-severity-badge{display:inline-flex;align-items:center;border:1px solid var(--notice-border);background:var(--notice-soft);color:var(--notice-text);border-radius:999px;padding:4px 8px;font-size:9px;font-weight:950;letter-spacing:.10em;line-height:1;}
+            .tx-navbar-notification-severity-badge{display:inline-flex;align-items:center;border:1px solid var(--notice-border);background:var(--notice-soft);color:var(--notice-text);border-radius:999px;padding:3.5px 9px;font-size:9.5px;font-weight:950;letter-spacing:.08em;line-height:1;text-transform:uppercase;}
             .tx-navbar-notification-type{color:#94a3b8;}
             .tx-navbar-notification-item h4{margin:7px 0 0;color:#fff;font-size:13px;font-weight:950;line-height:1.25;}
             .tx-navbar-notification-item p{margin:5px 0 0;color:#cbd5e1;font-size:12px;font-weight:700;line-height:1.5;}
@@ -1251,33 +1336,141 @@ function bindNavbarDropdown(user) {
     // Sub Accounts button — always redirect to profile sub-accounts tab
     const subAccountsBtn = document.getElementById("txNavbarSubAccountsBtn");
     if (subAccountsBtn) {
-        subAccountsBtn.addEventListener("click", function () {
+        subAccountsBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (dropdown) dropdown.classList.add("hidden");
-            window.location.href = "/src/pages/profile.html#sub-accounts";
+            navigateToProfileRoute("src/pages/profile.html#sub-accounts");
         });
     }
 
-    if (profileBtn && dropdown) {
-        profileBtn.addEventListener("click", function (e) {
+    // Mobile profile avatar button click handler
+    const mobileBtn = document.getElementById("mobileNavbarProfileBtn");
+    if (mobileBtn && dropdown) {
+        mobileBtn.onclick = function (e) {
+            e.preventDefault();
             e.stopPropagation();
-            dropdown.classList.toggle("hidden");
-        });
+            const isHidden = dropdown.classList.contains("hidden");
+            if (dropdown.parentElement !== document.body) {
+                document.body.appendChild(dropdown);
+            }
+            const baseClass = "fixed top-[76px] right-[12px] w-[calc(100vw-24px)] max-w-[340px] max-h-[calc(100vh-90px)] overflow-y-auto bg-[#0c101d] border border-cyan-400/20 rounded-3xl p-5 shadow-2xl z-[9999999] text-slate-200";
+            dropdown.className = isHidden ? baseClass : baseClass + " hidden";
 
+            const mobileMenu = document.getElementById("mobileMenu");
+            if (isHidden && mobileMenu && !mobileMenu.classList.contains("hidden")) {
+                mobileMenu.classList.add("hidden");
+                document.documentElement.classList.remove("tx-mobile-menu-open");
+                document.body.classList.remove("tx-mobile-menu-open");
+            }
+        };
+    }
+
+    // Unified global event delegation for avatar button toggles, option navigation, and outside clicks
+    if (!window.__txProfileGlobalDelegationBound) {
+        window.__txProfileGlobalDelegationBound = true;
         document.addEventListener("click", function (e) {
-            if (!dropdown.classList.contains("hidden")) {
-                if (!dropdown.contains(e.target) && e.target !== profileBtn) {
+            const desktopBtn = e.target.closest("#txNavbarProfileBtn");
+            const mobBtn = e.target.closest("#mobileNavbarProfileBtn");
+            const dropdown = document.getElementById("txProfileDropdown");
+            const mobileMenu = document.getElementById("mobileMenu");
+
+            if (desktopBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!dropdown) return;
+
+                const isHidden = dropdown.classList.contains("hidden");
+                const desktopWrapper = document.getElementById("txDesktopProfileWrapper");
+                if (desktopWrapper && dropdown.parentElement !== desktopWrapper) {
+                    desktopWrapper.appendChild(dropdown);
+                }
+                const baseClass = "absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-80 max-w-[calc(100vw-32px)] bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200";
+                dropdown.className = isHidden ? baseClass : baseClass + " hidden";
+                return;
+            }
+
+            if (mobBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!dropdown) return;
+
+                const isHidden = dropdown.classList.contains("hidden");
+                if (dropdown.parentElement !== document.body) {
+                    document.body.appendChild(dropdown);
+                }
+                const baseClass = "fixed top-[76px] right-[12px] w-[calc(100vw-24px)] max-w-[340px] max-h-[calc(100vh-90px)] overflow-y-auto bg-[#0c101d] border border-cyan-400/20 rounded-3xl p-5 shadow-2xl z-[9999999] text-slate-200";
+                dropdown.className = isHidden ? baseClass : baseClass + " hidden";
+
+                if (isHidden && mobileMenu && !mobileMenu.classList.contains("hidden")) {
+                    mobileMenu.classList.add("hidden");
+                    document.documentElement.classList.remove("tx-mobile-menu-open");
+                    document.body.classList.remove("tx-mobile-menu-open");
+                }
+                return;
+            }
+
+            if (dropdown && !dropdown.classList.contains("hidden")) {
+                const assetsToggle = e.target.closest("#txAssetsToggle");
+                const copyBtn = e.target.closest("#txCopyIdBtn");
+
+                if (assetsToggle || copyBtn) {
+                    return;
+                }
+
+                if (dropdown.contains(e.target)) {
+                    const itemLink = e.target.closest("a, button, [data-route], [data-navbar-logout]");
+                    if (itemLink) {
+                        dropdown.classList.add("hidden");
+
+                        if (itemLink.hasAttribute("data-navbar-logout")) {
+                            return;
+                        }
+
+                        const route = itemLink.getAttribute("data-route") || itemLink.getAttribute("href");
+                        if (route && route !== "#") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigateToProfileRoute(route);
+                        }
+                    }
+                } else {
                     dropdown.classList.add("hidden");
                 }
             }
         });
     }
 
-    if (themeBtn) {
-        themeBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            toggleSiteTheme();
-        });
+function navigateToProfileRoute(route) {
+    if (!route || route === "#") return;
+    
+    let path = route;
+    let hash = "";
+    if (route.includes("#")) {
+        const parts = route.split("#");
+        path = parts[0];
+        hash = "#" + parts[1];
     }
+
+    const currentPath = window.location.pathname.replace(/\\/g, "/");
+    const isPages = currentPath.includes("/src/pages/");
+    
+    let targetUrl = "";
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        targetUrl = route;
+    } else {
+        const cleanRoute = path.startsWith("/") ? path.substring(1) : path;
+        const pageFileName = cleanRoute.substring(cleanRoute.lastIndexOf("/") + 1);
+        
+        if (isPages) {
+            targetUrl = "./" + pageFileName + hash;
+        } else {
+            targetUrl = "./" + cleanRoute + hash;
+        }
+    }
+    
+    window.location.href = targetUrl;
+}
 
     if (copyBtn && user.client_id) {
         copyBtn.addEventListener("click", function (e) {
@@ -1388,30 +1581,83 @@ function openNavbarCreateSubModal() {
     });
 }
 
-function toggleSiteTheme() {
+window.toggleSiteTheme = function() {
     const currentTheme = localStorage.getItem("traidiumx_theme") === "light" ? "light" : "dark";
     const newTheme = currentTheme === "light" ? "dark" : "light";
     localStorage.setItem("traidiumx_theme", newTheme);
-    applySiteTheme(newTheme);
-}
+    window.applySiteTheme(newTheme);
+};
 
-function applySiteTheme(theme) {
-    if (theme === "light") {
+window.applySiteTheme = function(theme) {
+    const activeTheme = theme || localStorage.getItem("traidiumx_theme") || "dark";
+    if (activeTheme === "light") {
         document.documentElement.classList.add("light");
         document.documentElement.classList.remove("dark");
     } else {
         document.documentElement.classList.add("dark");
         document.documentElement.classList.remove("light");
     }
-    // Update theme selectors if any settings page is open
+    if (typeof updateMobileThemeToggleUI === "function") {
+        updateMobileThemeToggleUI();
+    }
+    if (typeof updateThemeToggleUI === "function") {
+        updateThemeToggleUI(activeTheme);
+    }
+    window.updateDesktopThemeToggleIcon(activeTheme);
+    if (typeof window.loadTradingViewChart === "function") {
+        try {
+            window.loadTradingViewChart();
+        } catch (err) {}
+    }
     const themeSelector = document.getElementById("themeSelector");
     if (themeSelector) {
-        themeSelector.value = theme.charAt(0).toUpperCase() + theme.slice(1);
+        themeSelector.value = activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1);
     }
-}
+};
+
+window.updateDesktopThemeToggleIcon = function(theme) {
+    const themeBtn = document.getElementById("txThemeToggleBtn");
+    if (!themeBtn) return;
+    const isLight = (theme || localStorage.getItem("traidiumx_theme")) === "light";
+    if (isLight) {
+        themeBtn.innerHTML = `
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        `;
+        themeBtn.title = "Switch to Dark Mode";
+    } else {
+        themeBtn.innerHTML = `
+            <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        `;
+        themeBtn.title = "Switch to Light Mode";
+    }
+};
+
+// Global Delegation for Desktop Theme Toggle Button click
+document.addEventListener("click", function(e) {
+    const themeBtn = e.target.closest("#txThemeToggleBtn");
+    if (themeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.toggleSiteTheme === "function") {
+            window.toggleSiteTheme();
+        }
+    }
+});
 
 // Apply theme instantly on script parse to prevent flash of light/dark mode
-applySiteTheme(localStorage.getItem("traidiumx_theme") || "dark");
+window.applySiteTheme(localStorage.getItem("traidiumx_theme") || "dark");
 
 // Google Translate Integration
 function initGlobalTranslation() {

@@ -131,6 +131,8 @@ function initMobileMenu() {
     }
 
     mobileMenuBtn.addEventListener("click", () => {
+        const dropdown = document.getElementById("txProfileDropdown");
+        if (dropdown) dropdown.classList.add("hidden");
         setMenuOpen(mobileMenu.classList.contains("hidden"));
     });
 

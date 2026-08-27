@@ -1936,35 +1936,36 @@ function renderBackendPositionsTable(positions = []) {
                 <td class="rt-desktop-only"><button type="button" class="os-table-btn danger" data-close-option-position="${position.id}" data-close-option-mark="${mark}">Close</button></td>
                 
                 <td class="rt-mobile-only rt-mobile-card-cell" colspan="9">
-                    <div class="rt-mobile-position-card">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-black text-white">${position.contract || "--"}</span>
-                            <span class="text-sm font-black animate-pulse ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${sign}${formatNumber(pnl, 2)} (${pnlPercentText})</span>
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                            OPTIONS | ${position.underlying || ""} ${position.option_side || ""} - <span class="${position.action === "SELL" ? "text-red-400" : "text-emerald-400"}">${position.action || "--"}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                            <div>
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                <strong class="text-xs font-black text-emerald-400">${qty}</strong>
+                    <div class="rt-mobile-position-card py-1">
+                        <!-- Line 1: Contract, Action Badge, PnL & ✕ Close Icon -->
+                        <div class="flex justify-between items-center mb-1.5">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-black text-white">${position.contract || "--"}</span>
+                                <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${position.action === "SELL" ? "text-red-400" : "text-emerald-400"}">${position.action || "--"}</span>
                             </div>
-                            <div class="text-center">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">AVG</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(entry, 2)}</strong>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">LTP</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(mark, 2)}</strong>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black animate-pulse ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}">${sign}${formatNumber(pnl, 2)} (${pnlPercentText})</span>
+                                <button class="rt-mobile-close-btn" type="button" data-close-option-position="${position.id}" data-close-option-mark="${mark}" title="Close Position">
+                                    ✕
+                                </button>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 items-center">
-                            <div class="flex items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2 text-center text-xs font-bold text-slate-400">
-                                TP/SL&nbsp;<span class="text-slate-400 font-black">-/-</span>
+
+                        <!-- Line 2: 3-Col Grid for QTY | AVG | LTP -->
+                        <div class="grid grid-cols-3 gap-1 text-[10.5px] font-semibold text-slate-400 mb-1 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono font-black ${position.action === "SELL" ? "text-red-400" : "text-emerald-400"}">${qty}</span></div>
+                            <div class="text-center"><span class="text-slate-500 text-[8.5px] font-bold mr-1">AVG</span><span class="font-mono text-white font-bold">${formatNumber(entry, 2)}</span></div>
+                            <div class="text-right"><span class="text-slate-500 text-[8.5px] font-bold mr-1">LTP</span><span class="font-mono text-white font-bold">${formatNumber(mark, 2)}</span></div>
+                        </div>
+
+                        <!-- Line 3: Dedicated TP/SL Bar -->
+                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 bg-slate-950/20 px-2 py-0.5 rounded border border-slate-800/30">
+                            <span class="text-slate-500 text-[8.5px] uppercase tracking-wider">TP / SL</span>
+                            <div class="font-mono truncate ml-2">
+                                <span class="text-emerald-400 font-bold">-</span>
+                                <span class="text-slate-600 mx-1">/</span>
+                                <span class="text-red-400 font-bold">-</span>
                             </div>
-                            <button class="rt-mobile-close-btn" type="button" data-close-option-position="${position.id}" data-close-option-mark="${mark}">
-                                Close
-                            </button>
                         </div>
                     </div>
                 </td>
@@ -1983,7 +1984,7 @@ function renderBackendPositionsTable(positions = []) {
     }
 
     return `
-        <div class="os-positions-toolbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+        <div class="os-positions-toolbar rt-desktop-only" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
             <strong style="font-size:13px;color:#e2e8f0;">${positions.length} open option position(s)</strong>
             <button type="button" class="os-table-btn danger" data-close-all-option-positions>Close All Positions</button>
         </div>
@@ -2022,39 +2023,26 @@ function renderBackendOrdersTable(orders = [], emptyText = "No backend option or
                 <td class="rt-desktop-only">${showCancel ? `<button type="button" class="os-table-btn danger" data-cancel-option-order="${order.id}">Cancel</button>` : "--"}</td>
                 
                 <td class="rt-mobile-only rt-mobile-card-cell" colspan="8">
-                    <div class="rt-mobile-position-card">
+                    <div class="rt-mobile-position-card py-0.5">
+                        <!-- Line 1: Contract, Action/Type Badge, Status & ✕ Cancel Button -->
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-black text-white">${order.contract || "--"}</span>
-                            <span class="text-sm font-black ${statusColorClass}">${statusText}</span>
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                            ${order.order_type || "MARKET"} - <span class="${order.action === 'SELL' ? 'text-red-400' : 'text-emerald-400'}">${order.action || "--"}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                            <div>
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(order.quantity || 0, 0)}</strong>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-black text-white">${order.contract || "--"}</span>
+                                <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${order.action === 'SELL' ? 'text-red-400' : 'text-emerald-400'}">${order.action || "--"} · ${order.order_type || "LIMIT"}</span>
                             </div>
-                            <div class="text-center">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">PRICE</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(order.price, 2)}</strong>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">MARGIN</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(margin, 2)} USDT</strong>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-black ${statusColorClass}">${statusText}</span>
+                                ${showCancel ? `<button class="rt-mobile-close-btn" type="button" data-cancel-option-order="${order.id}" title="Cancel Order">✕</button>` : ""}
                             </div>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold">
-                            <span>Ref: ${orderRef}</span>
-                            <span>${timeText}</span>
+
+                        <!-- Line 2: Dense 1-Line Stats (QTY, PRICE, MARGIN, Ref) -->
+                        <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatNumber(order.quantity || 0, 0)}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${formatNumber(order.price, 2)}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">MARGIN</span><span class="font-mono text-white font-bold">${formatNumber(margin, 2)}</span></div>
+                            <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${String(orderRef).substring(0, 6)}</div>
                         </div>
-                        ${showCancel ? `
-                        <div class="mt-3">
-                            <button class="rt-mobile-close-btn" style="background: rgba(239, 68, 68, 0.16) !important; border: 1px solid rgba(248, 113, 113, 0.32) !important; color: #fecaca !important; width: 100%; border-radius: 12px; padding: 10px 14px; font-size: 12px; font-weight: 900;" type="button" data-cancel-option-order="${order.id}">
-                                Cancel Order
-                            </button>
-                        </div>
-                        ` : ""}
                     </div>
                 </td>
             </tr>
@@ -2093,39 +2081,25 @@ function renderBackendConditionalTable(orders = []) {
                 <td class="rt-desktop-only">${statusLabel(order.status)}</td>
                 
                 <td class="rt-mobile-only rt-mobile-card-cell" colspan="6">
-                    <div class="rt-mobile-position-card">
+                    <div class="rt-mobile-position-card py-0.5">
+                        <!-- Line 1: Contract, Status & ✕ Cancel Button -->
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-black text-white">${order.contract || "--"}</span>
-                            <span class="text-sm font-black ${statusColorClass}">${statusText}</span>
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                            CONDITIONAL - <span class="text-emerald-400">${order.order_type || "--"}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                            <div>
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">STOP</span>
-                                <strong class="text-xs font-black text-white">${order.stop_price ? formatNumber(order.stop_price, 2) : "--"}</strong>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-black text-white">${order.contract || "--"}</span>
+                                <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 text-cyan-400">${order.order_type || "CONDITIONAL"}</span>
                             </div>
-                            <div class="text-center">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">TP</span>
-                                <strong class="text-xs font-black text-white">${order.take_profit ? formatNumber(order.take_profit, 2) : "--"}</strong>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">SL</span>
-                                <strong class="text-xs font-black text-white">${order.stop_loss ? formatNumber(order.stop_loss, 2) : "--"}</strong>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-black ${statusColorClass}">${statusText}</span>
+                                ${showCancel ? `<button class="rt-mobile-close-btn" type="button" data-cancel-option-order="${order.id}" title="Cancel Order">✕</button>` : ""}
                             </div>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold">
-                            <span>Ref: ${orderRef}</span>
-                            <span>${timeText}</span>
+
+                        <!-- Line 2: Dense 1-Line Stats (STOP, TP, SL) -->
+                        <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">STOP</span><span class="font-mono text-white font-bold">${order.stop_price ? formatNumber(order.stop_price, 2) : "--"}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">TP</span><span class="font-mono text-emerald-400 font-bold">${order.take_profit ? formatNumber(order.take_profit, 2) : "--"}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">SL</span><span class="font-mono text-red-400 font-bold">${order.stop_loss ? formatNumber(order.stop_loss, 2) : "--"}</span></div>
                         </div>
-                        ${showCancel ? `
-                        <div class="mt-3">
-                            <button class="rt-mobile-close-btn" style="background: rgba(239, 68, 68, 0.16) !important; border: 1px solid rgba(248, 113, 113, 0.32) !important; color: #fecaca !important; width: 100%; border-radius: 12px; padding: 10px 14px; font-size: 12px; font-weight: 900;" type="button" data-cancel-option-order="${order.id}">
-                                Cancel Order
-                            </button>
-                        </div>
-                        ` : ""}
                     </div>
                 </td>
             </tr>
@@ -2154,31 +2128,22 @@ function renderBackendFillsTable(fills = []) {
                 <td class="rt-desktop-only">${fill.created_at ? new Date(fill.created_at).toLocaleTimeString("en-IN") : "--"}</td>
                 
                 <td class="rt-mobile-only rt-mobile-card-cell" colspan="8">
-                    <div class="rt-mobile-position-card">
+                    <div class="rt-mobile-position-card py-0.5">
+                        <!-- Line 1: Contract, Action Badge & Status -->
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-black text-white">${fill.contract || "--"}</span>
-                            <span class="text-sm font-black text-emerald-400">FILLED</span>
-                        </div>
-                        <div class="text-[10px] font-bold text-slate-500 uppercase mb-3 tracking-wide">
-                            ${fill.option_side || "CALL"} - <span class="${fill.action === 'SELL' ? 'text-red-400' : 'text-emerald-400'}">${fill.action || "--"}</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-xs mb-3 border-t border-b border-slate-800/60 py-2.5">
-                            <div>
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">QTY</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(fill.quantity || 0, 0)}</strong>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-black text-white">${fill.contract || "--"}</span>
+                                <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${fill.action === 'SELL' ? 'text-red-400' : 'text-emerald-400'}">${fill.action || "--"} · ${fill.option_side || "CALL"}</span>
                             </div>
-                            <div class="text-center">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">PRICE</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(fill.price, 2)}</strong>
-                            </div>
-                            <div class="text-right">
-                                <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">FEE</span>
-                                <strong class="text-xs font-black text-white">${formatNumber(fee, 4)}</strong>
-                            </div>
+                            <span class="text-xs font-black text-emerald-400">FILLED</span>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold">
-                            <span>Ref: ${fillRef}</span>
-                            <span>${timeText}</span>
+
+                        <!-- Line 2: Dense 1-Line Stats (QTY, PRICE, FEE, Ref) -->
+                        <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatNumber(fill.quantity || 0, 0)}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${formatNumber(fill.price, 2)}</span></div>
+                            <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">FEE</span><span class="font-mono text-slate-300 font-bold">${formatNumber(fee, 4)}</span></div>
+                            <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${String(fillRef).substring(0, 6)}</div>
                         </div>
                     </div>
                 </td>
@@ -3935,12 +3900,12 @@ async function txRenderSubAccountsList() {
         subAccounts.forEach(sub => {
             const bal = sub.wallet ? sub.wallet.available_balance : 0.0;
             html += `
-                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs">
-                    <div>
-                        <strong class="text-white font-black">${escapeHtml(sub.name)}</strong>
-                        <p class="text-[10px] text-slate-500 mt-0.5">ID: ${sub.id}</p>
+                <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs gap-2 min-w-0">
+                    <div class="min-w-0 flex-1 pr-1">
+                        <strong class="text-white font-black truncate block">${escapeHtml(sub.name)}</strong>
+                        <p class="text-[10px] text-slate-500 mt-0.5 truncate">ID: ${sub.id}</p>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right shrink-0">
                         <strong class="text-cyan-300 font-black">${bal.toFixed(2)} USDT</strong>
                         <p class="text-[10px] text-slate-500 mt-0.5">Trading Balance</p>
                     </div>

@@ -202,6 +202,43 @@
         }
     }
 
+    @media (max-width: 420px) {
+        .tx-pill-header {
+            padding-right: 6px !important;
+            padding-left: 6px !important;
+        }
+
+        .tx-pill-navbar {
+            padding: 8px 10px !important;
+            min-height: 54px !important;
+        }
+
+        .tx-pill-brand h1 {
+            font-size: 15px !important;
+            letter-spacing: -0.02em !important;
+            white-space: nowrap !important;
+        }
+
+        .tx-pill-brand p {
+            margin-top: 1px !important;
+            font-size: 7.5px !important;
+            letter-spacing: 0.16em !important;
+        }
+
+        .tx-mobile-header-notice-btn,
+        #mobileNavbarProfileBtn,
+        .tx-pill-mobile-btn {
+            width: 34px !important;
+            height: 34px !important;
+            min-height: 34px !important;
+            font-size: 13px !important;
+        }
+
+        .tx-pill-navbar div.lg\:hidden {
+            gap: 4px !important;
+        }
+    }
+
     @media (max-width: 349px) {
         .tx-mobile-menu-links .tx-pill-mobile-link {
             padding-right: 9px !important;
@@ -212,9 +249,10 @@
         .tx-mobile-auth-actions .tx-navbar-notification-btn-mobile,
         .tx-mobile-logout-btn {
             font-size: 9.5px !important;
+        }
     }
 
-    /* Scroll Transition for Desktop/Mobile Navbar */
+/* Scroll Transition for Desktop/Mobile Navbar */
     .tx-pill-header {
         transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
@@ -360,7 +398,7 @@
             </a>
         </div>
 
-        <!-- Mobile / Tablet Right Actions (Notification Bell + Hamburger Button) -->
+        <!-- Mobile / Tablet Right Actions (Notification Bell + Profile Avatar + Hamburger Button) -->
         <div class="relative z-10 flex items-center gap-2 lg:hidden">
             <div id="mobileHeaderNotificationRoot" class="tx-navbar-notification-root hidden items-center justify-center" data-notification-root>
                 <button
@@ -380,6 +418,13 @@
                 </button>
             </div>
 
+            <!-- Mobile User Profile Avatar -->
+            <div id="mobileProfileArea" class="hidden items-center justify-center">
+                <button type="button" id="mobileNavbarProfileBtn" class="w-9 h-9 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-cyan-950/25" title="Profile Menu">
+                    S
+                </button>
+            </div>
+
             <button
                 id="mobileMenuBtn"
                 type="button"
@@ -391,6 +436,9 @@
             </button>
         </div>
     </nav>
+
+    <!-- Global Profile Dropdown Container (outside desktopAuthArea so visible on mobile) -->
+    <div id="txProfileDropdownContainer" class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 z-[9999]"></div>
 
     <!-- Mobile / Tablet Menu -->
     <div

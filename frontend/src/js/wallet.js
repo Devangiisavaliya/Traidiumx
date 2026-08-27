@@ -332,7 +332,7 @@ function formatWalletMoney(value, currency = getWalletCurrency(), decimals = 2) 
 
 function formatWalletMoneyPrivate(value, currency = getWalletCurrency(), decimals = 2) {
     if (isBalanceHidden()) {
-        return "••••••••";
+        return "********";
     }
     return formatWalletMoney(value, currency, decimals);
 }
@@ -1563,115 +1563,6 @@ function paginateRows(rows, type) {
     return { rows: rows.slice(start, start + pageSize), totalRows: rows.length, page, totalPages, pageSize };
 }
 
-function renderHistoryPagination(type, meta) {
-    const paginationElementMap = {
-        ledger: walletElements.ledgerPagination,
-        deposits: walletElements.depositPagination,
-        withdrawals: walletElements.withdrawalPagination
-    };
-    const container = paginationElementMap[type];
-    if (!container) return;
-
-    if (!meta || meta.totalRows <= meta.pageSize) {
-        container.innerHTML = meta?.totalRows ? `<span>${meta.totalRows} result${meta.totalRows === 1 ? "" : "s"}</span>` : "";
-        return;
-    }
-
-    const buttons = [];
-    buttons.push(`<button type="button" data-history-page="${type}" data-page="${meta.page - 1}" ${meta.page <= 1 ? "disabled" : ""}>Prev</button>`);
-    for (let number = 1; number <= meta.totalPages; number += 1) {
-        if (number === 1 || number === meta.totalPages || Math.abs(number - meta.page) <= 1) {
-            buttons.push(`<button type="button" data-history-page="${type}" data-page="${number}" class="${number === meta.page ? "active" : ""}">${number}</button>`);
-        } else if (buttons[buttons.length - 1] !== "<span>...</span>") {
-            buttons.push("<span>...</span>");
-        }
-    }
-    buttons.push(`<button type="button" data-history-page="${type}" data-page="${meta.page + 1}" ${meta.page >= meta.totalPages ? "disabled" : ""}>Next</button>`);
-    buttons.push(`<span>${meta.totalRows} results</span>`);
-    container.innerHTML = buttons.join("");
-}
-
-function resetHistoryPage(type) {
-    const state = getHistoryState(type);
-    state.page = 1;
-}
-
-function bindHistoryFilters() {
-    const config = [
-        ["ledger", walletElements.ledgerSearchInput, walletElements.ledgerTypeFilter, walletElements.ledgerPageSize, renderLedgerTable],
-        ["deposits", walletElements.depositSearchInput, walletElements.depositStatusFilter, walletElements.depositPageSize, renderDepositTable],
-        ["withdrawals", walletElements.withdrawalSearchInput, walletElements.withdrawalStatusFilter, walletElements.withdrawalPageSize, renderWithdrawalTable]
-    ];
-
-    if (walletElements.ledgerCurrencyFilter && walletElements.ledgerCurrencyFilter.dataset.bound !== "1") {
-        walletElements.ledgerCurrencyFilter.dataset.bound = "1";
-        walletElements.ledgerCurrencyFilter.addEventListener("change", () => {
-            getHistoryState("ledger").currency = walletElements.ledgerCurrencyFilter.value || "all";
-            resetHistoryPage("ledger");
-            renderLedgerTable();
-        });
-    }
-
-    if (walletElements.depositCurrencyFilter && walletElements.depositCurrencyFilter.dataset.bound !== "1") {
-        walletElements.depositCurrencyFilter.dataset.bound = "1";
-        walletElements.depositCurrencyFilter.addEventListener("change", () => {
-            getHistoryState("deposits").currency = walletElements.depositCurrencyFilter.value || "all";
-            resetHistoryPage("deposits");
-            renderDepositTable();
-        });
-    }
-
-    if (walletElements.withdrawalCurrencyFilter && walletElements.withdrawalCurrencyFilter.dataset.bound !== "1") {
-        walletElements.withdrawalCurrencyFilter.dataset.bound = "1";
-        walletElements.withdrawalCurrencyFilter.addEventListener("change", () => {
-            getHistoryState("withdrawals").currency = walletElements.withdrawalCurrencyFilter.value || "all";
-            resetHistoryPage("withdrawals");
-            renderWithdrawalTable();
-        });
-    }
-
-    config.forEach(([type, searchInput, statusSelect, pageSizeSelect, render]) => {
-        const state = getHistoryState(type);
-        if (searchInput && searchInput.dataset.bound !== "1") {
-            searchInput.dataset.bound = "1";
-            searchInput.addEventListener("input", () => {
-                state.search = searchInput.value || "";
-                resetHistoryPage(type);
-                render();
-            });
-        }
-        if (statusSelect && statusSelect.dataset.bound !== "1") {
-            statusSelect.dataset.bound = "1";
-            statusSelect.addEventListener("change", () => {
-                state.status = statusSelect.value || "all";
-                resetHistoryPage(type);
-                render();
-            });
-        }
-        if (pageSizeSelect && pageSizeSelect.dataset.bound !== "1") {
-            pageSizeSelect.dataset.bound = "1";
-            pageSizeSelect.addEventListener("change", () => {
-                state.pageSize = Number(pageSizeSelect.value || 5);
-                resetHistoryPage(type);
-                render();
-            });
-        }
-    });
-
-    document.querySelectorAll("[data-history-page]").forEach((button) => {
-        if (button.dataset.bound === "1") return;
-        button.dataset.bound = "1";
-        button.addEventListener("click", () => {
-            const type = button.getAttribute("data-history-page");
-            const page = Number(button.getAttribute("data-page") || 1);
-            if (!type || button.disabled) return;
-            getHistoryState(type).page = page;
-            if (type === "ledger") renderLedgerTable();
-            if (type === "deposits") renderDepositTable();
-            if (type === "withdrawals") renderWithdrawalTable();
-        });
-    });
-}
 
 function setWalletStatus(status, type = "loading") {
     if (!walletElements.statusText) {
@@ -2491,6 +2382,117 @@ function getFilteredLedgerRows() {
     });
 }
 
+function renderHistoryPagination(type, meta) {
+    const paginationElementMap = {
+        ledger: walletElements.ledgerPagination,
+        deposits: walletElements.depositPagination,
+        withdrawals: walletElements.withdrawalPagination
+    };
+    const container = paginationElementMap[type];
+    if (!container) return;
+
+    if (!meta || meta.totalRows <= meta.pageSize) {
+        container.innerHTML = meta?.totalRows ? `<span>${meta.totalRows} result${meta.totalRows === 1 ? "" : "s"}</span>` : "";
+        return;
+    }
+
+    const buttons = [];
+    buttons.push(`<button type="button" data-history-page="${type}" data-page="${meta.page - 1}" ${meta.page <= 1 ? "disabled" : ""}>Prev</button>`);
+    for (let number = 1; number <= meta.totalPages; number += 1) {
+        if (number === 1 || number === meta.totalPages || Math.abs(number - meta.page) <= 1) {
+            buttons.push(`<button type="button" data-history-page="${type}" data-page="${number}" class="${number === meta.page ? "active" : ""}">${number}</button>`);
+        } else if (buttons[buttons.length - 1] !== "<span>...</span>") {
+            buttons.push("<span>...</span>");
+        }
+    }
+    buttons.push(`<button type="button" data-history-page="${type}" data-page="${meta.page + 1}" ${meta.page >= meta.totalPages ? "disabled" : ""}>Next</button>`);
+    buttons.push(`<span>${meta.totalRows} results</span>`);
+    container.innerHTML = buttons.join("");
+}
+
+function resetHistoryPage(type) {
+    const state = getHistoryState(type);
+    state.page = 1;
+}
+
+function bindHistoryFilters() {
+    const config = [
+        ["ledger", walletElements.ledgerSearchInput, walletElements.ledgerTypeFilter, walletElements.ledgerPageSize, renderLedgerTable],
+        ["deposits", walletElements.depositSearchInput, walletElements.depositStatusFilter, walletElements.depositPageSize, renderDepositTable],
+        ["withdrawals", walletElements.withdrawalSearchInput, walletElements.withdrawalStatusFilter, walletElements.withdrawalPageSize, renderWithdrawalTable]
+    ];
+
+    if (walletElements.ledgerCurrencyFilter && walletElements.ledgerCurrencyFilter.dataset.bound !== "1") {
+        walletElements.ledgerCurrencyFilter.dataset.bound = "1";
+        walletElements.ledgerCurrencyFilter.addEventListener("change", () => {
+            getHistoryState("ledger").currency = walletElements.ledgerCurrencyFilter.value || "all";
+            resetHistoryPage("ledger");
+            renderLedgerTable();
+        });
+    }
+
+    if (walletElements.depositCurrencyFilter && walletElements.depositCurrencyFilter.dataset.bound !== "1") {
+        walletElements.depositCurrencyFilter.dataset.bound = "1";
+        walletElements.depositCurrencyFilter.addEventListener("change", () => {
+            getHistoryState("deposits").currency = walletElements.depositCurrencyFilter.value || "all";
+            resetHistoryPage("deposits");
+            renderDepositTable();
+        });
+    }
+
+    if (walletElements.withdrawalCurrencyFilter && walletElements.withdrawalCurrencyFilter.dataset.bound !== "1") {
+        walletElements.withdrawalCurrencyFilter.dataset.bound = "1";
+        walletElements.withdrawalCurrencyFilter.addEventListener("change", () => {
+            getHistoryState("withdrawals").currency = walletElements.withdrawalCurrencyFilter.value || "all";
+            resetHistoryPage("withdrawals");
+            renderWithdrawalTable();
+        });
+    }
+
+    config.forEach(([type, searchInput, statusSelect, pageSizeSelect, render]) => {
+        if (searchInput && searchInput.dataset.bound !== "1") {
+            searchInput.dataset.bound = "1";
+            searchInput.addEventListener("input", () => {
+                getHistoryState(type).search = searchInput.value || "";
+                resetHistoryPage(type);
+                render();
+            });
+        }
+
+        if (statusSelect && statusSelect.dataset.bound !== "1") {
+            statusSelect.dataset.bound = "1";
+            statusSelect.addEventListener("change", () => {
+                getHistoryState(type).status = statusSelect.value || "all";
+                resetHistoryPage(type);
+                render();
+            });
+        }
+
+        if (pageSizeSelect && pageSizeSelect.dataset.bound !== "1") {
+            pageSizeSelect.dataset.bound = "1";
+            pageSizeSelect.addEventListener("change", () => {
+                getHistoryState(type).pageSize = Number(pageSizeSelect.value || 5);
+                resetHistoryPage(type);
+                render();
+            });
+        }
+    });
+
+    document.querySelectorAll("[data-history-page]").forEach((button) => {
+        if (button.dataset.bound === "1") return;
+        button.dataset.bound = "1";
+        button.addEventListener("click", () => {
+            const type = button.getAttribute("data-history-page");
+            const page = Number(button.getAttribute("data-page") || 1);
+            if (!type || button.disabled) return;
+            getHistoryState(type).page = page;
+            if (type === "ledger") renderLedgerTable();
+            if (type === "deposits") renderDepositTable();
+            if (type === "withdrawals") renderWithdrawalTable();
+        });
+    });
+}
+
 function renderLedgerTable() {
     if (!walletElements.ledgerBody) return;
 
@@ -2522,26 +2524,17 @@ function renderLedgerTable() {
                 <td class="tx-desktop-only text-sm text-slate-300">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</td>
 
                 <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="5">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1">
-                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[65%]">${walletEscape(prettyType(item.transaction_type))}</span>
-                            <span class="text-xs sm:text-sm font-black ${amountClass} shrink-0">${amountCell}</span>
-                        </div>
-                        <div class="text-[10px] font-bold uppercase mb-2 tracking-wide ${amountClass}">
-                            ${walletEscape(prettyType(direction))}
-                        </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider shrink-0">Balance After</span>
-                                <strong class="text-white font-bold shrink-0">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</strong>
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-0.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                <span class="text-xs font-black text-white truncate">${walletEscape(prettyType(item.transaction_type))}</span>
+                                <span class="text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${amountClass}">${walletEscape(prettyType(direction))}</span>
                             </div>
-                            <div class="flex flex-col gap-0.5">
-                                <span class="text-slate-500 font-bold text-[9px] uppercase tracking-wider">Description</span>
-                                <span class="text-slate-300 text-xs font-medium leading-relaxed break-words" title="${walletEscape(description)}">${walletEscape(description || "--")}</span>
-                            </div>
+                            <span class="text-xs font-black ${amountClass} shrink-0">${amountCell}</span>
                         </div>
-                        <div class="text-right text-[10px] text-slate-500 font-bold">
-                            ${walletEscape(formatWalletDate(item.created_at))}
+                        <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400 mt-1">
+                            <span class="truncate">Bal: <strong class="text-slate-200 font-mono">${walletEscape(formatWalletMoney(item.balance_after, itemCurrency))}</strong> ${description ? `<span class="text-slate-600">•</span> ${walletEscape(description)}` : ''}</span>
+                            <span class="text-slate-500 font-mono text-[9.5px] shrink-0">${walletEscape(formatWalletDate(item.created_at))}</span>
                         </div>
                     </div>
                 </td>
@@ -2589,7 +2582,7 @@ function renderDepositTable() {
             ["not_checked", "pending_on_chain", "provider_error", "provider_not_configured", "manual_company_wallet_check_required"].includes(verificationStatus);
 
         const action = canVerify
-            ? `<button type="button" data-verify-deposit="${walletEscape(item.id)}" class="rounded-full bg-emerald-400 px-3 py-2 text-xs font-black text-slate-950 hover:bg-emerald-300">Verify</button>`
+            ? `<button type="button" data-verify-deposit="${walletEscape(item.id)}" class="rounded-full bg-emerald-400 px-2.5 py-1 text-[10px] font-black text-slate-950 hover:bg-emerald-300">Verify</button>`
             : `<span class="text-xs text-slate-500">--</span>`;
 
         const verificationText = item.verification_message || item.remark || "--";
@@ -2617,27 +2610,21 @@ function renderDepositTable() {
                 <td class="tx-desktop-only text-right">${action}</td>
 
                 <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="7">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[65%]">${walletEscape(item.deposit_reference || "Deposit")}</span>
-                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black shrink-0 ${statusClass(item.status)}">${walletEscape(prettyType(item.status))}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
-                            <span>${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")})</span>
-                            <span class="text-sm font-black text-emerald-400 shrink-0">${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
-                        </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1">
-                            <div class="flex items-center justify-between text-[11px]">
-                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Verification</span>
-                                <span class="font-bold text-slate-300">${walletEscape(prettyType(item.verification_status || "pending"))}</span>
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-0.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                <span class="text-xs font-black text-white truncate">${walletEscape(item.deposit_reference || "Deposit")}</span>
+                                <span class="rounded-full px-2 py-0.5 text-[9px] font-black shrink-0 ${statusClass(item.status)}">${walletEscape(prettyType(item.status))}</span>
                             </div>
-                            ${item.explorer_url ? `<div class="flex items-center justify-between text-[11px]"><span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Tx Hash</span><span>${getExplorerLink(item.explorer_url, "Explorer")}</span></div>` : ''}
+                            <span class="text-xs font-black text-emerald-400 shrink-0">+${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold">
-                            <span>Confirmations: ${confirmations}</span>
-                            <span>${walletEscape(formatWalletDate(item.created_at))}</span>
+                        <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400 mt-1">
+                            <span class="truncate text-slate-400">${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")}) <span class="text-slate-600">•</span> Conf: ${confirmations}</span>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-slate-500 font-mono text-[9.5px]">${walletEscape(formatWalletDate(item.created_at))}</span>
+                                ${canVerify ? `<span class="ml-1">${action}</span>` : ''}
+                            </div>
                         </div>
-                        ${canVerify ? `<div class="mt-2.5 pt-2 border-t border-slate-800/60 text-right">${action}</div>` : ''}
                     </div>
                 </td>
             </tr>
@@ -2646,7 +2633,6 @@ function renderDepositTable() {
 
     walletElements.depositEmpty?.classList.toggle("hidden", filtered.length > 0);
     renderHistoryPagination("deposits", meta);
-    bindWalletRowActions();
     bindHistoryFilters();
 }
 
@@ -2681,7 +2667,7 @@ function renderWithdrawalTable() {
     walletElements.withdrawalBody.innerHTML = withdrawals.map((item) => {
         const meta = getWithdrawalStatusMeta(item);
         const action = meta.canCancel
-            ? `<button type="button" data-cancel-withdrawal="${walletEscape(item.id)}" class="rounded-full bg-orange-400 px-3 py-2 text-xs font-black text-slate-950 hover:bg-orange-300">Cancel</button>`
+            ? `<button type="button" data-cancel-withdrawal="${walletEscape(item.id)}" class="rounded-full bg-orange-400 px-2.5 py-1 text-[10px] font-black text-slate-950 hover:bg-orange-300">Cancel</button>`
             : `<span class="text-xs text-slate-500">--</span>`;
         const explorer = item.explorer_url ? getExplorerLink(item.explorer_url, "Explorer") : "--";
         const decisionText = meta.decisionAt ? `Decision: ${formatWalletDate(meta.decisionAt)}` : "";
@@ -2715,27 +2701,22 @@ function renderWithdrawalTable() {
                 <td class="tx-desktop-only text-right">${action}</td>
 
                 <td class="rt-mobile-only tx-mobile-only rt-mobile-card-cell" colspan="8">
-                    <div class="rt-mobile-position-card w-full box-border overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-1.5">
-                            <span class="text-xs sm:text-sm font-black text-white truncate max-w-[60%]">${walletEscape(item.withdrawal_reference || "Withdrawal")}</span>
-                            <span class="rounded-full px-2.5 py-0.5 text-[10px] font-black shrink-0 ${statusClass(item.status, meta.tone)}">${walletEscape(meta.label)}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-2 text-xs font-extrabold text-cyan-300 mb-2">
-                            <span>${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")})</span>
-                            <span class="text-sm font-black text-rose-400 shrink-0">-${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
-                        </div>
-                        <div class="text-xs text-slate-300 mb-2 border-t border-b border-slate-800/60 py-2 grid gap-1.5">
-                            <div class="flex flex-col gap-0.5">
-                                <span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Payout Address / Bank</span>
-                                <span class="text-slate-300 text-xs font-mono font-medium leading-relaxed break-all" title="${walletEscape(item.withdrawal_address || "")}">${walletEscape(item.withdrawal_address || "--")}</span>
+                    <div class="rt-mobile-position-card w-full box-border overflow-hidden py-0.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                <span class="text-xs font-black text-white truncate">${walletEscape(item.withdrawal_reference || "Withdrawal")}</span>
+                                <span class="rounded-full px-2 py-0.5 text-[9px] font-black shrink-0 ${statusClass(item.status, meta.tone)}">${walletEscape(meta.label)}</span>
                             </div>
-                            ${meta.message || item.remark ? `<div class="flex flex-col gap-0.5"><span class="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Remark</span><span class="text-slate-400 text-xs leading-relaxed break-words">${walletEscape(meta.message || item.remark)}</span></div>` : ''}
+                            <span class="text-xs font-black text-rose-400 shrink-0">-${walletEscape(formatWalletMoney(item.amount, itemCurrency))}</span>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold">
-                            <span>Receive: ${walletEscape(formatWalletMoney(item.final_amount ?? item.amount, itemCurrency))}</span>
-                            <span>${walletEscape(formatWalletDate(item.created_at))}</span>
+                        <div class="flex items-center justify-between gap-2 text-[10px] text-slate-400 mt-1">
+                            <span class="truncate text-slate-400">${walletEscape(item.crypto_asset || "USDT")} (${walletEscape(item.crypto_network || "--")}) <span class="text-slate-600">•</span> Recv: <strong class="text-slate-200 font-mono">${walletEscape(formatWalletMoney(item.final_amount ?? item.amount, itemCurrency))}</strong></span>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-slate-500 font-mono text-[9.5px]">${walletEscape(formatWalletDate(item.created_at))}</span>
+                                ${meta.canCancel ? `<span class="ml-1">${action}</span>` : ''}
+                            </div>
                         </div>
-                        ${meta.canCancel ? `<div class="mt-2.5 pt-2 border-t border-slate-800/60 text-right">${action}</div>` : ''}
+                        ${item.withdrawal_address ? `<div class="text-[9.5px] text-slate-500 font-mono truncate mt-0.5">To: ${walletEscape(item.withdrawal_address)}</div>` : ''}
                     </div>
                 </td>
             </tr>
@@ -4606,6 +4587,35 @@ function initWalletEvents() {
     // Initialize ledger sub-account dropdown if parent account
     txInitLedgerSubAccountDropdown();
     initRecipientLookup();
+
+    // Total Balance Breakdown Tooltip (Mobile Click & Desktop Hover Support)
+    const infoBtn = document.getElementById("txInfoBalanceBtn");
+    const infoTooltip = document.getElementById("txBalanceBreakdownTooltip");
+    if (infoBtn && infoTooltip) {
+        infoBtn.addEventListener("mouseenter", () => {
+            if (window.innerWidth >= 640) infoTooltip.classList.remove("hidden");
+        });
+        infoBtn.addEventListener("mouseleave", () => {
+            if (window.innerWidth >= 640) infoTooltip.classList.add("hidden");
+        });
+        infoTooltip.addEventListener("mouseenter", () => {
+            if (window.innerWidth >= 640) infoTooltip.classList.remove("hidden");
+        });
+        infoTooltip.addEventListener("mouseleave", () => {
+            if (window.innerWidth >= 640) infoTooltip.classList.add("hidden");
+        });
+
+        infoBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            infoTooltip.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", (e) => {
+            if (infoTooltip && !infoTooltip.classList.contains("hidden") && !e.target.closest("#txInfoBalanceBtn") && !e.target.closest("#txBalanceBreakdownTooltip")) {
+                infoTooltip.classList.add("hidden");
+            }
+        });
+    }
 }
 
 
@@ -5166,12 +5176,29 @@ function txRenderAssetLists() {
     const totalEl = document.getElementById("portfolioTotalBalance");
     if (totalEl) {
         if (isBalanceHidden()) {
-            totalEl.textContent = `≈ •••••••• ${activeCurrency}`;
+            totalEl.textContent = `≈ ******** ${activeCurrency}`;
         } else if (activeCurrency === "INR") {
             totalEl.textContent = `≈ ₹${inrBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {
             totalEl.textContent = `≈ $${usdtBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         }
+    }
+
+    // Dynamic Balance Breakdown Tooltip Population
+    const availEl = document.getElementById("txBreakdownAvail");
+    const lockedEl = document.getElementById("txBreakdownLocked");
+    const pnlEl = document.getElementById("txBreakdownPnl");
+    if (availEl && lockedEl && pnlEl) {
+        const isHidden = isBalanceHidden();
+        const isINR = activeCurrency === "INR";
+        const sym = isINR ? "₹" : "$";
+        const availVal = isINR ? inrBalance : usdtBalance;
+        const lockedVal = isINR ? (inrLocked + usdtLocked * rate) : (usdtLocked + inrLocked / rate);
+        const pnlVal = 0.00;
+
+        availEl.textContent = isHidden ? "********" : `${sym}${availVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        lockedEl.textContent = isHidden ? "*****" : `${sym}${lockedVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        pnlEl.textContent = isHidden ? "*****" : `${sym}${pnlVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
 
     // Filtering logic
@@ -5199,7 +5226,7 @@ function txRenderAssetLists() {
             }
         });
         if (isBalanceHidden()) {
-            moneySub.textContent = `| ≈ •••••••• ${activeCurrency}`;
+            moneySub.textContent = `| ≈ ******** ${activeCurrency}`;
         } else if (activeCurrency === "INR") {
             const moneyInr = moneyTotalUsd * rate;
             moneySub.textContent = `| ≈ ₹${moneyInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
@@ -5215,7 +5242,7 @@ function txRenderAssetLists() {
             cryptoSumUsd += asset.balance * getAssetPrice(asset.code);
         });
         if (isBalanceHidden()) {
-            cryptoSub.textContent = `| ≈ •••••••• ${activeCurrency}`;
+            cryptoSub.textContent = `| ≈ ******** ${activeCurrency}`;
         } else if (activeCurrency === "INR") {
             const cryptoInr = cryptoSumUsd * rate;
             cryptoSub.textContent = `| $${cryptoSumUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT (≈ ₹${cryptoInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR)`;
@@ -5238,8 +5265,8 @@ function txRenderAssetLists() {
                         <div class="text-[10px] text-slate-500 font-semibold">${asset.name}</div>
                     </div>
                 </td>
-                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.symbol}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : `${asset.symbol}${asset.pending.toFixed(2)}`}</td>
+                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "********" : `${asset.symbol}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                <td class="py-4 text-slate-500">${isBalanceHidden() ? "*****" : `${asset.symbol}${asset.pending.toFixed(2)}`}</td>
                 <td class="py-4 text-right">
                     <div class="wallet-action-grid flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
@@ -5267,8 +5294,8 @@ function txRenderAssetLists() {
                         <div class="text-[10px] text-slate-500 font-semibold">${asset.name}</div>
                     </div>
                 </td>
-                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "••••••••" : `${asset.code === "USDT" ? "$" : ""}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`}</td>
-                <td class="py-4 text-slate-500">${isBalanceHidden() ? "••••" : asset.pending.toFixed(2)}</td>
+                <td class="py-4 font-bold text-white">${isBalanceHidden() ? "********" : `${asset.code === "USDT" ? "$" : ""}${asset.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`}</td>
+                <td class="py-4 text-slate-500">${isBalanceHidden() ? "*****" : asset.pending.toFixed(2)}</td>
                 <td class="py-4 text-right">
                     <div class="wallet-action-grid flex justify-end gap-3 text-xs">
                         <button onclick="txTriggerRowAction('${asset.code}', 'deposit')" class="text-cyan-400 hover:text-cyan-300 font-black">Deposit</button>
@@ -5410,18 +5437,18 @@ function txRenderTradingAccounts() {
 
     // Main Trading Account Row (Trading Account 1)
     accountsHtml += `
-        <div onclick="txSetActiveTradingAccount('main')" class="rounded-2xl border ${isMainActive ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-white/5 bg-slate-950/40'} p-4 flex items-center justify-between transition hover:border-cyan-500/30 cursor-pointer">
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="font-bold text-sm text-white">Trading Account 1</span>
-                    <span class="rounded bg-cyan-500/10 px-2 py-0.5 text-[9px] font-bold text-cyan-400">Default</span>
-                    ${isMainActive ? '<span class="rounded bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-400">Active</span>' : ''}
+        <div onclick="txSetActiveTradingAccount('main')" class="rounded-2xl border ${isMainActive ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-white/5 bg-slate-950/40'} p-3.5 sm:p-4 flex items-center justify-between gap-2.5 transition hover:border-cyan-500/30 cursor-pointer">
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="font-bold text-xs sm:text-sm text-white truncate max-w-[120px] sm:max-w-none">Trading Account 1</span>
+                    <span class="rounded bg-cyan-500/10 px-1.5 py-0.5 text-[9px] font-bold text-cyan-400 shrink-0">Default</span>
+                    ${isMainActive ? '<span class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400 shrink-0">Active</span>' : ''}
                 </div>
-                <div class="text-[10px] text-slate-500 mt-1">Main Trading Account</div>
+                <div class="text-[10px] text-slate-500 mt-0.5 truncate">Main Trading Account</div>
             </div>
-            <div class="text-right">
+            <div class="text-right shrink-0">
                 <span class="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Balance</span>
-                <strong class="text-sm font-black text-white">${parentFormatted}</strong>
+                <strong class="text-xs sm:text-sm font-black text-white font-mono">${parentFormatted}</strong>
             </div>
         </div>
     `;
@@ -5438,17 +5465,17 @@ function txRenderTradingAccounts() {
         const balFormatted = formatWalletMoney(balRaw, activeCurrency);
         
         accountsHtml += `
-            <div onclick="txSetActiveTradingAccount('${sub.id}')" class="rounded-2xl border ${isActive ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-white/5 bg-slate-950/40'} p-4 flex items-center justify-between transition hover:border-cyan-500/30 cursor-pointer">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-sm text-white">${sub.name}</span>
-                        ${isActive ? '<span class="rounded bg-emerald-500/10 px-2 py-0.5 text-[9px] font-bold text-emerald-400">Active</span>' : ''}
+            <div onclick="txSetActiveTradingAccount('${sub.id}')" class="rounded-2xl border ${isActive ? 'border-cyan-500/50 bg-cyan-950/20' : 'border-white/5 bg-slate-950/40'} p-3.5 sm:p-4 flex items-center justify-between gap-2.5 transition hover:border-cyan-500/30 cursor-pointer">
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="font-bold text-xs sm:text-sm text-white truncate max-w-[130px] sm:max-w-none">${escapeHtml(sub.name)}</span>
+                        ${isActive ? '<span class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400 shrink-0">Active</span>' : ''}
                     </div>
-                    <div class="text-[10px] text-slate-500 mt-1">Sub Account (${sub.client_id || sub.id.slice(0,8)})</div>
+                    <div class="text-[10px] text-slate-500 mt-0.5 truncate">Sub Account (${escapeHtml(sub.client_id || sub.id.slice(0,8))})</div>
                 </div>
-                <div class="text-right">
+                <div class="text-right shrink-0">
                     <span class="text-[9px] text-slate-500 font-bold block uppercase tracking-wider">Balance</span>
-                    <strong class="text-sm font-black text-white">${balFormatted}</strong>
+                    <strong class="text-xs sm:text-sm font-black text-white font-mono">${balFormatted}</strong>
                 </div>
             </div>
         `;
