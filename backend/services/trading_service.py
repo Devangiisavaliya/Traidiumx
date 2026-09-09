@@ -307,16 +307,6 @@ def check_limit_order_match(order):
             "rule": "not_a_limit_order"
         }
 
-    ticker_result = get_symbol_ticker(order.get("symbol"))
-
-    if not ticker_result["success"]:
-        return {
-            "success": False,
-            "message": "Unable to fetch live price for limit order check.",
-            "errors": ticker_result.get("errors", {})
-        }
-
-    current_price = float(ticker_result["data"]["last_price"])
     limit_price = float(order.get("limit_price", 0.0) or 0.0)
     side = str(order.get("side") or "").lower()
 
@@ -325,6 +315,34 @@ def check_limit_order_match(order):
             "success": False,
             "message": "Invalid limit price.",
             "errors": {"limit_price": "Limit price must be greater than zero."}
+        }
+
+    current_price = 0.0
+    if order.get("base_estimated_price") and float(order.get("base_estimated_price")) > 0:
+        current_price = float(order.get("base_estimated_price"))
+    elif order.get("estimated_price") and float(order.get("estimated_price")) > 0:
+        current_price = float(order.get("estimated_price"))
+    elif order.get("current_price") and float(order.get("current_price")) > 0:
+        current_price = float(order.get("current_price"))
+    else:
+        try:
+            from database.database import find_market_symbol
+            sym_doc = find_market_symbol(order.get("symbol"))
+            if sym_doc and sym_doc.get("last_price") and float(sym_doc["last_price"]) > 0:
+                current_price = float(sym_doc["last_price"])
+        except Exception:
+            pass
+
+    if current_price <= 0:
+        ticker_result = get_symbol_ticker(order.get("symbol"))
+        if ticker_result.get("success") and ticker_result.get("data", {}).get("last_price"):
+            current_price = float(ticker_result["data"]["last_price"])
+
+    if current_price <= 0:
+        return {
+            "success": False,
+            "message": "Unable to fetch live price for limit order check.",
+            "errors": {"price": "Market price unavailable"}
         }
 
     if side == "buy":
@@ -351,18 +369,40 @@ def get_execution_price(order, user_id=None):
 
     if order_type in ["limit", "stop_limit"] and order.get("limit_price"):
         base_price = float(order.get("limit_price"))
+    elif order.get("base_estimated_price") and float(order.get("base_estimated_price")) > 0:
+        base_price = float(order.get("base_estimated_price"))
+    elif order.get("estimated_price") and float(order.get("estimated_price")) > 0:
+        base_price = float(order.get("estimated_price"))
+    elif order.get("current_price") and float(order.get("current_price")) > 0:
+        base_price = float(order.get("current_price"))
     else:
-        ticker_result = get_symbol_ticker(order.get("symbol"))
-        if not ticker_result["success"]:
+        base_price = 0.0
+        try:
+            from database.database import find_market_symbol
+            sym_doc = find_market_symbol(order.get("symbol"))
+            if sym_doc and sym_doc.get("last_price") and float(sym_doc["last_price"]) > 0:
+                base_price = float(sym_doc["last_price"])
+        except Exception:
+            pass
+
+        if base_price <= 0:
+            clean_k = clean_string(order.get("symbol", "")).upper().replace("-", "").replace("/", "")
+            from services.order_service import FALLBACK_ORDER_PRICES
+            if clean_k in FALLBACK_ORDER_PRICES:
+                base_price = FALLBACK_ORDER_PRICES[clean_k]
+
+        if base_price <= 0:
+            ticker_result = get_symbol_ticker(order.get("symbol"))
+            if ticker_result.get("success"):
+                data = ticker_result.get("data", {})
+                base_price = float(data.get("last_price") or data.get("mark_price") or 0.0)
+
+        if base_price <= 0:
             return {
                 "success": False,
                 "message": "Unable to fetch live execution price.",
-                "errors": ticker_result.get("errors", {})
+                "errors": {"price": "Live price unavailable"}
             }
-        data = ticker_result.get("data", {})
-        base_price = float(data.get("last_price") or data.get("mark_price") or 0.0)
-        if base_price <= 0 and data.get("mark_price"):
-            base_price = float(data.get("mark_price"))
 
     spread = apply_plan_spread_to_price(
         user_id=user_id or order.get("user_id"),
@@ -611,17 +651,22 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
                 reference_id=order_id,
                 description=f"Entry trading fee for futures {str(order.get('side') or '').upper()} order {order.get('order_reference')}",
             )
-            # Distribute referral commission if applicable
+            # Distribute referral commission asynchronously
             try:
                 from services.referral_service import distribute_referral_commission
-                distribute_referral_commission(
-                    referred_user_id=str(user_id),
-                    fee_amount=platform_fee,
-                    reference_id=order_id,
-                    description=f"Futures order entry fee"
-                )
+                import threading
+                threading.Thread(
+                    target=distribute_referral_commission,
+                    kwargs={
+                        "referred_user_id": str(user_id),
+                        "fee_amount": platform_fee,
+                        "reference_id": order_id,
+                        "description": "Futures order entry fee"
+                    },
+                    daemon=True
+                ).start()
             except Exception as ref_err:
-                print(f"Error distributing referral commission for futures order {order_id}: {ref_err}")
+                print(f"Error launching referral commission thread for {order_id}: {ref_err}")
         except Exception as error:
             print(f"Warning: admin entry-fee credit failed for order {order_id}: {error}")
 
@@ -643,6 +688,57 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
         position=position,
         execution_price=execution_price
     )
+
+    # Mirror to Binance asynchronously (non-blocking)
+    if settings.BINANCE_API_KEY and not order.get("binance_order_id"):
+        import threading
+        def _async_mirror_execution(ord_data, pos_id, exec_prc):
+            try:
+                from services.binance_service import place_binance_futures_order, update_binance_tp_sl
+                binance_res = place_binance_futures_order(
+                    symbol=ord_data.get("symbol"),
+                    side=ord_data.get("side"),
+                    quantity=ord_data.get("quantity"),
+                    leverage=ord_data.get("leverage", 1),
+                    margin_mode=ord_data.get("margin_mode", "isolated"),
+                    price=exec_prc if ord_data.get("order_type") == "limit" else None,
+                    order_type=ord_data.get("order_type", "MARKET")
+                )
+                if binance_res.get("success"):
+                    b_id = binance_res.get("binance_order_id")
+                    b_status = binance_res.get("status")
+                    update_order(str(ord_data.get("_id") or ord_data.get("id")), {
+                        "binance_order_id": b_id,
+                        "binance_status": b_status,
+                        "remark": f"Mirrored to Binance. ID: {b_id}"
+                    })
+                    if pos_id:
+                        update_position(str(pos_id), {"binance_order_id": b_id})
+                    tp = ord_data.get("take_profit")
+                    sl = ord_data.get("stop_loss")
+                    if tp or sl:
+                        try:
+                            update_binance_tp_sl(
+                                symbol=ord_data.get("symbol"),
+                                position_side=ord_data.get("side"),
+                                quantity=ord_data.get("quantity"),
+                                take_profit=tp,
+                                stop_loss=sl
+                            )
+                        except Exception as tp_sl_err:
+                            print(f"Failed to place TP/SL on Binance in background: {tp_sl_err}")
+                else:
+                    update_order(str(ord_data.get("_id") or ord_data.get("id")), {
+                        "remark": f"Binance Mirror Failed: {binance_res.get('message')}"
+                    })
+            except Exception as b_err:
+                print(f"Failed to mirror order to Binance in background: {b_err}")
+
+        threading.Thread(
+            target=_async_mirror_execution,
+            args=(dict(order), str(position["_id"]), execution_price),
+            daemon=True
+        ).start()
 
     # Update local order to filled status immediately for instant client response
     updated_order = update_order(
@@ -676,91 +772,6 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
     )
 
     reconcile_user_plan(user_id, send_notice=True)
-
-    if settings.BINANCE_API_KEY:
-        import threading
-        
-        def run_binance_mirror():
-            try:
-                from config.database import get_database
-                from bson import ObjectId
-                
-                binance_order_id = order.get("binance_order_id")
-                binance_status = order.get("binance_status")
-                binance_remark = ""
-                
-                if binance_order_id:
-                    binance_remark = f" Mirrored to Binance as LIMIT. ID: {binance_order_id}"
-                    
-                    update_position(str(position["_id"]), {
-                        "binance_order_id": binance_order_id
-                    })
-                    
-                    tp = order.get("take_profit")
-                    sl = order.get("stop_loss")
-                    if tp or sl:
-                        try:
-                            from services.binance_service import update_binance_tp_sl
-                            update_binance_tp_sl(
-                                symbol=order.get("symbol"),
-                                position_side=order.get("side"),
-                                quantity=order.get("quantity"),
-                                take_profit=tp,
-                                stop_loss=sl
-                            )
-                        except Exception as tp_sl_err:
-                            print(f"Failed to place initial TP/SL on Binance: {tp_sl_err}")
-                else:
-                    from services.binance_service import place_binance_futures_order
-                    binance_res = place_binance_futures_order(
-                        symbol=order.get("symbol"),
-                        side=order.get("side"),
-                        quantity=order.get("quantity"),
-                        leverage=order.get("leverage", 1),
-                        margin_mode=order.get("margin_mode", "isolated"),
-                        price=execution_price if order.get("order_type") == "limit" else None,
-                        order_type=order.get("order_type", "MARKET")
-                    )
-                    if binance_res.get("success"):
-                        binance_order_id = binance_res.get("binance_order_id")
-                        binance_status = binance_res.get("status")
-                        binance_remark = f" Mirrored to Binance. ID: {binance_order_id}"
-                        
-                        update_position(str(position["_id"]), {
-                            "binance_order_id": binance_order_id
-                        })
-                        
-                        tp = order.get("take_profit")
-                        sl = order.get("stop_loss")
-                        if tp or sl:
-                            try:
-                                from services.binance_service import update_binance_tp_sl
-                                update_binance_tp_sl(
-                                    symbol=order.get("symbol"),
-                                    position_side=order.get("side"),
-                                    quantity=order.get("quantity"),
-                                    take_profit=tp,
-                                    stop_loss=sl
-                                )
-                            except Exception as tp_sl_err:
-                                print(f"Failed to place initial TP/SL on Binance: {tp_sl_err}")
-                    else:
-                        binance_remark = f" Binance Mirror Failed: {binance_res.get('message')}"
-                
-                # Update the order with Binance info in the background
-                db = get_database()
-                db.orders.update_one(
-                    {"_id": ObjectId(str(order_id))},
-                    {"$set": {
-                        "binance_order_id": binance_order_id,
-                        "binance_status": binance_status,
-                        "remark": remark + binance_remark
-                    }}
-                )
-            except Exception as e:
-                print(f"Exception mirroring trade to Binance in background: {e}")
-                
-        run_binance_mirror()
 
     return {
         "success": True,
@@ -984,6 +995,33 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
             502,
         )
 
+    binance_close_order_id = None
+    binance_close_status = None
+    binance_close_remark = ""
+
+    if settings.BINANCE_API_KEY:
+        try:
+            from services.binance_service import close_binance_futures_position
+            binance_res = close_binance_futures_position(
+                symbol=position.get("symbol"),
+                side=position.get("position_side"),
+                quantity=position.get("quantity"),
+                leverage=position.get("leverage", 1),
+                margin_mode=position.get("margin_mode", "isolated")
+            )
+            if binance_res.get("success"):
+                binance_close_order_id = binance_res.get("binance_order_id")
+                binance_close_status = binance_res.get("status")
+                binance_close_remark = f" Binance Close Order ID: {binance_close_order_id}"
+                binance_exit_price = binance_res.get("avg_price")
+                if binance_exit_price and binance_exit_price > 0:
+                    close_price = binance_exit_price
+                    base_close_price = binance_exit_price
+            else:
+                binance_close_remark = f" Binance Close Failed: {binance_res.get('message')}"
+        except Exception as b_close_err:
+            print(f"Exception closing Binance position: {b_close_err}")
+
     pnl_data = calculate_position_pnl(position, close_price)
     gross_realized_pnl = _to_float(pnl_data.get("unrealized_pnl"), 0.0)
     margin_amount = _to_float(position.get("margin_amount"), 0.0)
@@ -1074,9 +1112,9 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
             "unrealized_pnl": 0.0,
             "closed_at": now_utc(),
             "close_reason": close_reason,
-            "binance_close_order_id": None,
-            "binance_close_status": None,
-            "binance_close_remark": ""
+            "binance_close_order_id": binance_close_order_id,
+            "binance_close_status": binance_close_status,
+            "binance_close_remark": binance_close_remark
         },
     )
 
@@ -1113,61 +1151,12 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
         "net_realized_pnl": net_realized_pnl,
         "close_reason": close_reason,
         "currency": position.get("currency", "USDT"),
-        "binance_order_id": None,
-        "binance_status": None,
-        "remark": "Position closed."
+        "binance_order_id": binance_close_order_id,
+        "binance_status": binance_close_status,
+        "remark": f"Position closed.{binance_close_remark}"
     })
     close_trade = find_trade_by_id(str(trade_id))
     reconcile_user_plan(user_id, send_notice=True)
-
-    if settings.BINANCE_API_KEY:
-        import threading
-        
-        def run_binance_close():
-            try:
-                from config.database import get_database
-                from bson import ObjectId
-                from services.binance_service import close_binance_futures_position
-                
-                binance_res = close_binance_futures_position(
-                    symbol=position.get("symbol"),
-                    side=position.get("position_side"),
-                    quantity=position.get("quantity"),
-                    leverage=position.get("leverage", 1),
-                    margin_mode=position.get("margin_mode", "isolated")
-                )
-                binance_close_order_id = None
-                binance_close_status = None
-                binance_close_remark = ""
-                if binance_res.get("success"):
-                    binance_close_order_id = binance_res.get("binance_order_id")
-                    binance_close_status = binance_res.get("status")
-                    binance_close_remark = f" Binance Close Order ID: {binance_close_order_id}"
-                else:
-                    binance_close_remark = f" Binance Close Failed: {binance_res.get('message')}"
-                
-                # Update position and trade in MongoDB background
-                db = get_database()
-                db.positions.update_one(
-                    {"_id": ObjectId(str(position_id))},
-                    {"$set": {
-                        "binance_close_order_id": binance_close_order_id,
-                        "binance_close_status": binance_close_status,
-                        "binance_close_remark": binance_close_remark
-                    }}
-                )
-                db.trades.update_one(
-                    {"_id": ObjectId(str(trade_id))},
-                    {"$set": {
-                        "binance_order_id": binance_close_order_id,
-                        "binance_status": binance_close_status,
-                        "remark": f"Position closed.{binance_close_remark}"
-                    }}
-                )
-            except Exception as e:
-                print(f"Exception closing Binance position in background: {e}")
-                
-        run_binance_close()
 
     return {
         "success": True,

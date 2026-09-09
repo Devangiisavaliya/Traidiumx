@@ -408,31 +408,33 @@ function renderProfileDropdown(container, user) {
                                 </div>
                                 <svg id="txAssetsArrow" class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
-                            <div id="txAssetsSubMenu" class="hidden space-y-0.5 my-1 pl-4 pr-1">
-                                <a href="${resolveRoute('src/pages/wallet.html#overview')}" data-route="src/pages/wallet.html#overview" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
-                                    <span class="whitespace-nowrap">Overview</span>
-                                </a>
-                                <a href="${resolveRoute('src/pages/wallet.html#deposit')}" data-route="src/pages/wallet.html#deposit" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
-                                    <span class="whitespace-nowrap">Deposit</span>
-                                </a>
-                                <a href="${resolveRoute('src/pages/wallet.html#withdraw')}" data-route="src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4"/></svg>
-                                    <span class="whitespace-nowrap">Withdraw</span>
-                                </a>
-                                <a href="${resolveRoute('src/pages/wallet.html#transfer')}" data-route="src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
-                                    <span class="whitespace-nowrap">Transfer</span>
-                                </a>
-                                <a href="${resolveRoute('src/pages/wallet.html#exchange')}" data-route="src/pages/wallet.html#exchange" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/></svg>
-                                    <span class="whitespace-nowrap">Exchange</span>
-                                </a>
-                                <a href="${resolveRoute('src/pages/wallet.html#history')}" data-route="src/pages/wallet.html#history" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                                    <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-                                    <span class="whitespace-nowrap">History</span>
-                                </a>
+                            <div id="txAssetsSubMenu" class="tx-assets-submenu">
+                                <div class="tx-assets-submenu-inner space-y-0.5 pl-4 pr-1">
+                                    <a href="${resolveRoute('src/pages/wallet.html#overview')}" data-route="src/pages/wallet.html#overview" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+                                        <span class="whitespace-nowrap">Overview</span>
+                                    </a>
+                                    <a href="${resolveRoute('src/pages/wallet.html#deposit')}" data-route="src/pages/wallet.html#deposit" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+                                        <span class="whitespace-nowrap">Deposit</span>
+                                    </a>
+                                    <a href="${resolveRoute('src/pages/wallet.html#withdraw')}" data-route="src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4"/></svg>
+                                        <span class="whitespace-nowrap">Withdraw</span>
+                                    </a>
+                                    <a href="${resolveRoute('src/pages/wallet.html#transfer')}" data-route="src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
+                                        <span class="whitespace-nowrap">Transfer</span>
+                                    </a>
+                                    <a href="${resolveRoute('src/pages/wallet.html#exchange')}" data-route="src/pages/wallet.html#exchange" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/></svg>
+                                        <span class="whitespace-nowrap">Exchange</span>
+                                    </a>
+                                    <a href="${resolveRoute('src/pages/wallet.html#history')}" data-route="src/pages/wallet.html#history" class="group flex items-center gap-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                                        <svg class="w-4 h-4 shrink-0 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                                        <span class="whitespace-nowrap">History</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -449,6 +451,15 @@ function renderProfileDropdown(container, user) {
                         <a href="${resolveRoute('src/pages/settings.html')}" data-route="src/pages/settings.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                             <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                             <span class="whitespace-nowrap">Settings</span>
+                        </a>
+
+                        <a href="${resolveRoute('src/pages/contact.html')}" data-route="src/pages/contact.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
+                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9"/>
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/>
+                            </svg>
+                            <span class="whitespace-nowrap">Support</span>
                         </a>
 
                         <button type="button" data-navbar-logout="true" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-red-500/10 text-red-400 hover:text-red-300 transition text-xs font-bold cursor-pointer">
@@ -529,13 +540,21 @@ function renderLoggedInMobile(container, user) {
             </div>
         </div>
 
-        <div class="tx-mobile-auth-actions" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; display: grid;">
-            <a href="${resolveRoute('src/pages/settings.html')}" data-route="src/pages/settings.html" class="tx-mobile-logout-btn flex items-center justify-center gap-2 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;">
-                <svg viewBox="0 0 24 24" aria-hidden="true" class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="tx-mobile-auth-actions" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; display: grid;">
+            <a href="${resolveRoute('src/pages/settings.html')}" data-route="src/pages/settings.html" class="tx-mobile-logout-btn flex items-center justify-center gap-1.5 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .04em; text-transform: uppercase;">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="3"></circle>
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
                 <span>Settings</span>
+            </a>
+            <a href="${resolveRoute('src/pages/contact.html')}" data-route="src/pages/contact.html" class="tx-mobile-logout-btn flex items-center justify-center gap-1.5 border border-slate-700 bg-slate-900 text-slate-200" style="text-decoration: none; font-weight: 850; letter-spacing: .04em; text-transform: uppercase;">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/>
+                </svg>
+                <span>Support</span>
             </a>
             <button type="button" data-navbar-logout="true" class="tx-mobile-logout-btn" aria-label="Logout from TraidiumX">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1287,10 +1306,17 @@ function bindNavbarDropdown(user) {
     if (assetsToggle && assetsSubMenu) {
         assetsToggle.addEventListener("click", function (e) {
             e.stopPropagation();
-            const isOpen = !assetsSubMenu.classList.contains("hidden");
-            assetsSubMenu.classList.toggle("hidden", isOpen);
-            if (assetsArrow) {
-                assetsArrow.style.transform = isOpen ? "rotate(0deg)" : "rotate(180deg)";
+            const isOpen = assetsSubMenu.classList.contains("is-open");
+            if (isOpen) {
+                assetsSubMenu.classList.remove("is-open");
+                if (assetsArrow) {
+                    assetsArrow.style.transform = "rotate(0deg)";
+                }
+            } else {
+                assetsSubMenu.classList.add("is-open");
+                if (assetsArrow) {
+                    assetsArrow.style.transform = "rotate(180deg)";
+                }
             }
         });
 

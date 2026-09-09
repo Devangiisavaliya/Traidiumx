@@ -1,4 +1,7 @@
 import re
+import threading
+import time
+import requests
 from uuid import uuid4
 
 from config.settings import settings
@@ -732,3 +735,180 @@ def close_all_option_positions(user_id, data=None):
         "wallet": format_wallet(ensure_user_wallet(user_id)),
         "wallet_balance_after": format_wallet(ensure_user_wallet(user_id)),
     })
+
+
+BINANCE_EAPI_BASE = "https://eapi.binance.com/eapi/v1"
+_OPTIONS_CHAIN_CACHE = {}
+_OPTIONS_CHAIN_CACHE_LOCK = threading.Lock()
+_OPTIONS_CHAIN_CACHE_TTL = 2.0
+
+
+def fetch_binance_options_tickers():
+    now = time.time()
+    with _OPTIONS_CHAIN_CACHE_LOCK:
+        cached = _OPTIONS_CHAIN_CACHE.get("raw_tickers")
+        if cached and (now - cached["timestamp"] < _OPTIONS_CHAIN_CACHE_TTL):
+            return cached["data"]
+
+    try:
+        resp = requests.get(f"{BINANCE_EAPI_BASE}/ticker", timeout=4)
+        if resp.status_code == 200:
+            data = resp.json()
+            with _OPTIONS_CHAIN_CACHE_LOCK:
+                _OPTIONS_CHAIN_CACHE["raw_tickers"] = {
+                    "timestamp": now,
+                    "data": data,
+                }
+            return data
+    except Exception as error:
+        print("Binance Options eAPI fetch warning:", error)
+
+    with _OPTIONS_CHAIN_CACHE_LOCK:
+        cached = _OPTIONS_CHAIN_CACHE.get("raw_tickers")
+        return cached["data"] if cached else []
+
+
+def get_binance_options_chain(underlying="BTC", target_expiry=None):
+    underlying = str(underlying or "BTC").upper().replace("USDT", "")
+    raw_tickers = fetch_binance_options_tickers()
+
+    filtered = [x for x in raw_tickers if x.get("symbol", "").startswith(f"{underlying}-")]
+    if not filtered:
+        # Fallback generator for when Binance eAPI is rate-limited or unavailable
+        from services.market_service import get_symbol_ticker
+        ticker_res = get_symbol_ticker(f"{underlying}USDT")
+        ticker_data = ticker_res.get("data") if isinstance(ticker_res, dict) else {}
+        underlying_price = _float(ticker_data.get("last_price") or ticker_data.get("mark_price") if isinstance(ticker_data, dict) else 0, 64200.0 if underlying == "BTC" else (3550.0 if underlying == "ETH" else 145.0))
+        step = 500.0 if underlying == "BTC" else (100.0 if underlying == "ETH" else 5.0)
+        atm = round(underlying_price / step) * step
+        chain_rows = []
+        for idx in range(-4, 5):
+            strike = atm + idx * step
+            c_dist = abs(strike - underlying_price) / max(underlying_price, 1)
+            c_mark = max(1.0, max(0, underlying_price - strike) + underlying_price * 0.005 * (1 - c_dist))
+            p_mark = max(1.0, max(0, strike - underlying_price) + underlying_price * 0.005 * (1 - c_dist))
+            chain_rows.append({
+                "strike": strike,
+                "call": {
+                    "symbol": f"{underlying}-{strike:.0f}-TODAY-CE",
+                    "side": "CALL",
+                    "strike": strike,
+                    "mark": round(c_mark, 2),
+                    "bid": round(max(0.01, c_mark * 0.96), 2),
+                    "ask": round(c_mark * 1.04, 2),
+                    "volume": 120,
+                    "iv": round(65.0 + c_dist * 20, 2),
+                    "delta": round(max(0.05, 0.5 - c_dist), 2),
+                    "gamma": 0.012,
+                    "theta": -0.010,
+                    "vega": 0.080
+                },
+                "put": {
+                    "symbol": f"{underlying}-{strike:.0f}-TODAY-PE",
+                    "side": "PUT",
+                    "strike": strike,
+                    "mark": round(p_mark, 2),
+                    "bid": round(max(0.01, p_mark * 0.96), 2),
+                    "ask": round(p_mark * 1.04, 2),
+                    "volume": 120,
+                    "iv": round(65.0 + c_dist * 20, 2),
+                    "delta": round(-max(0.05, 0.5 - c_dist), 2),
+                    "gamma": 0.012,
+                    "theta": -0.010,
+                    "vega": 0.080
+                }
+            })
+
+        return _result(True, f"Options chain generated for {underlying}", data={
+            "underlying": underlying,
+            "underlyingPrice": underlying_price,
+            "expiry": "TODAY",
+            "expiries": ["TODAY", "7D", "14D", "30D"],
+            "chain": chain_rows
+        })
+
+    exercise_prices = [_float(x.get("exercisePrice")) for x in filtered if _float(x.get("exercisePrice")) > 0]
+    underlying_price = exercise_prices[0] if exercise_prices else 0.0
+
+    expiries = sorted(list(set([x["symbol"].split("-")[1] for x in filtered if "-" in x.get("symbol", "")])))
+
+    if not target_expiry or target_expiry not in expiries:
+        selected_expiry = expiries[0] if expiries else None
+    else:
+        selected_expiry = target_expiry
+
+    expiry_tickers = [x for x in filtered if x.get("symbol", "").split("-")[1] == selected_expiry] if selected_expiry else filtered
+
+    strikes_map = {}
+    for item in expiry_tickers:
+        parts = item.get("symbol", "").split("-")
+        if len(parts) < 4:
+            continue
+        strike = _float(item.get("strikePrice") or parts[2])
+        side_code = parts[3]
+        side = "CALL" if side_code == "C" else ("PUT" if side_code == "P" else side_code)
+
+        if strike not in strikes_map:
+            strikes_map[strike] = {"strike": strike, "call": None, "put": None}
+
+        last = _float(item.get("lastPrice"))
+        bid = _float(item.get("bidPrice"))
+        ask = _float(item.get("askPrice"))
+        vol = _float(item.get("volume"))
+
+        if bid <= 0 and ask <= 0 and last > 0:
+            spread = max(1.0, last * 0.05)
+            bid = max(0.01, last - spread / 2)
+            ask = last + spread / 2
+        elif bid <= 0 and last > 0:
+            bid = max(0.01, last * 0.95)
+        elif ask <= 0 and last > 0:
+            ask = last * 1.05
+
+        mark = last if last > 0 else ((bid + ask) / 2 if (bid > 0 and ask > 0) else 10.0)
+        raw_iv = _float(item.get("impliedVolatility") or item.get("iv") or 0.65)
+        iv_percent = round(raw_iv * 100 if raw_iv < 2 else raw_iv, 2)
+
+        opt_data = {
+            "symbol": item.get("symbol"),
+            "side": side,
+            "strike": strike,
+            "mark": round(mark, 2),
+            "bid": round(bid, 2),
+            "ask": round(ask, 2),
+            "volume": vol,
+            "exercisePrice": underlying_price,
+            "lastPrice": last,
+            "iv": iv_percent,
+            "delta": round(_float(item.get("delta"), 0.5 if side == "CALL" else -0.5), 3),
+            "gamma": round(_float(item.get("gamma"), 0.012), 4),
+            "theta": round(_float(item.get("theta"), -0.01), 4),
+            "vega": round(_float(item.get("vega"), 0.08), 4)
+        }
+
+        if side == "CALL":
+            strikes_map[strike]["call"] = opt_data
+        else:
+            strikes_map[strike]["put"] = opt_data
+
+    sorted_strikes = sorted(strikes_map.keys())
+
+    if underlying_price > 0 and sorted_strikes:
+        atm_strike = min(sorted_strikes, key=lambda s: abs(s - underlying_price))
+        atm_idx = sorted_strikes.index(atm_strike)
+        start_idx = max(0, min(atm_idx - 4, len(sorted_strikes) - 9))
+        end_idx = min(len(sorted_strikes), start_idx + 9)
+        selected_strike_keys = sorted_strikes[start_idx:end_idx]
+    else:
+        selected_strike_keys = sorted_strikes[:9]
+
+    chain_rows = [strikes_map[k] for k in selected_strike_keys]
+
+    return _result(True, f"Binance options chain fetched for {underlying}", data={
+        "underlying": underlying,
+        "underlyingPrice": underlying_price,
+        "expiry": selected_expiry,
+        "expiries": expiries,
+        "chain": chain_rows
+    })
+

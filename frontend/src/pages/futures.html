@@ -1183,72 +1183,128 @@
         <section class="mx-auto mt-4 w-full px-6 hidden lg:block">
             <div class="rt-pair-bar rt-pair-bar-with-funds">
                 <div class="rt-pair-main">
-                    <div class="rt-coin-badge" id="coinBadge">₿</div>
+                    <!-- Binance-style Market Selector Dropdown Container -->
+                    <div class="tx-market-selector-container" id="marketSelectorContainer">
+                        <button id="marketSelectorTrigger" type="button" class="tx-market-trigger" aria-expanded="false" aria-haspopup="dialog" title="Click to search and change trading pairs">
+                            <!-- Star Favorite for active symbol -->
+                            <span id="currentSymbolFavStar" class="tx-header-fav-star inactive" title="Toggle favorite">★</span>
+                            
+                            <!-- Authentic SVG Coin Badge -->
+                            <div class="rt-coin-badge w-8 h-8 flex-shrink-0" id="coinBadge"></div>
 
-                    <div>
-                        <div class="flex items-center gap-3">
-                            <h1 id="currentSymbolTitle" class="text-2xl font-black">BTC-USDT</h1>
+                            <div class="flex items-center gap-2">
+                                <h1 id="currentSymbolTitle" class="text-2xl font-black text-white leading-none tracking-tight">BTC-USDT</h1>
+                                <span class="tx-perp-badge">Perp</span>
+                                <svg id="marketSelectorArrow" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </button>
 
-                            <select id="pairSelect" class="rt-select">
-                                <option value="BTCUSDT">BTC-USDT</option>
-                                <option value="ETHUSDT">ETH-USDT</option>
-                                <option value="BNBUSDT">BNB-USDT</option>
-                                <option value="SOLUSDT">SOL-USDT</option>
-                                <option value="XRPUSDT">XRP-USDT</option>
-                                <option value="DOGEUSDT">DOGE-USDT</option>
-                                <option value="ADAUSDT">ADA-USDT</option>
-                                <option value="AVAXUSDT">AVAX-USDT</option>
-                                <option value="LINKUSDT">LINK-USDT</option>
-                                <option value="LTCUSDT">LTC-USDT</option>
-                                <option value="TRXUSDT">TRX-USDT</option>
-                                <option value="DOTUSDT">DOT-USDT</option>
-                                <option value="BCHUSDT">BCH-USDT</option>
-                                <option value="ATOMUSDT">ATOM-USDT</option>
-                                <option value="UNIUSDT">UNI-USDT</option>
-                                <option value="APTUSDT">APT-USDT</option>
-                                <option value="NEARUSDT">NEAR-USDT</option>
-                                <option value="SUIUSDT">SUI-USDT</option>
-                                <option value="1000PEPEUSDT">PEPE-USDT</option>
-                                <option value="1000SHIBUSDT">SHIB-USDT</option>
-                                <option value="MATICUSDT">MATIC-USDT</option>
-                                <option value="ARBUSDT">ARB-USDT</option>
-                                <option value="OPUSDT">OP-USDT</option>
-                                <option value="INJUSDT">INJ-USDT</option>
-                                <option value="WIFUSDT">WIF-USDT</option>
-                                <option value="FETUSDT">FET-USDT</option>
-                                <option value="TIAUSDT">TIA-USDT</option>
-                                <option value="FILUSDT">FIL-USDT</option>
-                                <option value="ETCUSDT">ETC-USDT</option>
-                                <option value="XLMUSDT">XLM-USDT</option>
-                                <option value="RENDERUSDT">RENDER-USDT</option>
-                                <option value="SEIUSDT">SEI-USDT</option>
-                                <option value="ICPUSDT">ICP-USDT</option>
-                                <option value="FTMUSDT">FTM-USDT</option>
-                                <option value="XAUUSD">XAUUSD</option>
-                            </select>
-                        </div>
+                        <!-- Hidden select for script compatibility -->
+                        <select id="pairSelect" class="hidden">
+                            <option value="BTCUSDT">BTC-USDT</option>
+                            <option value="ETHUSDT">ETH-USDT</option>
+                            <option value="BNBUSDT">BNB-USDT</option>
+                            <option value="SOLUSDT">SOL-USDT</option>
+                            <option value="XRPUSDT">XRP-USDT</option>
+                            <option value="DOGEUSDT">DOGE-USDT</option>
+                            <option value="ADAUSDT">ADA-USDT</option>
+                            <option value="AVAXUSDT">AVAX-USDT</option>
+                            <option value="LINKUSDT">LINK-USDT</option>
+                            <option value="LTCUSDT">LTC-USDT</option>
+                            <option value="TRXUSDT">TRX-USDT</option>
+                            <option value="DOTUSDT">DOT-USDT</option>
+                            <option value="BCHUSDT">BCH-USDT</option>
+                            <option value="ATOMUSDT">ATOM-USDT</option>
+                            <option value="UNIUSDT">UNI-USDT</option>
+                            <option value="APTUSDT">APT-USDT</option>
+                            <option value="NEARUSDT">NEAR-USDT</option>
+                            <option value="SUIUSDT">SUI-USDT</option>
+                            <option value="1000PEPEUSDT">PEPE-USDT</option>
+                            <option value="1000SHIBUSDT">SHIB-USDT</option>
+                            <option value="MATICUSDT">MATIC-USDT</option>
+                            <option value="ARBUSDT">ARB-USDT</option>
+                            <option value="OPUSDT">OP-USDT</option>
+                            <option value="INJUSDT">INJ-USDT</option>
+                            <option value="WIFUSDT">WIF-USDT</option>
+                            <option value="FETUSDT">FET-USDT</option>
+                            <option value="TIAUSDT">TIA-USDT</option>
+                            <option value="FILUSDT">FIL-USDT</option>
+                            <option value="ETCUSDT">ETC-USDT</option>
+                            <option value="XLMUSDT">XLM-USDT</option>
+                            <option value="RENDERUSDT">RENDER-USDT</option>
+                            <option value="SEIUSDT">SEI-USDT</option>
+                            <option value="ICPUSDT">ICP-USDT</option>
+                            <option value="FTMUSDT">FTM-USDT</option>
+                            <option value="XAUUSDT">XAU-USDT</option>
+                        </select>
 
-                        <p id="currentSymbolSub" class="mt-1 text-sm text-slate-400">Perpetual Futures</p>
+                        <!-- BINANCE STYLE MARKET SELECTOR POPUP MODAL (IMAGE 2 MATCH) -->
+                        <div id="marketSelectorDropdown" class="tx-binance-market-dropdown hidden" role="dialog" aria-label="Market Selector">
+                            <!-- Search Input -->
+                            <div class="tx-mkt-search-wrap">
+                                <svg class="tx-mkt-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                                    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <input id="marketSearchInput" type="text" class="tx-mkt-search-input" placeholder="Search" autocomplete="off" />
+                                <button id="marketSearchClear" type="button" class="tx-mkt-search-clear hidden" aria-label="Clear search">✕</button>
+                            </div>
 
-                        <div class="tx-futures-header-wishlist">
-                            <button id="futuresRecentSymbolsBtn" type="button" class="tx-futures-chart-action-btn" aria-expanded="false" aria-controls="futuresRecentSymbolsPanel">
-                                <span>★ 7-Day Wishlist</span>
-                                <span id="futuresRecentSymbolsCount" class="tx-futures-recent-count">0</span>
-                            </button>
+                            <!-- Primary Tabs: Favorites, USDT-M, COIN-M, All -->
+                            <div class="tx-mkt-main-tabs">
+                                <button type="button" class="tx-mkt-tab" data-mkt-tab="favorites">
+                                    <span class="text-cyan-400">★</span> Favorites
+                                </button>
+                                <button type="button" class="tx-mkt-tab active" data-mkt-tab="usdt-m">
+                                    USDⓈ-M
+                                </button>
+                                <button type="button" class="tx-mkt-tab" data-mkt-tab="coin-m">
+                                    COIN-M
+                                </button>
+                                <button type="button" class="tx-mkt-tab" data-mkt-tab="all">
+                                    All ▾
+                                </button>
+                            </div>
 
-                            <div id="futuresRecentSymbolsPanel" class="tx-futures-recent-panel hidden" role="dialog" aria-label="Recently viewed futures symbols">
-                                <div class="tx-futures-panel-head">
-                                    <div>
-                                        <strong>Recently Viewed Symbols</strong>
-                                        <span>Saved user-wise in MongoDB for 7 days</span>
-                                    </div>
-                                    <button id="futuresRecentSymbolsClose" type="button" class="tx-futures-panel-close" aria-label="Close recently viewed symbols">✕</button>
+                            <!-- Sub Category Pills -->
+                            <div class="tx-mkt-pills-wrap">
+                                <button type="button" class="tx-mkt-pill active" data-mkt-cat="all">All</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="new">New Listing</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="tradfi">TradFi</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="layer1">Layer-1</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="ai">AI</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="meme">Meme</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="defi">DeFi</button>
+                                <button type="button" class="tx-mkt-pill" data-mkt-cat="usdc">USDC</button>
+                            </div>
+
+                            <!-- Table Columns Header with Sorting -->
+                            <div class="tx-mkt-table-head">
+                                <div class="tx-mkt-th tx-mkt-th-symbol" data-sort="symbol">
+                                    <span>Symbols ⇅ / Vol ⇅</span>
                                 </div>
-                                <div id="futuresRecentSymbolsList" class="tx-futures-recent-list">
-                                    <div class="tx-futures-panel-empty">Login to load your 7-day symbol list.</div>
+                                <div class="tx-mkt-th tx-mkt-th-price text-right" data-sort="price">
+                                    <span>Last Price ⇅</span>
+                                </div>
+                                <div class="tx-mkt-th tx-mkt-th-chg text-right" data-sort="change">
+                                    <span>24h Chg ⇅</span>
+                                </div>
+                                <div class="tx-mkt-th tx-mkt-th-funding text-right" data-sort="funding">
+                                    <span>Funding Rate ⇅ ⚙</span>
                                 </div>
                             </div>
+
+                            <!-- Scrollable Market List -->
+                            <div id="marketSelectorList" class="tx-mkt-list">
+                                <!-- Dynamically populated by futures.js -->
+                            </div>
                         </div>
+                    </div>
+
+                    <div>
+                        <p id="currentSymbolSub" class="mt-1 text-sm text-slate-400">Perpetual Futures</p>
                     </div>
                 </div>
 
@@ -1372,8 +1428,18 @@
 
         <!-- MOBILE SYMBOL HEADER -->
         <div id="futuresMobileSymbolHeader" class="flex items-center justify-between px-2.5 py-2 bg-[#07111f]/95 border-b border-white/10 lg:hidden gap-2 w-full box-border overflow-hidden">
-            <div class="flex items-center flex-1 min-w-0 max-w-[50%]">
-                <select id="pairSelectMobile" class="rt-select w-full min-w-0 max-w-full text-xs font-extrabold py-1 px-2 border border-cyan-500/40 bg-slate-900 text-cyan-400 rounded-xl cursor-pointer outline-none focus:border-cyan-400 shadow-sm truncate">
+            <div class="flex items-center flex-1 min-w-0 max-w-[55%]">
+                <button id="pairSelectMobileTrigger" type="button" class="flex items-center justify-between w-full min-w-0 max-w-full text-xs font-extrabold py-1.5 px-2.5 border border-cyan-500/40 bg-slate-900 text-cyan-400 rounded-xl cursor-pointer outline-none focus:border-cyan-400 shadow-sm truncate">
+                    <div class="flex items-center gap-1.5 min-w-0 truncate">
+                        <span id="mobileHeaderFavStar" class="text-cyan-400 text-xs">★</span>
+                        <div id="mobileCoinBadge" class="w-4 h-4 flex-shrink-0"></div>
+                        <span id="mobileSymbolLabel" class="truncate font-black text-white">BTC-USDT</span>
+                        <span class="text-[9px] bg-slate-800 text-slate-300 px-1 py-0.5 rounded font-bold">PERP</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 ml-1">▼</span>
+                </button>
+
+                <select id="pairSelectMobile" class="hidden">
                     <option value="BTCUSDT">BTC-USDT</option>
                     <option value="ETHUSDT">ETH-USDT</option>
                     <option value="BNBUSDT">BNB-USDT</option>
@@ -1408,7 +1474,7 @@
                     <option value="SEIUSDT">SEI-USDT</option>
                     <option value="ICPUSDT">ICP-USDT</option>
                     <option value="FTMUSDT">FTM-USDT</option>
-                    <option value="XAUUSD">XAUUSD</option>
+                    <option value="XAUUSDT">XAU-USDT</option>
                 </select>
             </div>
             <div class="flex items-center flex-1 min-w-0 max-w-[50%] justify-end">
@@ -1522,7 +1588,10 @@
                     </div>
 
                     <label class="rt-label">Quantity</label>
-                    <input id="quantityInput" type="number" step="0.001" class="rt-input" placeholder="Quantity" />
+                    <div class="rt-input flex items-center justify-between" style="padding: 0 14px !important;">
+                        <input id="quantityInput" type="number" step="0.001" style="background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; width: 100% !important; color: #ffffff !important; font-size: 13px !important; font-weight: 800 !important; padding: 12px 0 !important;" placeholder="Quantity" />
+                        <span id="quantityAssetSuffix" style="color: #22d3ee !important; font-size: 12px !important; font-weight: 900 !important; margin-left: 8px !important; white-space: nowrap !important; user-select: none !important; flex-shrink: 0 !important;">BTC</span>
+                    </div>
 
                     <div class="rt-percent-row">
                         <button type="button" data-percent="25">25%</button>
@@ -1614,7 +1683,7 @@
                         <div class="px-4 py-4">
                             <div class="flex items-center justify-between">
                                 <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USD</h2>
-                                <span id="marginAssetBadge" class="rounded-full bg-orange-400/10 px-3 py-1 text-xs font-black text-orange-300">
+                                <span id="marginAssetBadge" class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400 border border-cyan-400/20">
                                     BTC-USDT
                                 </span>
                             </div>

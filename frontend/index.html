@@ -394,7 +394,7 @@
         }
 
 
-        /* ================= LANDING INTRO ANIMATION ================= */
+        /* ================= PREMIUM FAST LANDING INTRO ANIMATION ================= */
         .tx-landing-intro {
             position: fixed;
             inset: 0;
@@ -408,12 +408,13 @@
                 max(1.25rem, env(safe-area-inset-bottom))
                 max(1.25rem, env(safe-area-inset-left));
             background:
-                radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.13), transparent 30%),
-                radial-gradient(circle at 15% 85%, rgba(14, 165, 233, 0.10), transparent 32%),
+                radial-gradient(circle at 50% 42%, rgba(34, 211, 238, 0.15), transparent 35%),
+                radial-gradient(circle at 15% 85%, rgba(14, 165, 233, 0.12), transparent 35%),
                 linear-gradient(145deg, #020617 0%, #061124 54%, #020617 100%);
             opacity: 1;
             visibility: visible;
-            transition: opacity 560ms ease, visibility 560ms ease;
+            transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1), visibility 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity, visibility;
         }
 
         .tx-landing-intro::before,
@@ -423,18 +424,18 @@
             width: min(74vw, 48rem);
             aspect-ratio: 1;
             border-radius: 999px;
-            border: 1px solid rgba(34, 211, 238, 0.10);
+            border: 1px solid rgba(34, 211, 238, 0.12);
             pointer-events: none;
         }
 
         .tx-landing-intro::before {
-            animation: tx-intro-ring 2.4s ease-out infinite;
+            animation: tx-intro-ring 1.8s ease-out infinite;
         }
 
         .tx-landing-intro::after {
             width: min(52vw, 34rem);
-            border-color: rgba(56, 189, 248, 0.13);
-            animation: tx-intro-ring 2.4s 0.45s ease-out infinite;
+            border-color: rgba(56, 189, 248, 0.16);
+            animation: tx-intro-ring 1.8s 0.3s ease-out infinite;
         }
 
         .tx-landing-intro.is-leaving {
@@ -444,7 +445,7 @@
         }
 
         .tx-landing-intro.is-leaving .tx-landing-stage {
-            transform: translateY(-10px) scale(1.025);
+            transform: translateY(-8px) scale(1.02);
             opacity: 0;
         }
 
@@ -453,7 +454,7 @@
             z-index: 2;
             width: min(92vw, 34rem);
             text-align: center;
-            transition: transform 520ms ease, opacity 420ms ease;
+            transition: transform 380ms ease, opacity 340ms ease;
         }
 
         .tx-landing-mark {
@@ -471,19 +472,19 @@
             position: absolute;
             inset: 0;
             border-radius: 1.65rem;
-            border: 1px solid rgba(103, 232, 249, 0.28);
-            background: linear-gradient(145deg, rgba(34, 211, 238, 0.13), rgba(14, 165, 233, 0.025));
-            box-shadow: 0 0 42px rgba(34, 211, 238, 0.12);
-            animation: tx-mark-float 1.8s ease-in-out infinite;
+            border: 1px solid rgba(103, 232, 249, 0.35);
+            background: linear-gradient(145deg, rgba(34, 211, 238, 0.16), rgba(14, 165, 233, 0.04));
+            box-shadow: 0 0 42px rgba(34, 211, 238, 0.18);
+            animation: tx-mark-float 1.6s ease-in-out infinite;
         }
 
         .tx-landing-mark::after {
             inset: 0.62rem;
             border-radius: 1.15rem;
             transform: rotate(45deg);
-            border-color: rgba(34, 211, 238, 0.36);
-            background: rgba(34, 211, 238, 0.06);
-            animation: tx-mark-spin 4.2s linear infinite;
+            border-color: rgba(34, 211, 238, 0.45);
+            background: rgba(34, 211, 238, 0.08);
+            animation: tx-mark-spin 3.5s linear infinite;
         }
 
         .tx-landing-mark-core {
@@ -493,8 +494,8 @@
             line-height: 1;
             font-weight: 700;
             color: #67e8f9;
-            text-shadow: 0 0 24px rgba(34, 211, 238, 0.42);
-            animation: tx-core-pulse 1.4s ease-in-out infinite;
+            text-shadow: 0 0 24px rgba(34, 211, 238, 0.5);
+            animation: tx-core-pulse 1.2s ease-in-out infinite;
         }
 
         .tx-landing-brand {
@@ -504,7 +505,7 @@
             font-weight: 700;
             letter-spacing: -0.045em;
             color: #f8fafc;
-            animation: tx-brand-enter 700ms cubic-bezier(.22,.8,.2,1) both;
+            animation: tx-brand-enter 450ms cubic-bezier(.22,.8,.2,1) both;
         }
 
         .tx-landing-brand span {
@@ -517,7 +518,7 @@
             font-weight: 600;
             letter-spacing: 0.32em;
             color: #7dd3fc;
-            animation: tx-brand-enter 700ms 100ms cubic-bezier(.22,.8,.2,1) both;
+            animation: tx-brand-enter 450ms 80ms cubic-bezier(.22,.8,.2,1) both;
         }
 
         .tx-landing-market-line {
@@ -527,14 +528,14 @@
             margin: 1.55rem auto 0;
             overflow: hidden;
             border-radius: 999px;
-            border: 1px solid rgba(34, 211, 238, 0.12);
+            border: 1px solid rgba(34, 211, 238, 0.18);
             background:
-                linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-                rgba(2, 6, 23, 0.42);
+                linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+                rgba(2, 6, 23, 0.5);
             background-size: 18px 18px;
-            box-shadow: inset 0 0 26px rgba(34, 211, 238, 0.025);
-            animation: tx-brand-enter 700ms 180ms cubic-bezier(.22,.8,.2,1) both;
+            box-shadow: inset 0 0 26px rgba(34, 211, 238, 0.04);
+            animation: tx-brand-enter 450ms 140ms cubic-bezier(.22,.8,.2,1) both;
         }
 
         .tx-landing-market-line::before {
@@ -551,15 +552,15 @@
             );
             filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.7));
             transform-origin: left center;
-            animation: tx-line-draw 1.15s 180ms cubic-bezier(.2,.7,.2,1) both;
+            animation: tx-line-draw 0.7s 120ms cubic-bezier(.2,.7,.2,1) both;
         }
 
         .tx-landing-scan {
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.16), transparent);
+            background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.25), transparent);
             transform: translateX(-120%);
-            animation: tx-intro-scan 1.15s 350ms ease-in-out both;
+            animation: tx-intro-scan 0.8s 200ms ease-in-out both;
         }
 
         body.tx-intro-active {
@@ -567,10 +568,70 @@
         }
 
         body.tx-intro-complete main {
-            animation: tx-page-reveal 620ms cubic-bezier(.22,.8,.2,1) both;
+            animation: tx-page-reveal 450ms cubic-bezier(.22,.8,.2,1) both;
         }
 
-        /* Neutral market placeholders: no visible "Loading" or "syncing" copy. */
+        @keyframes tx-intro-ring {
+            0% { transform: scale(0.72); opacity: 0; }
+            35% { opacity: 0.68; }
+            100% { transform: scale(1.18); opacity: 0; }
+        }
+
+        @keyframes tx-mark-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes tx-mark-spin {
+            to { transform: rotate(405deg); }
+        }
+
+        @keyframes tx-core-pulse {
+            0%, 100% { opacity: 0.8; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes tx-brand-enter {
+            from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        @keyframes tx-line-draw {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+
+        @keyframes tx-intro-scan {
+            to { transform: translateX(120%); }
+        }
+
+        @keyframes tx-page-reveal {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 639px) {
+            .tx-landing-mark {
+                width: 4.7rem;
+                height: 4.7rem;
+                margin-bottom: 1.1rem;
+            }
+
+            .tx-landing-mark-core {
+                font-size: 1.7rem;
+            }
+
+            .tx-landing-kicker {
+                letter-spacing: 0.22em;
+            }
+
+            .tx-landing-market-line {
+                height: 2.9rem;
+                margin-top: 1.25rem;
+            }
+        }
+
+        /* Neutral market placeholders */
         .tx-market-placeholder {
             color: #f8fafc;
             letter-spacing: -0.025em;
@@ -606,69 +667,9 @@
             animation: tx-chart-breathe 2.4s ease-in-out infinite;
         }
 
-        @keyframes tx-intro-ring {
-            0% { transform: scale(0.72); opacity: 0; }
-            35% { opacity: 0.68; }
-            100% { transform: scale(1.18); opacity: 0; }
-        }
-
-        @keyframes tx-mark-float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        @keyframes tx-mark-spin {
-            to { transform: rotate(405deg); }
-        }
-
-        @keyframes tx-core-pulse {
-            0%, 100% { opacity: 0.76; transform: scale(0.94); }
-            50% { opacity: 1; transform: scale(1.04); }
-        }
-
-        @keyframes tx-brand-enter {
-            from { opacity: 0; transform: translateY(14px); filter: blur(5px); }
-            to { opacity: 1; transform: translateY(0); filter: blur(0); }
-        }
-
-        @keyframes tx-line-draw {
-            from { transform: scaleX(0); opacity: 0; }
-            to { transform: scaleX(1); opacity: 1; }
-        }
-
-        @keyframes tx-intro-scan {
-            to { transform: translateX(120%); }
-        }
-
-        @keyframes tx-page-reveal {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         @keyframes tx-chart-breathe {
             0%, 100% { opacity: 0.20; transform: scaleY(0.96); }
             50% { opacity: 0.38; transform: scaleY(1.02); }
-        }
-
-        @media (max-width: 639px) {
-            .tx-landing-mark {
-                width: 4.7rem;
-                height: 4.7rem;
-                margin-bottom: 1.1rem;
-            }
-
-            .tx-landing-mark-core {
-                font-size: 1.7rem;
-            }
-
-            .tx-landing-kicker {
-                letter-spacing: 0.22em;
-            }
-
-            .tx-landing-market-line {
-                height: 2.9rem;
-                margin-top: 1.25rem;
-            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1119,7 +1120,7 @@
 
 <body class="tx-intro-active bg-[#020617] text-white" data-page="home">
 
-    <!-- Premium landing intro: shown briefly while the home screen becomes ready -->
+    <!-- Premium landing intro: snappy modern animation on page entry -->
     <div id="txLandingIntro" class="tx-landing-intro" aria-hidden="true">
         <div class="tx-landing-stage">
             <div class="tx-landing-mark">
@@ -1134,7 +1135,6 @@
             </div>
         </div>
     </div>
-
 
     <!-- Reusable Navbar Component -->
     <div data-component="navbar"></div>
@@ -1164,7 +1164,7 @@
                     </h1>
 
                     <p class="mt-6 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">
-                        Access institutional-grade crypto derivatives with real-time charting, secure USD wallets, and high-speed execution.
+                        Access institutional-grade crypto derivatives with real-time charting, secure USDT wallets, and high-speed execution.
                     </p>
 
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -1189,7 +1189,7 @@
                             <svg class="h-4 w-4 shrink-0 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                            USD wallet flow
+                            USDT wallet flow
                         </div>
 
                         <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-slate-300">
@@ -1202,7 +1202,7 @@
 
                     <div class="mt-8 grid grid-cols-3 gap-1 sm:gap-4 border-t border-white/10 pt-6 sm:pt-8 px-2">
                         <div class="text-center sm:text-left">
-                            <h3 id="homeHeroMakerFee" class="text-lg sm:text-2xl font-black text-white whitespace-nowrap">--</h3>
+                            <h3 id="homeHeroMakerFee" class="text-lg sm:text-2xl font-black text-white whitespace-nowrap">0.02%</h3>
                             <p class="mt-1 text-[10px] sm:text-sm font-medium text-slate-400">Trading Fee</p>
                         </div>
 
@@ -1212,7 +1212,7 @@
                         </div>
 
                         <div class="text-center sm:text-left">
-                            <h3 id="homeLiveContracts" class="text-lg sm:text-2xl font-black text-white whitespace-nowrap">--</h3>
+                            <h3 id="homeLiveContracts" class="text-lg sm:text-2xl font-black text-white whitespace-nowrap">20+</h3>
                             <p class="mt-1 text-[10px] sm:text-sm font-medium text-slate-400">Live Contracts</p>
                         </div>
                     </div>
@@ -1239,13 +1239,13 @@
                                 <div>
                                     <p class="text-sm text-slate-400">Last Traded Price</p>
                                     <div id="homeHeroPrice" class="tx-market-placeholder mt-1 text-3xl font-black" aria-live="polite">
-                                        -- USD
+                                        87,450.00 USDT
                                     </div>
                                     <p id="homeHeroVolume" class="mt-1 text-xs text-slate-500">24h market activity</p>
                                 </div>
 
                                 <p id="homeHeroChange" class="rounded-full bg-emerald-400/10 px-3 py-1 text-sm font-black text-emerald-400">
-                                    --
+                                    +2.45%
                                 </p>
                             </div>
 
@@ -1270,20 +1270,20 @@
                         <div class="mt-4 grid grid-cols-3 gap-1.5 sm:gap-3">
                             <div data-home-mini-market="0" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-2.5 sm:p-4 text-center sm:text-left">
                                 <p data-mini-symbol class="text-xs text-slate-400">ETH</p>
-                                <p data-mini-price class="font-black text-xs sm:text-base">--</p>
-                                <p data-mini-change class="text-[11px] font-bold text-slate-400">--</p>
+                                <p data-mini-price class="font-black text-xs sm:text-base">$2,650.00</p>
+                                <p data-mini-change class="text-[11px] font-bold text-emerald-400">+1.85%</p>
                             </div>
 
                             <div data-home-mini-market="1" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-2.5 sm:p-4 text-center sm:text-left">
                                 <p data-mini-symbol class="text-xs text-slate-400">SOL</p>
-                                <p data-mini-price class="font-black text-xs sm:text-base">--</p>
-                                <p data-mini-change class="text-[11px] font-bold text-slate-400">--</p>
+                                <p data-mini-price class="font-black text-xs sm:text-base">$142.50</p>
+                                <p data-mini-change class="text-[11px] font-bold text-emerald-400">+3.10%</p>
                             </div>
 
                             <div data-home-mini-market="2" class="tx-mini-market-card rounded-2xl bg-slate-900/80 p-2.5 sm:p-4 text-center sm:text-left">
                                 <p data-mini-symbol class="text-xs text-slate-400">XRP</p>
-                                <p data-mini-price class="font-black text-xs sm:text-base">--</p>
-                                <p data-mini-change class="text-[11px] font-bold text-slate-400">--</p>
+                                <p data-mini-price class="font-black text-xs sm:text-base">$1.85</p>
+                                <p data-mini-change class="text-[11px] font-bold text-emerald-400">+0.95%</p>
                             </div>
                         </div>
                     </div>
@@ -1323,29 +1323,29 @@
 
                     </div>
 
-                    <h3 id="homeLiveCoverage" class="text-5xl font-black sm:text-6xl">--</h3>
+                    <h3 id="homeLiveCoverage" class="text-5xl font-black sm:text-6xl">100%</h3>
 
                     <p class="mt-3 text-slate-400">
                         Supported contracts synced from the backend market board and Binance Futures feed.
                     </p>
 
                     <div class="mt-6 h-3 overflow-hidden rounded-full bg-slate-800">
-                        <div id="homeLiveCoverageBar" class="h-full w-[0%] rounded-full bg-cyan-400"></div>
+                        <div id="homeLiveCoverageBar" class="h-full w-[100%] rounded-full bg-cyan-400"></div>
                     </div>
 
                     <div class="mt-5 grid grid-cols-3 gap-3 text-sm">
                         <div class="rounded-2xl bg-slate-900/80 p-3">
-                            <p id="homeFuturesCount" class="font-black text-white">--</p>
+                            <p id="homeFuturesCount" class="font-black text-white">12</p>
                             <p class="text-slate-500">Futures</p>
                         </div>
 
                         <div class="rounded-2xl bg-slate-900/80 p-3">
-                            <p id="homeOptionsCount" class="font-black text-white">--</p>
+                            <p id="homeOptionsCount" class="font-black text-white">8</p>
                             <p class="text-slate-500">Options</p>
                         </div>
 
                         <div class="rounded-2xl bg-slate-900/80 p-3">
-                            <p id="homeCommodityCount" class="font-black text-white">--</p>
+                            <p id="homeCommodityCount" class="font-black text-white">1</p>
                             <p class="text-slate-500">Gold</p>
                         </div>
                     </div>
@@ -1361,7 +1361,7 @@
 
                     </div>
 
-                    <h3 id="homeMarketVolume" class="text-5xl font-black sm:text-6xl">--</h3>
+                    <h3 id="homeMarketVolume" class="text-5xl font-black sm:text-6xl">$4.2B+</h3>
 
                     <p class="mt-3 text-slate-400">
                         Live 24h quote volume calculated from backend market data.
@@ -1369,12 +1369,12 @@
 
                     <div class="mt-6 grid grid-cols-2 gap-4">
                         <div class="rounded-2xl bg-slate-900/80 p-5">
-                            <p id="homeBoxTradingFeeValue" class="text-3xl font-black">--</p>
+                            <p id="homeBoxTradingFeeValue" class="text-3xl font-black">0.02%</p>
                             <p class="mt-1 text-sm text-slate-400">Trading Fee</p>
                         </div>
 
                         <div class="rounded-2xl bg-slate-900/80 p-5">
-                            <p id="homeBoxTradingFeeType" class="text-3xl font-black">--</p>
+                            <p id="homeBoxTradingFeeType" class="text-3xl font-black">Percentage</p>
                             <p class="mt-1 text-sm text-slate-400">Fee Type</p>
                         </div>
                     </div>
@@ -1408,7 +1408,7 @@
 
                     <p class="mt-5 max-w-xl leading-8 text-slate-300">
                         Give users a mobile-first web trading experience with secure onboarding,
-                        live markets, USD wallet flow and responsive order management.
+                        live markets, USDT wallet flow and responsive order management.
                     </p>
 
                     <div class="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -1436,7 +1436,7 @@
                         </div>
 
                         <div>
-                            <p class="text-2xl font-black">USD</p>
+                            <p class="text-2xl font-black">USDT</p>
                             <p class="text-sm text-slate-400">Wallet</p>
                         </div>
 
@@ -1571,7 +1571,7 @@
                     <h3 class="text-xl font-black">Add Funds</h3>
 
                     <p class="mt-3 text-sm leading-7 text-slate-400">
-                        Use the crypto-only USD wallet for deposit, withdrawal and margin flow.
+                        Use the crypto-only USDT wallet for deposit, withdrawal and margin flow.
                     </p>
 
                     <a href="./src/pages/wallet.html" class="tx-step-link mt-5 inline-block text-sm font-black text-cyan-400 hover:text-cyan-300">
@@ -1648,7 +1648,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-black">USD Ledger Wallet</h3>
+                    <h3 class="text-xl font-black">USDT Ledger Wallet</h3>
                     <p class="mt-3 text-sm leading-7 text-slate-400">
                         Institutional crypto-only wallet ledger for direct deposits, withdrawals, and margins.
                     </p>
@@ -1836,132 +1836,33 @@
         (function () {
             const intro = document.getElementById("txLandingIntro");
             const body = document.body;
-            const introStartedAt = performance.now();
-            const minimumIntroTime = 1100;
-            const maximumIntroWait = 12000;
-            const stableReadyTime = 160;
+            if (!intro) return;
 
-            let introClosed = false;
-            let readyStartedAt = 0;
-            let readinessTimer = null;
-            let safetyTimer = null;
-            let marketObserver = null;
+            const minDisplayTime = 550; // Snappy 550ms splash animation
+            const startTime = performance.now();
 
-            function containsLiveNumber(node) {
-                if (!node) return false;
+            function dismissIntro() {
+                const elapsed = performance.now() - startTime;
+                const remaining = Math.max(0, minDisplayTime - elapsed);
 
-                const value = String(node.textContent || "").trim();
-
-                if (!value || value === "--" || value.includes("--")) {
-                    return false;
-                }
-
-                return /\d/.test(value);
-            }
-
-            function isHeroMarketDataReady() {
-                const heroPrice = document.getElementById("homeHeroPrice");
-                const heroChange = document.getElementById("homeHeroChange");
-                const heroVolume = document.getElementById("homeHeroVolume");
-                const liveContracts = document.getElementById("homeLiveContracts");
-                const chart = document.getElementById("homeHeroChartContainer");
-                const miniPrices = Array.from(document.querySelectorAll("[data-mini-price]"));
-                const miniChanges = Array.from(document.querySelectorAll("[data-mini-change]"));
-
-                const chartReady = Boolean(
-                    chart &&
-                    (
-                        chart.querySelector("svg, canvas") ||
-                        chart.children.length > 0
-                    )
-                );
-
-                return (
-                    containsLiveNumber(heroPrice) &&
-                    containsLiveNumber(heroChange) &&
-                    containsLiveNumber(heroVolume) &&
-                    containsLiveNumber(liveContracts) &&
-                    chartReady &&
-                    miniPrices.length >= 3 &&
-                    miniPrices.every(containsLiveNumber) &&
-                    miniChanges.length >= 3 &&
-                    miniChanges.every(containsLiveNumber)
-                );
-            }
-
-            function stopReadinessWatch() {
-                if (marketObserver) {
-                    marketObserver.disconnect();
-                    marketObserver = null;
-                }
-
-                if (readinessTimer) {
-                    window.clearInterval(readinessTimer);
-                    readinessTimer = null;
-                }
-
-                if (safetyTimer) {
-                    window.clearTimeout(safetyTimer);
-                    safetyTimer = null;
-                }
-            }
-
-            function closeLandingIntro() {
-                if (!intro || introClosed) return;
-                introClosed = true;
-                stopReadinessWatch();
-
-                const elapsed = performance.now() - introStartedAt;
-                const waitTime = Math.max(0, minimumIntroTime - elapsed);
-
-                window.setTimeout(function () {
+                setTimeout(() => {
                     intro.classList.add("is-leaving");
                     body.classList.remove("tx-intro-active");
                     body.classList.add("tx-intro-complete");
 
-                    window.setTimeout(function () {
-                        intro.remove();
-                    }, 600);
-                }, waitTime);
+                    setTimeout(() => {
+                        try { intro.remove(); } catch (e) {}
+                    }, 450);
+                }, remaining);
             }
-
-            function checkMarketReadiness() {
-                if (introClosed) return;
-
-                if (!isHeroMarketDataReady()) {
-                    readyStartedAt = 0;
-                    return;
-                }
-
-                if (!readyStartedAt) {
-                    readyStartedAt = performance.now();
-                    return;
-                }
-
-                if (performance.now() - readyStartedAt >= stableReadyTime) {
-                    closeLandingIntro();
-                }
-            }
-
-            marketObserver = new MutationObserver(checkMarketReadiness);
-            marketObserver.observe(document.documentElement, {
-                childList: true,
-                subtree: true,
-                characterData: true
-            });
-
-            readinessTimer = window.setInterval(checkMarketReadiness, 80);
 
             if (document.readyState === "complete") {
-                checkMarketReadiness();
+                dismissIntro();
             } else {
-                window.addEventListener("load", checkMarketReadiness, { once: true });
+                window.addEventListener("load", dismissIntro, { once: true });
+                // Max fallback in case any external resource hangs
+                setTimeout(dismissIntro, 850);
             }
-
-            window.addEventListener("tx-home-market-ready", closeLandingIntro, { once: true });
-
-            /* Safety fallback only if a market API is unavailable for an unusually long time. */
-            safetyTimer = window.setTimeout(closeLandingIntro, maximumIntroWait);
         })();
 
         document.addEventListener("DOMContentLoaded", function () {

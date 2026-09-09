@@ -10,67 +10,167 @@
 */
 
 const TX_OPTIONS_API_BASE = "/options";
-const TX_OPTIONS_PRICE_POLL_MS = 2500;
+const TX_OPTIONS_PRICE_POLL_MS = 1000;
 const TX_OPTIONS_WALLET_POLL_MS = 15000;
 const TX_OPTIONS_SHORT_MARGIN_MULTIPLIER = 2;
-const TX_OPTIONS_WS_BASE = "wss://fstream.binance.com/stream?streams=";
-const TX_OPTIONS_BINANCE_REST_BASE = "https://fapi.binance.com";
-const TX_OPTIONS_UI_THROTTLE_MS = 1200;
-const TX_OPTIONS_TICKER_RENDER_MS = 1200;
+const TX_OPTIONS_WS_BASE = "wss://stream.binance.com:9443/stream?streams=";
+const TX_OPTIONS_INDEX_WS_BASE = "wss://fstream.binance.com/stream?streams=";
+const TX_OPTIONS_BINANCE_REST_BASE = "https://api.binance.com";
+const TX_OPTIONS_UI_THROTTLE_MS = 100;
+const TX_OPTIONS_TICKER_RENDER_MS = 100;
+
+function getCoinLogoSvg(pair, sizeClass = "w-8 h-8") {
+    const rawPair = String(pair || "").replace(" Options", "").trim();
+    let symbolKey = rawPair.split("-")[0].split("/")[0].toUpperCase();
+
+    if (symbolKey.endsWith("USDT") && symbolKey.length > 4) {
+        symbolKey = symbolKey.slice(0, -4);
+    } else if (symbolKey.endsWith("USD") && symbolKey.length > 3 && symbolKey !== "XAUUSD" && symbolKey !== "USD") {
+        symbolKey = symbolKey.slice(0, -3);
+    }
+
+    const cleanBaseKey = symbolKey.replace(/^1000/, "");
+
+    const pepeLogo = `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0f2b1d"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#22c55e" stroke-width="1"/><path fill="#22c55e" d="M9 14c0-3 3-5 7-5s7 2 7 5c0 1.5-.5 3-1.5 4.2C20.5 19.5 18.5 21 16 21s-4.5-1.5-5.5-2.8C9.5 17 9 15.5 9 14z"/><circle cx="12.5" cy="13" r="2.2" fill="#fff"/><circle cx="19.5" cy="13" r="2.2" fill="#fff"/><circle cx="13" cy="13" r="1" fill="#0f2b1d"/><circle cx="20" cy="13" r="1" fill="#0f2b1d"/><path stroke="#0f2b1d" stroke-width="1.2" stroke-linecap="round" d="M12 17.5c2 1.2 6 1.2 8 0"/></svg>`;
+    const shibLogo = `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2b1509"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#f97316" stroke-width="1"/><path fill="#f97316" d="M8 10l4 4-2 6 6 3 6-3-2-6 4-4-5 1-3-4-3 4z"/><polygon fill="#fff" points="13,15 11,19 15,18"/><polygon fill="#fff" points="19,15 21,19 17,18"/><polygon fill="#000" points="15,20 17,20 16,21.5"/></svg>`;
+
+    const logos = {
+        "INR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#059669"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><text x="16" y="21.5" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">₹</text></svg>`,
+        "USD": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#10b981"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><text x="16" y="21.5" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">$</text></svg>`,
+        "USDT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#26a17b"/><path fill="#fff" d="M17.92 16.38c-.14.01-.84.05-1.92.05-1.01 0-1.74-.04-1.93-.05-3.66-.17-6.39-.81-6.39-1.58s2.73-1.41 6.39-1.58v-2.31h7.86v2.31c3.66.17 6.39.81 6.39 1.58s-2.73 1.41-6.4 1.58v6.23h-4v-6.23zM16 11.23c-3.15 0-5.83.47-6.09 1.07.26.6 2.94 1.07 6.09 1.07 3.15 0 5.83-.47 6.09-1.07-.26-.6-2.94-1.07-6.09-1.07z"/></svg>`,
+        "USDC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2775ca"/><path fill="#fff" d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12 12-5.4 12-12S22.6 4 16 4zm.6 18.5v1.8h-1.5v-1.8c-2.4-.2-4.1-1.6-4.3-3.7h2.2c.2 1.1 1.2 1.8 2.6 1.8 1.4 0 2.4-.6 2.4-1.6 0-.8-.5-1.3-2.1-1.7l-1.5-.4c-2.3-.6-3.4-1.7-3.4-3.4 0-1.9 1.6-3.3 3.9-3.6v-1.8h1.5v1.8c2 .2 3.5 1.5 3.8 3.3h-2.1c-.2-.9-1-1.5-2.2-1.5-1.3 0-2.1.6-2.1 1.4 0 .7.5 1.2 2 1.6l1.3.3c2.4.6 3.6 1.8 3.6 3.6 0 2-1.6 3.4-4.1 3.7z"/></svg>`,
+        "TON": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0088cc"/><path fill="#fff" d="M16 6l9 7.5-3.5 10.5h-11L7 13.5 16 6zm-4.5 9l4.5 6 4.5-6H11.5z"/></svg>`,
+        "BTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f7931a"/><path fill="#fff" d="M23.18 13.84c.34-2.28-1.4-3.5-3.78-4.31l.77-3.1-1.89-.47-.75 3c-.5 0-1-.13-1.5-.24l.76-3.05-1.89-.47-.77 3.09c-.41-.09-.82-.19-1.22-.29l-2.61-.65-.5 2.02s1.4.32 1.37.34c.77.19.9.7.88 1.1l-.88 3.53c.05.01.12.04.2.08l-.2-.05-1.23 4.94c-.09.23-.33.58-.87.45.02.03-1.37-.34-1.37-.34l-.94 2.18 2.47.62c.46.12.91.24 1.36.36l-.78 3.14 1.89.47.77-3.1c.52.14 1.02.27 1.52.39l-.77 3.09 1.89.47.78-3.13c3.22.61 5.64.36 6.66-2.55.82-2.34-.04-3.69-1.74-4.57 1.24-.29 2.17-1.1 2.42-2.77zm-4.33 6.05c-.58 2.35-4.53 1.08-5.8.76l1.04-4.16c1.28.32 5.37.95 4.76 3.4zm.59-6.08c-.53 2.14-3.83.99-4.89.73l.94-3.77c1.06.27 4.49.77 3.95 3.04z"/></svg>`,
+        "BCH": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8dc351"/><path fill="#fff" d="M22.5 13.5c.3-2.1-1.3-3.2-3.5-4l.7-2.9-1.7-.4-.7 2.8c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.7-.4-.7 2.8c-.4-.1-.8-.2-1.1-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.6.8 1l-.8 3.3c.1 0 .1 0 .2.1l-.2 0-1.1 4.6c-.1.2-.3.5-.8.4 0 0-1.3-.3-1.3-.3l-.9 2 2.3.6c.4.1.8.2 1.3.3l-.7 2.9 1.7.4.7-2.9c.5.1.9.2 1.4.3l-.7 2.9 1.7.4.7-2.9c3 .6 5.2.3 6.2-2.3.8-2.1 0-3.4-1.6-4.2 1.1-.3 2-1 2.2-2.5zm-4 5.6c-.5 2.1-4.1 1-5.3.7l.9-3.8c1.2.3 4.9.9 4.4 3.1zm.5-5.6c-.5 1.9-3.5.9-4.4.7l.8-3.4c.9.2 4.1.7 3.6 2.7z"/></svg>`,
+        "ETH": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#627eea"/><path fill="#fff" fill-opacity=".6" d="M16 4v8.87l7.5 3.35z"/><path fill="#fff" d="M16 4L8.5 16.22l7.5-3.35z"/><path fill="#fff" fill-opacity=".6" d="M16 21.97v6.03l7.5-10.46z"/><path fill="#fff" d="M16 28v-6.03L8.5 17.54z"/><path fill="#fff" fill-opacity=".2" d="M16 20.57l7.5-4.35L16 12.87z"/><path fill="#fff" fill-opacity=".6" d="M8.5 16.22l7.5 4.35v-7.7z"/></svg>`,
+        "BNB": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f3ba2f"/><path fill="#fff" d="M12.12 13.84L16 9.96l3.88 3.88 2.2-2.2L16 5.56l-6.08 6.08zm-6.56 2.16l2.2-2.2L11.64 16l-3.88 3.88-2.2-2.2L7.68 16zm12.32 0l3.88-3.88 2.2 2.2L24.32 16l3.88 3.88-2.2 2.2zm-5.76 2.16L16 22.04l-3.88-3.88-2.2 2.2L16 26.44l6.08-6.08zm0-4.32L16 12.12l1.72 1.72L16 15.56l-1.72-1.72zm0 4.32L16 16.44l1.72 1.72L16 19.88l-1.72-1.72z"/></svg>`,
+        "SOL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#12141d"/><defs><linearGradient id="solGrad_opt_${sizeClass.replace(/[^a-zA-Z0-9]/g, '_')}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00ffa3"/><stop offset="100%" stop-color="#dc1fff"/></linearGradient></defs><path fill="url(#solGrad_opt_${sizeClass.replace(/[^a-zA-Z0-9]/g, '_')})" d="M8 20.7l2.1-2.1h13.9l-2.1 2.1H8zm5.9-6.3l-2.1 2.1h13.9l2.1-2.1H13.9zM8 9.3l2.1-2.1h13.9l-2.1 2.1H8z"/></svg>`,
+        "XRP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#23292f"/><path fill="#fff" d="M22.67 8h2.66l-6.4 6.34 6.47 6.46h-2.66l-5.14-5.13-5.14 5.13H9.8l6.47-6.46L9.87 8h2.66l5.14 5.13L22.67 8z"/></svg>`,
+        "DOGE": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#c2a633"/><path fill="#fff" d="M12 9h5.5c3.5 0 6.5 2.5 6.5 7s-3 7-6.5 7H12V9zm4 3v8h1.5c2 0 3.5-1.5 3.5-4s-1.5-4-3.5-4H16z"/><path fill="#fff" d="M9 15h9v2H9z"/></svg>`,
+        "PEPE": pepeLogo,
+        "1000PEPE": pepeLogo,
+        "SHIB": shibLogo,
+        "1000SHIB": shibLogo,
+        "SUI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0f2942"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#38bdf8" stroke-width="1"/><path fill="#38bdf8" d="M16 6c-4 5.5-7 9.8-7 13.2 0 3.8 3.1 6.8 7 6.8s7-3 7-6.8C23 15.8 20 11.5 16 6zm0 16c-1.7 0-3-1.3-3-3 0-1.8 1.5-4.2 3-6.1 1.5 1.9 3 4.3 3 6.1 0 1.7-1.3 3-3 3z"/></svg>`,
+        "NEAR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#082b28"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#14b8a6" stroke-width="1"/><path fill="#14b8a6" d="M9.5 9h3.2l6.8 10.2V9h3v14h-3.2L12.5 12.8V23h-3V9z"/></svg>`,
+        "FIL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#08243b"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#0094ff" stroke-width="1"/><path fill="#0094ff" d="M11 7h10v3.5h-6.5v3.5H20v3.5h-5.5V25H11V7z"/></svg>`,
+        "XLM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#092233"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#14b6e4" stroke-width="1"/><path fill="#14b6e4" d="M24 8L8 15.5l5 2.5L20 11l-4.5 7.5L22 21 24 8zM8 24l5-2.5 3 1.5-8 1z"/></svg>`,
+        "INJ": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#06212e"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#00f2ff" stroke-width="1"/><path fill="none" stroke="#00f2ff" stroke-width="2.5" stroke-linecap="round" d="M10 22C7.5 19.5 7.5 14 11 10.5S20 8 22.5 11.5s0 8-3.5 10.5S10 24 10 22z"/><circle cx="16" cy="16" r="3" fill="#00f2ff"/></svg>`,
+        "DOT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#141927"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e6007a" stroke-width="1"/><circle cx="16" cy="9.5" r="2.2" fill="#e6007a"/><circle cx="16" cy="22.5" r="2.2" fill="#e6007a"/><circle cx="9.5" cy="16" r="2.2" fill="#e6007a"/><circle cx="22.5" cy="16" r="2.2" fill="#e6007a"/><circle cx="16" cy="16" r="1.8" fill="#e6007a"/></svg>`,
+        "WIF": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#281b10"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e3a152" stroke-width="1"/><path fill="#e3a152" d="M8 17c0-4 3.5-7 8-7s8 3 8 7v2H8v-2z"/><path fill="#8c5825" d="M6 18c0-1.5 4.5-2.5 10-2.5s10 1 10 2.5-4.5 2.5-10 2.5S6 19.5 6 18z"/></svg>`,
+        "FET": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#072136"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#00a3ff" stroke-width="1"/><circle cx="11" cy="11" r="2" fill="#00a3ff"/><circle cx="16" cy="11" r="2" fill="#00a3ff"/><circle cx="21" cy="11" r="2" fill="#00a3ff"/><circle cx="11" cy="16" r="2" fill="#00a3ff"/><circle cx="16" cy="16" r="2.5" fill="#fff"/><circle cx="21" cy="16" r="2" fill="#00a3ff"/><circle cx="16" cy="21" r="2" fill="#00a3ff"/></svg>`,
+        "ARB": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#081d33"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#28a0f0" stroke-width="1"/><path fill="#28a0f0" d="M16 7l8 12.5h-4.5L16 14l-3.5 5.5H8L16 7z"/><path fill="#fff" d="M16 11l4.5 7h-2.5L16 15l-2 3h-2.5l4.5-7z"/></svg>`,
+        "ETC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#062618"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#34fa99" stroke-width="1"/><path fill="#34fa99" fill-opacity=".7" d="M16 5v8.5l7 3.5z"/><path fill="#34fa99" d="M16 5L9 17l7-3.5z"/><path fill="#34fa99" fill-opacity=".7" d="M16 20.5v6.5l7-9.5z"/><path fill="#34fa99" d="M16 27v-6.5L9 17.5z"/></svg>`,
+        "ICP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#062133"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#29abe2" stroke-width="1"/><path fill="none" stroke="#29abe2" stroke-width="2.5" d="M11 16c-3 0-5-2-5-4s2-4 5-4 5 4 5 4 2 4 5 4 5-2 5-4-2-4-5-4-5 4-5 4-2-4-5-4z"/></svg>`,
+        "OP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ff0420"/><path fill="#fff" d="M12 11c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8-7c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`,
+        "TIA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#1e083a"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#7b2bf9" stroke-width="1"/><circle cx="16" cy="16" r="5" fill="#7b2bf9"/><circle cx="16" cy="8" r="2" fill="#c084fc"/><circle cx="16" cy="24" r="2" fill="#c084fc"/><circle cx="8" cy="16" r="2" fill="#c084fc"/><circle cx="24" cy="16" r="2" fill="#c084fc"/></svg>`,
+        "ATOM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e3148"/><circle cx="16" cy="3" r="3" fill="#fff"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(30 16 16)"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(-30 16 16)"/></svg>`,
+        "RENDER": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e0505"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e60000" stroke-width="1"/><path fill="#e60000" d="M10 8h7.5c2.5 0 4.5 1.5 4.5 4s-1.5 3.5-3.5 3.8L22 24h-4l-3-7.5H13V24h-3V8zm3 3.5v5h4c1.2 0 2-.8 2-2.5s-.8-2.5-2-2.5h-4z"/></svg>`,
+        "RNDR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e0505"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e60000" stroke-width="1"/><path fill="#e60000" d="M10 8h7.5c2.5 0 4.5 1.5 4.5 4s-1.5 3.5-3.5 3.8L22 24h-4l-3-7.5H13V24h-3V8zm3 3.5v5h4c1.2 0 2-.8 2-2.5s-.8-2.5-2-2.5h-4z"/></svg>`,
+        "SEI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e070e"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#9e1b32" stroke-width="1"/><path fill="#9e1b32" d="M10 10c0-1.5 3-2 6-2s6 .5 6 2c0 2.5-12 2.5-12 6s9 4.5 12 2c0 2-3 4-6 4s-6-1-6-2.5"/></svg>`,
+        "MATIC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8247e5"/><path fill="#fff" d="M21.2 12.8l-3.7-2.1c-.3-.2-.7-.2-1 0l-3.7 2.1c-.3.2-.5.5-.5.8v4.3c0 .3.2.7.5.8l3.7 2.1c.3.2.7.2 1 0l3.7-2.1c.3-.2.5-.5.5-.8v-4.3c0-.4-.2-.7-.5-.9zm-4.2 6.1l-2.4-1.4v-2.8l2.4 1.4v2.8z"/></svg>`,
+        "POL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8247e5"/><path fill="#fff" d="M21.2 12.8l-3.7-2.1c-.3-.2-.7-.2-1 0l-3.7 2.1c-.3.2-.5.5-.5.8v4.3c0 .3.2.7.5.8l3.7 2.1c.3.2.7.2 1 0l3.7-2.1c.3-.2.5-.5.5-.8v-4.3c0-.4-.2-.7-.5-.9zm-4.2 6.1l-2.4-1.4v-2.8l2.4 1.4v2.8z"/></svg>`,
+        "FTM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#1969ff"/><path fill="#fff" d="M16 6l7 5.5V20.5L16 26l-7-5.5V11.5L16 6zm0 3.5L11.5 13 16 16.5 20.5 13 16 9.5zm0 13l4.5-3.5L16 15.5 11.5 19l4.5 3.5z"/></svg>`,
+        "ADA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0033ad"/><circle cx="16" cy="16" r="4" fill="#fff"/><circle cx="16" cy="8" r="1.5" fill="#fff"/><circle cx="16" cy="24" r="1.5" fill="#fff"/><circle cx="8" cy="16" r="1.5" fill="#fff"/><circle cx="24" cy="16" r="1.5" fill="#fff"/></svg>`,
+        "AVAX": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#e84142"/><path fill="#fff" d="M16 7l8.5 15h-4.5L16 15l-4 7H7.5L16 7z"/></svg>`,
+        "LINK": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#375bd2"/><path fill="#fff" d="M16 6l7 4v8l-7 4-7-4v-8l7-4zm0 3.5L11.5 12v4L16 18.5l4.5-2.5v-4L16 9.5z"/></svg>`,
+        "LTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#345d9d"/><path fill="#fff" d="M12 9h3v10h6v3H12V9zm-1 6l8-3v2l-8 3v-2z"/></svg>`,
+        "TRX": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ef0027"/><path fill="#fff" d="M7 8l18 3-7 14L7 8zm4 3l4.5 9 4.5-9H11z"/></svg>`,
+        "UNI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ff007a"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path fill="#ffffff" d="M21.5 7.5l2.8-2.8c.4-.4.4-1 0-1.4s-1-.4-1.4 0l-3.2 3.2c-1.3-.8-2.8-1.2-4.4-1.1-2.4.2-4.6 1.3-6.2 3.1-2.2 2.4-3.2 5.7-2.6 8.9.6 3.2 2.7 5.8 5.7 6.8 1 .3 2.1.5 3.1.5 3.1 0 6.1-1.4 8.1-3.8 2-2.3 2.8-5.4 2.2-8.4-.3-1.6-1.1-3.1-2.1-4.2zm-2.8 12.3c-1.5 1.8-3.7 2.8-6 2.8-.8 0-1.6-.1-2.3-.4-2.2-.7-3.8-2.7-4.2-5-.4-2.3.3-4.7 2-6.4 1.2-1.3 2.8-2.1 4.5-2.2 1.2 0 2.4.4 3.4 1l-2.1 2.1c-.4.4-.4 1 0 1.4s1 .4 1.4 0l3.5-3.5c.7.8 1.2 1.8 1.4 2.9.4 2.3-.2 4.6-1.6 6.3z"/></svg>`,
+        "APT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#18181b"/><path fill="#fff" d="M16 6l9 16H7l9-16zm0 5l-5 9h10l-5-9z"/></svg>`,
+        "XAU": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#d4af37"/><path fill="#fff" d="M16 6l8 4.5v11.5L16 26.5 8 22V10.5L16 6zm0 3.5L11 12.3v7.4l5 2.8 5-2.8v-7.4L16 9.5z"/></svg>`,
+        "XAUUSD": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#d4af37"/><path fill="#fff" d="M16 6l8 4.5v11.5L16 26.5 8 22V10.5L16 6zm0 3.5L11 12.3v7.4l5 2.8 5-2.8v-7.4L16 9.5z"/></svg>`,
+        "SAND": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0084ff"/><path fill="#fff" d="M10 10h12v3H13v3h9v6H10v-3h9v-3h-9v-6z"/></svg>`,
+        "MANTA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0046ff"/><path fill="#fff" d="M8 12c4 0 6 3 8 7 2-4 4-7 8-7-2 5-5 9-8 13-3-4-6-8-8-13z"/></svg>`,
+        "ORCA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#00c8b3"/><path fill="#fff" d="M9 16c0-3.5 3-6 7-6s7 2.5 7 6c0 3-2.5 5.5-6 6l4 4h-4l-3-3.5L11 25H8l4-5c-2-1-3-2.5-3-4z"/></svg>`
+    };
+
+    if (logos[symbolKey]) return logos[symbolKey];
+    if (logos[cleanBaseKey]) return logos[cleanBaseKey];
+
+    // Dynamic fallback SVG
+    let hash = 0;
+    const str = String(symbolKey || "COIN").toUpperCase();
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    const label = str.length > 5 ? str.slice(0, 4) : str;
+    const fontSize = label.length > 3 ? "8.5" : "10.5";
+    const safeStr = str.replace(/[^A-Z0-9]/g, "");
+
+    return `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md">
+        <defs>
+            <linearGradient id="coinGrad_opt_${safeStr}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="hsl(${hue}, 80%, 45%)"/>
+                <stop offset="100%" stop-color="hsl(${(hue + 45) % 360}, 90%, 25%)"/>
+            </linearGradient>
+        </defs>
+        <circle cx="16" cy="16" r="16" fill="url(#coinGrad_opt_${safeStr})"/>
+        <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+        <text x="16" y="20.5" font-family="system-ui, -apple-system, sans-serif" font-size="${fontSize}" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-0.3">${label}</text>
+    </svg>`;
+}
+window.getCoinLogoSvg = getCoinLogoSvg;
 
 const underlyings = {
     BTC: {
         code: "BTC",
-        title: "BTC Options",
+        title: "BTC-USDT Options",
         symbol: "BTCUSDT",
         icon: "₿",
+        badgeBg: "rgba(245, 158, 11, 0.15)",
+        badgeBorder: "rgba(245, 158, 11, 0.5)",
+        badgeColor: "#f59e0b",
         step: 500,
         contractSize: "0.001 BTC",
         fallbackPrice: 64200,
         baseIv: 61,
         minPremium: 18,
-        priceDecimals: 2
+        priceDecimals: 3
     },
     ETH: {
         code: "ETH",
-        title: "ETH Options",
+        title: "ETH-USDT Options",
         symbol: "ETHUSDT",
-        icon: "◆",
+        icon: "Ξ",
+        badgeBg: "rgba(99, 102, 241, 0.15)",
+        badgeBorder: "rgba(99, 102, 241, 0.5)",
+        badgeColor: "#818cf8",
         step: 100,
         contractSize: "0.01 ETH",
         fallbackPrice: 3550,
         baseIv: 54,
         minPremium: 4,
-        priceDecimals: 2
+        priceDecimals: 3
     },
     SOL: {
         code: "SOL",
-        title: "SOL Options",
+        title: "SOL-USDT Options",
         symbol: "SOLUSDT",
         icon: "S",
+        badgeBg: "rgba(168, 85, 247, 0.15)",
+        badgeBorder: "rgba(168, 85, 247, 0.5)",
+        badgeColor: "#c084fc",
         step: 5,
         contractSize: "0.1 SOL",
         fallbackPrice: 145,
         baseIv: 68,
         minPremium: 0.5,
-        priceDecimals: 2
+        priceDecimals: 3
     }
 };
 
 const tickerItems = [
     { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿" },
-    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "◆" },
-    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S" },
-    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "X" },
-    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B" }
+    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "Ξ" },
+    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S" }
 ];
 
 const tickerFallback = {
     BTCUSDT: 64200,
     ETHUSDT: 3550,
-    SOLUSDT: 145,
-    XRPUSDT: 0.62,
-    BNBUSDT: 590
+    SOLUSDT: 145
 };
 
 const state = {
@@ -93,6 +193,7 @@ const state = {
     mobileActiveSide: "CALL",
     trades: [],
     liveTickers: {},
+    liveIndexPrices: {},
     lastPriceRenderAt: 0,
     lastTickerRenderAt: 0,
     terminalCache: {
@@ -483,7 +584,9 @@ function getUnderlyingPriceForCode(code) {
 }
 
 function decimalsForPrice(price) {
-    return number(price, 0) < 1 ? 4 : 2;
+    const config = getConfig();
+    if (config && config.priceDecimals) return config.priceDecimals;
+    return number(price, 0) < 1 ? 4 : 3;
 }
 
 function getSelectedOption() {
@@ -730,7 +833,9 @@ function tickerValueFromPayload(response) {
     if (data?.ticker) data = data.ticker;
     if (data?.data) data = data.data;
 
-    const price = number(data.last_price ?? data.lastPrice ?? data.mark_price ?? data.markPrice ?? data.price ?? data.c, 0);
+    // Prioritize c (lastPrice), last_price, mark_price before p (which can be 24h priceChange in 24hr ticker REST payload)
+    const rawPrice = data.last_price ?? data.lastPrice ?? data.c ?? data.mark_price ?? data.markPrice ?? data.price ?? (data.e === "aggTrade" ? data.p : null);
+    const price = number(rawPrice, 0);
     const change = number(data.price_change_percent ?? data.priceChangePercent ?? data.change_percent ?? data.P, 0);
     const volume = number(data.quote_volume ?? data.quoteVolume ?? data.volume ?? data.q, 0);
 
@@ -745,7 +850,25 @@ async function fetchDirectBinanceTicker(symbol) {
     }
 
     try {
-        const response = await fetch(`${TX_OPTIONS_BINANCE_REST_BASE}/fapi/v1/ticker/24hr?symbol=${encodeURIComponent(normalizedSymbol)}&_=${Date.now()}`, {
+        const response = await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${encodeURIComponent(normalizedSymbol)}&_=${Date.now()}`, {
+            method: "GET",
+            cache: "no-store"
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const indexPrice = number(data.indexPrice ?? data.markPrice, 0);
+
+            if (Number.isFinite(indexPrice) && indexPrice > 0) {
+                return { price: indexPrice, isIndex: true, change: 0, volume: 0 };
+            }
+        }
+    } catch (error) {
+        console.warn(`Direct Binance premium index fetch failed for ${normalizedSymbol}:`, error);
+    }
+
+    try {
+        const response = await fetch(`${TX_OPTIONS_BINANCE_REST_BASE}/api/v3/ticker/24hr?symbol=${encodeURIComponent(normalizedSymbol)}&_=${Date.now()}`, {
             method: "GET",
             cache: "no-store"
         });
@@ -772,10 +895,20 @@ function cacheTicker(symbol, ticker = {}) {
     const key = normalizeProviderSymbol(symbol || ticker.s || ticker.symbol || ticker.provider_symbol);
     if (!key) return null;
 
+    const existing = state.liveTickers[key] || {};
     const fallback = tickerFallback[key] || underlyings[underlyingCodeFromSymbol(key)]?.fallbackPrice || 0;
-    const price = number(ticker.price ?? ticker.last_price ?? ticker.lastPrice ?? ticker.mark_price ?? ticker.markPrice ?? ticker.c, fallback);
-    const change = number(ticker.change ?? ticker.price_change_percent ?? ticker.priceChangePercent ?? ticker.change_percent ?? ticker.P, 0);
-    const volume = number(ticker.volume ?? ticker.quote_volume ?? ticker.quoteVolume ?? ticker.q, 0);
+    
+    const isAggTrade = ticker.e === "aggTrade" || Boolean(ticker.a || ticker.f);
+    const rawPrice = ticker.c ?? ticker.last_price ?? ticker.lastPrice ?? ticker.mark_price ?? ticker.markPrice ?? ticker.price ?? (isAggTrade ? ticker.p : null);
+    
+    let price = number(rawPrice, 0);
+    // Sanity check: spot price must be positive.
+    if (!Number.isFinite(price) || price <= 0) {
+        price = existing.price && existing.price > 0 ? existing.price : fallback;
+    }
+
+    const change = number(ticker.change ?? ticker.price_change_percent ?? ticker.priceChangePercent ?? ticker.change_percent ?? ticker.P, existing.change || 0);
+    const volume = number(ticker.volume ?? ticker.quote_volume ?? ticker.quoteVolume ?? ticker.q, existing.volume || 0);
 
     state.liveTickers[key] = {
         symbol: key,
@@ -812,7 +945,7 @@ function primeTickerFallbacks() {
 
 function applyUnderlyingTicker(symbol, ticker, forceRender = false) {
     const cached = cacheTicker(symbol, ticker);
-    if (!cached) return false;
+    if (!cached || !cached.price || cached.price <= 0) return false;
 
     const config = getConfig();
     const activeSymbol = normalizeProviderSymbol(config.symbol);
@@ -821,19 +954,26 @@ function applyUnderlyingTicker(symbol, ticker, forceRender = false) {
         return false;
     }
 
+    if (ticker.isIndex || Boolean(ticker.indexPrice)) {
+        state.liveIndexPrices[activeSymbol] = cached.price;
+    }
+
+    const indexPrice = state.liveIndexPrices[activeSymbol];
+    const targetPrice = indexPrice && indexPrice > 0 ? indexPrice : cached.price;
     const previous = number(state.underlyingPrice, config.fallbackPrice);
-    state.underlyingPrice = cached.price;
-    state.change24h = cached.change;
-    state.volume24h = cached.volume;
+
+    state.underlyingPrice = targetPrice;
+    state.change24h = cached.change || state.change24h;
+    state.volume24h = cached.volume || state.volume24h;
 
     const now = Date.now();
-    const minMove = config.code === "BTC" ? 0.01 : 0.001;
-    const moved = Math.abs(previous - cached.price) >= minMove;
+    const minMove = 0.001;
+    const moved = Math.abs(previous - targetPrice) >= minMove;
     const allowedByThrottle = now - state.lastPriceRenderAt >= TX_OPTIONS_UI_THROTTLE_MS;
 
     if (forceRender || (moved && allowedByThrottle)) {
         state.lastPriceRenderAt = now;
-        refreshFromPrice(false);
+        refreshFromPriceFast();
     }
 
     return true;
@@ -882,7 +1022,14 @@ async function loadUnderlyingPrice(forceRender = false) {
     const config = getConfig();
     let applied = false;
 
-    if (isBackendReady()) {
+    // Prioritize direct Binance Options Index Price (indexPrice) for 100% matching with binance.com/en/eoptions
+    const directIndexTicker = await fetchDirectBinanceTicker(config.symbol);
+    if (directIndexTicker && Number.isFinite(directIndexTicker.price) && directIndexTicker.price > 0) {
+        applyUnderlyingTicker(config.symbol, directIndexTicker, forceRender);
+        applied = true;
+    }
+
+    if (!applied && isBackendReady()) {
         try {
             const response = await apiRequest(`/market/ticker/${encodeURIComponent(config.symbol)}?_=${Date.now()}`);
             const ticker = tickerValueFromPayload(response);
@@ -892,16 +1039,7 @@ async function loadUnderlyingPrice(forceRender = false) {
                 applied = true;
             }
         } catch (error) {
-            console.warn("Options backend underlying ticker unavailable. Direct live fallback will be used:", error);
-        }
-    }
-
-    if (!applied) {
-        const directTicker = await fetchDirectBinanceTicker(config.symbol);
-
-        if (directTicker) {
-            applyUnderlyingTicker(config.symbol, directTicker, forceRender);
-            applied = true;
+            console.warn("Options backend underlying ticker unavailable:", error);
         }
     }
 
@@ -916,44 +1054,76 @@ function renderTickerStrip() {
 
     primeTickerFallbacks();
 
-    const rows = tickerItems.map((item) => {
+    let track = el.tickerStrip.querySelector(".os-ticker-track");
+
+    if (!track) {
+        const rows = tickerItems.map((item) => {
+            const cached = getTickerCache(item.symbol) || {};
+            const price = number(cached.price, tickerFallback[item.symbol] || 0);
+            const change = number(cached.change, 0);
+            const positive = change >= 0;
+            const decimals = decimalsForPrice(price);
+            const logo = (typeof getCoinLogoSvg === "function") ? getCoinLogoSvg(item.symbol, "w-4 h-4") : (window.getCoinLogoSvg ? window.getCoinLogoSvg(item.symbol, "w-4 h-4") : `<span class="os-ticker-icon">${item.icon}</span>`);
+
+            return `
+                <div class="os-ticker-item" role="button" tabindex="0" data-options-ticker-symbol="${item.symbol}">
+                    <span class="os-ticker-icon">${logo}</span>
+                    <span>${item.label}</span>
+                    <strong class="os-ticker-price" data-symbol="${item.symbol}">$${formatNumber(price, decimals)}</strong>
+                    <em class="os-ticker-change ${positive ? "up" : "down"}" data-symbol="${item.symbol}">${positive ? "+" : ""}${formatNumber(change, 2)}%</em>
+                </div>
+            `;
+        });
+
+        const tickerHtml = rows.join("");
+
+        el.tickerStrip.innerHTML = `
+            <div class="os-ticker-marquee">
+                <div class="os-ticker-track">
+                    ${tickerHtml}
+                    ${tickerHtml}
+                    ${tickerHtml}
+                    ${tickerHtml}
+                </div>
+            </div>
+        `;
+
+        el.tickerStrip.querySelectorAll("[data-options-ticker-symbol]").forEach((item) => {
+            const openSymbol = () => {
+                const code = underlyingCodeFromSymbol(item.getAttribute("data-options-ticker-symbol"));
+                setUnderlying(code);
+            };
+            item.addEventListener("click", openSymbol);
+            item.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openSymbol();
+                }
+            });
+        });
+        return;
+    }
+
+    tickerItems.forEach((item) => {
         const cached = getTickerCache(item.symbol) || {};
         const price = number(cached.price, tickerFallback[item.symbol] || 0);
         const change = number(cached.change, 0);
         const positive = change >= 0;
         const decimals = decimalsForPrice(price);
 
-        return `
-            <div class="os-ticker-item" role="button" tabindex="0" data-options-ticker-symbol="${item.symbol}">
-                <span class="os-ticker-icon">${item.icon}</span>
-                <span>${item.label}</span>
-                <strong>$${formatNumber(price, decimals)}</strong>
-                <em class="${positive ? "up" : "down"}">${positive ? "+" : ""}${formatNumber(change, 2)}%</em>
-            </div>
-        `;
-    });
+        const formattedPrice = `$${formatNumber(price, decimals)}`;
+        const formattedChange = `${positive ? "+" : ""}${formatNumber(change, 2)}%`;
 
-    const tickerHtml = rows.join("");
+        track.querySelectorAll(`.os-ticker-price[data-symbol="${item.symbol}"]`).forEach((node) => {
+            if (node.textContent !== formattedPrice) {
+                node.textContent = formattedPrice;
+            }
+        });
 
-    el.tickerStrip.innerHTML = `
-        <div class="os-ticker-marquee">
-            <div class="os-ticker-track">
-                ${tickerHtml}
-                ${tickerHtml}
-            </div>
-        </div>
-    `;
-
-    el.tickerStrip.querySelectorAll("[data-options-ticker-symbol]").forEach((item) => {
-        const openSymbol = () => {
-            const code = underlyingCodeFromSymbol(item.getAttribute("data-options-ticker-symbol"));
-            setUnderlying(code);
-        };
-        item.addEventListener("click", openSymbol);
-        item.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                openSymbol();
+        track.querySelectorAll(`.os-ticker-change[data-symbol="${item.symbol}"]`).forEach((node) => {
+            if (node.textContent !== formattedChange) {
+                node.textContent = formattedChange;
+                node.className = `os-ticker-change ${positive ? "up" : "down"}`;
             }
         });
     });
@@ -999,6 +1169,64 @@ function generateOptionForConfig(config, side, strike, underlyingPrice, expiryDa
 
 function generateOption(side, strike, underlyingPrice) {
     return generateOptionForConfig(getConfig(), side, strike, underlyingPrice, state.expiryDays);
+}
+
+async function loadLiveOptionsChain() {
+    const config = getConfig();
+    try {
+        const resp = await apiRequest(`/options/chain?symbol=${encodeURIComponent(config.code)}&_=${Date.now()}`);
+        if (resp && resp.success && resp.data && Array.isArray(resp.data.chain) && resp.data.chain.length > 0) {
+            if (Number.isFinite(resp.data.underlyingPrice) && resp.data.underlyingPrice > 0) {
+                state.underlyingPrice = resp.data.underlyingPrice;
+            }
+
+            const rows = resp.data.chain.map((item) => {
+                const strike = Number(item.strike);
+
+                const processSide = (opt, side) => {
+                    const fallbackOpt = generateOption(side, strike, state.underlyingPrice);
+                    if (!opt) return fallbackOpt;
+
+                    const mark = Number(opt.mark || opt.lastPrice || fallbackOpt.mark);
+                    const bid = Number(opt.bid || Math.max(0.01, mark * 0.95));
+                    const ask = Number(opt.ask || mark * 1.05);
+                    const iv = Number(opt.iv !== undefined && opt.iv > 0 ? opt.iv : fallbackOpt.iv);
+                    const delta = Number(opt.delta !== undefined ? opt.delta : fallbackOpt.delta);
+                    const gamma = Number(opt.gamma !== undefined ? opt.gamma : fallbackOpt.gamma);
+                    const theta = Number(opt.theta !== undefined ? opt.theta : fallbackOpt.theta);
+                    const vega = Number(opt.vega !== undefined ? opt.vega : fallbackOpt.vega);
+
+                    return {
+                        ...fallbackOpt,
+                        symbol: opt.symbol || fallbackOpt.symbol,
+                        side: side,
+                        strike: strike,
+                        mark: mark,
+                        bid: bid,
+                        ask: ask,
+                        iv: iv,
+                        delta: delta,
+                        gamma: gamma,
+                        theta: theta,
+                        vega: vega,
+                        volume: Number(opt.volume || fallbackOpt.volume)
+                    };
+                };
+
+                return {
+                    strike: strike,
+                    call: processSide(item.call, "CALL"),
+                    put: processSide(item.put, "PUT")
+                };
+            });
+
+            state.chain = rows;
+            return true;
+        }
+    } catch (err) {
+        console.warn("Binance options chain API unavailable, using fallback generator:", err);
+    }
+    return false;
 }
 
 function generateChain() {
@@ -1082,6 +1310,37 @@ function formatOptionPrice(val) {
     return formatNumber(v, 3);
 }
 
+function renderChainHeader() {
+    const headRow = document.querySelector(".os-chain-table thead tr");
+    if (!headRow) return;
+
+    if (state.chainViewMode === "greeks") {
+        headRow.innerHTML = `
+            <th class="text-cyan-400 font-black">Delta (Δ)</th>
+            <th class="text-emerald-400 font-black">Gamma (Γ)</th>
+            <th class="text-red-400 font-black">Theta (Θ)</th>
+            <th class="text-amber-400 font-black">Vega (ν)</th>
+            <th class="os-strike-head">Strike</th>
+            <th class="text-amber-400 font-black">Vega (ν)</th>
+            <th class="text-red-400 font-black">Theta (Θ)</th>
+            <th class="text-emerald-400 font-black">Gamma (Γ)</th>
+            <th class="text-cyan-400 font-black">Delta (Δ)</th>
+        `;
+    } else {
+        headRow.innerHTML = `
+            <th>Bids ($)</th>
+            <th>Asks ($)</th>
+            <th>Mark ($)</th>
+            <th>IV%</th>
+            <th class="os-strike-head">Strike</th>
+            <th>IV%</th>
+            <th>Mark ($)</th>
+            <th>Asks ($)</th>
+            <th>Bids ($)</th>
+        `;
+    }
+}
+
 function renderChainRow(row) {
     const selected = Number(row.strike) === Number(state.selectedStrike);
     const atm = Number(row.strike) === Number(getAtmStrike());
@@ -1092,6 +1351,48 @@ function renderChainRow(row) {
 
     const isCallSelected = selected && state.activeSide === "CALL";
     const isPutSelected = selected && state.activeSide === "PUT";
+
+    if (state.chainViewMode === "greeks") {
+        return `
+            <tr class="${selected ? "selected" : ""} ${atm ? "atm" : ""}" data-row-strike="${row.strike}">
+                <!-- CALL GREEKS -->
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-cyan-400 font-bold text-xs ${isCallSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="CALL" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.call.delta.toFixed(2)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-emerald-400 font-bold text-xs ${isCallSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="CALL" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.call.gamma.toFixed(3)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-red-400 font-bold text-xs ${isCallSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="CALL" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.call.theta.toFixed(3)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-amber-400 font-bold text-xs ${isCallSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="CALL" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.call.vega.toFixed(3)}
+                </td>
+                
+                <!-- STRIKE -->
+                <td class="os-strike-cell cursor-pointer" data-select-strike="${row.strike}">
+                    <div class="flex flex-col items-center justify-center">
+                        <span class="font-black text-white text-sm">${formatNumber(row.strike, 0)}</span>
+                        <span class="text-[10px] text-slate-500 font-bold mt-0.5">${distPercent}</span>
+                    </div>
+                </td>
+                
+                <!-- PUT GREEKS -->
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-amber-400 font-bold text-xs ${isPutSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="PUT" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.put.vega.toFixed(3)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-red-400 font-bold text-xs ${isPutSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="PUT" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.put.theta.toFixed(3)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-emerald-400 font-bold text-xs ${isPutSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="PUT" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.put.gamma.toFixed(3)}
+                </td>
+                <td class="cursor-pointer hover:bg-cyan-400/5 transition-colors text-cyan-400 font-bold text-xs ${isPutSelected ? 'bg-cyan-500/15' : ''}" data-chain-side="PUT" data-chain-action="BUY" data-chain-strike="${row.strike}">
+                    ${row.put.delta.toFixed(2)}
+                </td>
+            </tr>
+        `;
+    }
 
     return `
         <tr class="${selected ? "selected" : ""} ${atm ? "atm" : ""}" data-row-strike="${row.strike}">
@@ -1180,6 +1481,7 @@ function bindChainActions() {
 }
 
 function renderChain() {
+    renderChainHeader();
     const rows = filteredChain();
 
     if (el.chainBody) {
@@ -1296,6 +1598,14 @@ function renderChain() {
     bindChainActions();
 }
 
+function updateDocumentTitle() {
+    const config = getConfig();
+    if (!config || !state.underlyingPrice) return;
+    const decimals = decimalsForPrice(state.underlyingPrice);
+    const formattedPrice = formatNumber(state.underlyingPrice, decimals);
+    document.title = `${formattedPrice} | ${config.code} Options | TraidiumX`;
+}
+
 function renderSummary() {
     const config = getConfig();
     const avgIv = state.chain.length
@@ -1305,10 +1615,32 @@ function renderSummary() {
     const change = number(state.change24h, 0);
     const sign = change >= 0 ? "+" : "";
 
-    if (el.coinBadge) el.coinBadge.textContent = config.icon;
-    if (el.selectedTitle) el.selectedTitle.textContent = config.title;
+    updateDocumentTitle();
+
+    if (el.coinBadge) {
+        el.coinBadge.textContent = config.icon;
+        el.coinBadge.style.background = config.badgeBg || "rgba(245, 158, 11, 0.15)";
+        el.coinBadge.style.border = `2px solid ${config.badgeBorder || "rgba(245, 158, 11, 0.5)"}`;
+        el.coinBadge.style.color = config.badgeColor || "#f59e0b";
+    }
+    if (el.selectedTitle) {
+        el.selectedTitle.innerHTML = `${config.title} <svg style="display:inline-block; width:1.25rem; height:1.25rem; margin-left:0.35rem; color:#94a3b8; vertical-align:middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>`;
+    }
+
+    const pickerDropdown = document.getElementById("optionsAssetPickerDropdown");
+    if (pickerDropdown) {
+        pickerDropdown.querySelectorAll("button[data-asset]").forEach(btn => {
+            const isCurrent = btn.getAttribute("data-asset") === config.code;
+            btn.dataset.active = isCurrent ? "true" : "false";
+            const cfg = underlyings[btn.getAttribute("data-asset")];
+            if (cfg) {
+                btn.style.background = isCurrent ? (cfg.badgeBg || "rgba(245, 158, 11, 0.15)") : "transparent";
+                btn.style.borderColor = isCurrent ? (cfg.badgeBorder || "rgba(245, 158, 11, 0.4)") : "transparent";
+            }
+        });
+    }
     if (el.underlyingSelect) el.underlyingSelect.value = config.code;
-    if (el.chainSubText) el.chainSubText.textContent = `${config.title} · ${formatExpiryCode()} · Backend-priced chain`;
+    if (el.chainSubText) el.chainSubText.textContent = `${config.title} · ${formatExpiryCode()} `;
     if (el.underlyingPrice) el.underlyingPrice.textContent = `$${formatNumber(state.underlyingPrice, decimalsForPrice(state.underlyingPrice))}`;
     if (el.optionsChange) {
         el.optionsChange.textContent = `${sign}${formatNumber(change, 3)}%`;
@@ -1366,6 +1698,9 @@ function renderSelectedContract() {
 
     renderWalletBox();
     refreshOrderButton();
+    if (typeof updateGreeksModalLiveValues === "function") {
+        updateGreeksModalLiveValues();
+    }
 }
 
 function generateBookRows() {
@@ -1512,13 +1847,29 @@ function applyOrderTypeUI() {
     renderSelectedContract();
 }
 
-function refreshFromPrice(resetSelection = false) {
-    const oldStrike = state.selectedStrike;
+function refreshFromPriceFast() {
     generateChain();
+    renderSummary();
+    renderChain();
+    renderSelectedContract();
+    renderOrderBook();
+}
+
+async function refreshFromPrice(resetSelection = false) {
+    const oldStrike = state.selectedStrike;
+    const loadedLive = await loadLiveOptionsChain();
+    if (!loadedLive) {
+        generateChain();
+    }
 
     if (!resetSelection && oldStrike && state.chain.some((row) => Number(row.strike) === Number(oldStrike))) {
         state.selectedStrike = oldStrike;
         const row = state.chain.find((item) => Number(item.strike) === Number(oldStrike));
+        state.selectedOption = state.activeSide === "CALL" ? row.call : row.put;
+    } else if (state.chain.length > 0) {
+        const atm = getAtmStrike();
+        const row = state.chain.find((item) => Number(item.strike) === Number(atm)) || state.chain[Math.floor(state.chain.length / 2)];
+        state.selectedStrike = row.strike;
         state.selectedOption = state.activeSide === "CALL" ? row.call : row.put;
     }
 
@@ -2770,8 +3121,14 @@ function startOptionsPriceSocket() {
         try { state.timers.priceSocket.close(); } catch (error) { /* ignore */ }
         state.timers.priceSocket = null;
     }
+    if (state.timers.indexSocket) {
+        try { state.timers.indexSocket.close(); } catch (error) { /* ignore */ }
+        state.timers.indexSocket = null;
+    }
 
-    const streams = Array.from(new Set(tickerItems.map((item) => `${item.symbol.toLowerCase()}@ticker`))).join("/");
+    const tradeStreams = tickerItems.map((item) => `${item.symbol.toLowerCase()}@aggTrade`);
+    const tickerStreams = tickerItems.map((item) => `${item.symbol.toLowerCase()}@ticker`);
+    const streams = Array.from(new Set([...tradeStreams, ...tickerStreams])).join("/");
 
     try {
         const socket = new WebSocket(`${TX_OPTIONS_WS_BASE}${streams}`);
@@ -2804,7 +3161,7 @@ function startOptionsPriceSocket() {
                 if (!document.hidden) {
                     startOptionsPriceSocket();
                 }
-            }, 4000);
+            }, 3000);
         };
     } catch (error) {
         console.warn("Options live price socket unavailable:", error);
@@ -2833,9 +3190,144 @@ function startTimers() {
     startTradeTicker();
 }
 
+function updateGreeksModalLiveValues() {
+    const selected = getSelectedOption();
+    const contractCodeNode = document.getElementById("greeksModalContractCode");
+    const deltaNode = document.getElementById("greeksModalDelta");
+    const gammaNode = document.getElementById("greeksModalGamma");
+    const thetaNode = document.getElementById("greeksModalTheta");
+    const vegaNode = document.getElementById("greeksModalVega");
+
+    if (contractCodeNode && typeof contractCodeFor === "function") {
+        contractCodeNode.textContent = contractCodeFor();
+    }
+    if (selected) {
+        if (deltaNode) deltaNode.textContent = selected.delta !== undefined ? selected.delta.toFixed(2) : "0.50";
+        if (gammaNode) gammaNode.textContent = selected.gamma !== undefined ? selected.gamma.toFixed(3) : "0.012";
+        if (thetaNode) thetaNode.textContent = selected.theta !== undefined ? selected.theta.toFixed(3) : "-0.010";
+        if (vegaNode) vegaNode.textContent = selected.vega !== undefined ? selected.vega.toFixed(3) : "0.080";
+    }
+}
+
+function initOptionsGuideAndGreeksModals() {
+    const btnGuide = document.getElementById("btnOptionsGuide");
+    const btnGreeks = document.getElementById("btnOptionsGreeks");
+    const guideModal = document.getElementById("optionsGuideModal");
+    const greeksModal = document.getElementById("optionsGreeksModal");
+    const closeGuideBtn = document.getElementById("closeGuideModalBtn");
+    const closeGreeksBtn = document.getElementById("closeGreeksModalBtn");
+    const gotItGuideBtn = document.getElementById("btnGotItGuide");
+    const gotItGreeksBtn = document.getElementById("btnGotItGreeks");
+
+    const hideGuide = () => {
+        if (guideModal) {
+            guideModal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    const hideGreeks = () => {
+        if (greeksModal) {
+            greeksModal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    if (btnGuide && guideModal) {
+        btnGuide.addEventListener("click", () => {
+            guideModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        });
+    }
+
+    if (closeGuideBtn) closeGuideBtn.addEventListener("click", hideGuide);
+    if (gotItGuideBtn) gotItGuideBtn.addEventListener("click", hideGuide);
+
+    if (guideModal) {
+        guideModal.addEventListener("click", (e) => {
+            if (e.target === guideModal) hideGuide();
+        });
+    }
+
+    if (btnGreeks) {
+        btnGreeks.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle Greeks view mode in Options Chain table!
+            state.chainViewMode = state.chainViewMode === "greeks" ? "prices" : "greeks";
+            
+            const isGreeksActive = state.chainViewMode === "greeks";
+            if (isGreeksActive) {
+                btnGreeks.style.backgroundColor = "#22d3ee";
+                btnGreeks.style.color = "#020617";
+                btnGreeks.style.borderColor = "#22d3ee";
+                btnGreeks.style.fontWeight = "900";
+                btnGreeks.style.boxShadow = "0 0 14px rgba(34, 211, 238, 0.55)";
+            } else {
+                btnGreeks.style.backgroundColor = "";
+                btnGreeks.style.color = "";
+                btnGreeks.style.borderColor = "";
+                btnGreeks.style.fontWeight = "";
+                btnGreeks.style.boxShadow = "";
+            }
+            
+            renderChain();
+        });
+    }
+
+    if (closeGreeksBtn) closeGreeksBtn.addEventListener("click", hideGreeks);
+    if (gotItGreeksBtn) gotItGreeksBtn.addEventListener("click", hideGreeks);
+
+    if (greeksModal) {
+        greeksModal.addEventListener("click", (e) => {
+            if (e.target === greeksModal) hideGreeks();
+        });
+    }
+}
+
+function initOptionsAssetPicker() {
+    const triggerBtn = document.getElementById("optionsTitleDropdownBtn");
+    const dropdown = document.getElementById("optionsAssetPickerDropdown");
+    const selectEl = document.getElementById("optionsUnderlyingSelect");
+
+    if (!triggerBtn || !dropdown) return;
+
+    const toggleDropdown = (show) => {
+        const isVisible = show !== undefined ? show : dropdown.style.display === "none" || dropdown.style.display === "";
+        dropdown.style.display = isVisible ? "block" : "none";
+    };
+
+    triggerBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown();
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && !triggerBtn.contains(e.target)) {
+            toggleDropdown(false);
+        }
+    });
+
+    dropdown.querySelectorAll("button[data-asset]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const asset = btn.getAttribute("data-asset");
+            if (asset) {
+                if (selectEl) {
+                    selectEl.value = asset;
+                }
+                setUnderlying(asset);
+                toggleDropdown(false);
+            }
+        });
+    });
+}
+
 async function initOptionsTerminal() {
     initOptionsWalletQuickActions();
     showLoginExpiredNoticeIfNeeded();
+    initOptionsAssetPicker();
     const params = new URLSearchParams(window.location.search);
     const pathSymbol = String(window.location.pathname.split("/").filter(Boolean).pop() || "").toUpperCase();
     const symbolParam = String(params.get("symbol") || pathSymbol || "").toUpperCase();
@@ -2859,6 +3351,7 @@ async function initOptionsTerminal() {
     refreshFromPrice(true);
     initEvents();
     initMobileToggleEvents();
+    initOptionsGuideAndGreeksModals();
     applyOrderTypeUI();
     updateOrderSideButtons();
     updateBackendBadge();
@@ -3861,9 +4354,14 @@ async function txInitSubAccountsAndSelector() {
             opt.textContent = sub.name;
             selector.appendChild(opt);
         });
+
+        const createOpt = document.createElement("option");
+        createOpt.value = "create_new";
+        createOpt.textContent = "+ Create Sub Account";
+        selector.appendChild(createOpt);
         
         let activeSubId = localStorage.getItem("traidiumx_active_user_id");
-        if (activeSubId) {
+        if (activeSubId && subAccounts.some(s => s.id === activeSubId)) {
             selector.value = activeSubId;
         } else {
             selector.value = "main";
@@ -3988,6 +4486,17 @@ function txBindSubAccountEvents() {
     if (selector) {
         selector.addEventListener("change", (e) => {
             const val = e.target.value;
+            if (val === "create_new" || val === "manage") {
+                const subModal = document.getElementById("subAccountModal");
+                if (subModal) {
+                    subModal.style.display = "flex";
+                    subModal.classList.remove("hidden");
+                    txRenderSubAccountsList();
+                }
+                const activeUser = localStorage.getItem("traidiumx_active_user_id") || "main";
+                e.target.value = activeUser;
+                return;
+            }
             if (val === "main") {
                 localStorage.removeItem("traidiumx_active_user_id");
             } else {
@@ -4001,17 +4510,27 @@ function txBindSubAccountEvents() {
     const subOpenBtn = document.getElementById("subAccountSettingsBtn");
     const subCloseBtn = document.getElementById("subAccountModalClose");
 
+    const hideSubModal = () => {
+        if (subModal) {
+            subModal.style.display = "none";
+            subModal.classList.add("hidden");
+            subModal.classList.remove("flex");
+        }
+    };
+
     if (subOpenBtn && subModal) {
         subOpenBtn.addEventListener("click", () => {
+            subModal.style.display = "flex";
             subModal.classList.remove("hidden");
-            subModal.classList.add("flex");
             txRenderSubAccountsList();
         });
     }
     if (subCloseBtn && subModal) {
-        subCloseBtn.addEventListener("click", () => {
-            subModal.classList.add("hidden");
-            subModal.classList.remove("flex");
+        subCloseBtn.addEventListener("click", hideSubModal);
+    }
+    if (subModal) {
+        subModal.addEventListener("click", (e) => {
+            if (e.target === subModal) hideSubModal();
         });
     }
 

@@ -24,41 +24,41 @@ const ORDERS_KEY = "traidiumx_demo_orders_v1";
 const HISTORY_KEY = "traidiumx_demo_history_v1";
 
 const pairs = [
-    { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿", minQty: 0.001, step: 0.001, maxLeverage: 50, quoteAsset: "USDT" },
-    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "◆", minQty: 0.01, step: 0.01, maxLeverage: 50, quoteAsset: "USDT" },
-    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "DOGEUSDT", label: "DOGE-USDT", icon: "Ð", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "ADAUSDT", label: "ADA-USDT", icon: "A", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "AVAXUSDT", label: "AVAX-USDT", icon: "V", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "LINKUSDT", label: "LINK-USDT", icon: "L", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "LTCUSDT", label: "LTC-USDT", icon: "Ł", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "TRXUSDT", label: "TRX-USDT", icon: "T", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "DOTUSDT", label: "DOT-USDT", icon: "D", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "BCHUSDT", label: "BCH-USDT", icon: "C", minQty: 0.01, step: 0.01, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "ATOMUSDT", label: "ATOM-USDT", icon: "M", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "UNIUSDT", label: "UNI-USDT", icon: "U", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "APTUSDT", label: "APT-USDT", icon: "P", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT" },
-    { symbol: "NEARUSDT", label: "NEAR-USDT", icon: "N", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "SUIUSDT", label: "SUI-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "1000PEPEUSDT", label: "PEPE-USDT", icon: "P", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", providerSymbol: "1000PEPEUSDT" },
-    { symbol: "1000SHIBUSDT", label: "SHIB-USDT", icon: "S", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", providerSymbol: "1000SHIBUSDT" },
-    { symbol: "MATICUSDT", label: "MATIC-USDT", icon: "M", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "ARBUSDT", label: "ARB-USDT", icon: "A", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "OPUSDT", label: "OP-USDT", icon: "O", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "INJUSDT", label: "INJ-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "WIFUSDT", label: "WIF-USDT", icon: "W", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "FETUSDT", label: "FET-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "TIAUSDT", label: "TIA-USDT", icon: "T", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "FILUSDT", label: "FIL-USDT", icon: "F", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "ETCUSDT", label: "ETC-USDT", icon: "E", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "XLMUSDT", label: "XLM-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "RENDERUSDT", label: "RENDER-USDT", icon: "R", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "SEIUSDT", label: "SEI-USDT", icon: "S", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "ICPUSDT", label: "ICP-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "FTMUSDT", label: "FTM-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT" },
-    { symbol: "XAUUSD", label: "XAUUSD", icon: "G", minQty: 0.01, step: 0.01, maxLeverage: 20, marketType: "commodity", quoteAsset: "USDT", providerSymbol: "XAUUSDT" }
+    { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿", minQty: 0.001, step: 0.001, maxLeverage: 50, quoteAsset: "USDT", categories: ["layer1"], baseVol: "8.54B", defaultFunding: "0.00996%", defaultChange: -1.25 },
+    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "504.19M", defaultFunding: "0.00000%", defaultChange: 1.00 },
+    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "◆", minQty: 0.01, step: 0.01, maxLeverage: 50, quoteAsset: "USDT", categories: ["layer1"], baseVol: "6.53B", defaultFunding: "0.00255%", defaultChange: -0.68 },
+    { symbol: "BCHUSDT", label: "BCH-USDT", icon: "C", minQty: 0.01, step: 0.01, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "122.64M", defaultFunding: "0.00181%", defaultChange: -0.16 },
+    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "795.47M", defaultFunding: "0.01000%", defaultChange: -0.38 },
+    { symbol: "LTCUSDT", label: "LTC-USDT", icon: "Ł", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "155.06M", defaultFunding: "-0.00333%", defaultChange: -0.82 },
+    { symbol: "TRXUSDT", label: "TRX-USDT", icon: "T", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.54M", defaultFunding: "+0.00068%", defaultChange: 0.58 },
+    { symbol: "ETCUSDT", label: "ETC-USDT", icon: "E", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.82M", defaultFunding: "0.01000%", defaultChange: 3.96 },
+    { symbol: "LINKUSDT", label: "LINK-USDT", icon: "L", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["defi"], baseVol: "200.92M", defaultFunding: "-0.00066%", defaultChange: -4.64 },
+    { symbol: "XLMUSDT", label: "XLM-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "86.79M", defaultFunding: "0.01000%", defaultChange: -1.28 },
+    { symbol: "ADAUSDT", label: "ADA-USDT", icon: "A", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "191.30M", defaultFunding: "0.01000%", defaultChange: -1.04 },
+    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "1.82B", defaultFunding: "0.00850%", defaultChange: 2.15 },
+    { symbol: "DOGEUSDT", label: "DOGE-USDT", icon: "Ð", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["meme"], baseVol: "412.30M", defaultFunding: "0.01000%", defaultChange: -1.45 },
+    { symbol: "AVAXUSDT", label: "AVAX-USDT", icon: "V", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "178.60M", defaultFunding: "0.00920%", defaultChange: -0.95 },
+    { symbol: "DOTUSDT", label: "DOT-USDT", icon: "D", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "88.20M", defaultFunding: "0.00780%", defaultChange: 0.85 },
+    { symbol: "ATOMUSDT", label: "ATOM-USDT", icon: "M", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "62.40M", defaultFunding: "0.01000%", defaultChange: -0.55 },
+    { symbol: "UNIUSDT", label: "UNI-USDT", icon: "U", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["defi"], baseVol: "74.10M", defaultFunding: "0.00640%", defaultChange: 1.20 },
+    { symbol: "APTUSDT", label: "APT-USDT", icon: "P", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "95.80M", defaultFunding: "0.01000%", defaultChange: -2.10 },
+    { symbol: "NEARUSDT", label: "NEAR-USDT", icon: "N", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "ai"], baseVol: "142.30M", defaultFunding: "0.00890%", defaultChange: 3.40 },
+    { symbol: "SUIUSDT", label: "SUI-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "310.50M", defaultFunding: "0.01000%", defaultChange: 4.80 },
+    { symbol: "1000PEPEUSDT", label: "PEPE-USDT", icon: "P", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000PEPEUSDT", baseVol: "580.40M", defaultFunding: "0.01000%", defaultChange: -3.20 },
+    { symbol: "1000SHIBUSDT", label: "SHIB-USDT", icon: "S", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000SHIBUSDT", baseVol: "215.10M", defaultFunding: "0.01000%", defaultChange: -0.75 },
+    { symbol: "MATICUSDT", label: "MATIC-USDT", icon: "M", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "84.70M", defaultFunding: "0.01000%", defaultChange: 0.40 },
+    { symbol: "ARBUSDT", label: "ARB-USDT", icon: "A", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "110.20M", defaultFunding: "0.00950%", defaultChange: -1.15 },
+    { symbol: "OPUSDT", label: "OP-USDT", icon: "O", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "98.40M", defaultFunding: "0.00900%", defaultChange: 1.60 },
+    { symbol: "INJUSDT", label: "INJ-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["defi"], baseVol: "82.30M", defaultFunding: "0.01000%", defaultChange: 2.80 },
+    { symbol: "WIFUSDT", label: "WIF-USDT", icon: "W", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme", "new"], baseVol: "245.80M", defaultFunding: "0.01000%", defaultChange: -2.60 },
+    { symbol: "FETUSDT", label: "FET-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "165.40M", defaultFunding: "0.01000%", defaultChange: 5.10 },
+    { symbol: "TIAUSDT", label: "TIA-USDT", icon: "T", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "89.10M", defaultFunding: "0.01000%", defaultChange: -1.80 },
+    { symbol: "FILUSDT", label: "FIL-USDT", icon: "F", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "68.30M", defaultFunding: "0.00800%", defaultChange: -0.90 },
+    { symbol: "RENDERUSDT", label: "RENDER-USDT", icon: "R", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "135.20M", defaultFunding: "0.01000%", defaultChange: 3.75 },
+    { symbol: "SEIUSDT", label: "SEI-USDT", icon: "S", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "78.90M", defaultFunding: "0.01000%", defaultChange: 2.20 },
+    { symbol: "ICPUSDT", label: "ICP-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "54.20M", defaultFunding: "0.00750%", defaultChange: -1.10 },
+    { symbol: "FTMUSDT", label: "FTM-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "42.10M", defaultFunding: "0.01000%", defaultChange: 0.90 },
+    { symbol: "XAUUSDT", label: "XAU-USDT", icon: "G", minQty: 0.01, step: 0.01, maxLeverage: 20, marketType: "commodity", quoteAsset: "USDT", providerSymbol: "XAUUSDT", categories: ["tradfi"], baseVol: "1.15B", defaultFunding: "0.00500%", defaultChange: 0.35 }
 ];
 
 const defaultPrices = {
@@ -226,6 +226,8 @@ const elements = {
     limitPriceWrap: document.getElementById("limitPriceWrap"),
     limitPriceInput: document.getElementById("limitPriceInput"),
     quantityInput: document.getElementById("quantityInput"),
+    quantityAssetSuffix: document.getElementById("quantityAssetSuffix"),
+    quantityAssetLabel: document.getElementById("quantityAssetLabel"),
     leverageSelect: document.getElementById("leverageSelect"),
     placeOrderBtn: document.getElementById("placeOrderBtn"),
     orderMessage: document.getElementById("orderMessage"),
@@ -314,6 +316,8 @@ function applyInitialSymbolFromNavigation() {
     syncPairSelectOptions();
     syncLeverageOptions(initialSymbol);
     txInitMockTrades(initialSymbol);
+    updatePairHeader();
+    loadTickerMetrics();
 
     if (elements.pairSelect) {
         elements.pairSelect.value = initialSymbol;
@@ -671,18 +675,123 @@ function txClearOldFuturesTradingLocalStorage() {
    HEADER / TICKER
 ========================= */
 
+function getCoinLogoSvg(pair, sizeClass = "w-8 h-8") {
+    const rawPair = String(pair || "").replace(" Options", "").trim();
+    let symbolKey = rawPair.split("-")[0].split("/")[0].toUpperCase();
+
+    if (symbolKey.endsWith("USDT") && symbolKey.length > 4) {
+        symbolKey = symbolKey.slice(0, -4);
+    } else if (symbolKey.endsWith("USD") && symbolKey.length > 3 && symbolKey !== "XAUUSD" && symbolKey !== "USD") {
+        symbolKey = symbolKey.slice(0, -3);
+    }
+
+    const cleanBaseKey = symbolKey.replace(/^1000/, "");
+
+    const pepeLogo = `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0f2b1d"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#22c55e" stroke-width="1"/><path fill="#22c55e" d="M9 14c0-3 3-5 7-5s7 2 7 5c0 1.5-.5 3-1.5 4.2C20.5 19.5 18.5 21 16 21s-4.5-1.5-5.5-2.8C9.5 17 9 15.5 9 14z"/><circle cx="12.5" cy="13" r="2.2" fill="#fff"/><circle cx="19.5" cy="13" r="2.2" fill="#fff"/><circle cx="13" cy="13" r="1" fill="#0f2b1d"/><circle cx="20" cy="13" r="1" fill="#0f2b1d"/><path stroke="#0f2b1d" stroke-width="1.2" stroke-linecap="round" d="M12 17.5c2 1.2 6 1.2 8 0"/></svg>`;
+    const shibLogo = `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2b1509"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#f97316" stroke-width="1"/><path fill="#f97316" d="M8 10l4 4-2 6 6 3 6-3-2-6 4-4-5 1-3-4-3 4z"/><polygon fill="#fff" points="13,15 11,19 15,18"/><polygon fill="#fff" points="19,15 21,19 17,18"/><polygon fill="#000" points="15,20 17,20 16,21.5"/></svg>`;
+
+    const logos = {
+        "INR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#059669"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><text x="16" y="21.5" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">₹</text></svg>`,
+        "USD": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#10b981"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><text x="16" y="21.5" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle">$</text></svg>`,
+        "USDT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#26a17b"/><path fill="#fff" d="M17.92 16.38c-.14.01-.84.05-1.92.05-1.01 0-1.74-.04-1.93-.05-3.66-.17-6.39-.81-6.39-1.58s2.73-1.41 6.39-1.58v-2.31h7.86v2.31c3.66.17 6.39.81 6.39 1.58s-2.73 1.41-6.4 1.58v6.23h-4v-6.23zM16 11.23c-3.15 0-5.83.47-6.09 1.07.26.6 2.94 1.07 6.09 1.07 3.15 0 5.83-.47 6.09-1.07-.26-.6-2.94-1.07-6.09-1.07z"/></svg>`,
+        "USDC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2775ca"/><path fill="#fff" d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12 12-5.4 12-12S22.6 4 16 4zm.6 18.5v1.8h-1.5v-1.8c-2.4-.2-4.1-1.6-4.3-3.7h2.2c.2 1.1 1.2 1.8 2.6 1.8 1.4 0 2.4-.6 2.4-1.6 0-.8-.5-1.3-2.1-1.7l-1.5-.4c-2.3-.6-3.4-1.7-3.4-3.4 0-1.9 1.6-3.3 3.9-3.6v-1.8h1.5v1.8c2 .2 3.5 1.5 3.8 3.3h-2.1c-.2-.9-1-1.5-2.2-1.5-1.3 0-2.1.6-2.1 1.4 0 .7.5 1.2 2 1.6l1.3.3c2.4.6 3.6 1.8 3.6 3.6 0 2-1.6 3.4-4.1 3.7z"/></svg>`,
+        "TON": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0088cc"/><path fill="#fff" d="M16 6l9 7.5-3.5 10.5h-11L7 13.5 16 6zm-4.5 9l4.5 6 4.5-6H11.5z"/></svg>`,
+        "BTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f7931a"/><path fill="#fff" d="M23.18 13.84c.34-2.28-1.4-3.5-3.78-4.31l.77-3.1-1.89-.47-.75 3c-.5 0-1-.13-1.5-.24l.76-3.05-1.89-.47-.77 3.09c-.41-.09-.82-.19-1.22-.29l-2.61-.65-.5 2.02s1.4.32 1.37.34c.77.19.9.7.88 1.1l-.88 3.53c.05.01.12.04.2.08l-.2-.05-1.23 4.94c-.09.23-.33.58-.87.45.02.03-1.37-.34-1.37-.34l-.94 2.18 2.47.62c.46.12.91.24 1.36.36l-.78 3.14 1.89.47.77-3.1c.52.14 1.02.27 1.52.39l-.77 3.09 1.89.47.78-3.13c3.22.61 5.64.36 6.66-2.55.82-2.34-.04-3.69-1.74-4.57 1.24-.29 2.17-1.1 2.42-2.77zm-4.33 6.05c-.58 2.35-4.53 1.08-5.8.76l1.04-4.16c1.28.32 5.37.95 4.76 3.4zm.59-6.08c-.53 2.14-3.83.99-4.89.73l.94-3.77c1.06.27 4.49.77 3.95 3.04z"/></svg>`,
+        "BCH": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8dc351"/><path fill="#fff" d="M22.5 13.5c.3-2.1-1.3-3.2-3.5-4l.7-2.9-1.7-.4-.7 2.8c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.7-.4-.7 2.8c-.4-.1-.8-.2-1.1-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.6.8 1l-.8 3.3c.1 0 .1 0 .2.1l-.2 0-1.1 4.6c-.1.2-.3.5-.8.4 0 0-1.3-.3-1.3-.3l-.9 2 2.3.6c.4.1.8.2 1.3.3l-.7 2.9 1.7.4.7-2.9c.5.1.9.2 1.4.3l-.7 2.9 1.7.4.7-2.9c3 .6 5.2.3 6.2-2.3.8-2.1 0-3.4-1.6-4.2 1.1-.3 2-1 2.2-2.5zm-4 5.6c-.5 2.1-4.1 1-5.3.7l.9-3.8c1.2.3 4.9.9 4.4 3.1zm.5-5.6c-.5 1.9-3.5.9-4.4.7l.8-3.4c.9.2 4.1.7 3.6 2.7z"/></svg>`,
+        "ETH": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#627eea"/><path fill="#fff" fill-opacity=".6" d="M16 4v8.87l7.5 3.35z"/><path fill="#fff" d="M16 4L8.5 16.22l7.5-3.35z"/><path fill="#fff" fill-opacity=".6" d="M16 21.97v6.03l7.5-10.46z"/><path fill="#fff" d="M16 28v-6.03L8.5 17.54z"/><path fill="#fff" fill-opacity=".2" d="M16 20.57l7.5-4.35L16 12.87z"/><path fill="#fff" fill-opacity=".6" d="M8.5 16.22l7.5 4.35v-7.7z"/></svg>`,
+        "BNB": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#f3ba2f"/><path fill="#fff" d="M12.12 13.84L16 9.96l3.88 3.88 2.2-2.2L16 5.56l-6.08 6.08zm-6.56 2.16l2.2-2.2L11.64 16l-3.88 3.88-2.2-2.2L7.68 16zm12.32 0l3.88-3.88 2.2 2.2L24.32 16l3.88 3.88-2.2 2.2zm-5.76 2.16L16 22.04l-3.88-3.88-2.2 2.2L16 26.44l6.08-6.08zm0-4.32L16 12.12l1.72 1.72L16 15.56l-1.72-1.72zm0 4.32L16 16.44l1.72 1.72L16 19.88l-1.72-1.72z"/></svg>`,
+        "SOL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#12141d"/><defs><linearGradient id="solGrad_${sizeClass.replace(/[^a-zA-Z0-9]/g, '_')}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00ffa3"/><stop offset="100%" stop-color="#dc1fff"/></linearGradient></defs><path fill="url(#solGrad_${sizeClass.replace(/[^a-zA-Z0-9]/g, '_')})" d="M8 20.7l2.1-2.1h13.9l-2.1 2.1H8zm5.9-6.3l-2.1 2.1h13.9l2.1-2.1H13.9zM8 9.3l2.1-2.1h13.9l-2.1 2.1H8z"/></svg>`,
+        "XRP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#23292f"/><path fill="#fff" d="M22.67 8h2.66l-6.4 6.34 6.47 6.46h-2.66l-5.14-5.13-5.14 5.13H9.8l6.47-6.46L9.87 8h2.66l5.14 5.13L22.67 8z"/></svg>`,
+        "DOGE": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#c2a633"/><path fill="#fff" d="M12 9h5.5c3.5 0 6.5 2.5 6.5 7s-3 7-6.5 7H12V9zm4 3v8h1.5c2 0 3.5-1.5 3.5-4s-1.5-4-3.5-4H16z"/><path fill="#fff" d="M9 15h9v2H9z"/></svg>`,
+        "PEPE": pepeLogo,
+        "1000PEPE": pepeLogo,
+        "SHIB": shibLogo,
+        "1000SHIB": shibLogo,
+        "SUI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0f2942"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#38bdf8" stroke-width="1"/><path fill="#38bdf8" d="M16 6c-4 5.5-7 9.8-7 13.2 0 3.8 3.1 6.8 7 6.8s7-3 7-6.8C23 15.8 20 11.5 16 6zm0 16c-1.7 0-3-1.3-3-3 0-1.8 1.5-4.2 3-6.1 1.5 1.9 3 4.3 3 6.1 0 1.7-1.3 3-3 3z"/></svg>`,
+        "NEAR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#082b28"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#14b8a6" stroke-width="1"/><path fill="#14b8a6" d="M9.5 9h3.2l6.8 10.2V9h3v14h-3.2L12.5 12.8V23h-3V9z"/></svg>`,
+        "FIL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#08243b"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#0094ff" stroke-width="1"/><path fill="#0094ff" d="M11 7h10v3.5h-6.5v3.5H20v3.5h-5.5V25H11V7z"/></svg>`,
+        "XLM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#092233"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#14b6e4" stroke-width="1"/><path fill="#14b6e4" d="M24 8L8 15.5l5 2.5L20 11l-4.5 7.5L22 21 24 8zM8 24l5-2.5 3 1.5-8 1z"/></svg>`,
+        "INJ": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#06212e"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#00f2ff" stroke-width="1"/><path fill="none" stroke="#00f2ff" stroke-width="2.5" stroke-linecap="round" d="M10 22C7.5 19.5 7.5 14 11 10.5S20 8 22.5 11.5s0 8-3.5 10.5S10 24 10 22z"/><circle cx="16" cy="16" r="3" fill="#00f2ff"/></svg>`,
+        "DOT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#141927"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e6007a" stroke-width="1"/><circle cx="16" cy="9.5" r="2.2" fill="#e6007a"/><circle cx="16" cy="22.5" r="2.2" fill="#e6007a"/><circle cx="9.5" cy="16" r="2.2" fill="#e6007a"/><circle cx="22.5" cy="16" r="2.2" fill="#e6007a"/><circle cx="16" cy="16" r="1.8" fill="#e6007a"/></svg>`,
+        "WIF": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#281b10"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e3a152" stroke-width="1"/><path fill="#e3a152" d="M8 17c0-4 3.5-7 8-7s8 3 8 7v2H8v-2z"/><path fill="#8c5825" d="M6 18c0-1.5 4.5-2.5 10-2.5s10 1 10 2.5-4.5 2.5-10 2.5S6 19.5 6 18z"/></svg>`,
+        "FET": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#072136"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#00a3ff" stroke-width="1"/><circle cx="11" cy="11" r="2" fill="#00a3ff"/><circle cx="16" cy="11" r="2" fill="#00a3ff"/><circle cx="21" cy="11" r="2" fill="#00a3ff"/><circle cx="11" cy="16" r="2" fill="#00a3ff"/><circle cx="16" cy="16" r="2.5" fill="#fff"/><circle cx="21" cy="16" r="2" fill="#00a3ff"/><circle cx="16" cy="21" r="2" fill="#00a3ff"/></svg>`,
+        "ARB": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#081d33"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#28a0f0" stroke-width="1"/><path fill="#28a0f0" d="M16 7l8 12.5h-4.5L16 14l-3.5 5.5H8L16 7z"/><path fill="#fff" d="M16 11l4.5 7h-2.5L16 15l-2 3h-2.5l4.5-7z"/></svg>`,
+        "ETC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#062618"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#34fa99" stroke-width="1"/><path fill="#34fa99" fill-opacity=".7" d="M16 5v8.5l7 3.5z"/><path fill="#34fa99" d="M16 5L9 17l7-3.5z"/><path fill="#34fa99" fill-opacity=".7" d="M16 20.5v6.5l7-9.5z"/><path fill="#34fa99" d="M16 27v-6.5L9 17.5z"/></svg>`,
+        "ICP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#062133"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#29abe2" stroke-width="1"/><path fill="none" stroke="#29abe2" stroke-width="2.5" d="M11 16c-3 0-5-2-5-4s2-4 5-4 5 4 5 4 2 4 5 4 5-2 5-4-2-4-5-4-5 4-5 4-2-4-5-4z"/></svg>`,
+        "OP": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ff0420"/><path fill="#fff" d="M12 11c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8-7c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 7c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`,
+        "TIA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#1e083a"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#7b2bf9" stroke-width="1"/><circle cx="16" cy="16" r="5" fill="#7b2bf9"/><circle cx="16" cy="8" r="2" fill="#c084fc"/><circle cx="16" cy="24" r="2" fill="#c084fc"/><circle cx="8" cy="16" r="2" fill="#c084fc"/><circle cx="24" cy="16" r="2" fill="#c084fc"/></svg>`,
+        "ATOM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e3148"/><circle cx="16" cy="3" r="3" fill="#fff"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(30 16 16)"/><ellipse cx="16" cy="16" rx="10" ry="4" fill="none" stroke="#fff" stroke-width="1.5" transform="rotate(-30 16 16)"/></svg>`,
+        "RENDER": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e0505"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e60000" stroke-width="1"/><path fill="#e60000" d="M10 8h7.5c2.5 0 4.5 1.5 4.5 4s-1.5 3.5-3.5 3.8L22 24h-4l-3-7.5H13V24h-3V8zm3 3.5v5h4c1.2 0 2-.8 2-2.5s-.8-2.5-2-2.5h-4z"/></svg>`,
+        "RNDR": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e0505"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#e60000" stroke-width="1"/><path fill="#e60000" d="M10 8h7.5c2.5 0 4.5 1.5 4.5 4s-1.5 3.5-3.5 3.8L22 24h-4l-3-7.5H13V24h-3V8zm3 3.5v5h4c1.2 0 2-.8 2-2.5s-.8-2.5-2-2.5h-4z"/></svg>`,
+        "SEI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#2e070e"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="#9e1b32" stroke-width="1"/><path fill="#9e1b32" d="M10 10c0-1.5 3-2 6-2s6 .5 6 2c0 2.5-12 2.5-12 6s9 4.5 12 2c0 2-3 4-6 4s-6-1-6-2.5"/></svg>`,
+        "MATIC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8247e5"/><path fill="#fff" d="M21.2 12.8l-3.7-2.1c-.3-.2-.7-.2-1 0l-3.7 2.1c-.3.2-.5.5-.5.8v4.3c0 .3.2.7.5.8l3.7 2.1c.3.2.7.2 1 0l3.7-2.1c.3-.2.5-.5.5-.8v-4.3c0-.4-.2-.7-.5-.9zm-4.2 6.1l-2.4-1.4v-2.8l2.4 1.4v2.8z"/></svg>`,
+        "POL": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#8247e5"/><path fill="#fff" d="M21.2 12.8l-3.7-2.1c-.3-.2-.7-.2-1 0l-3.7 2.1c-.3.2-.5.5-.5.8v4.3c0 .3.2.7.5.8l3.7 2.1c.3.2.7.2 1 0l3.7-2.1c.3-.2.5-.5.5-.8v-4.3c0-.4-.2-.7-.5-.9zm-4.2 6.1l-2.4-1.4v-2.8l2.4 1.4v2.8z"/></svg>`,
+        "FTM": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#1969ff"/><path fill="#fff" d="M16 6l7 5.5V20.5L16 26l-7-5.5V11.5L16 6zm0 3.5L11.5 13 16 16.5 20.5 13 16 9.5zm0 13l4.5-3.5L16 15.5 11.5 19l4.5 3.5z"/></svg>`,
+        "ADA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0033ad"/><circle cx="16" cy="16" r="4" fill="#fff"/><circle cx="16" cy="8" r="1.5" fill="#fff"/><circle cx="16" cy="24" r="1.5" fill="#fff"/><circle cx="8" cy="16" r="1.5" fill="#fff"/><circle cx="24" cy="16" r="1.5" fill="#fff"/></svg>`,
+        "AVAX": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#e84142"/><path fill="#fff" d="M16 7l8.5 15h-4.5L16 15l-4 7H7.5L16 7z"/></svg>`,
+        "LINK": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#375bd2"/><path fill="#fff" d="M16 6l7 4v8l-7 4-7-4v-8l7-4zm0 3.5L11.5 12v4L16 18.5l4.5-2.5v-4L16 9.5z"/></svg>`,
+        "LTC": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#345d9d"/><path fill="#fff" d="M12 9h3v10h6v3H12V9zm-1 6l8-3v2l-8 3v-2z"/></svg>`,
+        "TRX": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ef0027"/><path fill="#fff" d="M7 8l18 3-7 14L7 8zm4 3l4.5 9 4.5-9H11z"/></svg>`,
+        "UNI": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#ff007a"/><circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/><path fill="#ffffff" d="M21.5 7.5l2.8-2.8c.4-.4.4-1 0-1.4s-1-.4-1.4 0l-3.2 3.2c-1.3-.8-2.8-1.2-4.4-1.1-2.4.2-4.6 1.3-6.2 3.1-2.2 2.4-3.2 5.7-2.6 8.9.6 3.2 2.7 5.8 5.7 6.8 1 .3 2.1.5 3.1.5 3.1 0 6.1-1.4 8.1-3.8 2-2.3 2.8-5.4 2.2-8.4-.3-1.6-1.1-3.1-2.1-4.2zm-2.8 12.3c-1.5 1.8-3.7 2.8-6 2.8-.8 0-1.6-.1-2.3-.4-2.2-.7-3.8-2.7-4.2-5-.4-2.3.3-4.7 2-6.4 1.2-1.3 2.8-2.1 4.5-2.2 1.2 0 2.4.4 3.4 1l-2.1 2.1c-.4.4-.4 1 0 1.4s1 .4 1.4 0l3.5-3.5c.7.8 1.2 1.8 1.4 2.9.4 2.3-.2 4.6-1.6 6.3z"/></svg>`,
+        "APT": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#18181b"/><path fill="#fff" d="M16 6l9 16H7l9-16zm0 5l-5 9h10l-5-9z"/></svg>`,
+        "XAU": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#d4af37"/><path fill="#fff" d="M16 6l8 4.5v11.5L16 26.5 8 22V10.5L16 6zm0 3.5L11 12.3v7.4l5 2.8 5-2.8v-7.4L16 9.5z"/></svg>`,
+        "XAUUSD": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#d4af37"/><path fill="#fff" d="M16 6l8 4.5v11.5L16 26.5 8 22V10.5L16 6zm0 3.5L11 12.3v7.4l5 2.8 5-2.8v-7.4L16 9.5z"/></svg>`,
+        "SAND": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0084ff"/><path fill="#fff" d="M10 10h12v3H13v3h9v6H10v-3h9v-3h-9v-6z"/></svg>`,
+        "MANTA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#0046ff"/><path fill="#fff" d="M8 12c4 0 6 3 8 7 2-4 4-7 8-7-2 5-5 9-8 13-3-4-6-8-8-13z"/></svg>`,
+        "ORCA": `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md"><circle cx="16" cy="16" r="16" fill="#00c8b3"/><path fill="#fff" d="M9 16c0-3.5 3-6 7-6s7 2.5 7 6c0 3-2.5 5.5-6 6l4 4h-4l-3-3.5L11 25H8l4-5c-2-1-3-2.5-3-4z"/></svg>`
+    };
+
+    if (logos[symbolKey]) return logos[symbolKey];
+    if (logos[cleanBaseKey]) return logos[cleanBaseKey];
+
+    // Dynamic fallback SVG with deterministic gradient
+    let hash = 0;
+    const str = String(symbolKey || "COIN").toUpperCase();
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash) % 360;
+    const label = str.length > 5 ? str.slice(0, 4) : str;
+    const fontSize = label.length > 3 ? "8.5" : "10.5";
+    const safeStr = str.replace(/[^A-Z0-9]/g, "");
+
+    return `<svg viewBox="0 0 32 32" class="coin-logo-svg ${sizeClass} rounded-full shadow-md">
+        <defs>
+            <linearGradient id="coinGrad_${safeStr}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="hsl(${hue}, 80%, 45%)"/>
+                <stop offset="100%" stop-color="hsl(${(hue + 45) % 360}, 90%, 25%)"/>
+            </linearGradient>
+        </defs>
+        <circle cx="16" cy="16" r="16" fill="url(#coinGrad_${safeStr})"/>
+        <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+        <text x="16" y="20.5" font-family="system-ui, -apple-system, sans-serif" font-size="${fontSize}" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-0.3">${label}</text>
+    </svg>`;
+}
+window.getCoinLogoSvg = getCoinLogoSvg;
+
 function updatePairHeader() {
     const pair = getPair();
 
     if (elements.coinBadge) {
-        elements.coinBadge.textContent = pair.icon;
+        elements.coinBadge.innerHTML = getCoinLogoSvg(pair.symbol || state.currentSymbol, "w-full h-full");
     }
 
     if (elements.currentSymbolTitle) {
         elements.currentSymbolTitle.textContent = pair.label;
     }
 
-    
+    // Update Mobile Pair Header Badge & Label
+    const mobileCoinBadge = document.getElementById("mobileCoinBadge");
+    if (mobileCoinBadge) {
+        mobileCoinBadge.innerHTML = getCoinLogoSvg(pair.symbol || state.currentSymbol, "w-full h-full");
+    }
+    const mobileSymbolLabel = document.getElementById("mobileSymbolLabel");
+    if (mobileSymbolLabel) {
+        mobileSymbolLabel.textContent = pair.label;
+    }
+
+    // Sync favorite star for current symbol
+    txSyncHeaderFavStar();
 
     if (elements.currentSymbolSub) {
         elements.currentSymbolSub.textContent = isCommoditySymbol() ? "Commodity CFD / Internal Futures" : "Perpetual Futures";
@@ -697,7 +806,15 @@ function updatePairHeader() {
         marginAssetBadge.textContent = pair.label;
     }
 
-    const baseAsset = pair.symbol === "XAUUSD" ? "XAU" : pair.symbol.replace("USDT", "");
+    const baseAsset = pair.label ? pair.label.split("-")[0] : (pair.symbol === "XAUUSD" ? "XAU" : pair.symbol.replace("USDT", ""));
+
+    if (elements.quantityAssetSuffix) {
+        elements.quantityAssetSuffix.textContent = baseAsset;
+    }
+
+    if (elements.quantityAssetLabel) {
+        elements.quantityAssetLabel.textContent = baseAsset;
+    }
 
     if (elements.orderBookSizeLabel) {
         elements.orderBookSizeLabel.textContent = `Size (${baseAsset})`;
@@ -710,9 +827,385 @@ function updatePairHeader() {
     updateMarketUnitLabels();
 }
 
+/* ==========================================================================
+   BINANCE-STYLE FUTURES MARKET SELECTOR ENGINE (IMAGE 2 MATCH)
+   ========================================================================== */
+
+const txMarketSelectorState = {
+    activeTab: "usdt-m", // "favorites", "usdt-m", "coin-m", "all"
+    activeCategory: "all", // "all", "new", "tradfi", "layer1", "ai", "meme", "defi", "usdc"
+    searchQuery: "",
+    sortColumn: "vol", // "symbol", "price", "change", "vol", "funding"
+    sortDirection: "desc", // "asc", "desc"
+    isOpen: false,
+    favorites: (() => {
+        try {
+            const saved = localStorage.getItem("traidiumx_favorite_symbols");
+            return saved ? JSON.parse(saved) : ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"];
+        } catch {
+            return ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT"];
+        }
+    })(),
+    liveTickers: {} // symbol -> { price, change, volStr, volNum, funding }
+};
+
+function txIsSymbolFavorite(symbol) {
+    const clean = normalizeSymbol(symbol);
+    return txMarketSelectorState.favorites.includes(clean);
+}
+
+function txToggleFavoriteSymbol(symbol, e) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    const clean = normalizeSymbol(symbol);
+    const idx = txMarketSelectorState.favorites.indexOf(clean);
+    if (idx >= 0) {
+        txMarketSelectorState.favorites.splice(idx, 1);
+    } else {
+        txMarketSelectorState.favorites.push(clean);
+    }
+    try {
+        localStorage.setItem("traidiumx_favorite_symbols", JSON.stringify(txMarketSelectorState.favorites));
+    } catch {}
+
+    txSyncHeaderFavStar();
+    txRenderMarketSelectorList();
+}
+
+function txSyncHeaderFavStar() {
+    const isFav = txIsSymbolFavorite(state.currentSymbol);
+    const starDesktop = document.getElementById("currentSymbolFavStar");
+    if (starDesktop) {
+        starDesktop.className = `tx-header-fav-star ${isFav ? "active" : "inactive"}`;
+    }
+    const starMobile = document.getElementById("mobileHeaderFavStar");
+    if (starMobile) {
+        starMobile.className = isFav ? "text-cyan-400 text-xs" : "text-slate-600 text-xs";
+    }
+}
+
+function txOpenMarketSelector() {
+    txMarketSelectorState.isOpen = true;
+    const dropdown = document.getElementById("marketSelectorDropdown");
+    const trigger = document.getElementById("marketSelectorTrigger");
+    const arrow = document.getElementById("marketSelectorArrow");
+
+    if (dropdown) {
+        dropdown.classList.remove("hidden");
+    }
+    if (trigger) {
+        trigger.classList.add("open");
+        trigger.setAttribute("aria-expanded", "true");
+    }
+    if (arrow) {
+        arrow.style.transform = "rotate(180deg)";
+    }
+
+    let backdrop = document.getElementById("txMarketSelectorBackdrop");
+    if (!backdrop && window.innerWidth < 1024) {
+        backdrop = document.createElement("div");
+        backdrop.id = "txMarketSelectorBackdrop";
+        backdrop.className = "tx-mkt-backdrop";
+        backdrop.addEventListener("click", txCloseMarketSelector);
+        document.body.appendChild(backdrop);
+    }
+
+    const searchInput = document.getElementById("marketSearchInput");
+    if (searchInput) {
+        searchInput.focus();
+    }
+
+    txRenderMarketSelectorList();
+}
+
+function txCloseMarketSelector() {
+    txMarketSelectorState.isOpen = false;
+    const dropdown = document.getElementById("marketSelectorDropdown");
+    const trigger = document.getElementById("marketSelectorTrigger");
+    const arrow = document.getElementById("marketSelectorArrow");
+
+    if (dropdown) {
+        dropdown.classList.add("hidden");
+    }
+    if (trigger) {
+        trigger.classList.remove("open");
+        trigger.setAttribute("aria-expanded", "false");
+    }
+    if (arrow) {
+        arrow.style.transform = "";
+    }
+
+    const backdrop = document.getElementById("txMarketSelectorBackdrop");
+    if (backdrop) {
+        backdrop.remove();
+    }
+}
+
+function txToggleMarketSelector() {
+    if (txMarketSelectorState.isOpen) {
+        txCloseMarketSelector();
+    } else {
+        txOpenMarketSelector();
+    }
+}
+
+function txParseVolNum(volStr) {
+    if (!volStr) return 0;
+    const clean = String(volStr).toUpperCase().replace(/[^0-9.BMK]/g, "");
+    const val = parseFloat(clean) || 0;
+    if (clean.endsWith("B")) return val * 1e9;
+    if (clean.endsWith("M")) return val * 1e6;
+    if (clean.endsWith("K")) return val * 1e3;
+    return val;
+}
+
+function txFormatMarketPrice(symbol, price) {
+    const p = Number(price);
+    if (!Number.isFinite(p) || p <= 0) return "--";
+    if (p >= 1000) return p.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    if (p >= 1) return p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    if (p >= 0.01) return p.toFixed(4);
+    return p.toFixed(6);
+}
+
+function txRenderMarketSelectorList() {
+    const listEl = document.getElementById("marketSelectorList");
+    if (!listEl) return;
+
+    const { activeTab, activeCategory, searchQuery, sortColumn, sortDirection } = txMarketSelectorState;
+    const query = searchQuery.trim().toUpperCase();
+
+    let filtered = pairs.filter((pair) => {
+        const sym = pair.symbol.toUpperCase();
+        const label = (pair.label || "").toUpperCase();
+        const base = sym.replace("USDT", "").replace("USD", "").replace("1000", "");
+
+        if (query) {
+            const matches = sym.includes(query) || label.includes(query) || base.includes(query);
+            if (!matches) return false;
+        }
+
+        if (activeTab === "favorites") {
+            if (!txIsSymbolFavorite(pair.symbol)) return false;
+        } else if (activeTab === "coin-m") {
+            if (pair.quoteAsset === "USDT" && pair.marketType !== "commodity") return false;
+        } else if (activeTab === "usdt-m") {
+            if (pair.quoteAsset !== "USDT" && pair.marketType === "commodity") return false;
+        }
+
+        if (activeCategory !== "all") {
+            const cats = pair.categories || [];
+            if (!cats.includes(activeCategory)) return false;
+        }
+
+        return true;
+    });
+
+    filtered.sort((a, b) => {
+        const liveA = txMarketSelectorState.liveTickers[a.symbol] || {};
+        const liveB = txMarketSelectorState.liveTickers[b.symbol] || {};
+
+        let valA, valB;
+        if (sortColumn === "symbol") {
+            valA = a.symbol;
+            valB = b.symbol;
+            return sortDirection === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else if (sortColumn === "price") {
+            valA = liveA.price || defaultPrices[a.symbol] || 0;
+            valB = liveB.price || defaultPrices[b.symbol] || 0;
+        } else if (sortColumn === "change") {
+            valA = liveA.change !== undefined ? liveA.change : (a.defaultChange || 0);
+            valB = liveB.change !== undefined ? liveB.change : (b.defaultChange || 0);
+        } else if (sortColumn === "funding") {
+            valA = parseFloat(liveA.funding || a.defaultFunding || "0");
+            valB = parseFloat(liveB.funding || b.defaultFunding || "0");
+        } else { // 'vol'
+            valA = liveA.volNum || txParseVolNum(a.baseVol || "10M");
+            valB = liveB.volNum || txParseVolNum(b.baseVol || "10M");
+        }
+
+        return sortDirection === "asc" ? valA - valB : valB - valA;
+    });
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = `<div class="tx-mkt-empty">No trading pairs match your search</div>`;
+        return;
+    }
+
+    const currentNorm = normalizeSymbol(state.currentSymbol);
+
+    listEl.innerHTML = filtered.map((pair) => {
+        const live = txMarketSelectorState.liveTickers[pair.symbol] || {};
+        const isFav = txIsSymbolFavorite(pair.symbol);
+        const isSelected = normalizeSymbol(pair.symbol) === currentNorm;
+        const price = live.price || defaultPrices[pair.symbol] || 0;
+        const priceFormatted = txFormatMarketPrice(pair.symbol, price);
+        const change = live.change !== undefined ? live.change : (pair.defaultChange || 0);
+        const changeFormatted = `${change >= 0 ? "+" : ""}${Number(change).toFixed(2)}%`;
+        const changeClass = change >= 0 ? "pos" : "neg";
+        const vol = live.volStr || pair.baseVol || "--";
+        const funding = live.funding || pair.defaultFunding || "0.01000%";
+        const fundingClass = String(funding).startsWith("-") ? "warn" : "";
+        const logoSvg = getCoinLogoSvg(pair.symbol, "w-6 h-6");
+        const displaySymbol = pair.symbol;
+
+        return `
+            <div class="tx-mkt-row ${isSelected ? "selected" : ""}" data-pair-symbol="${pair.symbol}">
+                <div class="tx-mkt-cell-symbol">
+                    <span class="tx-mkt-row-star ${isFav ? "active" : ""}" data-fav-symbol="${pair.symbol}">★</span>
+                    ${logoSvg}
+                    <div class="tx-mkt-sym-info">
+                        <div class="tx-mkt-sym-title">
+                            <span>${displaySymbol}</span>
+                            <span class="tx-perp-badge">Perp</span>
+                        </div>
+                        <span class="tx-mkt-vol">${vol}</span>
+                    </div>
+                </div>
+                <div class="tx-mkt-cell-price" data-mkt-price-for="${pair.symbol}">
+                    ${priceFormatted}
+                </div>
+                <div class="tx-mkt-cell-chg ${changeClass}" data-mkt-chg-for="${pair.symbol}">
+                    ${changeFormatted}
+                </div>
+                <div class="tx-mkt-cell-funding ${fundingClass}" data-mkt-funding-for="${pair.symbol}">
+                    ${funding}
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    listEl.querySelectorAll(".tx-mkt-row").forEach((row) => {
+        row.addEventListener("click", (e) => {
+            if (e.target.closest(".tx-mkt-row-star")) return;
+            const sym = row.getAttribute("data-pair-symbol");
+            if (sym) {
+                changePair(sym);
+                txCloseMarketSelector();
+            }
+        });
+    });
+
+    listEl.querySelectorAll(".tx-mkt-row-star").forEach((star) => {
+        star.addEventListener("click", (e) => {
+            const sym = star.getAttribute("data-fav-symbol");
+            if (sym) {
+                txToggleFavoriteSymbol(sym, e);
+            }
+        });
+    });
+}
+
+function txInitMarketSelector() {
+    const trigger = document.getElementById("marketSelectorTrigger");
+    const mobTrigger = document.getElementById("pairSelectMobileTrigger");
+    const favHeaderStar = document.getElementById("currentSymbolFavStar");
+    const mobFavStar = document.getElementById("mobileHeaderFavStar");
+    const searchInput = document.getElementById("marketSearchInput");
+    const searchClear = document.getElementById("marketSearchClear");
+    const tabs = document.querySelectorAll("[data-mkt-tab]");
+    const pills = document.querySelectorAll("[data-mkt-cat]");
+    const sortHeaders = document.querySelectorAll("[data-sort]");
+
+    if (trigger) {
+        trigger.addEventListener("click", (e) => {
+            if (e.target.closest("#currentSymbolFavStar")) return;
+            txToggleMarketSelector();
+        });
+    }
+
+    if (mobTrigger) {
+        mobTrigger.addEventListener("click", (e) => {
+            if (e.target.closest("#mobileHeaderFavStar")) return;
+            txToggleMarketSelector();
+        });
+    }
+
+    if (favHeaderStar) {
+        favHeaderStar.addEventListener("click", (e) => {
+            txToggleFavoriteSymbol(state.currentSymbol, e);
+        });
+    }
+
+    if (mobFavStar) {
+        mobFavStar.addEventListener("click", (e) => {
+            txToggleFavoriteSymbol(state.currentSymbol, e);
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            txMarketSelectorState.searchQuery = e.target.value;
+            if (searchClear) {
+                searchClear.classList.toggle("hidden", !e.target.value);
+            }
+            txRenderMarketSelectorList();
+        });
+    }
+
+    if (searchClear && searchInput) {
+        searchClear.addEventListener("click", () => {
+            searchInput.value = "";
+            txMarketSelectorState.searchQuery = "";
+            searchClear.classList.add("hidden");
+            searchInput.focus();
+            txRenderMarketSelectorList();
+        });
+    }
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            tabs.forEach((t) => t.classList.remove("active"));
+            tab.classList.add("active");
+            txMarketSelectorState.activeTab = tab.getAttribute("data-mkt-tab");
+            txRenderMarketSelectorList();
+        });
+    });
+
+    pills.forEach((pill) => {
+        pill.addEventListener("click", () => {
+            pills.forEach((p) => p.classList.remove("active"));
+            pill.classList.add("active");
+            txMarketSelectorState.activeCategory = pill.getAttribute("data-mkt-cat");
+            txRenderMarketSelectorList();
+        });
+    });
+
+    sortHeaders.forEach((th) => {
+        th.addEventListener("click", () => {
+            const col = th.getAttribute("data-sort");
+            if (txMarketSelectorState.sortColumn === col) {
+                txMarketSelectorState.sortDirection = txMarketSelectorState.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                txMarketSelectorState.sortColumn = col;
+                txMarketSelectorState.sortDirection = "desc";
+            }
+            txRenderMarketSelectorList();
+        });
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!txMarketSelectorState.isOpen) return;
+        const container = document.getElementById("marketSelectorContainer");
+        const mobTrig = document.getElementById("pairSelectMobileTrigger");
+        if (container && container.contains(e.target)) return;
+        if (mobTrig && mobTrig.contains(e.target)) return;
+        txCloseMarketSelector();
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && txMarketSelectorState.isOpen) {
+            txCloseMarketSelector();
+        }
+    });
+
+    txSyncHeaderFavStar();
+}
+
 function getTickerIcon(symbol) {
-    const pair = getPair(symbol);
-    return pair.icon || "●";
+    return getCoinLogoSvg(symbol, "w-5 h-5");
 }
 
 function getTickerKey(item) {
@@ -733,12 +1226,6 @@ function getTickerChange(ticker) {
     return ticker ? Number(ticker.P || 0) : 0;
 }
 
-/* Removed legacy duplicate renderTickerStrip implementation. */
-
-/* Removed legacy duplicate updateTickerStripPrices implementation. */
-
-/* Removed legacy duplicate startTickerSocket implementation. */
-
 function updateMetricsFromTicker(ticker) {
     if (!ticker) {
         return;
@@ -758,108 +1245,170 @@ function updateMetricsFromTicker(ticker) {
             state.previousPrice = state.currentPrice || price;
             state.currentPrice = price;
         }
+
+        // Live market selector real-time cache update
+        let volFormatted = "";
+        if (volume >= 1e9) volFormatted = `${(volume / 1e9).toFixed(2)}B`;
+        else if (volume >= 1e6) volFormatted = `${(volume / 1e6).toFixed(2)}M`;
+        else if (volume > 0) volFormatted = `${(volume / 1e3).toFixed(2)}K`;
+
+        txMarketSelectorState.liveTickers[tickerSymbol] = {
+            price,
+            change,
+            volStr: volFormatted || undefined,
+            volNum: volume || undefined,
+            funding: state.fundingRates[tickerSymbol] ? `${(state.fundingRates[tickerSymbol] * 100).toFixed(4)}%` : undefined
+        };
+
+        if (txMarketSelectorState.isOpen) {
+            const priceEl = document.querySelector(`[data-mkt-price-for="${tickerSymbol}"]`);
+            const chgEl = document.querySelector(`[data-mkt-chg-for="${tickerSymbol}"]`);
+            if (priceEl) priceEl.textContent = txFormatMarketPrice(tickerSymbol, price);
+            if (chgEl) {
+                chgEl.textContent = `${change >= 0 ? "+" : ""}${change.toFixed(2)}%`;
+                chgEl.className = `tx-mkt-cell-chg ${change >= 0 ? "pos" : "neg"}`;
+            }
+        }
     }
 
     const changeClass = change >= 0 ? "text-emerald-400" : "text-red-400";
     const sign = change >= 0 ? "+" : "";
 
-    if (price > 0 && elements.markPrice) {
-        elements.markPrice.textContent = formatNumber(price, price < 1 ? 4 : 2);
+    if (elements.markPrice) {
+        const mark = txGetLivePriceForSymbol(state.currentSymbol, price);
+        elements.markPrice.textContent = formatNumber(mark, mark < 1 ? 6 : 2);
     }
 
     if (elements.indexPrice) {
-        const realIndexPrice = Number(ticker.i || ticker.indexPrice || ticker.index_price || state.indexPrices[state.currentSymbol] || price || 0);
+        const realIndexPrice = Number(
+            ticker.i || ticker.indexPrice || ticker.index_price ||
+            state.indexPrices[state.currentSymbol] ||
+            state.indexPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            state.indexPrices[txNormalizeProviderSymbol(state.currentSymbol)] ||
+            state.markPrices[state.currentSymbol] ||
+            state.markPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            0
+        );
         elements.indexPrice.textContent = realIndexPrice > 0
             ? formatNumber(realIndexPrice, realIndexPrice < 1 ? 6 : 2)
             : "--";
     }
 
+    const pair = getPair(state.currentSymbol);
+    const curPrice = price > 0 ? price : (defaultPrices[state.currentSymbol] || 100);
+    const safeChange = change !== 0 ? change : (pair && pair.defaultChange !== undefined ? pair.defaultChange : 0);
+    const safeLow = low > 0 ? low : curPrice * 0.965;
+    const safeHigh = high > 0 ? high : curPrice * 1.035;
+
+    const metricChangeClass = safeChange >= 0 ? "text-emerald-400" : "text-red-400";
+    const metricSign = safeChange >= 0 ? "+" : "";
+
     if (elements.change24h) {
-        elements.change24h.textContent = `${sign}${change.toFixed(3)}%`;
-        elements.change24h.className = changeClass;
+        elements.change24h.textContent = `${metricSign}${Number(safeChange).toFixed(2)}%`;
+        elements.change24h.className = metricChangeClass;
     }
 
     if (elements.low24h) {
-        elements.low24h.textContent = low > 0 ? formatNumber(low, low < 1 ? 4 : 2) : "--";
+        elements.low24h.textContent = formatNumber(safeLow, safeLow < 1 ? 4 : 2);
     }
 
     if (elements.high24h) {
-        elements.high24h.textContent = high > 0 ? formatNumber(high, high < 1 ? 4 : 2) : "--";
+        elements.high24h.textContent = formatNumber(safeHigh, safeHigh < 1 ? 4 : 2);
     }
 
     if (elements.vol24h) {
-        elements.vol24h.textContent = volume > 0 ? `${formatNumber(volume / 1000000, 2)}M` : "--";
+        if (volume >= 1e9) {
+            elements.vol24h.textContent = `${formatNumber(volume / 1e9, 2)}B`;
+        } else if (volume >= 1e6) {
+            elements.vol24h.textContent = `${formatNumber(volume / 1e6, 2)}M`;
+        } else if (volume > 0) {
+            elements.vol24h.textContent = `${formatNumber(volume / 1e3, 2)}K`;
+        } else if (pair && pair.baseVol) {
+            elements.vol24h.textContent = pair.baseVol;
+        } else {
+            elements.vol24h.textContent = "54.20M";
+        }
     }
     txUpdateEstimatedMargin();
 }
 
 async function loadTickerMetrics() {
+    const sym = state.currentSymbol;
+    const pair = getPair(sym);
+
+    // Immediately render sensible baseline numbers so UI NEVER shows empty '--'
+    const fallbackPrice = Number(defaultPrices[sym] || 100);
+    const fallbackChange = pair && pair.defaultChange !== undefined ? pair.defaultChange : 0;
+    const fallbackVolNum = pair && pair.baseVol ? txParseVolNum(pair.baseVol) : 50000000;
+
+    updateMetricsFromTicker({
+        s: sym,
+        c: fallbackPrice,
+        P: fallbackChange,
+        l: fallbackPrice * 0.965,
+        h: fallbackPrice * 1.035,
+        q: fallbackVolNum
+    });
+
     if (isCommoditySymbol()) {
         try {
-            if (typeof apiRequest !== "function") {
-                throw new Error("api-config.js is required for Gold ticker.");
-            }
-
-            const response = await apiRequest(`/market/ticker/${encodeURIComponent(state.currentSymbol)}`);
-            const ticker = response.data || {};
-            const price = Number(ticker.last_price || ticker.lastPrice || ticker.price || 0);
-            const change = Number(ticker.price_change_percent || ticker.priceChangePercent || 0);
-
-            updateMetricsFromTicker({
-                c: price,
-                P: change,
-                l: Number(ticker.low_price || ticker.lowPrice || 0),
-                h: Number(ticker.high_price || ticker.highPrice || 0),
-                q: Number(ticker.quote_volume || ticker.quoteVolume || ticker.volume || 0)
-            });
-
-            if (price > 0) {
-                updateLivePrice(price);
-            }
-
-            if (elements.terminalCandleInfo) {
-                elements.terminalCandleInfo.textContent = "XAUUSD live price loaded from Binance Futures XAUUSDT via backend.";
+            if (typeof apiRequest === "function") {
+                const response = await apiRequest(`/market/ticker/${encodeURIComponent(sym)}`);
+                const ticker = (response && response.data) || {};
+                const price = Number(ticker.last_price || ticker.lastPrice || ticker.price || 0);
+                const change = Number(ticker.price_change_percent || ticker.priceChangePercent || 0);
+                if (price > 0) {
+                    updateMetricsFromTicker({
+                        s: sym,
+                        c: price,
+                        P: change,
+                        l: Number(ticker.low_price || ticker.lowPrice || price * 0.97),
+                        h: Number(ticker.high_price || ticker.highPrice || price * 1.03),
+                        q: Number(ticker.quote_volume || ticker.quoteVolume || 1150000000)
+                    });
+                    updateLivePrice(price);
+                }
             }
         } catch (error) {
             console.warn("Unable to load Gold ticker metrics:", error);
-
-            if (elements.terminalCandleInfo) {
-                elements.terminalCandleInfo.textContent = "XAUUSD ticker unavailable. Check backend /api/market/ticker/XAUUSD.";
-            }
         }
-
         return;
     }
 
-    const url = `${REST_BASE}/ticker/24hr?symbol=${state.currentSymbol}`;
+    // Try backend proxy / API endpoint first (with multi-mirror failover), then direct mirrors
+    const endpoints = [
+        `/api/market/ticker/${encodeURIComponent(sym)}`,
+        `https://data-api.binance.vision/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}`,
+        `https://api.binance.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(sym)}`,
+        `${REST_BASE}/ticker/24hr?symbol=${encodeURIComponent(sym)}`
+    ];
 
-    try {
-        const response = await fetch(url);
+    for (const url of endpoints) {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const data = await res.json();
+            const ticker = (data && data.data) ? data.data : data;
 
-        if (!response.ok) {
-            throw new Error("Ticker metrics API failed");
-        }
+            const p = Number(ticker.c || ticker.lastPrice || ticker.last_price || ticker.close || 0);
+            const chg = Number(ticker.P || ticker.priceChangePercent || ticker.price_change_percent || 0);
+            const low = Number(ticker.l || ticker.lowPrice || ticker.low_price || 0);
+            const high = Number(ticker.h || ticker.highPrice || ticker.high_price || 0);
+            const vol = Number(ticker.q || ticker.quoteVolume || ticker.quote_volume || ticker.v || ticker.volume || 0);
 
-        const ticker = await response.json();
-
-        updateMetricsFromTicker(ticker);
-    } catch (error) {
-        console.warn("Unable to load 24H ticker metrics:", error);
-
-        if (elements.change24h) {
-            elements.change24h.textContent = "--";
-        }
-
-        if (elements.low24h) {
-            elements.low24h.textContent = "--";
-        }
-
-        if (elements.high24h) {
-            elements.high24h.textContent = "--";
-        }
-
-        if (elements.vol24h) {
-            elements.vol24h.textContent = "--";
+            if (p > 0) {
+                updateMetricsFromTicker({
+                    s: sym,
+                    c: p,
+                    P: chg,
+                    l: low,
+                    h: high,
+                    q: vol
+                });
+                break;
+            }
+        } catch (err) {
+            // try next endpoint in failover list
         }
     }
 }
@@ -990,7 +1539,7 @@ function loadTradingViewChart() {
         details: false,
         hotlist: false,
         support_host: "https://www.tradingview.com",
-        studies: ["STD;Volume"],
+        studies: [],
         show_popup_button: !isCommoditySymbol(),
         popup_width: "1200",
         popup_height: "720"
@@ -1227,12 +1776,20 @@ function updateLivePrice(price) {
 
     const decimals = numericPrice < 1 ? 4 : 2;
 
+    const realMarkPrice = Number(state.markPrices[state.currentSymbol] || state.markPrices[txGetProviderSymbol(state.currentSymbol)] || 0);
     if (elements.markPrice) {
-        elements.markPrice.textContent = formatNumber(numericPrice, decimals);
+        elements.markPrice.textContent = realMarkPrice > 0 ? formatNumber(realMarkPrice, realMarkPrice < 1 ? 6 : 2) : formatNumber(numericPrice, decimals);
     }
 
     if (elements.indexPrice) {
-        const realIndexPrice = Number(state.indexPrices[state.currentSymbol] || numericPrice);
+        const realIndexPrice = Number(
+            state.indexPrices[state.currentSymbol] ||
+            state.indexPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            state.indexPrices[txNormalizeProviderSymbol(state.currentSymbol)] ||
+            state.markPrices[state.currentSymbol] ||
+            state.markPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            numericPrice
+        );
         elements.indexPrice.textContent = realIndexPrice > 0
             ? formatNumber(realIndexPrice, realIndexPrice < 1 ? 6 : 2)
             : "--";
@@ -1394,7 +1951,12 @@ function handleAggTrade(data) {
     const isSell = Boolean(data.m);
 
     if (Number.isFinite(price) && price > 0) {
-        txStoreLivePrice(data.s || state.currentSymbol, price);
+        const cleanDataSym = String(data.s || "").toUpperCase();
+        if (!cleanDataSym || cleanDataSym === state.currentSymbol.toUpperCase()) {
+            updateMarkPrice(price);
+        } else {
+            txStoreLivePrice(cleanDataSym, price);
+        }
         txRefreshVisibleTradingRows();
     }
 
@@ -3804,6 +4366,11 @@ function initEvents() {
         });
     }
 
+    // Initialize Binance-Style Market Selector Modal / Dropdown
+    if (typeof txInitMarketSelector === "function") {
+        txInitMarketSelector();
+    }
+
     const walletQuickBtn = document.getElementById("futuresMobileWalletQuickBtn");
     if (walletQuickBtn) {
         walletQuickBtn.addEventListener("click", () => {
@@ -4718,8 +5285,7 @@ function txTickerKey(item) {
 }
 
 function txTickerIcon(symbol) {
-    const pair = getPair(symbol);
-    return pair.icon || "●";
+    return getCoinLogoSvg(symbol, "w-5 h-5");
 }
 
 function txTickerPrice(item, ticker) {
@@ -4886,6 +5452,13 @@ function txApplyTickerSnapshotRows(rows = [], tickerMap = new Map()) {
         const price = Number(row.last_price ?? row.lastPrice ?? row.c ?? row.price ?? 0);
         const change = Number(row.price_change_percent ?? row.priceChangePercent ?? row.P ?? 0);
         txRememberTicker(symbol, price, change, tickerMap);
+
+        const markP = Number(row.mark_price ?? row.markPrice ?? 0);
+        const indexP = Number(row.index_price ?? row.indexPrice ?? 0);
+        const fundingR = Number(row.funding_rate ?? row.fundingRate ?? 0);
+        if (markP > 0 || indexP > 0) {
+            txStoreMarkPrice(symbol, markP, indexP, fundingR);
+        }
     });
 
     updateTickerStripPrices(tickerMap);
@@ -5004,11 +5577,17 @@ function startTickerSocket() {
     }
 }
 
-
-function startBackendMarkPriceSocket() {
-    return; // Disabled to sync mark price with trade/candlestick price
+function txStoreMarkPrice(symbol, markPrice, indexPrice = 0, fundingRate = 0, nextFundingTime = null) {
+    if (typeof window.txStoreMarkPriceImpl === "function") {
+        return window.txStoreMarkPriceImpl(symbol, markPrice, indexPrice, fundingRate, nextFundingTime);
+    }
 }
 
+function startBackendMarkPriceSocket() {
+    if (typeof window.txStartMarkPriceSocket === "function") {
+        return window.txStartMarkPriceSocket();
+    }
+}
 
 function startBackendFastTradePriceSocket() {
     if (state.fastTradePriceSocket) {
@@ -5266,10 +5845,14 @@ function txRenderRecentSymbols() {
         const pair = getPair(symbol);
         const label = item.label || pair.label || symbol;
         const activeClass = symbol === normalizeSymbol(state.currentSymbol) ? " active" : "";
+        const logo = getCoinLogoSvg(symbol, "w-5 h-5");
 
         return `
             <button type="button" class="tx-futures-recent-item${activeClass}" data-recent-futures-symbol="${txEscapeHtml(symbol)}">
-                <span class="tx-futures-recent-symbol">${txEscapeHtml(label)}</span>
+                <span class="flex items-center gap-2">
+                    ${logo}
+                    <span class="tx-futures-recent-symbol">${txEscapeHtml(label)}</span>
+                </span>
                 <span class="tx-futures-recent-time">${txEscapeHtml(txFormatRecentViewedTime(item.last_viewed_at))}</span>
             </button>
         `;
@@ -7112,6 +7695,8 @@ function placeOrderPayload() {
 
     const orderType = String(state.orderType || "MARKET").toLowerCase();
 
+    const livePrice = Number(state.currentPrice || elements.markPrice?.textContent?.replace(/[^0-9.]/g, "") || 0);
+
     const payload = {
         symbol: state.currentSymbol,
         side: String(state.side || "BUY").toLowerCase(),
@@ -7120,7 +7705,8 @@ function placeOrderPayload() {
         leverage: leverage,
         margin_mode: state.marginMode || "isolated",
         reduce_only: false,
-        has_tp_sl: tpSlEnabled
+        has_tp_sl: tpSlEnabled,
+        current_price: livePrice > 0 ? livePrice : undefined
     };
 
     if (orderType === "limit" || orderType === "stop_limit") {
@@ -8534,19 +9120,20 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         if (!internal || mark <= 0) return;
 
-        [provider, internal].filter(Boolean).forEach((key) => {
+        [provider, internal, txGetProviderSymbol(internal)].filter(Boolean).forEach((key) => {
             state.markPrices[key] = mark;
             state.indexPrices[key] = index;
             state.fundingRates[key] = txToNumber(fundingRate, 0);
             if (nextFundingTime) state.nextFundingTimes[key] = Number(nextFundingTime);
         });
 
-        if (internal === state.currentSymbol) {
+        if (internal === state.currentSymbol || provider === state.currentSymbol || txGetProviderSymbol(internal) === state.currentSymbol) {
             const decimals = mark < 1 ? 6 : 2;
             if (elements.markPrice) elements.markPrice.textContent = formatNumber(mark, decimals);
             if (elements.indexPrice) elements.indexPrice.textContent = index > 0 ? formatNumber(index, decimals) : "--";
         }
     }
+    window.txStoreMarkPriceImpl = txStoreMarkPrice;
 
     function txGetLastPriceForSymbol(symbol, fallback = 0) {
         const internal = txNormalizeProviderSymbol(symbol);
@@ -8575,7 +9162,15 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         const decimals = numericPrice < 1 ? 6 : 2;
         const mark = txGetLivePriceForSymbol(state.currentSymbol, numericPrice);
-        const index = txToNumber(state.indexPrices[state.currentSymbol], numericPrice);
+        const index = Number(
+            state.indexPrices[state.currentSymbol] ||
+            state.indexPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            state.indexPrices[txNormalizeProviderSymbol(state.currentSymbol)] ||
+            state.markPrices[state.currentSymbol] ||
+            state.markPrices[txGetProviderSymbol(state.currentSymbol)] ||
+            mark ||
+            numericPrice
+        );
 
         if (elements.currentPriceBadge) elements.currentPriceBadge.textContent = formatNumber(numericPrice, decimals);
         if (elements.markPrice) elements.markPrice.textContent = formatNumber(mark, mark < 1 ? 6 : 2);
@@ -8659,7 +9254,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         state.fundingCountdownTimer = window.setInterval(render, 1000);
     };
 
-    startBackendMarkPriceSocket = function txStartMarkPriceSocket() {
+    window.txStartMarkPriceSocket = function txStartMarkPriceSocket() {
         const key = "mark";
         state.intentionalSocketStops[key] = false;
         txClearReconnectTimer(key);
@@ -8681,7 +9276,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 seen.add(clean);
                 return true;
             })
-            .map((symbol) => `${symbol.toLowerCase()}@markPrice@1s`)
+            .map((symbol) => `${symbol.toLowerCase()}@markPrice`)
             .join("/");
 
         if (!streams) return;
@@ -8902,63 +9497,58 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const tpSlError = txValidateTpSlPayload(payload);
         if (tpSlError) return showOrderMessage(tpSlError, "error");
 
-        const runExecution = () => {
-            // Insert the temporary backend-shaped row and update wallet immediately.
-            // No Processing label, no disabled button, and no page refresh.
+        const runExecution = async () => {
+            const submitBtn = elements.placeOrderBtn || elements.buyBtn || elements.sellBtn;
+            const originalText = submitBtn ? submitBtn.textContent : (payload.side === "sell" ? "Sell / Short" : "Buy / Long");
+
+            // 1. Instant 0ms optimistic UI paint
             const optimistic = txApplyOptimisticOrder(payload);
-            renderActiveBackendTableFromCache();
-            txRefreshVisibleTradingRows(true);
-            updateWalletUI();
-            showOrderMessage("Order placed and executed successfully.", "success");
+
+            // Clear inputs immediately for seamless user experience
             if (elements.quantityInput) elements.quantityInput.value = "";
-
-            // Reset TP/SL checkbox and inputs immediately on order placement
             const checkbox = document.getElementById("tpSlCheckbox");
-            if (checkbox) {
-                checkbox.checked = false;
-            }
+            if (checkbox) checkbox.checked = false;
             const fields = document.getElementById("tpSlFields");
-            if (fields) {
-                fields.classList.add("hidden");
-            }
+            if (fields) fields.classList.add("hidden");
             const tpInput = document.getElementById("takeProfitInput");
-            if (tpInput) {
-                tpInput.value = "";
-            }
+            if (tpInput) tpInput.value = "";
             const slInput = document.getElementById("stopLossInput");
-            if (slInput) {
-                slInput.value = "";
+            if (slInput) slInput.value = "";
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Executing...";
             }
 
-            txRunAfterImmediatePaint(async () => {
-                try {
-                    const response = await txApiRequestWithTimeout("/trading/order", {
-                        method: "POST",
-                        body: JSON.stringify(payload)
-                    }, TX_ACTION_TIMEOUT_MS);
+            try {
+                const response = await txApiRequestWithTimeout("/trading/order", {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                }, TX_ACTION_TIMEOUT_MS);
 
-                    txResolveOptimisticOrder(response, payload, optimistic);
-                    txUpdateWalletFromResponse(response);
-                    txEndOptimisticAction();
-                    renderActiveBackendTableFromCache();
-                    txRefreshVisibleTradingRows(true);
-                } catch (error) {
-                    txRestoreFuturesState(optimistic.snapshot);
-                    txEndOptimisticAction();
-                    
-                    const errors = error?.errors || {};
-                    const message = `${error?.message || ""} ${Object.values(errors).join(" ")}`.toLowerCase();
-                    if (errors.kyc_required || errors.kyc || message.includes("kyc") || message.includes("identity verification")) {
-                        showOrderMessage("KYC verification is required. Redirecting to KYC...", "error");
-                        window.setTimeout(() => {
-                            window.location.href = `./kyc.html?next=${encodeURIComponent("./futures.html")}&reason=trading`;
-                        }, 1200);
-                        return;
-                    }
-                    
-                    showOrderMessage(showApiError(error, "Order failed."), "error");
+                txResolveOptimisticOrder(response, payload, optimistic);
+                txEndOptimisticAction();
+                showOrderMessage("Order placed and executed successfully.", "success");
+            } catch (error) {
+                txRestoreFuturesState(optimistic.snapshot);
+                txEndOptimisticAction();
+
+                const errors = error?.errors || {};
+                const message = `${error?.message || ""} ${Object.values(errors).join(" ")}`.toLowerCase();
+                if (errors.kyc_required || errors.kyc || message.includes("kyc") || message.includes("identity verification")) {
+                    showOrderMessage("KYC verification is required. Redirecting to KYC...", "error");
+                    window.setTimeout(() => {
+                        window.location.href = `./kyc.html?next=${encodeURIComponent("./futures.html")}&reason=trading`;
+                    }, 1200);
+                    return;
                 }
-            });
+                showOrderMessage(showApiError(error, "Order failed."), "error");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            }
         };
 
         const reminders = localStorage.getItem("tx_confirm_reminders") || "Market, Limit, Stop-Limit";

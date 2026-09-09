@@ -84,22 +84,31 @@ def delete_recent_symbol():
 @trading_api.post("/order")
 @auth_required
 def order():
-    data = request.get_json(silent=True) or {}
+    try:
+        data = request.get_json(silent=True) or {}
 
-    result = place_trading_order(g.current_user_id, data)
+        result = place_trading_order(g.current_user_id, data)
 
-    if result["success"]:
-        return success_response(
-            message=result["message"],
-            data=result["data"],
-            status_code=result["status_code"]
+        if result.get("success"):
+            return success_response(
+                message=result.get("message", "Order placed successfully."),
+                data=result.get("data", {}),
+                status_code=result.get("status_code", 201)
+            )
+
+        return error_response(
+            message=result.get("message", "Unable to place order."),
+            errors=result.get("errors", {}),
+            status_code=result.get("status_code", 400)
         )
-
-    return error_response(
-        message=result["message"],
-        errors=result["errors"],
-        status_code=result["status_code"]
-    )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return error_response(
+            message=f"Order processing error: {str(e)}",
+            errors={"execution": str(e)},
+            status_code=500
+        )
 
 
 @trading_api.get("/orders")

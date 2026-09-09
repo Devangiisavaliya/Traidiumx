@@ -5,8 +5,14 @@ import requests
 from config.settings import settings
 from models.market_symbol_model import find_market_symbol
 
-# Connection pooling session
+# Connection pooling session setup
 _SESSION = requests.Session()
+_adapter = requests.adapters.HTTPAdapter(pool_connections=25, pool_maxsize=25, max_retries=1)
+_SESSION.mount("https://", _adapter)
+_SESSION.mount("http://", _adapter)
+
+_CREDS_CACHE = None
+_CREDS_CACHE_TIME = 0
 
 # Symbol mapping helper
 BINANCE_SYMBOL_ALIASES = {
@@ -24,7 +30,11 @@ def _map_symbol(symbol):
     return BINANCE_SYMBOL_ALIASES.get(clean, clean)
 
 def _get_binance_credentials():
-    # Attempt to load from database system settings
+    global _CREDS_CACHE, _CREDS_CACHE_TIME
+    now = time.time()
+    if _CREDS_CACHE and now - _CREDS_CACHE_TIME < 30.0:
+        return _CREDS_CACHE
+
     try:
         from admin.settings_routes import get_final_settings
         db_settings = get_final_settings()
@@ -32,19 +42,41 @@ def _get_binance_credentials():
         secret_key = db_settings.get("binance_secret_key", "").strip()
         is_testnet = db_settings.get("binance_is_testnet", True)
         
-        # If API key is present in DB, use it
         if api_key:
-            return api_key, secret_key, is_testnet
+            res = (api_key, secret_key, is_testnet)
+            _CREDS_CACHE = res
+            _CREDS_CACHE_TIME = now
+            return res
     except Exception as e:
         print(f"Error loading Binance credentials from DB: {e}")
         
-    # Otherwise fallback to env file settings
-    return settings.BINANCE_API_KEY, settings.BINANCE_SECRET_KEY, settings.BINANCE_IS_TESTNET
+    res = (settings.BINANCE_API_KEY, settings.BINANCE_SECRET_KEY, settings.BINANCE_IS_TESTNET)
+    _CREDS_CACHE = res
+    _CREDS_CACHE_TIME = now
+    return res
 
 def _get_base_url(is_testnet):
     if is_testnet:
         return "https://demo-fapi.binance.com"
     return "https://fapi.binance.com"
+
+_SERVER_TIME_OFFSET = 0
+_LAST_SYNC_TIME = 0
+
+def _get_server_time_offset(base_url):
+    global _SERVER_TIME_OFFSET, _LAST_SYNC_TIME
+    now = time.time()
+    if now - _LAST_SYNC_TIME < 60:
+        return _SERVER_TIME_OFFSET
+    try:
+        res = _SESSION.get(f"{base_url}/fapi/v1/time", timeout=5).json()
+        server_time = int(res.get("serverTime", 0))
+        if server_time > 0:
+            _SERVER_TIME_OFFSET = server_time - int(now * 1000)
+            _LAST_SYNC_TIME = now
+    except Exception as e:
+        print(f"Failed to sync Binance server time: {e}")
+    return _SERVER_TIME_OFFSET
 
 def _send_signed_request(method, endpoint, params=None):
     api_key, secret_key, is_testnet = _get_binance_credentials()
@@ -57,8 +89,11 @@ def _send_signed_request(method, endpoint, params=None):
     # Copy or initialize params
     payload = params.copy() if params else {}
     
-    # Add timestamp in milliseconds
-    payload["timestamp"] = int(time.time() * 1000)
+    # Add timestamp in milliseconds synced with Binance server clock
+    offset = _get_server_time_offset(base_url)
+    payload["timestamp"] = int(time.time() * 1000) + offset
+    if "recvWindow" not in payload:
+        payload["recvWindow"] = 10000
     
     # Generate query string with sorted parameters
     sorted_params = sorted(payload.items())
@@ -103,43 +138,38 @@ def _send_signed_request(method, endpoint, params=None):
         print(f"Exception during Binance API request to {endpoint}: {e}")
         return {"success": False, "message": str(e)}
 
-_BINANCE_CONFIG_CACHE = {}
+_BINANCE_MARGIN_CACHE = {}
+_BINANCE_LEVERAGE_CACHE = {}
 
 def set_binance_leverage_and_margin(symbol, leverage, margin_mode):
     """Align leverage and margin type on Binance Futures for the given symbol."""
     symbol_mapped = _map_symbol(symbol)
     leverage = int(leverage)
-    margin_type = str(margin_mode).upper().strip()  # ISOLATED or CROSS
+    margin_type = str(margin_mode or "ISOLATED").upper().strip()  # ISOLATED or CROSS
     
-    cache_key = (symbol_mapped, leverage, margin_type)
-    if _BINANCE_CONFIG_CACHE.get(cache_key):
-        return {"success": True}
-    
-    # 1. Set Margin Type
-    # Note: Binance API throws an error -4046 if the margin type is already what we requested.
-    # We should catch and ignore that error.
-    margin_res = _send_signed_request("POST", "/fapi/v1/marginType", {
-        "symbol": symbol_mapped,
-        "marginType": margin_type
-    })
-    if not margin_res["success"]:
-        # Code -4046 / "No need to change margin type." can be ignored
-        if margin_res.get("code") == -4046:
-            print(f"Binance: Margin type already set to {margin_type} for {symbol_mapped}.")
+    # 1. Set Margin Type if not already configured
+    if _BINANCE_MARGIN_CACHE.get(symbol_mapped) != margin_type:
+        margin_res = _send_signed_request("POST", "/fapi/v1/marginType", {
+            "symbol": symbol_mapped,
+            "marginType": margin_type
+        })
+        if margin_res["success"] or margin_res.get("code") == -4046:
+            _BINANCE_MARGIN_CACHE[symbol_mapped] = margin_type
         else:
             print(f"Warning: Failed to set Binance margin type to {margin_type}: {margin_res.get('message')}")
-            
-    # 2. Set Leverage
-    lev_res = _send_signed_request("POST", "/fapi/v1/leverage", {
-        "symbol": symbol_mapped,
-        "leverage": leverage
-    })
-    if not lev_res["success"]:
-        print(f"Warning: Failed to set Binance leverage to {leverage}x for {symbol_mapped}: {lev_res.get('message')}")
-        return {"success": False, "message": lev_res.get("message")}
-        
-    print(f"Binance: Successfully configured {symbol_mapped} with {leverage}x leverage and {margin_type} margin mode.")
-    _BINANCE_CONFIG_CACHE[cache_key] = True
+
+    # 2. Set Leverage if not already configured
+    if _BINANCE_LEVERAGE_CACHE.get(symbol_mapped) != leverage:
+        lev_res = _send_signed_request("POST", "/fapi/v1/leverage", {
+            "symbol": symbol_mapped,
+            "leverage": leverage
+        })
+        if lev_res["success"]:
+            _BINANCE_LEVERAGE_CACHE[symbol_mapped] = leverage
+        else:
+            print(f"Warning: Failed to set Binance leverage to {leverage}x for {symbol_mapped}: {lev_res.get('message')}")
+            return {"success": False, "message": lev_res.get("message")}
+
     return {"success": True}
 
 def place_binance_futures_order(symbol, side, quantity, leverage, margin_mode, price=None, order_type="MARKET", reduce_only=False):
@@ -189,13 +219,36 @@ def place_binance_futures_order(symbol, side, quantity, leverage, margin_mode, p
     
     if res["success"]:
         order_data = res["data"]
-        print(f"Successfully placed order on Binance. Order ID: {order_data.get('orderId')}")
+        order_id = order_data.get("orderId")
+        avg_p = float(order_data.get("avgPrice", 0.0) or 0.0)
+
+        # If avgPrice is 0.0, calculate directly from filled quote / qty without an extra API call
+        if avg_p == 0.0:
+            cum_quote = float(order_data.get("cumQuote", 0.0) or 0.0)
+            cum_qty = float(order_data.get("cumQty", 0.0) or order_data.get("executedQty", 0.0) or 0.0)
+            if cum_quote > 0 and cum_qty > 0:
+                avg_p = cum_quote / cum_qty
+
+        # Fallback to GET only if avg_p is still 0.0
+        if avg_p == 0.0 and order_id:
+            try:
+                detail_res = _send_signed_request("GET", "/fapi/v1/order", {
+                    "symbol": symbol_mapped,
+                    "orderId": order_id
+                })
+                if detail_res.get("success"):
+                    order_data = detail_res.get("data", order_data)
+                    avg_p = float(order_data.get("avgPrice", 0.0) or 0.0)
+            except Exception as e:
+                print(f"Failed to fetch Binance order details: {e}")
+
+        print(f"Successfully placed order on Binance. Order ID: {order_id}, Avg Price: {avg_p}")
         return {
             "success": True,
-            "binance_order_id": str(order_data.get("orderId")),
+            "binance_order_id": str(order_id),
             "status": order_data.get("status"),
             "price": float(order_data.get("price", 0.0) or price or 0.0),
-            "avg_price": float(order_data.get("avgPrice", 0.0) or price or 0.0),
+            "avg_price": avg_p if avg_p > 0 else float(price or 0.0),
             "raw_response": order_data
         }
     else:

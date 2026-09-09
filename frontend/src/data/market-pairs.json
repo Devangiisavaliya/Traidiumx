@@ -159,9 +159,20 @@
         "name": "Polygon",
         "category": "USDT Futures",
         "leverage": "25x",
-        "ltp": "0.42 USDT",
-        "change": -0.85,
+        "ltp": "0.3794 USDT",
+        "change": -0.28,
         "volume": "2,15,40,100.0",
+        "trend": false
+    },
+    {
+        "symbol": "FTM",
+        "pair": "FTM-USDT",
+        "name": "Fantom",
+        "category": "USDT Futures",
+        "leverage": "25x",
+        "ltp": "0.6994 USDT",
+        "change": -0.76,
+        "volume": "1,43,80,500.0",
         "trend": false
     },
     {

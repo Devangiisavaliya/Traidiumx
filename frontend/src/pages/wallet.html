@@ -1245,64 +1245,211 @@
     </main>
 
     <div id="walletActionModal" class="fixed inset-0 z-[9999] hidden items-center justify-center px-4 py-6" aria-hidden="true">
-        <div id="walletActionBackdrop" class="absolute inset-0 bg-slate-950/75 backdrop-blur-xl"></div>
-        <div class="tx-wallet-action-card relative max-h-[92vh] w-full max-w-[640px] overflow-y-auto rounded-[2rem] border border-cyan-400/30 bg-[#07111f] shadow-[0_30px_100px_rgba(0,0,0,0.65)] tx-wallet-modal-scroll">
-            <div class="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-br from-slate-900 to-cyan-950/60 px-6 py-5 backdrop-blur-xl">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div id="txModalHeaderIcon" class="hidden h-12 w-12 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 font-black text-xl select-none">B</div>
+        <div id="walletActionBackdrop" class="absolute inset-0 bg-slate-950/80 backdrop-blur-xl"></div>
+        <div id="walletActionModalCard" class="tx-transfer-modal-card relative max-h-[92vh] w-full max-w-[440px] overflow-y-auto rounded-3xl border border-[#1e2846] bg-[#090e1d] shadow-[0_30px_100px_rgba(0,0,0,0.85)] tx-wallet-modal-scroll">
+            <div class="sticky top-0 z-10 border-b border-white/[0.08] bg-[#090e1d]/95 px-5 py-3.5 backdrop-blur-xl">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div id="txModalHeaderIcon" class="tx-transfer-header-icon h-10 w-10 shrink-0 rounded-2xl bg-cyan-400 text-slate-950 flex items-center justify-center font-bold text-lg select-none shadow-lg shadow-cyan-400/25">⇆</div>
                         <div>
-                            <div id="txModalHeaderPretitle" class="mb-1 text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Wallet Quick Action</div>
-                            <h2 id="walletActionModalTitle" class="text-3xl font-black tracking-tight">Wallet Action</h2>
-                            <p id="walletActionModalSubtitle" class="mt-1 text-sm text-slate-300">Main Wallet deposit/withdraw + Trading Wallet transfer.</p>
+                            <div id="txModalHeaderPretitle" class="hidden mb-1 text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Wallet Quick Action</div>
+                            <h2 id="walletActionModalTitle" class="text-xl font-bold tracking-tight text-white">Transfer</h2>
+                            <p id="walletActionModalSubtitle" class="mt-0.5 text-xs text-slate-400 font-medium leading-normal">Move funds between your Funding Wallet and Trading Account.</p>
                         </div>
                     </div>
-                    <button id="walletActionModalClose" type="button" class="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/30 text-2xl text-white transition hover:bg-white/10">×</button>
+                    <button id="walletActionModalClose" type="button" class="tx-transfer-close-btn grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#161c33] border border-white/10 text-slate-400 hover:text-white hover:bg-[#20294a] transition">×</button>
                 </div>
             </div>
 
-            <div class="px-6 py-5">
-                <div id="walletModalStatsGrid" class="mb-5 grid grid-cols-3 gap-3 rounded-2xl border border-white/20 bg-slate-900/70 p-4">
-                    <div id="walletModalTradingCol">
-                        <p class="text-xs font-black uppercase text-slate-500">Trading</p>
-                        <p id="walletModalTradingBalance" class="mt-1 text-sm font-black text-cyan-300">--</p>
+            <div class="px-5 pt-3 pb-5">
+                <div id="walletModalStatsGrid" class="hidden mb-2.5 grid grid-cols-3 gap-3">
+                    <div id="walletModalTradingCol" class="rounded-2xl border border-white/10 bg-[#0c1629] p-3 flex items-center gap-2.5">
+                        <div class="h-8 w-8 shrink-0 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold text-xs">
+                            <svg class="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TRADING</p>
+                            <p id="walletModalTradingBalance" class="text-xs font-extrabold text-cyan-300 truncate">$0.00</p>
+                        </div>
                     </div>
-                    <div id="walletModalMainCol">
-                        <p class="text-xs font-black uppercase text-slate-500">Main</p>
-                        <p id="walletModalMainBalance" class="mt-1 text-sm font-black text-emerald-300">--</p>
+
+                    <div id="walletModalMainCol" class="rounded-2xl border border-white/10 bg-[#0c1629] p-3 flex items-center gap-2.5">
+                        <div class="h-8 w-8 shrink-0 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">MAIN</p>
+                            <p id="walletModalMainBalance" class="text-xs font-extrabold text-emerald-300 truncate">$0.00</p>
+                        </div>
                     </div>
-                    <div id="walletModalPnlCol">
-                        <p class="text-xs font-black uppercase text-slate-500">P&L</p>
-                        <p id="walletModalPnl" class="mt-1 text-sm font-black text-slate-300">--</p>
+
+                    <div id="walletModalPnlCol" class="rounded-2xl border border-white/10 bg-[#0c1629] p-3 flex items-center gap-2.5">
+                        <div class="h-8 w-8 shrink-0 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold text-xs">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">P&L</p>
+                            <p id="walletModalPnl" class="text-xs font-extrabold text-slate-300 truncate">$0.00</p>
+                        </div>
                     </div>
                 </div>
 
                 <div id="walletActionModalMessage" class="hidden"></div>
 
                 <section data-wallet-action-panel="transfer" class="hidden">
-                    <form id="walletTransferForm" class="grid gap-4">
-                        <div id="txTransferUsdtRateBadge" class="flex items-center justify-between rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
-                            <span>Market Exchange Rate:</span>
-                            <span id="txTransferUsdtRateText" class="font-black text-cyan-300">1 USD = ₹88.50 INR</span>
-                        </div>
+                    <form id="walletTransferForm" class="grid gap-3.5">
+                        <input id="walletTransferDirection" name="direction" type="hidden" value="main_to_trading" />
+
+                        <!-- FROM CARD CONTAINER -->
                         <div>
-                            <label for="walletTransferDirection" class="tx-form-label">Direction</label>
-                            <select id="walletTransferDirection" name="direction" class="tx-form-input">
-                                <option value="main_to_trading">Main Wallet (INR) → Trading Wallet (USD)</option>
-                                <option value="trading_to_main">Trading Wallet (USD) → Main Wallet (INR)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label for="walletTransferAmount" id="walletTransferAmountLabel" class="tx-form-label">Amount (INR)</label>
-                                <button id="txTransferMaxBtn" type="button" class="text-xs font-black text-amber-400 hover:text-amber-300 transition uppercase tracking-wider">⚡ MAX (All)</button>
+                            <div class="flex items-center justify-between mb-1.5 text-xs">
+                                <span class="font-medium text-slate-400">From</span>
+                                <span class="text-slate-400 font-medium">Available: <b id="txTransferFromAvailable" class="text-white font-mono font-bold">$0.00</b> <span class="text-slate-500 text-[11px] ml-0.5 font-sans cursor-pointer" title="Available Balance Info">ⓘ</span></span>
                             </div>
-                            <input id="walletTransferAmount" name="amount" type="number" min="0.00000001" step="any" placeholder="Transfer amount" class="tx-form-input text-lg font-extrabold text-white" required />
+                            <div id="txTransferFromCard" class="tx-transfer-box relative rounded-2xl border border-[#1e2846] bg-[#0d1326] p-3.5 flex items-center justify-between transition-all select-none">
+                                <div class="flex items-center gap-3 w-full min-w-0 pointer-events-none">
+                                    <div id="txTransferFromIcon" class="h-10 w-10 shrink-0 rounded-2xl bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center shadow-sm">
+                                        <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div id="txTransferFromTitle" class="font-bold text-sm text-white">Funding Wallet</div>
+                                        <div id="txTransferFromSubtitle" class="text-xs text-slate-400 font-medium mt-0.5">Main Balance</div>
+                                    </div>
+                                </div>
+                                <div id="txTransferFromChevron" class="tx-dropdown-chevron-icon text-slate-400 text-xs shrink-0 hidden pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                <!-- CUSTOM TRADING ACCOUNT DROPDOWN MENU FOR FROM CARD -->
+                                <div id="txFromTradingAccountDropdownMenu" class="tx-custom-dropdown-menu"></div>
+                            </div>
                         </div>
-                        <div id="transferConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-xs font-black text-emerald-300">
-                            Enter amount to see live conversion
+
+                        <!-- SWAP DIRECTION BUTTON WITH HORIZONTAL DIVIDER LINE -->
+                        <div class="relative flex items-center justify-center -my-2.5 z-10">
+                            <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                                <div class="w-full border-t border-[#1e2846]"></div>
+                            </div>
+                            <button id="txTransferSwapDirBtn" type="button" class="tx-transfer-swap-btn relative h-9 w-9 rounded-full bg-[#0d1326] border-2 border-cyan-400 text-cyan-400 hover:text-slate-950 hover:bg-cyan-400 hover:border-cyan-300 shadow-lg shadow-cyan-950/80 flex items-center justify-center text-sm font-black transition-all transform hover:rotate-180 cursor-pointer" title="Swap Direction">
+                                ⇅
+                            </button>
                         </div>
-                        <button id="walletTransferSubmitBtn" type="submit" class="tx-submit-btn transfer">Transfer Funds</button>
+
+                        <!-- TO CARD CONTAINER -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5 text-xs">
+                                <span class="font-medium text-slate-400">To</span>
+                                <span class="text-slate-400 font-medium">Available: <b id="txTransferToAvailable" class="text-white font-mono font-bold">$0.00</b> <span class="text-slate-500 text-[11px] ml-0.5 font-sans cursor-pointer" title="Available Balance Info">ⓘ</span></span>
+                            </div>
+                            <div id="txTransferToCard" class="tx-transfer-box relative rounded-2xl border border-[#1e2846] bg-[#0d1326] p-3.5 flex items-center justify-between transition-all select-none">
+                                <div class="flex items-center gap-3 w-full min-w-0 pointer-events-none">
+                                    <div id="txTransferToIcon" class="h-10 w-10 shrink-0 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shadow-sm">
+                                        <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div id="txTransferToTitle" class="font-bold text-sm text-white">Trading Account</div>
+                                        <div id="txTransferToSubtitle" class="text-xs text-slate-400 font-medium mt-0.5">Main Trading Account</div>
+                                    </div>
+                                </div>
+                                <div id="txTransferToChevron" class="tx-dropdown-chevron-icon text-slate-400 text-xs shrink-0 pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                <!-- CUSTOM TRADING ACCOUNT DROPDOWN MENU FOR TO CARD -->
+                                <div id="txToTradingAccountDropdownMenu" class="tx-custom-dropdown-menu"></div>
+                            </div>
+                        </div>
+
+                        <!-- HIDDEN SELECT FOR TRADING ACCOUNT STATE BACKWARD COMPATIBILITY -->
+                        <select id="txTransferTradingAccountSelect" class="hidden"></select>
+
+                        <!-- ASSET SELECTOR WITH CUSTOM DROPDOWN -->
+                        <div>
+                            <label for="walletTransferAsset" class="block text-xs font-medium text-slate-400 mb-1.5">Asset</label>
+                            <div id="txTransferAssetBox" class="tx-transfer-box relative flex items-center justify-between rounded-2xl border border-[#1e2846] bg-[#0d1326] px-3.5 py-3 transition-all cursor-pointer hover:border-cyan-400/60 select-none">
+                                <div class="flex items-center gap-3 min-w-0 pointer-events-none">
+                                    <div id="txTransferAssetIconBadge" class="h-7 w-7 shrink-0 rounded-full bg-[#10b981] text-slate-950 font-black text-xs flex items-center justify-center shadow-sm transition-all">
+                                        $
+                                    </div>
+                                    <div id="txTransferAssetSelectedText" class="text-white font-bold text-xs">
+                                        USD - USD Fiat
+                                    </div>
+                                </div>
+                                <select id="walletTransferAsset" name="asset" class="hidden">
+                                    <option value="USD">USD - USD Fiat</option>
+                                    <option value="USDT">USDT - Tether USD</option>
+                                    <option value="INR">INR - Indian Rupee</option>
+                                </select>
+                                <div id="txTransferAssetChevron" class="tx-dropdown-chevron-icon text-slate-400 text-xs shrink-0 ml-2 pointer-events-none">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                <!-- CUSTOM ASSET DROPDOWN MENU -->
+                                <div id="txCustomAssetDropdownMenu" class="tx-custom-dropdown-menu"></div>
+                            </div>
+                        </div>
+
+                        <!-- AMOUNT INPUT BOX -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5 text-xs">
+                                <label for="walletTransferAmount" class="font-medium text-slate-400">Amount</label>
+                                <span class="text-slate-400 font-medium">Max: <b id="txTransferMaxText" class="text-white font-mono font-bold">$0.00</b></span>
+                            </div>
+                            <div class="tx-transfer-box relative flex items-center rounded-2xl border border-[#1e2846] bg-[#0d1326] px-4 py-2.5 focus-within:border-cyan-400 transition-all">
+                                <input id="walletTransferAmount" name="amount" type="number" min="0.00000001" step="any" placeholder="0.00" class="w-full bg-transparent text-xl font-mono font-bold text-white outline-none placeholder:text-slate-600" required />
+                                <div class="flex items-center gap-2.5 shrink-0">
+                                    <span id="txTransferCurrencyLabel" class="font-bold text-xs text-slate-400">USD</span>
+                                    <button id="txTransferMaxBtn" type="button" class="tx-transfer-max-btn rounded-xl bg-cyan-400/15 hover:bg-cyan-400 hover:text-slate-950 border border-cyan-400/35 text-cyan-400 px-3.5 py-1 text-xs font-bold transition-all cursor-pointer">
+                                        Max
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="transferConversionPreview" class="mt-1 text-[11px] text-slate-400 font-medium">
+                                ≈ $0.00 USD
+                            </div>
+                        </div>
+
+                        <!-- PERCENTAGE PILLS (25%, 50%, 75%, 100%) -->
+                        <div class="grid grid-cols-4 gap-2.5">
+                            <button type="button" data-tx-pct="25" class="tx-pct-btn tx-transfer-pct-btn rounded-2xl border border-[#1e2846] bg-[#0d1326] py-2.5 text-xs font-bold text-[#94a3b8] hover:border-cyan-400 hover:bg-cyan-400/10 hover:text-cyan-400 transition-all text-center cursor-pointer">25%</button>
+                            <button type="button" data-tx-pct="50" class="tx-pct-btn tx-transfer-pct-btn rounded-2xl border border-[#1e2846] bg-[#0d1326] py-2.5 text-xs font-bold text-[#94a3b8] hover:border-cyan-400 hover:bg-cyan-400/10 hover:text-cyan-400 transition-all text-center cursor-pointer">50%</button>
+                            <button type="button" data-tx-pct="75" class="tx-pct-btn tx-transfer-pct-btn rounded-2xl border border-[#1e2846] bg-[#0d1326] py-2.5 text-xs font-bold text-[#94a3b8] hover:border-cyan-400 hover:bg-cyan-400/10 hover:text-cyan-400 transition-all text-center cursor-pointer">75%</button>
+                            <button type="button" data-tx-pct="100" class="tx-pct-btn tx-transfer-pct-btn rounded-2xl border border-[#1e2846] bg-[#0d1326] py-2.5 text-xs font-bold text-[#94a3b8] hover:border-cyan-400 hover:bg-cyan-400/10 hover:text-cyan-400 transition-all text-center cursor-pointer">100%</button>
+                        </div>
+
+                        <!-- FOOTER FEATURES BADGE CARD (Instant, 0 Fee, 1 USD = 1 USD) -->
+                        <div class="tx-transfer-badges-box rounded-2xl border border-[#1e2846] bg-[#0d1326] p-3.5 grid grid-cols-3 gap-2 text-center divide-x divide-white/5">
+                            <div class="px-1 flex flex-col items-center justify-center">
+                                <div class="h-6 w-6 mb-1 flex items-center justify-center text-[#c084fc]">
+                                    <svg class="w-4 h-4 text-[#c084fc]" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                                <div class="text-xs font-bold text-white">Instant</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">Transfer</div>
+                            </div>
+                            <div class="px-1 flex flex-col items-center justify-center">
+                                <div class="h-6 w-6 mb-1 flex items-center justify-center text-[#60a5fa]">
+                                    <svg class="w-4 h-4 text-[#60a5fa]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                    </svg>
+                                </div>
+                                <div class="text-xs font-bold text-white">0 Fee</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">No charges</div>
+                            </div>
+                            <div class="px-1 flex flex-col items-center justify-center">
+                                <div class="h-6 w-6 mb-1 flex items-center justify-center text-[#34d399]">
+                                    <svg class="w-4 h-4 text-[#34d399]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                </div>
+                                <div class="text-xs font-bold text-white" id="txTransferRateVal">1 USD = 1 USD</div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-0.5">Rate</div>
+                            </div>
+                        </div>
+
+                        <!-- CONFIRM TRANSFER SUBMIT BUTTON -->
+                        <button id="walletTransferSubmitBtn" type="submit" class="tx-transfer-submit-btn w-full rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold py-3.5 text-sm transition-all shadow-lg shadow-cyan-400/30 cursor-pointer mt-1 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-slate-950 transform -rotate-12 fill-current" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                            Confirm Transfer
+                        </button>
                     </form>
                 </section>
 
@@ -1318,6 +1465,17 @@
                         <option value="BNB">BNB</option>
                         <option value="XRP">XRP</option>
                         <option value="ADA">ADA</option>
+                        <option value="TRX">TRX</option>
+                        <option value="DOT">DOT</option>
+                        <option value="LTC">LTC</option>
+                        <option value="AVAX">AVAX</option>
+                        <option value="SHIB">SHIB</option>
+                        <option value="LINK">LINK</option>
+                        <option value="UNI">UNI</option>
+                        <option value="ETC">ETC</option>
+                        <option value="XLM">XLM</option>
+                        <option value="TON">TON</option>
+                        <option value="BCH">BCH</option>
                     </select>
 
                     <!-- Tabs Navigation -->
@@ -1432,6 +1590,17 @@
                                     <option value="BNB">BNB</option>
                                     <option value="XRP">XRP</option>
                                     <option value="ADA">ADA</option>
+                                    <option value="TRX">TRX</option>
+                                    <option value="DOT">DOT</option>
+                                    <option value="LTC">LTC</option>
+                                    <option value="AVAX">AVAX</option>
+                                    <option value="SHIB">SHIB</option>
+                                    <option value="LINK">LINK</option>
+                                    <option value="UNI">UNI</option>
+                                    <option value="ETC">ETC</option>
+                                    <option value="XLM">XLM</option>
+                                    <option value="TON">TON</option>
+                                    <option value="BCH">BCH</option>
                                 </select>
                             </div>
                             <div>
@@ -1445,6 +1614,17 @@
                                     <option value="BNB">BNB</option>
                                     <option value="XRP">XRP</option>
                                     <option value="ADA">ADA</option>
+                                    <option value="TRX">TRX</option>
+                                    <option value="DOT">DOT</option>
+                                    <option value="LTC">LTC</option>
+                                    <option value="AVAX">AVAX</option>
+                                    <option value="SHIB">SHIB</option>
+                                    <option value="LINK">LINK</option>
+                                    <option value="UNI">UNI</option>
+                                    <option value="ETC">ETC</option>
+                                    <option value="XLM">XLM</option>
+                                    <option value="TON">TON</option>
+                                    <option value="BCH">BCH</option>
                                 </select>
                             </div>
                         </div>
@@ -1463,74 +1643,99 @@
                 </section>
 
                 <section data-wallet-action-panel="deposit" class="hidden">
-                    <!-- Top Currency Switcher Tabs (Sleek Pills) -->
-                    <div id="txDepositCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
-                        <button id="txSelectUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
-                            $ USD / USD
-                        </button>
-                        <button id="txSelectInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
-                            ₹ INR
-                        </button>
+                    <!-- Network Selection Tabs (TRC20, ERC20, BEP20 with Cyan-400 theme) -->
+                    <div id="cryptoNetworkContainer" class="mb-2">
+                        <div id="txNetworkTabs" class="flex items-center gap-2.5 sm:gap-3">
+                            <button type="button" data-network-tab="TRC20" class="tx-net-tab active flex-1 py-2.5 px-4 rounded-xl border text-xs font-black tracking-wide text-center transition cursor-pointer">TRC20</button>
+                            <button type="button" data-network-tab="ERC20" class="tx-net-tab flex-1 py-2.5 px-4 rounded-xl border text-xs font-black tracking-wide text-center transition cursor-pointer">ERC20</button>
+                            <button type="button" data-network-tab="BEP20" class="tx-net-tab flex-1 py-2.5 px-4 rounded-xl border text-xs font-black tracking-wide text-center transition cursor-pointer">BEP20</button>
+                        </div>
+                        <select id="cryptoNetwork" name="crypto_network" class="hidden">
+                            <option value="TRC20" selected>TRC20</option>
+                            <option value="ERC20">ERC20</option>
+                            <option value="BEP20">BEP20</option>
+                        </select>
                     </div>
 
-                    <!-- Dynamic Subtitle -->
-                    <p id="txDepositSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
-                        Copy the USD address, send from your wallet, then enter the amount and submit. Funds credit to Main Wallet.
-                    </p>
+                    <div id="txDepositCurrencyToggleBar" class="hidden">
+                        <button id="txSelectInrBtn" type="button" class="hidden"></button>
+                        <button id="txSelectUsdtBtn" type="button" class="hidden"></button>
+                    </div>
+
+                    <!-- Hidden Subtitle compatibility -->
+                    <p id="txDepositSubtitle" class="hidden"></p>
 
                     <form id="depositForm" class="grid gap-4">
                         <input id="cryptoAsset" name="crypto_asset" type="hidden" value="USDT" />
 
-                        <!-- USD Crypto Mode Fields -->
+                        <!-- USD Crypto Mode Box (Main Card) -->
                         <div id="cryptoDepositBox" class="grid gap-4">
-                            <div id="cryptoNetworkContainer">
-                                <label for="cryptoNetwork" class="tx-form-label">Network</label>
-                                <select id="cryptoNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
-                                    <option value="TRC20">USDT TRC20 (Tron)</option>
-                                    <option value="BEP20">USDT BEP20 (Binance Smart Chain)</option>
-                                    <option value="ERC20">USDT ERC20 (Ethereum)</option>
-                                </select>
-                            </div>
+                            <!-- Deposit Address + QR Code Card -->
+                            <div class="rounded-3xl border border-cyan-500/25 bg-[#060e1d] p-4 sm:p-5 shadow-xl">
+                                <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4 items-center">
+                                    <!-- Left Side: Address Details & MetaMask Button -->
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span id="cryptoAddressBoxIcon" class="h-6 w-6 rounded-full bg-[#26a17b] text-white flex items-center justify-center text-xs font-black">₮</span>
+                                            <span id="cryptoAddressBoxLabel" class="text-xs font-bold text-white">USDT • ERC20</span>
+                                            <span id="cryptoAddressBoxBadge" class="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-black text-emerald-400">ERC20</span>
+                                        </div>
 
-                            <!-- Company Deposit Address Box (Green Card style) -->
-                            <div class="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4">
-                                <div class="flex items-center justify-between">
-                                    <span id="cryptoAddressBoxLabel" class="text-xs font-black uppercase tracking-wider text-emerald-400">USDT TRC20</span>
-                                    <button id="copyCryptoAddressBtn" type="button" class="flex items-center gap-1.5 text-xs font-black text-emerald-400 transition hover:text-emerald-300">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                        Copy address
-                                    </button>
-                                </div>
-                                <code id="cryptoDepositAddress" class="mt-2 block break-all font-mono text-sm font-bold text-white">--</code>
-                                <p id="cryptoAddressStatus" class="mt-1 text-[11px] font-semibold text-slate-400">Loading address...</p>
+                                        <label class="block text-xs font-bold text-slate-400 mb-1">Deposit Address</label>
+                                        <div class="flex items-center justify-between gap-2 rounded-2xl border border-[#1a2842] bg-[#0b1424] p-2.5 focus-within:border-cyan-400 transition">
+                                            <code id="cryptoDepositAddress" class="font-mono text-xs sm:text-sm font-bold text-white truncate min-w-0">--</code>
+                                            <button id="copyCryptoAddressBtn" type="button" class="h-8 w-8 shrink-0 rounded-xl bg-[#17253d] hover:bg-cyan-500 hover:text-slate-950 text-cyan-300 flex items-center justify-center transition cursor-pointer" title="Copy Address">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            </button>
+                                        </div>
+                                        <p id="cryptoAddressStatus" class="mt-2 text-xs font-bold text-emerald-400">This is your USDT (ERC20) deposit address</p>
 
-                                <!-- Deposit Address QR Code Scanner Container -->
-                                <div id="cryptoDepositQrContainer" class="mt-3 flex flex-col items-center justify-center rounded-xl border border-emerald-500/20 bg-slate-950/80 p-3 text-center">
-                                    <div id="cryptoDepositQrWrapper" class="flex h-40 w-40 items-center justify-center rounded-lg bg-white p-2 shadow-md shadow-emerald-500/10">
-                                        <img id="cryptoDepositQrImg" src="" alt="Deposit QR Code" class="h-36 w-36 object-contain hidden" />
-                                        <span id="cryptoDepositQrPlaceholder" class="text-xs font-bold text-slate-400">Loading QR...</span>
+                                        <!-- MetaMask Button -->
+                                        <button id="payWithMetaMaskBtn" type="button" class="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-extrabold transition cursor-pointer">
+                                            <svg class="h-5 w-5 shrink-0" viewBox="0 0 35 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M32.5 1.5L18.8 11.6L21.3 5.7L32.5 1.5Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M2.5 1.5L13.6 11.6L11.1 5.7L2.5 1.5Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M27.8 23.4L24.8 28L31.7 29.9L33.7 23.5L27.8 23.4Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M1.3 23.5L3.3 29.9L10.2 28L7.2 23.4L1.3 23.5Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M9.8 14.3L7.7 17.4L14.6 17.7L14.4 10.3L9.8 14.3Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M25.2 14.3L20.5 10.3L20.4 17.7L27.3 17.4L25.2 14.3Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M10.2 28L14.3 26.2L10.7 23.4L10.2 28Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M24.8 28L24.3 23.4L20.7 26.2L24.8 28Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M24.3 23.4L27.8 23.4L25.2 14.3L20.4 17.7L24.3 23.4Z" fill="#D7C1B3" stroke="#D7C1B3" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M7.2 23.4L11.1 17.7L6.3 14.3L3.7 23.4L7.2 23.4Z" fill="#D7C1B3" stroke="#D7C1B3" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M14.6 17.7L10.7 23.4L14.3 26.2L14.6 17.7Z" fill="#233447" stroke="#233447" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M20.4 17.7L20.7 26.2L24.3 23.4L20.4 17.7Z" fill="#233447" stroke="#233447" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 22.8L17.5 18.2L20.4 17.7L17.5 22.8Z" fill="#CD6116" stroke="#CD6116" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 22.8L14.6 17.7L17.5 18.2L17.5 22.8Z" fill="#CD6116" stroke="#CD6116" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M14.3 26.2L17.5 24.3L20.7 26.2L17.5 31.5L14.3 26.2Z" fill="#E17726" stroke="#E17726" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 24.3L14.3 26.2L14.6 17.7L17.5 18.2L17.5 24.3Z" fill="#E27525" stroke="#E27525" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 24.3L17.5 18.2L20.4 17.7L20.7 26.2L17.5 24.3Z" fill="#E27525" stroke="#E27525" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M20.5 10.3L32.5 1.5L25.2 14.3L20.5 10.3Z" fill="#F6851B" stroke="#F6851B" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M9.8 14.3L2.5 1.5L14.4 10.3L9.8 14.3Z" fill="#F6851B" stroke="#F6851B" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M14.4 10.3L17.5 3.5L20.5 10.3L14.4 10.3Z" fill="#763D16" stroke="#763D16" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 3.5L32.5 1.5L21.3 5.7L17.5 3.5Z" fill="#F6851B" stroke="#F6851B" stroke-width="0.25" stroke-linejoin="round"/>
+                                                <path d="M17.5 3.5L13.7 5.7L2.5 1.5L17.5 3.5Z" fill="#F6851B" stroke="#F6851B" stroke-width="0.25" stroke-linejoin="round"/>
+                                            </svg>
+                                            Open in MetaMask
+                                        </button>
                                     </div>
-                                    <p class="mt-2 text-[11px] font-bold text-slate-300">Scan QR Code from your Crypto Wallet</p>
+
+                                    <!-- Right Side: QR Code -->
+                                    <div id="cryptoDepositQrContainer" class="flex flex-col items-center justify-center">
+                                        <div id="cryptoDepositQrWrapper" class="h-36 w-36 sm:h-40 sm:w-40 shrink-0 rounded-2xl bg-white p-2.5 shadow-2xl flex items-center justify-center border border-white/20">
+                                            <img id="cryptoDepositQrImg" src="" alt="Deposit QR Code" class="h-full w-full object-contain hidden" />
+                                            <span id="cryptoDepositQrPlaceholder" class="text-xs font-bold text-slate-400">Loading QR...</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <!-- Pay with MetaMask Button -->
-                                <button id="payWithMetaMaskBtn" type="button" class="mt-3 w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500/10 border border-orange-500/20 py-2.5 text-xs font-black text-orange-400 transition hover:bg-orange-500/20 hover:text-orange-300 hidden">
-                                    <svg class="h-4 w-4" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M211.2 101.4l-19.1-55.5-12.8-5.3-43.2 27.6-9.1-13.8L84.8 45.4h-9.9l-11.8 9-22 56.4L19 123.5l1.9 6.2L42.5 141l21.2 56.9 12.3 8.3 48.7-27.2 20.3-4.5 44.5 28.3 12.1-9.5L220 137.4l-8.8-36z" fill="#E2761B"/>
-                                        <path d="M109 119.5l-20.9 9.8 19.3 22.3 21-12.2-19.4-19.9z" fill="#E4761B"/>
-                                        <path d="M37.9 144.3L19.4 126l26.2 3.1-7.7 15.2z" fill="#D7C1B1"/>
-                                        <path d="M174.5 142.1l-6.9-13.7 24.5-3.3-17.6 17z" fill="#D7C1B1"/>
-                                        <path d="M109.8 13.9l10.9 16.5-21.8.2 10.9-16.7z" fill="#233447"/>
-                                    </svg>
-                                    Pay via MetaMask
-                                </button>
                             </div>
+
+                            <!-- TXID Form Input (Crypto Only) -->
                             <div>
-                                <label for="depositTxHash" class="tx-form-label">Transaction ID (TXID / Hash)</label>
-                                <input id="depositTxHash" name="tx_hash" type="text" placeholder="Enter TXID or transaction hash" class="tx-form-input text-sm font-semibold text-white" />
-                                <p class="mt-1 text-[11px] font-semibold text-slate-500">
-                                    Paste the TXID of your transaction. Transaction validation takes approximately 10-15 minutes.
-                                </p>
+                                <label for="depositTxHash" class="block text-xs font-bold text-slate-400 mb-1 flex items-center justify-between">
+                                    <span>Transaction ID / TXID <span class="text-slate-500 cursor-pointer" title="Paste TXID from your wallet">ⓘ</span></span>
+                                </label>
+                                <input id="depositTxHash" name="tx_hash" type="text" placeholder="Enter TXID (optional)" class="w-full rounded-2xl border border-[#1a2842] bg-[#0b1424] px-3.5 py-3 text-xs font-semibold text-white outline-none focus:border-cyan-400 transition" />
                             </div>
 
                             <div class="hidden">
@@ -1538,44 +1743,108 @@
                             </div>
                         </div>
 
-                        <!-- INR Mode Fields -->
-                        <div id="inrDepositBox" class="grid gap-4 hidden">
-                            <div class="rounded-2xl border border-cyan-400/30 bg-cyan-950/20 p-5 text-center">
-                                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 text-2xl text-cyan-300">
-                                    💳
-                                </div>
-                                <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300">Razorpay Payment Gateway</h3>
-                                <p class="mt-2 text-xs leading-relaxed text-slate-400">
-                                    Instant deposits using UPI, GPay, PhonePe, Cards, Netbanking or Wallet. Wallet balance credits automatically upon successful payment.
-                                </p>
+                        <!-- INR Mode Fields (Select Deposit Method - Image 2 Style) -->
+                        <div id="inrDepositBox" class="grid gap-3.5 hidden">
+                            <!-- 3 Deposit Method Cards (Image 2) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <!-- Option 1: Bank Transfer -->
+                                <button type="button" data-inr-method="bank" class="tx-inr-method-card flex flex-col justify-between p-3 rounded-2xl border transition cursor-pointer text-left group">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="h-8 w-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-center">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V10M5 21V10M9 21V10M13 21V10M3 10h18M12 3L2 10h20L12 3z"/></svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-white group-hover:text-cyan-300 transition">Bank Transfer</h4>
+                                        <p class="text-[10px] font-semibold text-slate-400 mt-0.5">NEFT / IMPS / RTGS</p>
+                                    </div>
+                                </button>
+
+                                <!-- Option 2: UPI (Active by default) -->
+                                <button type="button" data-inr-method="upi" class="tx-inr-method-card active flex flex-col justify-between p-3 rounded-2xl border transition cursor-pointer text-left group">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="h-8 w-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-center">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                        </div>
+                                        <span class="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-1.5 py-0.5 text-[9px] font-black text-emerald-400">INSTANT</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-white group-hover:text-cyan-300 transition">UPI</h4>
+                                        <p class="text-[10px] font-semibold text-slate-400 mt-0.5">Google Pay, PhonePe</p>
+                                    </div>
+                                </button>
+
+                                <!-- Option 3: Cards -->
+                                <button type="button" data-inr-method="card" class="tx-inr-method-card flex flex-col justify-between p-3 rounded-2xl border transition cursor-pointer text-left group">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="h-8 w-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-center">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-white group-hover:text-cyan-300 transition">Cards</h4>
+                                        <p class="text-[10px] font-semibold text-slate-400 mt-0.5">Debit / Credit Card</p>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Method Info Banner -->
+                            <div id="txInrMethodInfoBox" class="rounded-xl border border-[#16304d] bg-[#081729] p-3 text-[11px] font-medium text-slate-300 flex items-center justify-between gap-2">
+                                <span id="txInrMethodInfoText" class="text-slate-300">⚡ Instant UPI deposit via Razorpay. Zero gateway fees applied.</span>
+                                <span class="rounded-lg bg-[#0e2744] border border-[#1b3d63] px-2.5 py-1 text-[10px] font-bold text-cyan-300 shrink-0">0% Gateway Fee</span>
                             </div>
                         </div>
 
-                        <!-- Amount Input -->
+                        <!-- Common Deposit Amount Input (Visible for both Crypto and INR) -->
                         <div>
-                            <label for="depositAmount" id="depositAmountLabel" class="tx-form-label">Amount (USD)</label>
-                            <input id="depositAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="depositAmount" id="depositAmountLabel" class="block text-xs font-bold text-slate-400">
+                                    <span>Amount (USDT)</span>
+                                </label>
+                                <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+                                    <p>Available: <span id="txDepAvailableBal" class="font-bold text-cyan-300">$0.00 USDT</span></p>
+                                    <span class="text-slate-600">•</span>
+                                    <p>Min: <span id="depositMinNoteText" class="font-bold text-white">10.00 USDT</span></p>
+                                </div>
+                            </div>
+
+                            <!-- Quick INR Amount Chips -->
+                            <div id="inrQuickAmountRow" class="hidden grid grid-cols-4 gap-2 mb-2">
+                                <button type="button" data-inr-quick="500" class="inr-quick-chip py-1.5 rounded-xl border border-[#1b3252] bg-[#0b1a30] text-xs font-extrabold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition cursor-pointer text-center">+ ₹500</button>
+                                <button type="button" data-inr-quick="1000" class="inr-quick-chip py-1.5 rounded-xl border border-[#1b3252] bg-[#0b1a30] text-xs font-extrabold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition cursor-pointer text-center">+ ₹1,000</button>
+                                <button type="button" data-inr-quick="5000" class="inr-quick-chip py-1.5 rounded-xl border border-[#1b3252] bg-[#0b1a30] text-xs font-extrabold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition cursor-pointer text-center">+ ₹5,000</button>
+                                <button type="button" data-inr-quick="10000" class="inr-quick-chip py-1.5 rounded-xl border border-[#1b3252] bg-[#0b1a30] text-xs font-extrabold text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 transition cursor-pointer text-center">+ ₹10,000</button>
+                            </div>
+
+                            <div class="relative flex items-center rounded-2xl border border-[#1a2842] bg-[#0b1424] px-3.5 py-3 focus-within:border-cyan-400 transition">
+                                <input id="depositAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="Enter amount" class="w-full bg-transparent text-sm font-bold text-white outline-none placeholder:text-slate-500" required />
+                                <span id="depositAmountSymbol" class="ml-2 text-xs font-extrabold text-cyan-400 shrink-0">USDT</span>
+                            </div>
                         </div>
 
-                        <!-- Calculation Card -->
-                        <div id="depositCalcCard" class="rounded-2xl border border-white/10 bg-slate-950/80 p-4">
-                            <div class="flex items-center justify-between text-xs font-semibold text-slate-400">
-                                <span>You deposit</span>
-                                <span id="depCalcYouDeposit" class="font-extrabold text-white">0.00</span>
-                            </div>
-                            <div class="mt-2.5 border-t border-white/10 pt-2.5 text-[11px] font-semibold text-slate-400">
-                                <span id="depCalcRateNote">Min $10 value</span>
-                            </div>
+                        <!-- Hidden Calc Card -->
+                        <div id="depositCalcCard" class="hidden">
+                            <span id="depCalcYouDeposit">0.00</span>
+                            <span id="depCalcRateNote">Min $10 value</span>
                         </div>
 
-                        <!-- Submit Button -->
-                        <button id="createDepositBtn" type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
-                            Deposit USD
+                        <!-- Submit Deposit Button -->
+                        <button id="createDepositBtn" type="submit" class="tx-deposit-submit-btn mt-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-950 transform rotate-45 fill-current" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                            Submit Deposit
                         </button>
 
-                        <p id="txDepositFooterSubtext" class="text-center text-[11px] font-semibold text-slate-400">
-                            Send USD to the address above. Balance credits on submit.
-                        </p>
+                        <!-- Security Warning / Payment Guarantee Box -->
+                        <div id="txDepositSecurityNoteBox" class="mt-1 rounded-2xl border border-[#142d48] bg-[#071324] p-3 flex items-center gap-3">
+                            <div id="txDepositSecurityIcon" class="h-7 w-7 shrink-0 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-sm font-bold">
+                                🛡️
+                            </div>
+                            <p id="txDepositSecurityNote" class="text-xs font-medium text-slate-300">
+                                Send only <span id="txDepositSecurityAsset" class="font-bold text-cyan-300">USDT</span> on the selected network <span id="txDepositSecurityNetwork" class="font-bold text-cyan-300">(ERC20)</span>.
+                            </p>
+                        </div>
+
+                        <p id="txDepositFooterSubtext" class="hidden"></p>
                     </form>
                 </section>
 
@@ -1678,7 +1947,7 @@
     <script src="../js/api-config.js?v=21"></script>
     <script src="../js/auth-state.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="../js/wallet.js?v=26"></script>
+    <script src="../js/wallet.js?v=30"></script>
     <script src="../js/responsive.js"></script>
 </body>
 </html>

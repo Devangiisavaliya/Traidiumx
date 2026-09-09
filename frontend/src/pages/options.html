@@ -766,25 +766,61 @@
             </div>
         </div>
 
-        <section class="mx-auto max-w-[1800px] px-3 pb-10 sm:px-4 lg:px-6">
+        <section class="mx-auto max-w-[1800px] px-3 pb-10 sm:px-4 lg:px-6 pt-4 sm:pt-6 lg:pt-8">
 
             <!-- MOVING MARKET TICKER -->
             <div id="optionsTickerStrip" class="os-ticker-strip"></div>
 
             <!-- TOP OPTIONS INFO BAR -->
             <div class="os-market-bar mt-4">
-                <div class="os-market-left">
-                    <div class="os-coin-badge" id="optionsCoinBadge">₿</div>
+                <div class="os-market-left flex items-center gap-3">
+                    <div id="optionsCoinBadge" style="width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); color: #f59e0b; flex-shrink: 0;">
+                        ₿
+                    </div>
 
-                    <div>
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h1 id="selectedOptionsTitle" class="text-2xl font-black text-white">BTC Options</h1>
+                    <div style="position: relative; display: inline-flex; align-items: center;">
+                        <button id="optionsTitleDropdownBtn" type="button" style="background: none; border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; text-align: left; outline: none;">
+                            <h1 id="selectedOptionsTitle" style="font-size: 1.5rem; font-weight: 900; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.35rem; letter-spacing: -0.02em;">
+                                BTC-USDT Options
+                                <svg style="width: 1.25rem; height: 1.25rem; color: #94a3b8; transition: transform 0.2s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </h1>
+                        </button>
 
-                            <select id="optionsUnderlyingSelect" class="os-select">
-                                <option value="BTC">BTC Options</option>
-                                <option value="ETH">ETH Options</option>
-                                <option value="SOL">SOL Options</option>
-                            </select>
+                        <select id="optionsUnderlyingSelect" class="hidden">
+                            <option value="BTC">BTC-USDT Options</option>
+                            <option value="ETH">ETH-USDT Options</option>
+                            <option value="SOL">SOL-USDT Options</option>
+                        </select>
+
+                        <!-- CUSTOM DARK ASSET PICKER DROPDOWN -->
+                        <div id="optionsAssetPickerDropdown" style="position: absolute; top: calc(100% + 8px); left: 0; z-index: 9999; display: none; width: 230px; border-radius: 1rem; border: 1px solid rgba(148, 163, 184, 0.2); background-color: #0a111e; padding: 0.5rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <button type="button" data-asset="BTC" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.75rem; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #ffffff; cursor: pointer; text-align: left; transition: all 0.15s;">
+                                    <span style="width: 30px; height: 30px; border-radius: 999px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px;">₿</span>
+                                    <div>
+                                        <strong style="display: block; font-size: 13px; font-weight: 800; color: #ffffff;">BTC-USDT Options</strong>
+                                        <span style="display: block; font-size: 10px; color: #94a3b8;">Bitcoin Options</span>
+                                    </div>
+                                </button>
+
+                                <button type="button" data-asset="ETH" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.75rem; background: transparent; border: 1px solid transparent; color: #ffffff; cursor: pointer; text-align: left; transition: all 0.15s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'; this.style.borderColor='rgba(99, 102, 241, 0.3)';" onmouseout="if(this.dataset.active!=='true'){this.style.background='transparent'; this.style.borderColor='transparent';}">
+                                    <span style="width: 30px; height: 30px; border-radius: 999px; background: rgba(99, 102, 241, 0.2); color: #818cf8; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px;">Ξ</span>
+                                    <div>
+                                        <strong style="display: block; font-size: 13px; font-weight: 800; color: #ffffff;">ETH-USDT Options</strong>
+                                        <span style="display: block; font-size: 10px; color: #94a3b8;">Ethereum Options</span>
+                                    </div>
+                                </button>
+
+                                <button type="button" data-asset="SOL" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.625rem 0.75rem; border-radius: 0.75rem; background: transparent; border: 1px solid transparent; color: #ffffff; cursor: pointer; text-align: left; transition: all 0.15s;" onmouseover="this.style.background='rgba(168, 85, 247, 0.15)'; this.style.borderColor='rgba(168, 85, 247, 0.3)';" onmouseout="if(this.dataset.active!=='true'){this.style.background='transparent'; this.style.borderColor='transparent';}">
+                                    <span style="width: 30px; height: 30px; border-radius: 999px; background: rgba(168, 85, 247, 0.2); color: #c084fc; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px;">S</span>
+                                    <div>
+                                        <strong style="display: block; font-size: 13px; font-weight: 800; color: #ffffff;">SOL-USDT Options</strong>
+                                        <span style="display: block; font-size: 10px; color: #94a3b8;">Solana Options</span>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -825,12 +861,9 @@
                 <div class="rt-pair-funds-card">
                     <div class="rt-pair-funds-head flex items-center justify-between">
                         <h3>Trading Wallet</h3>
-                        <div class="flex items-center gap-2">
-                            <select id="tradingAccountSelector" class="rt-select text-xs py-1 px-2 border border-slate-700 bg-slate-900 text-white rounded cursor-pointer font-bold outline-none focus:border-cyan-400">
-                                <option value="main">Main Trading Account</option>
-                            </select>
-                            <button id="subAccountSettingsBtn" type="button" class="text-slate-400 hover:text-cyan-400 text-sm p-1" title="Manage Sub Accounts">⚙️</button>
-                        </div>
+                        <select id="tradingAccountSelector" class="rt-select text-xs py-1.5 px-3 border border-slate-700/80 bg-slate-900 text-white rounded-xl cursor-pointer font-bold outline-none focus:border-cyan-400">
+                            <option value="main">Main Trading Account</option>
+                        </select>
                     </div>
 
                     <div class="rt-pair-funds-grid">
@@ -905,6 +938,12 @@
                             <div class="flex items-center gap-2">
                                 <input id="strikeSearchInput" type="search" class="os-search-input" placeholder="Search strike" />
                                 <button id="resetChainBtn" class="os-small-btn" type="button">Reset</button>
+                                <button id="btnOptionsGuide" type="button" class="px-4 py-1.5 text-xs font-extrabold rounded-full border border-cyan-400/70 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 hover:border-cyan-400 active:scale-95 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                                    <span>Options Guide</span>
+                                </button>
+                                <button id="btnOptionsGreeks" type="button" class="px-4 py-1.5 text-xs font-extrabold rounded-full border border-cyan-400/70 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 hover:border-cyan-400 active:scale-95 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                                    <span>Greeks</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1339,7 +1378,7 @@
 
 
     <!-- Sub-Account Management Modal -->
-    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-3 sm:px-4 backdrop-blur-sm">
+    <div id="subAccountModal" style="z-index: 99998; display: none;" class="fixed inset-0 hidden items-center justify-center bg-slate-950/75 px-3 sm:px-4 backdrop-blur-sm">
         <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
             <div class="flex items-start justify-between border-b border-slate-800 px-4 sm:px-5 py-4">
                 <div>
@@ -1424,15 +1463,132 @@
         </button>
     </div>
 
-    <!-- Mobile Order Drawer Modal -->
-    <div id="optionsMobileOrderDrawer" class="fixed inset-0 z-[9999] hidden items-end sm:items-center justify-center bg-slate-950/80 backdrop-blur-md p-0 sm:p-4 lg:hidden">
-        <div class="relative max-h-[75vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] border border-white/10 bg-[#07111f] p-4 shadow-2xl">
-            <div class="sticky top-0 z-20 flex items-center justify-between border-b border-white/10 bg-[#07111f] pb-3 mb-3 pt-1">
-                <h3 id="optionsMobileDrawerTitle" class="text-base font-black text-white">Trade Options</h3>
-                <button id="optionsMobileDrawerClose" type="button" class="px-3.5 py-1.5 text-xs font-black text-slate-300 hover:text-white bg-slate-800/90 rounded-xl border border-white/15 transition cursor-pointer">Close</button>
+    <!-- OPTIONS GUIDE MODAL -->
+    <div id="optionsGuideModal" style="position: fixed; inset: 0; z-index: 99999; display: none; align-items: center; justify-content: center; background-color: rgba(2, 6, 23, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 1rem;">
+        <div style="position: relative; width: 100%; max-width: 440px; max-height: 85vh; border-radius: 1.75rem; border: 2px solid rgba(34, 211, 238, 0.85); background-color: #0a111e; padding: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column;">
+            <!-- HEADER -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; margin-bottom: 0.75rem; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 0.75rem; border: 1px solid rgba(34, 211, 238, 0.5); background-color: rgba(34, 211, 238, 0.15); display: flex; align-items: center; justify-content: center; color: #22d3ee; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
+                        📖
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2;">Options Guide</h3>
+                        <p style="font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0;">Quick reference for trading options on TraidiumX</p>
+                    </div>
+                </div>
+                <button id="closeGuideModalBtn" type="button" style="width: 32px; height: 32px; border-radius: 0.75rem; background-color: rgba(30, 41, 59, 0.8); color: #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 900; border: none; cursor: pointer; flex-shrink: 0;">✕</button>
             </div>
-            <div id="optionsMobileOrderFormSlot">
-                <!-- Order form will be moved here on mobile when opened -->
+
+            <!-- SCROLLABLE CARDS -->
+            <div style="max-height: calc(85vh - 140px); overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 0.75rem; flex: 1;" class="custom-scrollbar">
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Calls & Puts</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">A Call gives you the right to buy the underlying at the strike price. A Put gives you the right to sell. You pay premium upfront; profit depends on how spot moves before expiry.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Strike & Expiry</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Each contract has a strike (exercise price) and expiry date. Pick the expiry tab first, then choose a strike near spot for ATM options or further away for OTM / ITM plays.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">ITM / ATM / OTM</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">In-the-money (ITM) options have intrinsic value. At-the-money (ATM) strikes sit closest to spot. Out-of-the-money (OTM) options are cheaper but need a larger move to profit.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Reading the chain</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Bid / Ask show where you can sell or buy. Mark is the fair value used for margin. IV (implied volatility) reflects how expensive options are. OI shows open interest at each strike.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Greeks</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Delta measures price sensitivity to spot. Toggle Greeks on the chain to view Δ and IV per strike. Higher IV usually means higher premium and more time decay risk.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Before you trade</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Options can expire worthless. Use limit orders when possible, size positions within your wallet balance, and confirm the correct contract (BTC/ETH, expiry, Call/Put) before placing.</p>
+                </div>
+            </div>
+
+            <!-- BOTTOM ACTION BUTTON -->
+            <div style="padding-top: 0.75rem; margin-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0;">
+                <button id="btnGotItGuide" type="button" style="width: 100%; padding: 0.75rem; background-color: #22d3ee; color: #020617; font-weight: 900; border-radius: 0.75rem; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.25);">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GREEKS MODAL -->
+    <div id="optionsGreeksModal" style="position: fixed; inset: 0; z-index: 99999; display: none; align-items: center; justify-content: center; background-color: rgba(2, 6, 23, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 1rem;">
+        <div style="position: relative; width: 100%; max-width: 440px; max-height: 85vh; border-radius: 1.75rem; border: 2px solid rgba(34, 211, 238, 0.85); background-color: #0a111e; padding: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column;">
+            <!-- HEADER -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; margin-bottom: 0.75rem; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 0.75rem; border: 1px solid rgba(34, 211, 238, 0.5); background-color: rgba(34, 211, 238, 0.15); display: flex; align-items: center; justify-content: center; color: #22d3ee; font-weight: 700; font-size: 1rem; flex-shrink: 0;">
+                        Σ
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.2;">Option Greeks</h3>
+                        <p style="font-size: 11px; font-weight: 500; color: #94a3b8; margin: 2px 0 0 0;">Live risk metrics & sensitivity reference</p>
+                    </div>
+                </div>
+                <button id="closeGreeksModalBtn" type="button" style="width: 32px; height: 32px; border-radius: 0.75rem; background-color: rgba(30, 41, 59, 0.8); color: #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 900; border: none; cursor: pointer; flex-shrink: 0;">✕</button>
+            </div>
+
+            <!-- SCROLLABLE CONTENT -->
+            <div style="max-height: calc(85vh - 140px); overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 0.75rem; flex: 1;" class="custom-scrollbar">
+                <!-- LIVE CONTRACT GREEKS SUMMARY CARD -->
+                <div style="border-radius: 1rem; background-color: rgba(6, 182, 212, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); padding: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(34, 211, 238, 0.2); padding-bottom: 0.375rem;">
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #67e8f9;">Active Contract</span>
+                        <strong id="greeksModalContractCode" style="font-size: 12px; font-weight: 900; color: #ffffff;">BTC-79500-08SEP-CE</strong>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center;">
+                        <div style="border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.9); padding: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8;">Delta (Δ)</span>
+                            <strong id="greeksModalDelta" style="font-size: 14px; font-weight: 900; color: #22d3ee;">0.50</strong>
+                        </div>
+                        <div style="border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.9); padding: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8;">Gamma (Γ)</span>
+                            <strong id="greeksModalGamma" style="font-size: 14px; font-weight: 900; color: #34d399;">0.012</strong>
+                        </div>
+                        <div style="border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.9); padding: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8;">Theta (Θ)</span>
+                            <strong id="greeksModalTheta" style="font-size: 14px; font-weight: 900; color: #f87171;">-0.010</strong>
+                        </div>
+                        <div style="border-radius: 0.75rem; background-color: rgba(15, 23, 42, 0.9); padding: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span style="display: block; font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8;">Vega (ν)</span>
+                            <strong id="greeksModalVega" style="font-size: 14px; font-weight: 900; color: #fbbf24;">0.080</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #22d3ee; font-size: 12px; margin: 0 0 4px 0;">Δ Delta (Price Sensitivity)</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Measures how much the option premium changes for every <strong>$1.00 move</strong> in the underlying crypto price. Delta 0.50 means a $100 price rise increases premium by $50.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #34d399; font-size: 12px; margin: 0 0 4px 0;">Γ Gamma (Delta Speed)</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Measures the rate of change of Delta. High Gamma means Delta shifts rapidly as market price moves closer to ATM strike.</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #f87171; font-size: 12px; margin: 0 0 4px 0;">Θ Theta (Daily Time Decay)</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Measures daily loss of option premium due to time passing. As Expiry approaches, Theta decay accelerates (negative value).</p>
+                </div>
+
+                <div style="border-radius: 1rem; border: 1px solid rgba(30, 41, 59, 0.9); background-color: rgba(18, 28, 45, 0.95); padding: 0.875rem;">
+                    <h5 style="font-weight: 800; color: #fbbf24; font-size: 12px; margin: 0 0 4px 0;">ν Vega (Volatility Impact)</h5>
+                    <p style="font-size: 11px; color: #cbd5e1; line-height: 1.4; margin: 0;">Measures how much premium changes for every <strong>1% change in Implied Volatility (IV%)</strong>.</p>
+                </div>
+            </div>
+
+            <!-- BOTTOM ACTION BUTTON -->
+            <div style="padding-top: 0.75rem; margin-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0;">
+                <button id="btnGotItGreeks" type="button" style="width: 100%; padding: 0.75rem; background-color: #22d3ee; color: #020617; font-weight: 900; border-radius: 0.75rem; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.25);">Got it</button>
             </div>
         </div>
     </div>
@@ -1440,7 +1596,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
     <script src="../js/auth-state.js"></script>
-    <script src="../js/options.js?v=41"></script>
+    <script src="../js/options.js?v=72"></script>
     <script src="../js/responsive.js"></script>
 </body>
 </html>

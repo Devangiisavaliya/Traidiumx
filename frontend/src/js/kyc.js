@@ -1354,32 +1354,65 @@ async function handleOpenDigioKyc() {
         digioObj.init();
         digioObj.submit(kid, customerIdentifier, accessToken);
 
-        // Dynamically enforce mobile responsive dimensions on Digio iframe & parent modal container
-        const enforceDigioMobileResponsive = () => {
+        // Dynamically enforce mobile & desktop responsive dimensions on Digio iframe & parent modal container
+        const enforceDigioResponsive = () => {
+            const isMobile = window.innerWidth <= 768;
             document.querySelectorAll("iframe").forEach(iframe => {
                 if (iframe.src && (iframe.src.includes("digio.in") || iframe.id?.includes("digio"))) {
-                    iframe.style.setProperty("width", "100%", "important");
-                    iframe.style.setProperty("max-width", "100vw", "important");
-                    iframe.style.setProperty("min-width", "0px", "important");
-                    iframe.style.setProperty("box-sizing", "border-box", "important");
+                    if (isMobile) {
+                        iframe.style.setProperty("width", "100%", "important");
+                        iframe.style.setProperty("max-width", "100vw", "important");
+                        iframe.style.setProperty("min-width", "0px", "important");
+                        iframe.style.setProperty("box-sizing", "border-box", "important");
 
-                    let p = iframe.parentElement;
-                    while (p && p !== document.body) {
-                        p.style.setProperty("width", "100%", "important");
-                        p.style.setProperty("max-width", "100vw", "important");
-                        p.style.setProperty("min-width", "0px", "important");
-                        p.style.setProperty("left", "0", "important");
-                        p.style.setProperty("right", "0", "important");
-                        p.style.setProperty("margin", "0 auto", "important");
-                        p.style.setProperty("padding", "0", "important");
-                        p.style.setProperty("box-sizing", "border-box", "important");
-                        p = p.parentElement;
+                        let p = iframe.parentElement;
+                        while (p && p !== document.body) {
+                            p.style.setProperty("width", "100%", "important");
+                            p.style.setProperty("max-width", "100vw", "important");
+                            p.style.setProperty("min-width", "0px", "important");
+                            p.style.setProperty("left", "0", "important");
+                            p.style.setProperty("right", "0", "important");
+                            p.style.setProperty("margin", "0 auto", "important");
+                            p.style.setProperty("padding", "0", "important");
+                            p.style.setProperty("box-sizing", "border-box", "important");
+                            p = p.parentElement;
+                        }
+                    } else {
+                        // Desktop: Keep Digio popup compact, centered, and properly proportioned (~520px max-width)
+                        iframe.style.setProperty("width", "100%", "important");
+                        iframe.style.setProperty("max-width", "520px", "important");
+                        iframe.style.setProperty("height", "640px", "important");
+                        iframe.style.setProperty("max-height", "90vh", "important");
+                        iframe.style.setProperty("box-sizing", "border-box", "important");
+                        iframe.style.setProperty("margin", "0 auto", "important");
+
+                        let p = iframe.parentElement;
+                        while (p && p !== document.body) {
+                            if (p.parentElement === document.body) {
+                                // Fullscreen overlay backdrop directly under body
+                                p.style.setProperty("width", "100vw", "important");
+                                p.style.setProperty("max-width", "100vw", "important");
+                                p.style.setProperty("height", "100vh", "important");
+                                p.style.setProperty("display", "flex", "important");
+                                p.style.setProperty("align-items", "center", "important");
+                                p.style.setProperty("justify-content", "center", "important");
+                            } else {
+                                // Inner modal dialog card
+                                p.style.setProperty("max-width", "520px", "important");
+                                p.style.setProperty("width", "95%", "important");
+                                p.style.setProperty("margin", "auto", "important");
+                                p.style.setProperty("border-radius", "16px", "important");
+                                p.style.setProperty("overflow", "hidden", "important");
+                                p.style.setProperty("box-shadow", "0 25px 50px -12px rgba(0, 0, 0, 0.5)", "important");
+                            }
+                            p = p.parentElement;
+                        }
                     }
                 }
             });
         };
 
-        const digioStyleTimer = setInterval(enforceDigioMobileResponsive, 150);
+        const digioStyleTimer = setInterval(enforceDigioResponsive, 150);
         setTimeout(() => clearInterval(digioStyleTimer), 12000);
 
         // Silent background polling to detect completion when callback is stuck or delayed in Sandbox

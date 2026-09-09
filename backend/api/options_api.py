@@ -5,6 +5,7 @@ from services.options_service import (
     cancel_option_order,
     close_option_position,
     close_all_option_positions,
+    get_binance_options_chain,
     get_option_conditional_orders,
     get_option_fills,
     get_option_open_orders,
@@ -115,3 +116,14 @@ def close_all_positions():
         lambda: close_all_option_positions(g.current_user_id, data),
         "Options close all positions failed."
     )
+
+
+@options_api.get("/chain")
+def chain():
+    symbol = request.args.get("symbol", "BTC")
+    expiry = request.args.get("expiry", None)
+    return _safe_send(
+        lambda: get_binance_options_chain(symbol, expiry),
+        "Options chain fetch failed."
+    )
+

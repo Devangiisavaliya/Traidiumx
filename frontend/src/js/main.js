@@ -14,6 +14,22 @@ let homeMarketTimer = null;
 let activeHeroSymbol = "BTCUSDT";
 let savedMarkets = [];
 
+// Instant initial cache recovery for 0ms initial paint
+try {
+    const rawCached = localStorage.getItem("tx_cached_home_markets");
+    if (rawCached) {
+        const parsed = JSON.parse(rawCached);
+        if (parsed && Array.isArray(parsed.markets) && parsed.markets.length > 0) {
+            savedMarkets = parsed.markets;
+            window.requestAnimationFrame(() => {
+                txHomeUpdateHero(savedMarkets);
+                txHomeUpdateMiniMarkets(savedMarkets);
+                if (parsed.stats) txHomeUpdateStats(savedMarkets, parsed.stats);
+            });
+        }
+    }
+} catch (e) {}
+
 function txHomeNumber(value, decimals = 2) {
     const number = Number(value);
 
@@ -387,8 +403,8 @@ async function txHomeLoadFeeConfig() {
                     feeText = `${feeValue.toFixed(3).replace(/\.?0+$/, "")}%`;
                     typeText = "Percentage";
                 } else {
-                    feeText = `${feeValue.toFixed(2).replace(/\.?0+$/, "")} USD`;
-                    typeText = "Fixed USD";
+                    feeText = `${feeValue.toFixed(2).replace(/\.?0+$/, "")} USDT`;
+                    typeText = "Fixed USDT";
                 }
             }
 
@@ -418,6 +434,9 @@ async function txHomeLoadMarketBoard() {
         txHomeUpdateHero(markets);
         txHomeUpdateMiniMarkets(markets);
         txHomeUpdateStats(markets, board.stats || {});
+        try {
+            localStorage.setItem("tx_cached_home_markets", JSON.stringify(board));
+        } catch (e) {}
         await txHomeLoadFeeConfig();
     } catch (error) {
         console.error("Home market board failed:", error);
@@ -449,14 +468,15 @@ function txHomeStartMarketSync() {
 }
 
 function initHomeMarketSync() {
-    console.log("TraidiumX home market sync initialized.");
     txHomeStartMarketSync();
 }
 
-if (window.__txComponentsLoaded) {
-    initHomeMarketSync();
-} else {
+// Start immediately on script load, and refresh again when navbar/footer load
+initHomeMarketSync();
+
+if (!window.__txComponentsLoaded) {
     document.addEventListener("componentsLoaded", () => {
-        initHomeMarketSync();
-    });
+        txHomeLoadMarketBoard();
+    }, { once: true });
 }
+
