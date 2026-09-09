@@ -5,10 +5,10 @@
 | TraidiumX Risk Disclosure Page
 |--------------------------------------------------------------------------
 | Frontend-only interactions:
-| - Render risk disclosure sections
+| - Render risk disclosure sections with structured sub-clauses
 | - Search risk content
 | - Print disclosure
-| - Download TXT
+| - Download PDF
 | - Save risk acknowledgement in localStorage
 |--------------------------------------------------------------------------
 */
@@ -30,145 +30,156 @@ const riskAcknowledgeCheckbox = document.getElementById("riskAcknowledgeCheckbox
 const saveRiskAcknowledgementBtn = document.getElementById("saveRiskAcknowledgementBtn");
 const riskAcknowledgementMessage = document.getElementById("riskAcknowledgementMessage");
 
+function escapeHtml(text) {
+    if (!text) return "";
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 const riskSections = [
     {
         id: "general-warning",
-        title: "1. General Risk Warning",
-        summary: "Crypto assets and crypto derivatives are high-risk products.",
+        title: "1. General Digital Asset & Derivative Risk Warning",
+        summary: "Crypto assets and high-leverage derivatives involve substantial risk of capital loss.",
         content: [
-            "Crypto assets, virtual digital assets, futures, options, margin products and leveraged trading products are highly risky and may not be suitable for all users.",
-            "The value of crypto assets and derivative contracts may rise or fall rapidly due to market demand, liquidity, news, technology events, regulatory changes and global market conditions.",
-            "You should trade only if you understand the product, risk, margin requirement, fee structure, liquidation process and possible financial loss."
+            "Extreme Price Volatility: Virtual Digital Assets (VDAs) and crypto derivatives traded on TraidiumX are subject to rapid and unpredictable market swings driven by macro factors, on-chain dynamics, and sentiment.",
+            "Potential Total Loss of Principal: Trading leveraged perpetual futures or options contracts can result in the partial or total loss of deposited margin funds within seconds during turbulent market conditions."
         ]
     },
     {
         id: "unregulated-products",
-        title: "2. Regulatory And Legal Risk",
-        summary: "Crypto products may be subject to uncertain or changing regulation.",
+        title: "2. Regulatory, Tax & Jurisdictional Legal Risks",
+        summary: "Shifting regulatory frameworks, FATF sanctions, and Indian 1% TDS tax liabilities.",
         content: [
-            "Crypto assets and related products may be unregulated, partially regulated or subject to changing legal treatment depending on jurisdiction.",
-            "There may be limited or no regulatory recourse for losses arising from crypto asset transactions, derivative contracts, wallet activity or third-party service failures.",
-            "Users are responsible for understanding and complying with applicable laws, restrictions, reporting requirements and tax obligations."
+            "Evolving Regulatory Framework: Crypto assets and derivative contracts are subject to shifting legislative and regulatory scrutiny across different jurisdictions, which may affect asset tradability or deposit limits.",
+            "Statutory 1% TDS & Tax Liability: Transactions involving crypto asset sales or transfers may be subject to mandatory 1% TDS withholding under Section 194S of the Indian Income Tax Act, alongside flat 30% capital gains tax obligations without loss offset.",
+            "Jurisdictional Availability: Access to specific high-leverage products or fiat banking channels may be restricted in non-compliant or sanctioned territories under FATF guidelines."
         ]
     },
     {
         id: "market-volatility",
-        title: "3. Market Volatility Risk",
-        summary: "Crypto markets can move sharply within seconds.",
+        title: "3. Market Volatility & Price Slippage Risk",
+        summary: "Flash volatility, liquidity gaps, stop-loss slippage, and spread widening.",
         content: [
-            "Crypto prices may be extremely volatile and may move significantly within short time periods.",
-            "Sudden market movement may cause stop-loss slippage, liquidation, failed orders, partial execution or large mark-to-market losses.",
-            "Past performance, historical price movement or previous market behavior does not guarantee future performance."
+            "Rapid Price Dislocation: Cryptocurrency spot and futures pairs can experience sharp liquidity vacuums during high-impact economic news releases, resulting in substantial slippage on market orders.",
+            "Stop-Loss Execution Gaps: Stop-loss trigger orders become market orders upon price threshold activation; in fast-moving markets, the actual execution price may differ unfavorably from the set trigger price.",
+            "No Past Performance Guarantee: Historical profitability, algorithmic backtests, and technical chart indicators do not predict or guarantee future price movements."
         ]
     },
     {
         id: "leverage-risk",
-        title: "4. Leverage And Margin Risk",
-        summary: "Leverage magnifies gains and losses.",
+        title: "4. Leverage, Margin Modes & Borrowed Capital Risk",
+        summary: "50x leverage risks, Isolated vs Cross Margin mechanics, and Maintenance Margin requirements.",
         content: [
-            "Leverage allows users to open larger positions using smaller margin, but it also increases loss exposure.",
-            "A small adverse market movement may lead to margin loss, forced reduction of position or liquidation.",
-            "Users should not use leverage without understanding initial margin, maintenance margin, margin mode, risk limit, mark price and liquidation price."
+            "High Leverage Multiplier (Up to 50x): TraidiumX permits leverage up to 50x on select perpetual contracts. While leverage magnifies returns, it proportionally amplifies adverse price movements against your initial margin.",
+            "Isolated vs Cross Margin Mechanics: In Isolated Margin mode, maximum loss is restricted to the position's assigned margin. In Cross Margin mode, losses in one position can deplete the entire available USDT wallet balance.",
+            "Maintenance Margin Requirements: Traders are required to maintain collateral above the dynamic Maintenance Margin Rate (MMR). Falling below MMR triggers automatic liquidation intervention.",
+            "Leverage Reduction Under Volatility: During sudden liquidity squeezes or extreme token volatility, TraidiumX may dynamically calibrate maximum allowable leverage tiers to safeguard systemic market solvency."
         ]
     },
     {
         id: "liquidation-risk",
-        title: "5. Liquidation Risk",
-        summary: "Positions may be force-closed when margin is insufficient.",
+        title: "5. Liquidation Engine & Fair Mark Price Mechanics",
+        summary: "Automated liquidation triggers, multi-exchange Mark Price protection, Insurance Fund, and ADL.",
         content: [
-            "If account margin falls below required maintenance margin, open positions may be liquidated automatically.",
-            "Liquidation may occur quickly during volatile market conditions and may result in substantial or complete loss of margin balance.",
-            "Risk tools, alerts, stop-loss orders or margin indicators may reduce but cannot eliminate liquidation risk."
+            "Automated Liquidation Trigger: When an open contract's margin ratio reaches 100% of MMR, the TraidiumX risk engine immediately cancels open orders for that symbol and liquidates the position at the prevailing market price.",
+            "Multi-Exchange Fair Mark Price Index: To protect traders from malicious spot book manipulation and wick cascades, liquidations on TraidiumX are evaluated against a composite Fair Mark Price Index rather than the local last traded price.",
+            "Liquidation Clearance Deficits: If a liquidated position cannot be closed at or above the bankruptcy price due to severe market gaps, the TraidiumX Insurance Fund absorbs the deficit.",
+            "Auto-Deleveraging (ADL) Protocol: In extreme scenarios where the platform Insurance Fund is exhausted, opposing profitable positions with the highest leverage rank may undergo automatic deleveraging (ADL)."
         ]
     },
     {
         id: "options-risk",
-        title: "6. Options Trading Risk",
-        summary: "Options are complex and may lose value due to time, volatility and price movement.",
+        title: "6. Crypto Options Chain & Greek Sensitivity Risks",
+        summary: "Option buyer premium loss, Theta time decay, Delta risk, and Implied Volatility collapse.",
         content: [
-            "Options contracts involve premium, strike price, expiry, implied volatility, delta, theta, gamma and liquidity risk.",
-            "Options buyers may lose the full premium paid if the contract expires worthless or moves unfavorably.",
-            "Options sellers or advanced strategy users may face higher and more complex risk depending on contract type and margin model."
+            "Options Premium Risk: Buyers of Call or Put options face the complete forfeiture of paid upfront premiums if the contract expires Out-of-the-Money (OTM).",
+            "Theta Time Decay: Crypto options experience accelerating Theta decay as expiration approaches, eroding contract value non-linearly even if underlying asset prices remain stagnant.",
+            "Implied Volatility (IV) Crush: Sudden contractions in market volatility can drastically reduce option premiums despite favorable spot price direction.",
+            "Short Option Exposure: Selling unhedged Call or Put options involves theoretically unlimited loss exposure and requires intensive dynamic margin management."
+        ]
+    },
+    {
+        id: "funding-risk",
+        title: "7. 8-Hour Funding Rate & Perpetual Contract Costs",
+        summary: "Periodic funding payment cycles, Long/Short premium divergence, and margin balance decay.",
+        content: [
+            "Continuous 8-Hour Funding Cycle: TraidiumX Perpetual contracts exchange peer-to-peer funding payments between Long and Short position holders every 8 hours based on the premium index.",
+            "Funding Rate Margin Deduction: In prolonged bull or bear momentum phases, carrying high-leverage positions over multiple funding cycles can steadily deplete free collateral through accumulated funding payments.",
+            "Variable Funding Rates: Funding rates fluctuate dynamically according to open interest imbalance and spot-perp spread differentials."
         ]
     },
     {
         id: "liquidity-risk",
-        title: "7. Liquidity And Execution Risk",
-        summary: "Orders may not execute at expected price or quantity.",
+        title: "8. Order Execution, Matching Engine & Liquidity Risk",
+        summary: "High-throughput matching engine priority, partial fills, Post-Only, and Reduce-Only execution.",
         content: [
-            "Low liquidity, thin order books, market gaps and high volatility may prevent orders from executing at expected price.",
-            "Market orders may suffer slippage. Limit orders may remain unfilled or partially filled.",
-            "Execution may be affected by matching engine load, network latency, API delays, maintenance or third-party service issues."
-        ]
-    },
-    {
-        id: "platform-risk",
-        title: "8. Platform Availability And Operational Risk",
-        summary: "Trading access may be interrupted by technical problems.",
-        content: [
-            "The platform may face downtime, maintenance, server errors, transaction delays, delayed price updates, API failure or charting errors.",
-            "Operational disruptions may prevent users from placing, modifying or cancelling orders during critical market conditions.",
-            "Users should not rely only on frontend display values and should maintain independent risk awareness."
+            "Price-Time Matching Queue: All Limit, Market, and Trigger orders are processed by the high-throughput TraidiumX matching engine in strict order of price and arrival timestamp.",
+            "Partial Order Fills: Limit orders placed outside active spread depths may remain unfilled or execute in partial fragments as opposing counterparties appear.",
+            "Post-Only & Reduce-Only Features: Traders must utilize advanced order flags (Post-Only to guarantee Maker fee tier, Reduce-Only to prevent accidental position inversion) to control execution risk."
         ]
     },
     {
         id: "wallet-risk",
-        title: "9. Wallet, Deposit And Withdrawal Risk",
-        summary: "Wallet operations may involve delays, errors or security checks.",
+        title: "9. Wallet Security, Memo/Tag Accuracy & Network Gas Risks",
+        summary: "USDT TRC20/BEP20 network precision, UPI/IMPS name matching, and 24-hour security locks.",
         content: [
-            "Deposits and withdrawals may be delayed, rejected or reviewed due to incorrect details, network congestion, compliance checks, risk review or technical issues.",
-            "Users are responsible for verifying bank details, wallet addresses, network selection and transaction references before submitting requests.",
-            "Incorrect wallet network or destination details may result in permanent loss of funds."
+            "Blockchain Network Selection: Sending crypto assets via an incorrect blockchain network (e.g., sending BEP20 USDT to an ERC20 address) or omitting mandatory Memo/Tag identifiers will lead to permanent loss of assets.",
+            "Dynamic Gas & Miner Fees: On-chain withdrawal fees reflect live blockchain network congestion and gas costs on TRC20, BEP20, and ERC20 networks.",
+            "24-Hour Security Cool-off: Resetting passwords, updating 2FA, or altering security settings activates an automated 24-hour withdrawal lock on all wallet assets.",
+            "Bank Verification (UPI/IMPS): Fiat INR deposits and withdrawals must match the verified legal name on the user's KYC profile; third-party deposits will be declined."
         ]
     },
     {
-        id: "fee-tax-risk",
-        title: "10. Fee And Tax Risk",
-        summary: "Fees and tax obligations can affect trading returns.",
+        id: "platform-risk",
+        title: "10. Platform Availability, Maintenance & Operational Risks",
+        summary: "Clustered microservices, latency fluctuations, scheduled maintenance, and stop-loss hygiene.",
         content: [
-            "Trading fees, funding fees, withdrawal fees, GST, tax deduction, tax collection or other statutory charges may reduce net returns.",
-            "Tax rules may change and may differ based on user location, transaction type, income category and applicable law.",
-            "Users are solely responsible for understanding, reporting and paying taxes arising from trading, wallet transfers, profits or other platform activity."
+            "Clustered Microservices Uptime: While TraidiumX maintains high-availability servers, unforeseen cloud outages, DDoS attacks, or upstream internet provider disruptions may cause temporary latency.",
+            "Scheduled System Upgrades: Engine upgrades and infrastructure maintenance are announced in advance. During maintenance windows, order submission or cancellation may be temporarily restricted.",
+            "Mandatory Stop-Loss Hygiene: Users must maintain active Take-Profit and Stop-Loss safety orders to insulate positions against network drops or client-side connection failures."
         ]
     },
     {
         id: "cybersecurity-risk",
-        title: "11. Cybersecurity Risk",
-        summary: "Accounts, wallets and systems may be targeted by attackers.",
+        title: "11. Cybersecurity, Phishing & API Secret Key Risks",
+        summary: "Account credentials safeguarding, API key permission boundaries, and phishing precautions.",
         content: [
-            "Crypto platforms, user accounts, devices, wallets, APIs and email accounts may be exposed to hacking, phishing, malware, credential theft and unauthorized access.",
-            "Users should use strong passwords, secure devices, trusted networks and additional security features whenever available.",
-            "A cybersecurity event may cause financial loss, data exposure, account restriction or delayed access to funds."
+            "Phishing and Social Engineering: TraidiumX will never ask for your passwords, SMS OTPs, or Authenticator seed codes. Always verify the official domain name before entering credentials.",
+            "API Key Secret Management: Users creating automated trading bots via API keys must restrict IP addresses and avoid granting withdrawal permissions to third-party scripts.",
+            "Device Security & Malware: Users are responsible for safeguarding their devices against keyloggers, malicious browser extensions, and unauthorized remote access tools."
         ]
     },
     {
-        id: "third-party-risk",
-        title: "12. Third-Party And Blockchain Network Risk",
-        summary: "External services and blockchain networks may fail or behave unexpectedly.",
+        id: "fee-tax-risk",
+        title: "12. Maker/Taker Fees & Statutory Deductions Risk",
+        summary: "Trading fees (Spot 0.10%, Futures 0.02%/0.05%), VIP volume tiers, and 1% TDS deductions.",
         content: [
-            "The platform may depend on third-party services such as banks, KYC providers, cloud providers, analytics tools, blockchain networks, wallet services and price feeds.",
-            "Third-party failures, forks, network congestion, outages, data errors or service restrictions may impact trading, wallet operations and user access.",
-            "TraidiumX may not control third-party systems and cannot guarantee their uninterrupted performance."
+            "Tiered Fee Impact: Frequent scalping and high-turnover trading without accounting for Maker (0.02%) and Taker (0.05%) fee schedules can significantly erode net trading yields.",
+            "Statutory Tax Compliance: Capital gains and 1% TDS deducted at source are non-negotiable legal requirements under national digital asset tax regulations.",
+            "Dynamic Fee Schedule: TraidiumX may revise fee tiers and VIP thresholds based on platform volume metrics and liquidity incentive programs."
         ]
     },
     {
         id: "no-advice",
-        title: "13. No Financial Advice",
-        summary: "Platform content is not investment, financial, tax or legal advice.",
+        title: "13. Independent Financial Responsibility & No Advice Disclaimer",
+        summary: "Execution-only trading technology platform with no personalized financial advice.",
         content: [
-            "Educational content, blogs, calculators, charts, indicators, market summaries, fee previews and campaign pages are for information only.",
-            "TraidiumX does not guarantee profit and does not provide personalized financial, investment, tax or legal advice.",
-            "Users should consult independent advisors and make decisions based on their own financial situation, experience, objectives and risk tolerance."
+            "Execution-Only Platform: TraidiumX does not provide investment, financial, legal, or tax advisory services. All charts, blogs, and market indicators are strictly educational.",
+            "Independent Risk Evaluation: Users must assess their own financial capacity, trading expertise, and risk tolerance before committing capital to crypto derivatives."
         ]
     },
     {
         id: "user-responsibility",
-        title: "14. User Responsibility",
-        summary: "Users are responsible for their own trades, risk and losses.",
+        title: "14. Binding User Acknowledgement & Capital Risk Acceptance",
+        summary: "Voluntary capital risk assumption and user responsibility for leverage decisions.",
         content: [
-            "Users are solely responsible for order placement, leverage selection, position sizing, trading strategy, wallet activity, security practices and tax compliance.",
-            "Before trading, users should understand product rules, risk limits, fees, margin requirements, liquidation process and account restrictions.",
-            "If you are uncomfortable with these risks, you should not use futures, options, leverage, margin or other high-risk products."
+            "Voluntary Risk Assumption: By trading on TraidiumX, you acknowledge that you are entering into high-risk financial derivative contracts at your sole discretion and risk.",
+            "Waiver of Liability: You agree that TraidiumX shall not be held liable for trading losses, market volatility drawdowns, or user-initiated operational mistakes."
         ]
     }
 ];
@@ -183,7 +194,7 @@ function showMiniMessage(message, type = "success") {
     }
 
     if (type === "error") {
-        messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-cyan-400/30 bg-cyan-400/15 px-5 py-4 text-sm font-black text-cyan-300 shadow-2xl transition";
+        messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-red-400/30 bg-red-400/15 px-5 py-4 text-sm font-black text-red-300 shadow-2xl transition";
     } else {
         messageBox.className = "fixed bottom-6 right-6 z-[9999] max-w-sm rounded-2xl border border-emerald-400/30 bg-emerald-400/15 px-5 py-4 text-sm font-black text-emerald-300 shadow-2xl transition";
     }
@@ -225,7 +236,7 @@ function renderRiskNav(sections) {
         .map((section) => {
             return `
                 <button type="button" data-target="${section.id}" class="risk-nav-btn">
-                    <span>${section.title.replace(/^\d+\.\s?/, "")}</span>
+                    <span>${escapeHtml(section.title.replace(/^\d+\.\s?/, ""))}</span>
                     <small>Open</small>
                 </button>
             `;
@@ -272,8 +283,8 @@ function renderRiskContent(sections) {
                 <article id="${section.id}" class="risk-section-card cursor-pointer scroll-mt-32 transition-all duration-300">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-xl font-black text-white">${section.title}</h3>
-                            <p class="mt-2 text-sm leading-6 text-slate-400">${section.summary}</p>
+                            <h3 class="text-xl font-black text-white">${escapeHtml(section.title)}</h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-400">${escapeHtml(section.summary)}</p>
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
@@ -285,9 +296,20 @@ function renderRiskContent(sections) {
                     </div>
 
                     <div class="risk-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
-                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                        <div class="border-t border-white/5 pt-4 mt-5 space-y-3">
                             ${section.content.map((paragraph) => {
-                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                                if (paragraph.includes(": ")) {
+                                    const parts = paragraph.split(": ");
+                                    const prefix = escapeHtml(parts[0]);
+                                    const bodyText = escapeHtml(parts.slice(1).join(": "));
+                                    return `
+                                        <div class="rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition hover:border-cyan-400/20 hover:bg-white/[0.04]">
+                                            <h5 class="text-sm font-black text-cyan-400 mb-1.5">${prefix}</h5>
+                                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">${bodyText}</p>
+                                        </div>
+                                    `;
+                                }
+                                return `<p class="leading-7 text-slate-300 text-sm">${escapeHtml(paragraph)}</p>`;
                             }).join("")}
                         </div>
                     </div>
@@ -378,14 +400,18 @@ function downloadRiskPdf() {
             <div style="margin-bottom: 25px; page-break-inside: avoid;">
                 <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
                 <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
-                ${section.content.map(p => `
-                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
-                `).join("")}
+                ${section.content.map(p => {
+                    if (p.includes(": ")) {
+                        const parts = p.split(": ");
+                        return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;"><strong style="color: #0f172a;">${parts[0]}:</strong> ${parts.slice(1).join(": ")}</p>`;
+                    }
+                    return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>`;
+                }).join("")}
             </div>
         `).join("")}
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />
         <div style="text-align: center; font-size: 10px; color: #94a3b8;">
-            TraidiumX Compliance & Legal Operations Team.
+            TraidiumX Compliance & Risk Management Team.
         </div>
     `;
     container.appendChild(element);
@@ -398,14 +424,19 @@ function downloadRiskPdf() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf()
-        .from(element)
-        .set(opt)
-        .save()
-        .then(() => {
-            container.remove();
-        });
-    showMiniMessage("Risk disclosure PDF downloaded successfully.", "success");
+    if (typeof html2pdf !== "undefined") {
+        html2pdf()
+            .from(element)
+            .set(opt)
+            .save()
+            .then(() => {
+                container.remove();
+            });
+        showMiniMessage("Risk disclosure PDF downloaded successfully.", "success");
+    } else {
+        container.remove();
+        window.print();
+    }
 }
 
 function printRisk() {
@@ -440,7 +471,18 @@ function saveRiskAcknowledgement() {
 
     updateAcknowledgedStatus();
 
+    if (riskAcknowledgementMessage) {
+        riskAcknowledgementMessage.classList.remove("hidden");
+        riskAcknowledgementMessage.textContent = "Risk acknowledged successfully.";
+    }
+
     showMiniMessage("Risk acknowledgement saved successfully.", "success");
+
+    window.setTimeout(() => {
+        if (riskAcknowledgementMessage) {
+            riskAcknowledgementMessage.classList.add("hidden");
+        }
+    }, 3000);
 }
 
 function initEvents() {
@@ -467,4 +509,4 @@ function initRiskDisclosurePage() {
     initEvents();
 }
 
-document.addEventListener("DOMContentLoaded", initRiskDisclosurePage);
+document.addEventListener("DOMContentLoaded", initRiskDisclosurePage);

@@ -25,64 +25,61 @@ function getSlugFromUrl() {
     return params.get("slug") || "futures-trading-basics";
 }
 
-function getCategoryColor(category) {
-    const colors = {
-        Futures: "text-cyan-400 bg-cyan-400/10",
-        Options: "text-purple-300 bg-purple-400/10",
-        Risk: "text-orange-300 bg-orange-400/10",
-        Fees: "text-emerald-400 bg-emerald-400/10",
-        Security: "text-blue-300 bg-blue-400/10"
+function getCategoryTheme(category) {
+    const themes = {
+        Futures: {
+            color: "text-cyan-400",
+            badge: "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20",
+            bannerBg: "bg-gradient-to-br from-cyan-950/40 via-slate-950 to-blue-950/30 border border-cyan-400/20",
+            iconBox: "bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 shadow-xl shadow-cyan-500/10",
+            glowColor: "bg-cyan-400/15",
+            pillDot: "bg-cyan-400",
+            pillText: "Crypto Derivatives · Leverage · Trading Mechanics",
+            icon: `<svg class="h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>`
+        },
+        Options: {
+            color: "text-purple-400",
+            badge: "bg-purple-400/10 text-purple-300 border border-purple-400/20",
+            bannerBg: "bg-gradient-to-br from-purple-950/40 via-slate-950 to-indigo-950/30 border border-purple-400/20",
+            iconBox: "bg-purple-500/10 border border-purple-400/30 text-purple-400 shadow-xl shadow-purple-500/10",
+            glowColor: "bg-purple-400/15",
+            pillDot: "bg-purple-400",
+            pillText: "Calls & Puts · Strike Matrix · Option Greeks",
+            icon: `<svg class="h-12 w-12 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`
+        },
+        Risk: {
+            color: "text-red-400",
+            badge: "bg-red-400/10 text-red-300 border border-red-400/20",
+            bannerBg: "bg-gradient-to-br from-red-950/40 via-slate-950 to-rose-950/30 border border-red-400/20",
+            iconBox: "bg-red-500/10 border border-red-400/30 text-red-400 shadow-xl shadow-red-500/10",
+            glowColor: "bg-red-400/15",
+            pillDot: "bg-red-400",
+            pillText: "Capital Protection · Risk Rules · Trade Journaling",
+            icon: `<svg class="h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>`
+        },
+        Fees: {
+            color: "text-emerald-400",
+            badge: "bg-emerald-400/10 text-emerald-400 border border-emerald-400/20",
+            bannerBg: "bg-gradient-to-br from-emerald-950/40 via-slate-950 to-teal-950/30 border border-emerald-400/20",
+            iconBox: "bg-emerald-500/10 border border-emerald-400/30 text-emerald-400 shadow-xl shadow-emerald-500/10",
+            glowColor: "bg-emerald-400/15",
+            pillDot: "bg-emerald-400",
+            pillText: "Order Book Dynamics · Maker vs Taker · VIP Tiers",
+            icon: `<svg class="h-12 w-12 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+        },
+        Security: {
+            color: "text-blue-400",
+            badge: "bg-blue-400/10 text-blue-300 border border-blue-400/20",
+            bannerBg: "bg-gradient-to-br from-blue-950/40 via-slate-950 to-cyan-950/30 border border-blue-400/20",
+            iconBox: "bg-blue-500/10 border border-blue-400/30 text-blue-400 shadow-xl shadow-blue-500/10",
+            glowColor: "bg-blue-400/15",
+            pillDot: "bg-blue-400",
+            pillText: "Multi-Sig Storage · 2FA Protocols · AML Compliance",
+            icon: `<svg class="h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>`
+        }
     };
 
-    return colors[category] || "text-cyan-400 bg-cyan-400/10";
-}
-
-function getCategoryIcon(category) {
-    const icons = {
-        Futures: `
-            <svg class="h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-        `,
-        Options: `
-            <svg class="h-12 w-12 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        `,
-        Risk: `
-            <svg class="h-12 w-12 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-        `,
-        Fees: `
-            <svg class="h-12 w-12 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        `,
-        Security: `
-            <svg class="h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-        `
-    };
-
-    return icons[category] || `
-        <svg class="h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-    `;
-}
-
-function getCategoryArtStyle(category) {
-    const styles = {
-        Futures: "bg-cyan-950/40 border border-cyan-500/20 text-cyan-400 shadow-xl shadow-cyan-950/40",
-        Options: "bg-purple-950/40 border border-purple-500/20 text-purple-400 shadow-xl shadow-purple-950/40",
-        Risk: "bg-orange-950/40 border border-orange-500/20 text-orange-400 shadow-xl shadow-orange-950/40",
-        Fees: "bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 shadow-xl shadow-emerald-950/40",
-        Security: "bg-blue-950/40 border border-blue-500/20 text-blue-400 shadow-xl shadow-blue-950/40"
-    };
-
-    return styles[category] || "bg-cyan-950/40 border border-cyan-500/20 text-cyan-400 shadow-xl shadow-cyan-950/40";
+    return themes[category] || themes.Futures;
 }
 
 function getPostUrl(post) {
@@ -94,32 +91,69 @@ function renderArticle(post) {
         return;
     }
 
+    const theme = getCategoryTheme(post.category);
     document.title = `${post.title} | TraidiumX`;
 
     blogDetailsArticle.innerHTML = `
         <div class="mb-6 flex flex-wrap items-center gap-3">
-            <span class="rounded-full px-3 py-1 text-xs font-black ${getCategoryColor(post.category)}">
+            <span class="rounded-full px-3.5 py-1 text-xs font-black ${theme.badge}">
                 ${escapeHtml(post.category)}
             </span>
+            <span class="text-xs font-bold text-slate-500">${escapeHtml(post.readTime)}</span>
+            <span class="text-xs font-bold text-slate-600">·</span>
+            <span class="text-xs font-bold text-slate-400">${escapeHtml(post.date || "")}</span>
+            <span class="text-xs font-bold text-slate-600">·</span>
+            <span class="text-xs font-bold ${theme.color}">${escapeHtml(post.author || "TraidiumX Research")}</span>
         </div>
 
-        <h1 class="text-4xl font-black leading-tight sm:text-6xl">
+        <h1 class="text-3xl font-black leading-tight sm:text-5xl lg:text-6xl text-white">
             ${escapeHtml(post.title)}
         </h1>
 
-        <p class="mt-5 text-lg leading-8 text-slate-300">
+        <p class="mt-5 text-base sm:text-lg leading-8 text-slate-300">
             ${escapeHtml(post.excerpt)}
         </p>
 
-        <div class="my-8 h-[280px] rounded-[2rem] border border-cyan-400/20 bg-cyan-400/[0.06] blog-details-art">
-            <div class="blog-details-symbol ${getCategoryArtStyle(post.category)}">
-                ${getCategoryIcon(post.category)}
+        <!-- Premium Themed Hero Art Banner -->
+        <div class="relative my-8 overflow-hidden rounded-[2rem] ${theme.bannerBg} p-8 sm:p-10">
+            <div class="absolute -left-12 -top-12 h-44 w-44 rounded-full ${theme.glowColor} blur-[60px]"></div>
+            <div class="absolute -right-12 -bottom-12 h-44 w-44 rounded-full ${theme.glowColor} blur-[60px]"></div>
+
+            <div class="relative z-10 flex flex-col items-center justify-center text-center">
+                <div class="flex h-20 w-20 items-center justify-center rounded-3xl ${theme.iconBox}">
+                    ${theme.icon}
+                </div>
+                <div class="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/70 px-4 py-1.5 text-xs font-bold text-slate-300 backdrop-blur-md">
+                    <span class="h-2 w-2 rounded-full ${theme.pillDot}"></span>
+                    <span>${escapeHtml(theme.pillText)}</span>
+                </div>
             </div>
         </div>
 
-        <div class="blog-content-prose">
+        <!-- Structured Content Blocks -->
+        <div class="space-y-5">
             ${(post.content || []).map((paragraph) => {
-                return `<p>${escapeHtml(paragraph)}</p>`;
+                const escaped = escapeHtml(paragraph);
+                if (escaped.includes(" — ")) {
+                    const [ruleTitle, ...ruleBody] = escaped.split(" — ");
+                    return `
+                        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 transition hover:border-cyan-400/30 hover:bg-white/[0.05]">
+                            <h4 class="text-base sm:text-lg font-black ${theme.color} mb-2">${ruleTitle}</h4>
+                            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">${ruleBody.join(" — ")}</p>
+                        </div>
+                    `;
+                } else if (escaped.includes(": ")) {
+                    const colonIndex = escaped.indexOf(": ");
+                    const titlePrefix = escaped.substring(0, colonIndex);
+                    const bodyText = escaped.substring(colonIndex + 2);
+                    return `
+                        <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-6 transition hover:border-cyan-400/30 hover:bg-white/[0.05]">
+                            <h4 class="text-base sm:text-lg font-black ${theme.color} mb-2">${titlePrefix}</h4>
+                            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">${bodyText}</p>
+                        </div>
+                    `;
+                }
+                return `<p class="leading-relaxed text-slate-300 text-sm sm:text-base">${escaped}</p>`;
             }).join("")}
         </div>
     `;

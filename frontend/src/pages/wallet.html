@@ -1849,92 +1849,230 @@
                 </section>
 
                 <section data-wallet-action-panel="withdraw" class="hidden">
-                    <div id="modalWithdrawCurrencyToggleBar" class="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
-                        <button id="modalSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
-                            $ USD / USD
+                    <div id="modalWithdrawCurrencyToggleBar" class="hidden mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-slate-950/90 p-1.5">
+                        <button id="modalSelectWithdrawUsdtBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
+                            $ USD / Crypto
                         </button>
                         <button id="modalSelectWithdrawInrBtn" type="button" class="flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white">
                             ₹ INR
                         </button>
                     </div>
 
-                    <p id="modalWithdrawSubtitle" class="mb-4 text-xs font-semibold leading-relaxed text-slate-400">
-                        Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
-                    </p>
-
                     <form id="modalWithdrawalForm" class="grid gap-4">
-                        <input id="modalWithdrawMethodInput" name="withdrawal_method" type="hidden" value="inr_withdrawal" />
-                        <input id="modalWithdrawAsset" name="crypto_asset" type="hidden" value="INR" />
+                        <input id="modalWithdrawMethodInput" name="withdrawal_method" type="hidden" value="crypto_withdrawal" />
+                        <input id="modalWithdrawAsset" name="crypto_asset" type="hidden" value="USDT" />
 
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div id="txWithdrawAmountBox">
-                                <label for="modalWithdrawAmount" id="modalWithdrawAmountLabel" class="tx-form-label">Amount (INR / ₹)</label>
-                                <input id="modalWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="100.00" class="tx-form-input text-lg font-extrabold text-white" required />
-                            </div>
-                            <div id="modalWithdrawNetworkBox">
-                                <label for="modalWithdrawNetwork" class="tx-form-label">Network</label>
-                                <select id="modalWithdrawNetwork" name="crypto_network" class="tx-form-input font-bold text-white">
-                                    <option value="TRC20">TRON (TRC20)</option>
-                                    <option value="BEP20">BNB Smart Chain (BEP20)</option>
-                                    <option value="ERC20">Ethereum (ERC20)</option>
-                                </select>
-                            </div>
-                        </div>
+                        <!-- ================= CRYPTO / USD WITHDRAWAL VIEW (Matches Image 2) ================= -->
+                        <div id="modalWithdrawCryptoContainer" class="grid gap-4">
+                            
+                            <!-- ROW 1: 2 Dropdown selectors side-by-side (Token & Network) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Coin / Asset Selector Dropdown Pill -->
+                                <div class="relative">
+                                    <div id="txWithdrawAssetBtn" class="h-12 flex items-center justify-between rounded-2xl border border-[#172d47] bg-[#071326] px-4 hover:border-cyan-400/60 transition cursor-pointer select-none">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#26a17b] text-white flex items-center justify-center text-xs font-black">₮</span>
+                                            <span id="txWithdrawAssetTitle" class="font-extrabold text-sm text-white">USDT</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                    <!-- Dropdown Menu for Assets -->
+                                    <div id="txWithdrawAssetMenu" class="hidden absolute top-full left-0 right-0 mt-1.5 z-30 max-h-56 overflow-y-auto rounded-2xl border border-white/10 bg-[#0c182e] p-1.5 shadow-2xl backdrop-blur-xl">
+                                        <button type="button" data-withdraw-asset="USDT" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#26a17b] text-white flex items-center justify-center text-[10px] font-black">₮</span>
+                                            <span>USDT (Tether)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-asset="BTC" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#f7931a] text-white flex items-center justify-center text-[10px] font-black">₿</span>
+                                            <span>BTC (Bitcoin)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-asset="ETH" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#627eea] text-white flex items-center justify-center text-[10px] font-black">Ξ</span>
+                                            <span>ETH (Ethereum)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-asset="SOL" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#14f195] text-slate-950 flex items-center justify-center text-[10px] font-black">◎</span>
+                                            <span>SOL (Solana)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-asset="BNB" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#f3ba2f] text-slate-950 flex items-center justify-center text-[10px] font-black">🟡</span>
+                                            <span>BNB (BNB Chain)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-asset="XRP" class="tx-w-asset-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#23292f] text-white flex items-center justify-center text-[10px] font-black">✕</span>
+                                            <span>XRP (Ripple)</span>
+                                        </button>
+                                    </div>
+                                </div>
 
-                        <div id="modalWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
-                            Enter withdrawal amount to see live conversion
-                        </div>
+                                <!-- Network Selector Dropdown Pill -->
+                                <div class="relative">
+                                    <div id="txWithdrawNetworkBtn" class="h-12 flex items-center justify-between rounded-2xl border border-[#172d47] bg-[#071326] px-4 hover:border-cyan-400/60 transition cursor-pointer select-none">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <span id="txWithdrawNetworkIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#627eea]/20 text-[#627eea] flex items-center justify-center text-xs font-black border border-[#627eea]/40">⬨</span>
+                                            <span id="txWithdrawNetworkTitle" class="font-extrabold text-sm text-white truncate">ERC20 (Ethereum)</span>
+                                        </div>
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                    <!-- Hidden select for form bindings -->
+                                    <select id="modalWithdrawNetwork" name="crypto_network" class="hidden">
+                                        <option value="ERC20" selected>ERC20</option>
+                                        <option value="TRC20">TRC20</option>
+                                        <option value="BEP20">BEP20</option>
+                                    </select>
+                                    <!-- Custom Network Dropdown Menu -->
+                                    <div id="txWithdrawNetworkMenu" class="hidden absolute top-full left-0 right-0 mt-1.5 z-30 rounded-2xl border border-white/10 bg-[#0c182e] p-1.5 shadow-2xl backdrop-blur-xl">
+                                        <button type="button" data-withdraw-network="ERC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#627eea]/20 text-[#627eea] flex items-center justify-center text-[10px] font-black border border-[#627eea]/40">⬨</span>
+                                            <span>ERC20 (Ethereum)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-network="TRC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#ef0027]/20 text-[#ef0027] flex items-center justify-center text-[10px] font-black border border-[#ef0027]/40">₮</span>
+                                            <span>TRC20 (TRON)</span>
+                                        </button>
+                                        <button type="button" data-withdraw-network="BEP20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                                            <span class="h-5 w-5 rounded-full bg-[#f3ba2f]/20 text-[#f3ba2f] flex items-center justify-center text-[10px] font-black border border-[#f3ba2f]/40">🟡</span>
+                                            <span>BEP20 (BNB Smart Chain)</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <!-- Crypto Payout (USD) -->
-                        <div id="txWithdrawCryptoAddressBox">
-                            <label for="modalWithdrawalAddress" id="modalWithdrawalAddressLabel" class="tx-form-label">User External Wallet Address</label>
-                            <input id="modalWithdrawalAddress" name="withdrawal_address" type="text" placeholder="TRC20 starts with T, ERC20/BEP20 starts with 0x" class="tx-form-input font-bold text-white" required />
-                        </div>
+                            <!-- ROW 2: Dual-column Balance & Limits Info Box (Image 2) -->
+                            <div class="rounded-2xl border border-[#15273f] bg-[#071224] p-4">
+                                <div class="grid grid-cols-2 gap-4 divide-x divide-white/5">
+                                    <!-- Left: Available Balance -->
+                                    <div class="pr-2">
+                                        <p class="text-xs font-semibold text-slate-400">Available Balance</p>
+                                        <h4 id="txWithdrawModalAvailMain" class="mt-1 text-2xl font-black text-cyan-400">$1,842.32</h4>
+                                        <p id="txWithdrawModalAvailSub" class="mt-0.5 text-xs font-medium text-slate-400">≈ 1,842.32 USDT</p>
+                                    </div>
+                                    <!-- Right: Min Withdrawal & Withdrawal Fee -->
+                                    <div class="pl-4">
+                                        <p class="text-xs font-semibold text-slate-400">Min. Withdrawal</p>
+                                        <h4 id="txWithdrawModalMinAmount" class="mt-1 text-base font-extrabold text-white">$10.00</h4>
+                                        <div class="mt-0.5 text-xs text-slate-400">
+                                            <span id="txWithdrawModalFeeLabel" class="font-medium">Withdrawal Fee</span>
+                                            <p id="txWithdrawModalFeeText" class="font-bold text-slate-300">0.00 USDT</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <!-- INR Payout (Bank details & UPI) -->
-                        <div id="txWithdrawInrBankBox" class="hidden grid gap-4 sm:grid-cols-2">
+                            <!-- ROW 3: Withdrawal Address with Clipboard Paste (Image 2) -->
                             <div>
-                                <label for="modalWithdrawHolderName" class="tx-form-label">Account Holder Name</label>
-                                <input id="modalWithdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <div class="flex items-center gap-1.5 mb-1.5">
+                                    <label for="modalWithdrawalAddress" class="text-xs font-bold text-slate-300">Withdrawal Address</label>
+                                    <span class="text-slate-500 text-xs cursor-pointer" title="Make sure to enter the correct external recipient wallet address">ⓘ</span>
+                                </div>
+                                <div class="relative flex items-center h-12 rounded-2xl border border-[#172d47] bg-[#071326] px-4 focus-within:border-cyan-400 transition">
+                                    <input id="modalWithdrawalAddress" name="withdrawal_address" type="text" placeholder="Enter USDT wallet address (ERC20)" class="w-full bg-transparent text-xs sm:text-sm font-semibold text-white outline-none placeholder:text-slate-500 pr-10" required />
+                                    <button id="txWithdrawPasteAddressBtn" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-[#0e2238] border border-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 flex items-center justify-center transition cursor-pointer" title="Paste from clipboard">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </button>
+                                </div>
                             </div>
+
+                            <!-- ROW 4: Withdrawal Amount + Use Max + Approx Receive (Image 2) -->
                             <div>
-                                <label for="modalWithdrawBankName" class="tx-form-label">Bank Name</label>
-                                <input id="modalWithdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label for="modalWithdrawAmount" class="text-xs font-bold text-slate-300">Withdrawal Amount</label>
+                                    <button id="txWithdrawUseMaxBtn" type="button" class="text-xs font-black text-cyan-400 hover:text-cyan-300 transition cursor-pointer">Use Max</button>
+                                </div>
+                                <div class="relative flex items-center h-12 rounded-2xl border border-[#172d47] bg-[#071326] px-4 focus-within:border-cyan-400 transition">
+                                    <input id="modalWithdrawAmount" name="amount" type="number" min="10" max="1000000" step="any" placeholder="Enter amount" class="w-full bg-transparent text-sm sm:text-base font-extrabold text-white outline-none placeholder:text-slate-500 pr-14 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" required />
+                                    <span id="txWithdrawCurrencySymbolTag" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-cyan-400 select-none">USDT</span>
+                                </div>
+                                <div class="mt-1.5 flex items-center justify-between text-xs text-slate-400">
+                                    <span>You will receive (approx.)</span>
+                                    <span id="txWithdrawModalReceiveApprox" class="font-extrabold text-cyan-400">0.00 USDT</span>
+                                </div>
                             </div>
-                            <div>
-                                <label for="modalWithdrawAccountNumber" class="tx-form-label">Account Number</label>
-                                <input id="modalWithdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+
+                            <!-- ROW 5: WITHDRAWAL FEE PREVIEW (Image 2) -->
+                            <div id="modalWithdrawFeePreview" class="rounded-2xl border border-cyan-500/25 bg-[#07192b]/90 p-4 text-xs">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="h-5 w-5 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center text-xs">
+                                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    </div>
+                                    <span class="font-black uppercase tracking-[0.14em] text-cyan-300 text-[11px]">WITHDRAWAL FEE PREVIEW</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-y-2.5 gap-x-4 text-slate-300 font-medium">
+                                    <div>Withdraw amount: <b id="modalWithdrawPreviewAmount" class="font-bold text-white">--</b></div>
+                                    <div>You will receive: <b id="modalWithdrawPreviewReceive" class="font-bold text-white">--</b></div>
+                                    <div>Withdrawal fee: <b id="modalWithdrawPreviewCompanyFee" class="font-bold text-white">--</b></div>
+                                    <div>Total will debit: <b id="modalWithdrawPreviewTotalDebit" class="font-bold text-white">--</b></div>
+                                    <p class="hidden">Network fee: <b id="modalWithdrawPreviewNetworkFee">--</b></p>
+                                    <p class="hidden">Total fees: <b id="modalWithdrawPreviewTotalFee">--</b></p>
+                                </div>
+                                <p id="modalWithdrawPreviewNote" class="mt-2.5 text-[11px] text-slate-400 font-medium">Enter amount to calculate fees and receive amount.</p>
                             </div>
-                            <div>
-                                <label for="modalWithdrawIfscCode" class="tx-form-label">IFSC Code</label>
-                                <input id="modalWithdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+
+                            <!-- ROW 6: Submit Button (Image 2) -->
+                            <button id="modalWithdrawSubmitBtn" type="submit" class="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-sm transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer mt-1">
+                                <svg class="w-4 h-4 fill-current transform rotate-45" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                                <span>Submit Withdrawal Request</span>
+                            </button>
+
+                            <!-- ROW 7: Security Note / Guarantee Box (Image 2) -->
+                            <div class="mt-0.5 flex items-start gap-2.5 rounded-2xl border border-cyan-500/15 bg-[#05101d] p-3.5">
+                                <div class="h-6 w-6 shrink-0 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center text-xs">
+                                    🛡️
+                                </div>
+                                <p class="text-xs font-medium text-slate-400 leading-relaxed">
+                                    Your withdrawal will be processed after admin approval. You will receive a notification once it is completed.
+                                </p>
                             </div>
-                            <div class="sm:col-span-2">
-                                <label for="modalWithdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
-                                <input id="modalWithdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
-                            </div>
+
                         </div>
-                        <div id="modalWithdrawTagBox">
+                        <!-- ================= CRYPTO / USD WITHDRAWAL VIEW END ================= -->
+
+
+                        <!-- ================= INR WITHDRAWAL VIEW (Preserved for INR Tab) ================= -->
+                        <div id="modalWithdrawInrContainer" class="hidden grid gap-4">
+                            <p id="modalWithdrawSubtitle" class="text-xs font-semibold leading-relaxed text-slate-400">
+                                Submit your UPI ID or Bank Details for INR withdrawal payout after Admin approval.
+                            </p>
+
+                            <div id="modalWithdrawConversionPreview" class="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3.5 text-xs font-black text-emerald-300">
+                                Enter withdrawal amount to see live conversion
+                            </div>
+
+                            <div id="txWithdrawInrBankBox" class="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="modalWithdrawHolderName" class="tx-form-label">Account Holder Name</label>
+                                    <input id="modalWithdrawHolderName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                </div>
+                                <div>
+                                    <label for="modalWithdrawBankName" class="tx-form-label">Bank Name</label>
+                                    <input id="modalWithdrawBankName" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                </div>
+                                <div>
+                                    <label for="modalWithdrawAccountNumber" class="tx-form-label">Account Number</label>
+                                    <input id="modalWithdrawAccountNumber" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                </div>
+                                <div>
+                                    <label for="modalWithdrawIfscCode" class="tx-form-label">IFSC Code</label>
+                                    <input id="modalWithdrawIfscCode" type="text" placeholder="" class="tx-form-input font-bold text-white" style="text-transform:uppercase;" />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label for="modalWithdrawUpiId" class="tx-form-label">UPI ID <span class="text-slate-500 font-normal">(optional)</span></label>
+                                    <input id="modalWithdrawUpiId" type="text" placeholder="" class="tx-form-input font-bold text-white" />
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
+                                Create Withdrawal Request
+                            </button>
+                        </div>
+                        <!-- ================= INR WITHDRAWAL VIEW END ================= -->
+
+                        <!-- Hidden memo tag for XRP / Destination Tag -->
+                        <div id="modalWithdrawTagBox" class="hidden">
                             <label for="modalDestinationTag" class="tx-form-label">Memo / Tag <span class="text-slate-500">(optional)</span></label>
                             <input id="modalDestinationTag" name="destination_tag" type="text" placeholder="Only if destination exchange requires it" class="tx-form-input" />
                         </div>
 
-                        <div id="modalWithdrawFeePreview" class="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-xs leading-6 text-cyan-100">
-                            <div class="mb-2 font-black uppercase tracking-[0.14em] text-cyan-300">Withdrawal fee preview</div>
-                            <div class="grid gap-2 sm:grid-cols-2">
-                                <p>Withdraw amount: <b id="modalWithdrawPreviewAmount">--</b></p>
-                                <p>You will receive: <b id="modalWithdrawPreviewReceive">--</b></p>
-                                <p>Company fee: <b id="modalWithdrawPreviewCompanyFee">--</b></p>
-                                <p class="hidden">Network fee: <b id="modalWithdrawPreviewNetworkFee">--</b></p>
-                                <p class="hidden">Total fees: <b id="modalWithdrawPreviewTotalFee">--</b></p>
-                                <p>Total wallet debit: <b id="modalWithdrawPreviewTotalDebit">--</b></p>
-                            </div>
-                            <p id="modalWithdrawPreviewNote" class="mt-2 text-slate-300">Enter amount and payout details to submit request.</p>
-                        </div>
-
-                        <button type="submit" class="w-full rounded-2xl bg-emerald-500 py-3.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400 shadow-lg shadow-emerald-500/20">
-                            Create Withdrawal Request
-                        </button>
                     </form>
                 </section>
             </div>

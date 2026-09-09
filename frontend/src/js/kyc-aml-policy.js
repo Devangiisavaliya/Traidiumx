@@ -42,27 +42,36 @@ const kycAcknowledgeCheckbox = document.getElementById("kycAcknowledgeCheckbox")
 const saveKycAcknowledgementBtn = document.getElementById("saveKycAcknowledgementBtn");
 const kycAcknowledgementMessage = document.getElementById("kycAcknowledgementMessage");
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 const kycLevels = [
     {
         level: "Level 0",
         title: "Basic Account",
-        access: "View markets only",
-        limit: "No deposit / withdrawal",
+        access: "Market exploration & chart viewing",
+        limit: "Withdrawals Locked (KYC Required)",
         status: "Unverified"
     },
     {
         level: "Level 1",
-        title: "Verified User",
-        access: "Trading access",
-        limit: "Standard wallet limits",
+        title: "KYC Verified Trader",
+        access: "Full Spot, Futures & Options Access",
+        limit: "Full Wallet Deposits & Withdrawals Enabled",
         status: "KYC Verified"
     },
     {
         level: "Level 2",
-        title: "Enhanced Review",
-        access: "Higher limits",
-        limit: "Manual compliance review",
-        status: "EDD Required"
+        title: "Institutional & VIP Desk",
+        access: "High-Volume Trading & Priority Execution",
+        limit: "Custom High-Volume Admin Approval",
+        status: "EDD Cleared"
     }
 ];
 
@@ -74,8 +83,8 @@ const kycDocuments = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 10h6m-6 3h6"></path>
             </svg>
         </div>`,
-        title: "Mobile Verification",
-        description: "One-Time Passcode (OTP) verification on your mobile number to initialize the KYC process."
+        title: "Mobile & Email 2FA OTP",
+        description: "Cryptographic two-factor authentication binding your verified phone number and primary email to your exchange profile."
     },
     {
         icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_20px_rgba(52,211,153,0.15)] text-emerald-400">
@@ -83,8 +92,8 @@ const kycDocuments = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
             </svg>
         </div>`,
-        title: "Aadhaar Card",
-        description: "Secure DigiLocker integration to fetch and verify Aadhaar identity details instantly."
+        title: "Aadhaar e-KYC / DigiLocker",
+        description: "Direct UIDAI DigiLocker integration providing SHA-256 cryptographically verified national identity validation within seconds."
     },
     {
         icon: `<div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)] text-purple-400">
@@ -93,140 +102,144 @@ const kycDocuments = [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h1m-1 3h2m-2 3h4"></path>
             </svg>
         </div>`,
-        title: "PAN Card Record",
-        description: "Automated retrieval of your PAN verification record through DigiLocker compliance checks."
+        title: "PAN Card Tax Registry Check",
+        description: "Real-time Income Tax Department & NSDL database matching ensuring full compliance with statutory TDS and financial mandates."
     }
 ];
 
 const kycSections = [
     {
         id: "purpose",
-        title: "1. Purpose Of KYC-AML Policy",
-        summary: "The policy helps prevent money laundering, terrorism financing, fraud and illegal use.",
+        title: "1. Purpose and Regulatory Framework",
+        summary: "Comprehensive compliance framework ensuring full alignment with PMLA (2002), FIU-IND directives, and international FATF anti-money laundering standards.",
         content: [
-            "The purpose of this KYC-AML Policy is to define the framework TraidiumX may use to identify users, verify customer information, monitor transactions and detect suspicious activity.",
-            "The policy is intended to prevent misuse of the platform for money laundering, terrorism financing, proliferation financing, fraud, identity misuse, sanctions evasion or transactions connected with proceeds of crime.",
-            "TraidiumX operates under a strict compliance framework designed to maintain platform integrity, user trust, and adherence to international regulatory standards."
+            "Statutory Compliance & PMLA Mandate: TraidiumX Exchange operates in strict compliance with the Prevention of Money Laundering Act (PMLA 2002), the Prevention of Money-Laundering (Maintenance of Records) Rules, and guidelines issued by the Financial Intelligence Unit - India (FIU-IND) and global Financial Action Task Force (FATF).",
+            "Anti-Money Laundering & Market Protection: Our AML framework is designed to detect and prevent illicit capital flow, tax evasion, ransomware financing, and fraudulent transactions across all spot and derivative crypto markets on TraidiumX."
         ]
     },
     {
         id: "scope",
-        title: "2. Scope And Applicability",
-        summary: "This policy applies to all users, accounts, wallet activity, trading and support interactions.",
+        title: "2. Scope and Service Applicability",
+        summary: "Mandatory applicability across all individual retail accounts, corporate entities, algorithmic market makers, and derivative trading modules.",
         content: [
-            "This policy applies to all users who access TraidiumX, create an account, complete KYC, deposit funds, withdraw funds, trade futures or options, participate in campaigns or contact support.",
-            "It applies to all account-related data, identity documents, wallet activity, trading activity, referral activity, campaign rewards, support tickets and compliance records.",
-            "TraidiumX may apply different levels of verification, review and restrictions based on product access, user profile, transaction behavior, risk score and applicable rules."
+            "Covered Trading Products: This policy applies directly to all TraidiumX core services, including Spot Markets, Perpetual Futures (with leverage), Crypto Options Chains, Collateral Margin transfers, and Referral commission rewards.",
+            "Banking & Payment Channels: Applicable to all fiat INR deposit and withdrawal gateways (UPI, IMPS, NEFT) as well as on-chain cryptocurrency transactions (USDT, BTC, ETH, SOL) across supported blockchain networks.",
+            "Universal User Base: Enforceable across all individual retail traders, corporate accounts, high-frequency API market makers, and institutional liquidity desks."
         ]
     },
     {
         id: "customer-identification",
-        title: "3. Customer Identification Program",
-        summary: "Users may be required to submit identity, address, bank and contact details.",
+        title: "3. Customer Identification Program (CIP) & Verification Flow",
+        summary: "Multi-tier digital onboarding incorporating DigiLocker, UIDAI Offline e-KYC, PAN registry validation, and AI biometric liveness verification.",
         content: [
-            "TraidiumX may require users to provide accurate identity information including name, date of birth, email, mobile number, address, PAN, identity documents and bank account details when required for withdrawal review.",
-            "The platform may verify submitted information using internal checks, third-party verification providers, document validation, mobile OTP, bank verification and manual compliance review when required.",
-            "Users must not submit fake, forged, altered, expired, mismatched or third-party documents. Such activity may result in account restriction or rejection."
+            "Step 1 - Mobile & Email OTP Binding: Users must verify their active mobile number and email address via real-time Time-Based One-Time Passcodes (OTP) before initiating any account verification.",
+            "Step 2 - Aadhaar e-KYC via DigiLocker: Seamless digital verification using UIDAI-authorized DigiLocker integration or password-protected Aadhaar Paperless Offline e-KYC XML (with verifiable SHA-256 digital signature).",
+            "Step 3 - PAN Card Online Validation: Mandatory Permanent Account Number (PAN) submission verified directly against the NSDL / Income Tax Department database to comply with Section 194S TDS requirements.",
+            "Step 4 - AI Biometric Facial Liveness: Real-time 3D facial liveness check that dynamically matches the user's live selfie against official photo archives to prevent photo spoofing and synthetic identity fraud.",
+            "Step 5 - Admin Approval & Verification SLA: Automated DigiLocker checks verify in under 2 minutes. Any manual review or OCR exception is processed by our Compliance Team within 24 business hours."
         ]
     },
     {
         id: "beneficial-ownership",
-        title: "4. Beneficial Ownership And User Control",
-        summary: "Users must act for themselves unless authorized and verified.",
+        title: "4. Beneficial Ownership and Corporate Due Diligence",
+        summary: "Strict prohibition against proxy trading and mandatory identification of Ultimate Beneficial Owners (UBOs) holding ≥10% equity.",
         content: [
-            "Users should operate accounts only for themselves unless authorized business or institutional account structures are formally supported and verified.",
-            "If an account is suspected to be operated on behalf of another person, company or undisclosed beneficial owner, TraidiumX may request additional information and documents.",
-            "Accounts may be restricted if ownership, control, source of funds or transaction purpose cannot be reasonably verified."
+            "Strict Account Exclusivity: Every TraidiumX account must be registered and operated strictly by the beneficial owner. Account sharing, proxy trading, renting credentials, and pooled third-party trading are strictly prohibited.",
+            "Corporate Entity Documentation: Institutional accounts must submit Certificate of Incorporation, Memorandum & Articles of Association (MOA/AOA), Board Resolution authorizing crypto trading, and authorized signatory lists.",
+            "Ultimate Beneficial Ownership (UBO): Corporate applicants must identify all natural persons owning or controlling 10% or more of voting rights or equity capital."
         ]
     },
     {
         id: "risk-profiling",
-        title: "5. Risk Profiling And Enhanced Due Diligence",
-        summary: "Users may be classified by risk level and reviewed accordingly.",
+        title: "5. Risk Categorization and Enhanced Due Diligence (EDD)",
+        summary: "Dynamic risk rating matrix (Low, Medium, High) triggering in-depth Source of Wealth and financial audit checks for high-volume accounts.",
         content: [
-            "TraidiumX may assign user risk levels based on KYC information, location, device behavior, transaction pattern, trading activity, wallet behavior, support history and compliance alerts.",
-            "Higher-risk users may be subject to enhanced due diligence, additional documents, source of funds checks, manual approval, lower limits or temporary restrictions.",
-            "Enhanced review may be applied to unusual trading, high-value withdrawals, frequent account changes, suspicious referrals, multiple accounts or inconsistent KYC details."
+            "Three-Tier Risk Rating: Accounts are dynamically scored as Low, Medium, or High Risk based on geographic residency, deposit methods, trading instruments utilized, and blockchain transaction velocity.",
+            "EDD Triggers: Enhanced Due Diligence is automatically triggered upon: (1) High-frequency deposit/withdrawal velocity; (2) Large OTC transaction requests; (3) Repeated device/IP anomalies; or (4) Counterpart address alerts.",
+            "Supplementary Document Checklist: Users undergoing EDD must furnish Proof of Address (utility bill/bank statement <90 days old), verified Income Proof (ITR acknowledgement or payslips), and a signed Source of Wealth declaration.",
+            "Periodic KYC Refresh: High-risk accounts undergo mandatory annual KYC refresh cycles, while standard accounts are re-verified every two years."
         ]
     },
     {
         id: "transaction-monitoring",
-        title: "6. Transaction Monitoring",
-        summary: "Deposits, withdrawals, trading and wallet behavior may be monitored.",
+        title: "6. Real-Time Transaction Monitoring & Blockchain Analytics",
+        summary: "Continuous heuristic surveillance, structuring filters, and on-chain cluster analytics across all deposit and withdrawal flows.",
         content: [
-            "TraidiumX may monitor wallet transactions, deposit patterns, withdrawal frequency, trading volume, fee rebate activity, referral rewards and account behavior to detect suspicious activity.",
-            "Monitoring rules may include velocity checks, unusual volume detection, repeated failed verification, multiple linked accounts, mismatched bank accounts and unusual device or IP patterns.",
-            "Suspicious transactions may be paused, reviewed, rejected, reported or escalated according to internal compliance procedures and applicable requirements."
+            "On-Chain Address Screening: All inbound cryptocurrency deposits and outbound withdrawal addresses are scanned against global blacklists, darknet markets, ransomware clusters, and sanctioned wallet addresses.",
+            "Structuring & Velocity Filters: Automated matching engine heuristics detect 'smurfing' or structuring — intentionally splitting large sums into smaller amounts to bypass monitoring limits.",
+            "Mixing Service Quarantine: Any deposits originating from anonymizing mixing protocols (e.g., Tornado Cash) or high-risk peer-to-peer liquidity tumblers are immediately quarantined.",
+            "Continuous Wallet Heuristics: Continuous post-transaction surveillance flags rapid deposit-trade-withdrawal cycles that lack genuine trading or investment purpose."
         ]
     },
     {
         id: "restricted-activities",
-        title: "7. Restricted And Prohibited Activities",
-        summary: "Illegal, manipulative, abusive and suspicious activities are prohibited.",
+        title: "7. Prohibited and Restricted Activities on TraidiumX",
+        summary: "Strict prohibition against market manipulation, wash trading, darknet financing, mixer usage, and multi-accounting exploitation.",
         content: [
-            "Users must not use TraidiumX for money laundering, terrorism financing, fraud, sanctions evasion, market manipulation, wash trading, reverse trading, identity misuse or illegal activity.",
-            "Users must not create fake accounts, use another person’s documents, abuse referral rewards, manipulate campaigns, bypass KYC checks or attempt unauthorized access.",
-            "Accounts involved in prohibited activity may be suspended, restricted, terminated or reported where required."
+            "Market Manipulation Prohibitions: Wash trading, spoofing, layering, circular order matching between linked accounts, quote stuffing, and matched-order manipulation are strictly forbidden.",
+            "Illicit & Stolen Funds: Depositing funds originating from extortion, phishing, exchange hacks, malware operations, or narcotics trafficking is strictly illegal.",
+            "Jurisdictional & Proxy Evasion: Using unauthorized VPN proxy farms, fake geolocation tools, or forged credentials to bypass sovereign sanctions is prohibited.",
+            "Incentive & Referral Abuse: Creating Sybil multi-accounts to farm trading fee rebates, referral rewards, or challenge prizes results in immediate balance cancellation.",
+            "Reverse-Trading Exploitation: Executing coordinated opposing positions across multiple accounts to illicitly transfer funds or exploit bonus credit balances is strictly banned."
         ]
     },
     {
         id: "sanctions-screening",
-        title: "8. Sanctions And Watchlist Screening",
-        summary: "Users may be screened against sanctions, watchlists and high-risk indicators.",
+        title: "8. Global Sanctions and Watchlist Screening",
+        summary: "Continuous automated screening against UN, OFAC, EU, INTERPOL, and national PEP & terrorist exclusion databases.",
         content: [
-            "TraidiumX may screen users, counterparties, wallet addresses or transaction activity against sanctions lists, adverse media, politically exposed person indicators and other risk databases.",
-            "If a match or potential match is detected, the platform may request additional information, restrict activity or escalate the case for compliance review.",
-            "Users must not use the platform if they are prohibited under applicable sanctions or legal restrictions."
+            "International Sanction Regimes: Continuous real-time screening against OFAC (US Treasury), UN Security Council (UNSC), European Union (EU), and INTERPOL Red Notices.",
+            "Politically Exposed Persons (PEP) Monitoring: Senior government officials, military leaders, political figures, and their immediate family members (RCA) are flagged for enhanced senior compliance approval.",
+            "Asset Freezing on Positive Match: Any confirmed match against active international sanctions lists triggers immediate account blocking and statutory reporting."
         ]
     },
     {
         id: "record-keeping",
-        title: "9. Record Keeping",
-        summary: "KYC and AML records may be retained for legal, audit and compliance purposes.",
+        title: "9. Record Retention and Cryptographic Security Standards",
+        summary: "Statutory 5-year encrypted retention of identity records, trade logs, and blockchain transactions in compliance with Section 12 of PMLA.",
         content: [
-            "TraidiumX may retain KYC records, transaction logs, wallet records, audit logs, support records, device logs and compliance review notes for the period required by law or internal policy.",
-            "Records may be retained even after account closure where needed for legal compliance, dispute resolution, audit, fraud prevention or regulatory reporting.",
-            "All stored user details, document submissions, transaction histories, and verification logs are kept in encrypted storage with strict access controls."
+            "Statutory 5-Year Data Retention: Under Section 12 of PMLA (2002), all KYC identity documents, DigiLocker logs, trade executions, order histories, and withdrawal records are retained for a minimum of 5 years following account closure.",
+            "Enterprise Encryption & HSM Vaults: All personal identity records and biometric tokens are encrypted in transit using TLS 1.3 and stored at rest with AES-256 encryption in isolated SOC2-compliant Hardware Security Modules."
         ]
     },
     {
         id: "reporting-escalation",
-        title: "10. Reporting And Escalation",
-        summary: "Suspicious activity may be escalated or reported where required.",
+        title: "10. Suspicious Activity Reporting (SAR / STR)",
+        summary: "Statutory reporting of suspicious patterns to FIU-IND with strict statutory anti-tipping-off confidentiality.",
         content: [
-            "Where suspicious activity is detected, TraidiumX may escalate the matter internally to compliance, legal or management teams for review.",
-            "The platform may report suspicious transactions or provide information to competent authorities when required by applicable law or valid legal process.",
-            "Users may not be notified of certain compliance reviews or reports if disclosure is restricted by law or internal security procedures."
+            "Statutory Reporting to FIU-IND: Where transactions exhibit suspicious patterns or lack clear commercial justification, TraidiumX files a Suspicious Transaction Report (STR) with FIU-IND.",
+            "Anti-Tipping-Off Mandate: In strict compliance with statutory PMLA rules, platform personnel are prohibited by law from disclosing to the customer that an investigation or STR has been filed.",
+            "Law Enforcement Cooperation: TraidiumX actively cooperates with cybercrime cells, police departments, and judicial bodies by furnishing verified audit trails upon receipt of valid legal notices."
         ]
     },
     {
         id: "account-restrictions",
-        title: "11. Account Restrictions And Rejection",
-        summary: "Accounts may be restricted, rejected or closed due to compliance concerns.",
+        title: "11. Account Restrictions, Freezing & Termination",
+        summary: "Clear protocols for temporary restrictions, manual reviews, asset holds, and permanent account termination.",
         content: [
-            "TraidiumX may reject onboarding, delay verification, restrict trading, pause withdrawals, freeze activity or close accounts if KYC or AML concerns arise.",
-            "Reasons may include invalid documents, incomplete information, suspicious transactions, sanctions concerns, duplicate accounts, false declarations or failure to provide requested information.",
-            "Account restrictions may remain until compliance review is completed or the platform determines that the risk cannot be accepted."
+            "Administrative Hold Triggers: TraidiumX reserves the right to freeze trading, deposits, or withdrawals in cases of: (1) Forged or expired KYC documents; (2) Chargeback disputes; (3) Unresolved AML alerts; or (4) Law enforcement directives.",
+            "Notification & 14-Day Cure Period: Affected users receive formal email notification detailing necessary remedial documents, with a standard 14-day window to furnish valid clarification.",
+            "Uncontested Fund Return: Upon verified account closure without legal encumbrance, uncontested principal funds are returned to the user's verified originating bank account.",
+            "Permanent Blacklisting: Users involved in confirmed fraudulent or malicious activity are permanently blacklisted across the TraidiumX platform."
         ]
     },
     {
         id: "user-obligations",
-        title: "12. User Obligations",
-        summary: "Users must provide correct information and cooperate with compliance requests.",
+        title: "12. User Obligations and Declarations",
+        summary: "User duties regarding accuracy of declarations, timely updates of personal data, and lawful source of funds.",
         content: [
-            "Users must provide accurate, complete and updated information during registration, KYC verification, wallet setup and compliance review.",
-            "Users must immediately update information if identity, address, bank details, contact information or beneficial ownership changes.",
-            "Users must cooperate with document requests, source of funds checks, transaction clarification requests and other compliance procedures."
+            "Accuracy & Honesty of Declarations: Users legally warrant that all submitted identification, bank account information, and tax declarations are genuine, accurate, and up to date.",
+            "30-Day Material Change Notification: Users must notify TraidiumX within 30 days of any change in residential address, nationality, tax residency, or legal name.",
+            "Lawful Source of Capital: Users certify that all deposited fiat and digital assets represent legally acquired property with verifiable tax compliance."
         ]
     },
     {
         id: "policy-updates",
-        title: "13. Policy Updates",
-        summary: "The KYC-AML Policy may be updated as laws, risks and products change.",
+        title: "13. Policy Revisions and Governance",
+        summary: "Structured biannual policy reviews, version control, and legally binding digital acknowledgement tracking.",
         content: [
-            "TraidiumX may update this KYC-AML Policy to reflect changes in products, compliance requirements, laws, risk controls, verification providers or internal procedures.",
-            "Updated versions may be published on this page with a revised date. Continued use of the platform may be treated as acceptance of updated policy requirements.",
-            "The platform maintains an automated version tracking system to record compliance updates, user consents, and policy modifications."
+            "Semi-Annual Compliance Review: This policy is reviewed biannually by the TraidiumX Legal & Compliance Board to incorporate regulatory amendments, court rulings, and market developments.",
+            "Binding Digital Acceptance: Policy updates are published with incremented version stamps. Continued platform use constitutes binding electronic consent to the updated terms."
         ]
     }
 ];
@@ -603,9 +616,23 @@ function renderKycContent(sections) {
                     </div>
 
                     <div class="kyc-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
-                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                        <div class="border-t border-white/5 pt-5 mt-5 space-y-3">
                             ${section.content.map((paragraph) => {
-                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                                const escaped = escapeHtml(paragraph);
+                                if (escaped.includes(": ")) {
+                                    const colonIndex = escaped.indexOf(": ");
+                                    const prefix = escaped.substring(0, colonIndex);
+                                    const bodyText = escaped.substring(colonIndex + 2);
+                                    if (prefix.length < 65) {
+                                        return `
+                                            <div class="rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition hover:border-cyan-400/20 hover:bg-white/[0.04]">
+                                                <h5 class="text-sm font-black text-cyan-400 mb-1.5">${prefix}</h5>
+                                                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">${bodyText}</p>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                                return `<p class="leading-relaxed text-slate-300 text-xs sm:text-sm">${escaped}</p>`;
                             }).join("")}
                         </div>
                     </div>
@@ -696,9 +723,15 @@ function downloadKycPdf() {
             <div style="margin-bottom: 25px; page-break-inside: avoid;">
                 <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
                 <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
-                ${section.content.map(p => `
-                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
-                `).join("")}
+                ${section.content.map(p => {
+                    if (p.includes(": ")) {
+                        const colonIndex = p.indexOf(": ");
+                        const prefix = p.substring(0, colonIndex);
+                        const body = p.substring(colonIndex + 2);
+                        return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;"><strong>${prefix}:</strong> ${body}</p>`;
+                    }
+                    return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>`;
+                }).join("")}
             </div>
         `).join("")}
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />

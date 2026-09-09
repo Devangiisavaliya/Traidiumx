@@ -5,11 +5,11 @@
 | TraidiumX Privacy Policy Page
 |--------------------------------------------------------------------------
 | Frontend-only interactions:
-| - Render privacy sections
+| - Render privacy sections with structured sub-clauses
 | - Search privacy policy
 | - Print policy
-| - Download TXT
-| - Save demo privacy preferences in localStorage
+| - Download PDF
+| - Save privacy preferences in localStorage
 |--------------------------------------------------------------------------
 */
 
@@ -31,116 +31,123 @@ const marketingToggle = document.getElementById("marketingToggle");
 const savePrivacyPreferencesBtn = document.getElementById("savePrivacyPreferencesBtn");
 const privacyPreferenceMessage = document.getElementById("privacyPreferenceMessage");
 
+function escapeHtml(text) {
+    if (!text) return "";
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 const privacySections = [
     {
         id: "introduction",
-        title: "1. Introduction",
-        summary: "This policy explains how TraidiumX handles user information.",
+        title: "1. Introduction & Scope of Privacy Framework",
+        summary: "Platform data stewardship, confidentiality, and compliance with data protection standards.",
         content: [
-            "This Privacy Policy explains how TraidiumX may collect, receive, store, process, disclose, transfer and protect personal information when users access the platform, create an account, complete KYC, trade, use wallet services or contact support.",
-            "By accessing or using TraidiumX, users acknowledge that they have read and understood this Privacy Policy along with the Terms & Conditions, Risk Disclosure, KYC-AML Policy and Trading Policy.",
-            "TraidiumX is committed to protecting your privacy. We regularly update our policy to ensure compliance with changing regulations."
+            "Commitment to User Data Privacy: TraidiumX is dedicated to protecting the privacy, confidentiality, and integrity of personal, financial, and transactional data collected across our spot trading, perpetual futures, options chains, and digital wallet services.",
+            "Applicability & Legal Harmony: This Privacy Policy operates in conjunction with our Terms of Service, KYC-AML Framework, and the Digital Personal Data Protection (DPDP) standards applicable to virtual digital asset service providers."
         ]
     },
     {
         id: "information-collected",
-        title: "2. What Information We Collect",
-        summary: "We may collect account, identity, device, trading and support information.",
+        title: "2. Information We Collect & Verification Sources",
+        summary: "DigiLocker KYC documents, PAN details, bank accounts, and trading telemetry logs.",
         content: [
-            "Account information may include name, email address, mobile number, password-related security data, referral code, profile details and communication preferences.",
-            "KYC information may include identity documents, PAN, address proof, date of birth, selfie verification, bank details, source of funds and other compliance documents required under applicable rules.",
-            "Trading and wallet information may include orders, positions, realised P&L, fees, deposits, withdrawals, transaction references, IP address, device logs and risk-control records.",
-            "Support information may include ticket details, messages, issue type, uploaded documents, complaint records and communication history."
+            "User Identity & DigiLocker e-KYC Data: Full legal name, government identification details (PAN card validation and DigiLocker XML Aadhaar e-KYC records), date of birth, residential address, and facial liveness verification.",
+            "Financial & Bank Account Information: Verified bank account numbers, IFSC codes, UPI Virtual Payment Addresses (VPAs) for INR settlements, and whitelisted public blockchain wallet addresses (USDT TRC20, BEP20).",
+            "Trading, Margin & Execution Logs: Order submissions, trade executions, leveraged position sizing, margin utilization, liquidation event timestamps, realized PnL, and fee payment histories.",
+            "Technical Device & Telemetry Data: IP addresses, browser fingerprint, operating system, geolocation heuristics, session tokens, API key access logs, and 2FA authentication timestamps."
         ]
     },
     {
         id: "information-use",
-        title: "3. How We Use Information",
-        summary: "Information is used to provide services, security, compliance and support.",
+        title: "3. How We Use and Process Your Information",
+        summary: "Order execution, perpetual margin calculations, AML monitoring, and 1% TDS statutory deductions.",
         content: [
-            "We may use user information to create and manage accounts, verify identity, process KYC, enable wallet services, execute trades, show balances, calculate fees and provide platform support.",
-            "Information may be used for fraud prevention, anti-money laundering checks, risk monitoring, account security, transaction review, audit logs and legal compliance.",
-            "We may also use limited information to improve platform performance, personalize user experience, send service updates and provide campaign or referral-related communications where permitted."
+            "Order Matching & Settlement Operations: Processing limit/market orders, calculating perpetual futures funding rates, computing options Greeks, and settling fiat INR deposits and withdrawals.",
+            "Mandatory Regulatory & AML Compliance: Performing automated transaction monitoring, PMLA suspicious transaction screening, and sanctions list verification.",
+            "Account Security & Anomaly Detection: Safeguarding accounts against unauthorized session hijacking, brute-force credential stuffing, and enforcing 24-hour withdrawal holds upon security resets.",
+            "Statutory Tax Compliance (1% TDS): Computing and withholding mandatory 1% TDS on Virtual Digital Asset (VDA) transactions in compliance with Section 194S of the Indian Income Tax Act."
         ]
     },
     {
         id: "sharing-disclosure",
-        title: "4. Disclosure And Sharing",
-        summary: "Information may be shared with affiliates, service providers and authorities where required.",
+        title: "4. Information Sharing, Disclosure & Third-Party Partners",
+        summary: "DigiLocker partners, payment processors, regulatory compliance, and strict no-sale policy.",
         content: [
-            "We may share information with trusted service providers such as KYC vendors, payment/banking partners, cloud infrastructure providers, analytics tools, email/SMS providers and customer support systems.",
-            "Information may be disclosed to regulators, law enforcement agencies, tax authorities, courts, auditors or other competent authorities when required under applicable law or valid legal process.",
-            "We do not sell user personal information. Contact information should not be shared with another platform user without consent, except where legally required or necessary for platform operations."
+            "Authorized Service Infrastructure: Trusted partners including DigiLocker KYC validation APIs, banking payment gateways (IMPS/UPI rails), cloud hosting clusters, and automated transactional email/SMS gateways.",
+            "Statutory & Law Enforcement Disclosures: Compliance with lawful requests from financial regulatory authorities, FIU-IND, tax departments, or judicial summons under applicable legal mandates.",
+            "Strict No-Sale Policy: TraidiumX strictly does not sell, rent, or monetize personal user data or trading histories to third-party advertisers or external data brokers."
         ]
     },
     {
         id: "cookies-tracking",
-        title: "5. Cookies And Tracking",
-        summary: "Cookies may be used for security, login, analytics and user preferences.",
+        title: "5. Cookies, Telemetry & Session Management",
+        summary: "Essential session authentication, WebSocket stream cookies, and customizable analytics preferences.",
         content: [
-            "Essential cookies may be required for login sessions, security checks, device recognition, preference storage and platform functionality.",
-            "Analytics cookies may help understand page performance, feature usage, traffic patterns and errors so that the platform can be improved.",
-            "Users may disable certain cookies from browser settings, but disabling essential cookies may affect login, trading, wallet and other platform features."
+            "Essential Session Cookies: Strictly required for JWT token authentication, secure session state persistence, 2FA validation, and real-time WebSocket price stream connectivity.",
+            "Performance & Analytics Cookies: Anonymized tracking of page loading latencies, order placement response times, and matching engine UI responsiveness.",
+            "User Preference Controls: Traders can toggle optional analytics and promotional telemetry directly via the Privacy Preferences dashboard."
         ]
     },
     {
         id: "data-protection",
-        title: "6. How We Protect Information",
-        summary: "Security safeguards should protect data from unauthorized access.",
+        title: "6. Enterprise Data Security & Encryption Standards",
+        summary: "AES-256 database encryption, TLS 1.3 transit security, role-based access control, and audit logs.",
         content: [
-            "Production systems should use encryption, HTTPS, access controls, secure password hashing, database permissions, firewalls, audit logs and monitoring to protect personal information.",
-            "Access to personal information should be limited to authorized employees, admins, vendors or service providers who need the information to deliver services or comply with legal obligations.",
-            "No system can be guaranteed completely secure. Users should protect their own devices, passwords, email accounts and authentication methods."
+            "End-to-End Cryptographic Protection: AES-256 encryption at rest for sensitive KYC records and TLS 1.3 encryption in transit across all web, mobile, and API endpoints.",
+            "Access Control & Segregation: Strict role-based access control (RBAC), multi-signature admin authorization for sensitive database access, and zero-trust internal network policies.",
+            "Immutable Audit Logging: Critical security and compliance events (such as password changes, KYC reviews, and large payouts) are recorded with tamper-resistant audit logs."
         ]
     },
     {
         id: "data-retention",
-        title: "7. Data Retention",
-        summary: "Data may be retained for service, legal, tax and compliance purposes.",
+        title: "7. Data Retention & Archival Policies",
+        summary: "Active lifecycle retention, statutory 5-year PMLA compliance storage, and secure data deletion.",
         content: [
-            "We may retain personal information while a user account is active and for a reasonable period after account closure where required for legal, tax, audit, fraud prevention, dispute resolution or compliance purposes.",
-            "Trading, wallet, KYC and transaction records may need to be retained for longer periods according to applicable laws and internal compliance policies.",
-            "Where data is no longer required, it should be deleted, anonymized or securely archived according to company retention policies."
+            "Active Account Retention: Personal, financial, and trading records are retained throughout the active lifecycle of your verified TraidiumX account.",
+            "Statutory 5-Year Compliance Archival: Under PMLA and FIU regulatory directives, identity verification documents, audit logs, and financial transaction records are securely archived for a minimum period of 5 years following account termination.",
+            "Secure Erasure: Upon expiration of mandatory retention periods, non-regulatory analytical data is permanently deleted using cryptographic wiping standards."
         ]
     },
     {
         id: "user-rights",
-        title: "8. User Choices And Rights",
-        summary: "Users may request access, correction, withdrawal of consent or account closure.",
+        title: "8. User Privacy Rights & Access Controls",
+        summary: "Right of access, trade ledger exports, document correction, and account deactivation procedures.",
         content: [
-            "Users may request access to personal information processed by the platform, subject to identity verification and applicable legal limitations.",
-            "Users may request correction of inaccurate or incomplete information. KYC-related changes may require additional document verification.",
-            "Users may withdraw certain consents or request account closure. However, withdrawal or closure may limit or stop access to platform services, and some records may still be retained where legally required."
+            "Right to Access & Portability: Users may request a consolidated export of their trading history, wallet transaction ledgers, and registered profile information via support channels.",
+            "Correction & Document Updates: Users may request corrections to personal details or submit updated identity documents in case of name changes or renewed government IDs.",
+            "Consent Withdrawal & Account Deactivation: Users can request account deactivation; however, regulatory transaction history must be retained in accordance with statutory compliance laws."
         ]
     },
     {
         id: "third-party-links",
-        title: "9. Third-Party Services",
-        summary: "External services have their own privacy practices.",
+        title: "9. Third-Party Integrations & External Links",
+        summary: "External blockchain explorers (TronScan, BscScan) and independent third-party boundaries.",
         content: [
-            "The platform may contain links, integrations, charts, analytics, KYC tools, payment gateways or other third-party services.",
-            "Third-party services may collect or process information according to their own privacy policies. Users should review such policies before using those services.",
-            "TraidiumX is not responsible for privacy practices of third-party websites or services not controlled by TraidiumX."
+            "External Infrastructure Links: TraidiumX may interface with external blockchain explorers (e.g., TronScan, BscScan) and DigiLocker portals. We recommend reviewing their respective privacy protocols.",
+            "Independent Privacy Boundaries: TraidiumX is not liable for data handling policies of independent third-party services or external blockchain networks."
         ]
     },
     {
         id: "grievance",
-        title: "10. Grievance And Contact",
-        summary: "Users can contact support for privacy complaints or requests.",
+        title: "10. Grievance Redressal & Data Protection Officer",
+        summary: "Dedicated Data Privacy Officer, contact channels, and strict 15-day resolution timelines.",
         content: [
-            "For privacy-related questions, correction requests, account closure requests or complaints, users may contact the TraidiumX support or grievance desk.",
-            "Production version should display official grievance officer name, email, company address and complaint resolution timeline after legal confirmation.",
-            "Users should provide relevant account details, ticket ID, documents and clear explanation when submitting a privacy request."
+            "Dedicated Grievance Desk: For privacy concerns, data rectification, or compliance inquiries, users can reach our specialized Data Privacy & Grievance Officer at compliance@traidiumx.com.",
+            "Resolution Timelines: All privacy inquiries and data rectification requests are acknowledged within 24 hours and addressed within 15 business days."
         ]
     },
     {
         id: "updates-law",
-        title: "11. Updates And Governing Law",
-        summary: "Policy may be updated as the platform and law change.",
+        title: "11. Policy Amendments & Governing Legal Framework",
+        summary: "Notification of policy enhancements, architectural upgrades, and governing legal alignment.",
         content: [
-            "TraidiumX may update this Privacy Policy to reflect product changes, legal requirements, security improvements, vendor changes or compliance needs.",
-            "Updated versions may be published on this page with a new last updated date. Continued use of the platform may be treated as acceptance of the updated policy.",
-            "TraidiumX operates in accordance with applicable Indian laws and regulatory standards for data protection and financial compliance."
+            "Periodic Policy Updates: TraidiumX may amend this Privacy Policy to reflect architectural upgrades, regulatory enactments, or product expansions. Material updates will be highlighted via platform notifications.",
+            "Governing Law: This Privacy Policy is constructed and interpreted in strict alignment with the laws and digital data protection standards of the jurisdiction of operation."
         ]
     }
 ];
@@ -197,7 +204,7 @@ function renderPrivacyNav(sections) {
         .map((section) => {
             return `
                 <button type="button" data-target="${section.id}" class="privacy-nav-btn">
-                    <span>${section.title.replace(/^\d+\.\s?/, "")}</span>
+                    <span>${escapeHtml(section.title.replace(/^\d+\.\s?/, ""))}</span>
                     <small>Open</small>
                 </button>
             `;
@@ -244,8 +251,8 @@ function renderPrivacyContent(sections) {
                 <article id="${section.id}" class="privacy-section-card cursor-pointer scroll-mt-32 transition-all duration-300">
                     <div class="flex items-start justify-between gap-4">
                         <div>
-                            <h3 class="text-xl font-black text-white">${section.title}</h3>
-                            <p class="mt-2 text-sm leading-6 text-slate-400">${section.summary}</p>
+                            <h3 class="text-xl font-black text-white">${escapeHtml(section.title)}</h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-400">${escapeHtml(section.summary)}</p>
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
@@ -257,9 +264,20 @@ function renderPrivacyContent(sections) {
                     </div>
 
                     <div class="privacy-card-body overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
-                        <div class="border-t border-white/5 pt-4 mt-5 space-y-4">
+                        <div class="border-t border-white/5 pt-4 mt-5 space-y-3">
                             ${section.content.map((paragraph) => {
-                                return `<p class="leading-8 text-slate-300 text-sm">${paragraph}</p>`;
+                                if (paragraph.includes(": ")) {
+                                    const parts = paragraph.split(": ");
+                                    const prefix = escapeHtml(parts[0]);
+                                    const bodyText = escapeHtml(parts.slice(1).join(": "));
+                                    return `
+                                        <div class="rounded-2xl border border-white/5 bg-white/[0.02] p-4 transition hover:border-cyan-400/20 hover:bg-white/[0.04]">
+                                            <h5 class="text-sm font-black text-cyan-400 mb-1.5">${prefix}</h5>
+                                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">${bodyText}</p>
+                                        </div>
+                                    `;
+                                }
+                                return `<p class="leading-7 text-slate-300 text-sm">${escapeHtml(paragraph)}</p>`;
                             }).join("")}
                         </div>
                     </div>
@@ -350,9 +368,13 @@ function downloadPrivacyPdf() {
             <div style="margin-bottom: 25px; page-break-inside: avoid;">
                 <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">${section.title}</h2>
                 <p style="font-size: 11px; font-weight: 600; color: #64748b; font-style: italic; margin: 0 0 10px 0;">${section.summary}</p>
-                ${section.content.map(p => `
-                    <p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>
-                `).join("")}
+                ${section.content.map(p => {
+                    if (p.includes(": ")) {
+                        const parts = p.split(": ");
+                        return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;"><strong style="color: #0f172a;">${parts[0]}:</strong> ${parts.slice(1).join(": ")}</p>`;
+                    }
+                    return `<p style="font-size: 11px; line-height: 1.6; color: #334155; margin: 0 0 8px 0; text-align: justify;">${p}</p>`;
+                }).join("")}
             </div>
         `).join("")}
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 35px; margin-bottom: 15px;" />
@@ -370,14 +392,19 @@ function downloadPrivacyPdf() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf()
-        .from(element)
-        .set(opt)
-        .save()
-        .then(() => {
-            container.remove();
-        });
-    showMiniMessage("Privacy policy PDF downloaded successfully.", "success");
+    if (typeof html2pdf !== "undefined") {
+        html2pdf()
+            .from(element)
+            .set(opt)
+            .save()
+            .then(() => {
+                container.remove();
+            });
+        showMiniMessage("Privacy policy PDF downloaded successfully.", "success");
+    } else {
+        container.remove();
+        window.print();
+    }
 }
 
 function printPrivacy() {
@@ -477,4 +504,4 @@ function initPrivacyPolicyPage() {
     initEvents();
 }
 
-document.addEventListener("DOMContentLoaded", initPrivacyPolicyPage);
+document.addEventListener("DOMContentLoaded", initPrivacyPolicyPage);

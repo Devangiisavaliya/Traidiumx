@@ -23,11 +23,29 @@ def upsert_blog_post(post_data):
     post_data["slug"] = slug
     post_data["updated_at"] = now_utc()
 
+    update_fields = {
+        "slug": slug,
+        "title": post_data.get("title", ""),
+        "category": post_data.get("category", "Futures"),
+        "date_label": post_data.get("date_label", ""),
+        "published_at": post_data.get("published_at"),
+        "author": post_data.get("author", "TraidiumX Research"),
+        "read_time": post_data.get("read_time", "5 min read"),
+        "read_minutes": post_data.get("read_minutes", 5),
+        "featured": bool(post_data.get("featured", False)),
+        "tags": post_data.get("tags", []),
+        "excerpt": post_data.get("excerpt", ""),
+        "content": post_data.get("content", []),
+        "status": post_data.get("status", "published"),
+        "sort_order": int(post_data.get("sort_order", 0)),
+        "updated_at": now_utc(),
+    }
+
     get_blog_posts_collection().update_one(
         {"slug": slug},
         {
+            "$set": update_fields,
             "$setOnInsert": {
-                **post_data,
                 "views": int(post_data.get("views", 0)),
                 "created_at": now_utc(),
             }

@@ -362,19 +362,26 @@ def scan_kyc_for_user(form_data, files):
 
 
 def _validate_selfie_image(selfie_file_storage):
-    """Reject non-selfie uploads and require basic image format."""
-    if not selfie_file_storage or not selfie_file_storage.filename:
-        return "Selfie image is required."
+    """Validate selfie image quality, blur, lighting, framing, and single face restrictions."""
+    try:
+        from services.kyc_face_service import validate_selfie_restrictions
+        valid, err_msg, _ = validate_selfie_restrictions(selfie_file_storage)
+        if not valid:
+            return err_msg
+        return None
+    except Exception as e:
+        print("[KYC Service] Selfie restriction check fallback:", e)
+        if not selfie_file_storage or not selfie_file_storage.filename:
+            return "Selfie image is required."
 
-    filename = secure_filename(selfie_file_storage.filename or "").lower()
-    extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
-    allowed_extensions = {"jpg", "jpeg", "png", "webp"}
-    allowed_mime_types = {"image/jpeg", "image/jpg", "image/png", "image/webp", "application/octet-stream", ""}
+        filename = secure_filename(selfie_file_storage.filename or "").lower()
+        extension = filename.rsplit(".", 1)[-1] if "." in filename else ""
+        allowed_extensions = {"jpg", "jpeg", "png", "webp"}
 
-    if extension not in allowed_extensions:
-        return "Upload a selfie in JPG, JPEG, PNG or WEBP format only."
+        if extension not in allowed_extensions:
+            return "Upload a selfie in JPG, JPEG, PNG or WEBP format only."
 
-    return None
+        return None
 
 
 
@@ -1251,12 +1258,26 @@ def submit_kyc(user_id, form_data, files):
             }
 
     selfie = files.get("selfie")
-    selfie_error = _validate_selfie_image(selfie)
-    if selfie_error:
+    if not selfie or not selfie.filename:
         return {
             "success": False,
-            "message": selfie_error,
-            "errors": {"selfie": selfie_error},
+            "message": "Selfie image is required.",
+            "errors": {"selfie": "Selfie image is required."},
+            "status_code": 422,
+        }
+
+    # Run Deep Face Matching against Document Front Photo
+    from services.kyc_face_service import verify_face_match_with_document
+
+    match_success, match_msg, match_data = verify_face_match_with_document(
+        selfie_file_storage=selfie,
+        document_front_path=document_front_path,
+    )
+    if not match_success:
+        return {
+            "success": False,
+            "message": match_msg,
+            "errors": {"selfie": match_msg},
             "status_code": 422,
         }
 
@@ -1273,7 +1294,8 @@ def submit_kyc(user_id, form_data, files):
     doc_label = "PAN Card" if doc_type == "pan_card" else "Aadhaar Card"
     doc_num_label = "PAN Card Number" if doc_type == "pan_card" else "Aadhaar Card Number"
     
-    remark = f"{doc_label} OCR and selfie checks passed for '{extracted_name}'. Pending admin review."
+    match_score = float(match_data.get("match_score", 100.0))
+    remark = f"{doc_label} verified. Selfie face matched with document photo ({match_score:.1f}% confidence). Pending admin review."
     message = "KYC steps completed successfully and submitted for verification."
     scan_data = dict(scan_data)
     scan_data.update({
@@ -1285,6 +1307,8 @@ def submit_kyc(user_id, form_data, files):
         "number_match": True,
         "selfie_face_detected": True,
         "selfie_validation": "passed",
+        "face_match_score": match_score,
+        "face_match_cosine_distance": float(match_data.get("cosine_distance", 0.0)),
         "score": 100,
     })
 

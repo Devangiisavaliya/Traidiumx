@@ -1812,15 +1812,34 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
     if (target === "withdraw") {
         const modalContainer = document.getElementById("walletActionModalCard");
         if (modalContainer) {
-            modalContainer.style.maxWidth = "640px";
+            modalContainer.style.maxWidth = "520px";
         }
+
+        const pretitle = document.getElementById("txModalHeaderPretitle");
+        if (pretitle) {
+            pretitle.textContent = "WALLET QUICK ACTION";
+            pretitle.className = "mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#2fe8b7]";
+            pretitle.classList.remove("hidden");
+        }
+
+        const headerIcon = document.getElementById("txModalHeaderIcon");
+        if (headerIcon) {
+            headerIcon.innerHTML = `<svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-4a2 2 0 00-2 2v0a2 2 0 002 2h4"/></svg>`;
+            headerIcon.classList.remove("hidden");
+            headerIcon.classList.add("flex");
+            headerIcon.className = "h-11 w-11 shrink-0 rounded-2xl bg-[#0e2736] border border-[#144654] text-cyan-400 flex items-center justify-center font-bold select-none shadow-lg shadow-[#0e2736]/50";
+        }
+
         const statsGrid = document.getElementById("walletModalStatsGrid");
         if (statsGrid) statsGrid.classList.add("hidden");
 
         const cur = String(selectedAsset || WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
         WALLET_STATE.activeWithdrawalCurrency = cur;
+        txFetchFeeStructure().then(() => {
+            updateWithdrawalModalUIByCurrency(cur, true);
+        });
         updateWithdrawalModalUIByCurrency(cur, true);
-        estimateWithdrawalFee(false);
+        txInitUsdWithdrawModalInteractive();
     }
     if (target === "exchange") {
         const modalContainer = document.getElementById("walletActionModalCard");
@@ -3831,6 +3850,23 @@ function setFeePreview(elements = {}, estimate = null, message = "Enter amount a
         elements.totalDebit.textContent = dVal > 0 ? formatWalletMoney(dVal, activeCurrency) : "--";
     }
     if (elements.note) elements.note.textContent = message;
+
+    // Synchronize Image 2 Modal Elements
+    const modalFeeText = document.getElementById("txWithdrawModalFeeText");
+    if (modalFeeText) {
+        const feeVal = estimate ? values.totalFee : 0;
+        if (activeCurrency === "INR") {
+            modalFeeText.textContent = feeVal > 0 ? `₹${feeVal.toFixed(2)}` : "₹0.00 (Free)";
+        } else if (activeCurrency === "USDT") {
+            modalFeeText.textContent = feeVal > 0 ? `$${feeVal.toFixed(2)} (≈ ${feeVal.toFixed(2)} USDT)` : "$0.00 (≈ 0.00 USDT)";
+        } else {
+            modalFeeText.textContent = feeVal > 0 ? `${feeVal.toFixed(4)} ${activeCurrency}` : `0.00 ${activeCurrency}`;
+        }
+    }
+    const modalReceiveApprox = document.getElementById("txWithdrawModalReceiveApprox");
+    if (modalReceiveApprox && estimate) {
+        modalReceiveApprox.textContent = `${values.receiveAmount.toFixed(2)} ${activeCurrency}`;
+    }
 }
 
 function setWithdrawalFeePreview(estimate = null, message = "Enter amount and select network to calculate fees.") {
@@ -4871,6 +4907,14 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     const requiresTag = activeCurrency === "XRP";
     const isCryptoSpecific = !["USDT", "INR"].includes(activeCurrency);
 
+    // Modal containers (Image 2 isolation)
+    const cryptoContainer = document.getElementById("modalWithdrawCryptoContainer");
+    const inrContainer = document.getElementById("modalWithdrawInrContainer");
+    if (cryptoContainer && inrContainer && isModal) {
+        cryptoContainer.classList.toggle("hidden", isINR);
+        inrContainer.classList.toggle("hidden", !isINR);
+    }
+
     const netBox = document.getElementById(`${prefix}WithdrawNetworkBox`);
     const tagBox = document.getElementById(`${prefix}WithdrawTagBox`);
     const toggleBar = document.getElementById(`${prefix}WithdrawCurrencyToggleBar`);
@@ -4912,14 +4956,14 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
         netSelect.innerHTML = "";
         if (activeCurrency === "USDT") {
             netSelect.innerHTML = `
+                <option value="ERC20">Ethereum (ERC20)</option>
                 <option value="TRC20">TRON (TRC20)</option>
                 <option value="BEP20">BNB Smart Chain (BEP20)</option>
-                <option value="ERC20">Ethereum (ERC20)</option>
             `;
             if (["TRC20", "BEP20", "ERC20"].includes(currentVal)) {
                 netSelect.value = currentVal;
             } else {
-                netSelect.value = "TRC20";
+                netSelect.value = "ERC20";
             }
         } else if (activeCurrency === "BTC") {
             netSelect.innerHTML = `
@@ -4973,8 +5017,9 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
 
     if (amountLabel) amountLabel.textContent = isINR ? "Amount (INR)" : `Amount (${activeCurrency})`;
 
+    const selectedNetVal = netSelect?.value || "ERC20";
     if (addressInput && !isINR) {
-        addressInput.placeholder = `${activeCurrency} wallet address (must be correct network)`;
+        addressInput.placeholder = `Enter ${activeCurrency} wallet address (${selectedNetVal})`;
     }
 
     const activeTabClass = "flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20";
@@ -4995,6 +5040,42 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
         amountSymbol.textContent = isINR ? "INR" : activeCurrency;
     }
 
+    // Modal Image 2 Dynamic Balance & Limits Card
+    const wallet = WALLET_STATE.wallet || {};
+    const key = activeCurrency === "INR" ? "main_wallet_inr" : activeCurrency === "USDT" ? "main_wallet_usdt" : `main_wallet_${activeCurrency.toLowerCase()}`;
+    const coinWallet = wallet[key] || wallet[`main_wallet_${activeCurrency.toLowerCase()}`] || { available_balance: 0 };
+    const avail = walletNumber(coinWallet.available_balance, 0);
+
+    const modalAvailMain = document.getElementById("txWithdrawModalAvailMain");
+    const modalAvailSub = document.getElementById("txWithdrawModalAvailSub");
+    const modalMinAmount = document.getElementById("txWithdrawModalMinAmount");
+    const modalFeeText = document.getElementById("txWithdrawModalFeeText");
+    const currencyTag = document.getElementById("txWithdrawCurrencySymbolTag");
+
+    if (currencyTag) {
+        currencyTag.textContent = activeCurrency;
+    }
+
+    if (modalAvailMain && modalAvailSub) {
+        if (activeCurrency === "INR") {
+            modalAvailMain.textContent = `₹${avail.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            modalAvailSub.textContent = `≈ ₹${avail.toLocaleString(undefined, { minimumFractionDigits: 2 })} INR`;
+        } else if (activeCurrency === "USDT") {
+            modalAvailMain.textContent = `$${avail.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+            modalAvailSub.textContent = `≈ ${avail.toLocaleString("en-US", { minimumFractionDigits: 2 })} USDT`;
+        } else {
+            modalAvailMain.textContent = `${avail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${activeCurrency}`;
+            modalAvailSub.textContent = `≈ ${avail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${activeCurrency}`;
+        }
+    }
+
+    if (modalMinAmount) {
+        modalMinAmount.textContent = activeCurrency === "INR" ? "₹100.00" : "$10.00";
+    }
+
+    // Dynamic Project Withdrawal Fee (Uses backend settings or live structure)
+    txUpdateWithdrawalFeeDisplay(0, selectedNetVal);
+
     const minNoteText = document.getElementById(`${prefix}WithdrawMinNoteText`);
     if (minNoteText) {
         minNoteText.textContent = isINR ? "₹100" : `10.00 ${activeCurrency}`;
@@ -5002,9 +5083,6 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
 
     const wAvailable = document.getElementById("txWithdrawAvailableBal");
     if (wAvailable) {
-        const key = `main_wallet_${String(activeCurrency).toLowerCase()}`;
-        const mainW = (WALLET_STATE.wallet || {})[key] || {};
-        const avail = walletNumber(mainW.available_balance, 0);
         if (["INR", "USDT"].includes(activeCurrency)) {
             wAvailable.textContent = formatWalletMoney(avail, activeCurrency);
         } else {
@@ -5025,6 +5103,347 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
 
     // Dynamically update the FAQ items for the active currency
     updateWalletFaqUI(activeCurrency);
+}
+
+async function txFetchFeeStructure() {
+    if (WALLET_STATE.feeStructure) return WALLET_STATE.feeStructure;
+    try {
+        if (typeof apiRequest === "function") {
+            const res = await apiRequest("/fees/structure", { method: "GET" });
+            if (res && (res.data || res.runtime_settings)) {
+                WALLET_STATE.feeStructure = res.data || res;
+            }
+        }
+    } catch (e) {
+        console.warn("Failed to fetch fee structure:", e);
+    }
+    return WALLET_STATE.feeStructure || null;
+}
+
+function txGetConfiguredWithdrawalFee(amount = 0, network = "TRC20") {
+    const feeSettings = WALLET_STATE.feeStructure?.runtime_settings?.withdrawal_fee || {};
+    const enabled = feeSettings.enabled ?? false;
+    const feeType = feeSettings.type || "fixed";
+    const feeValue = Number(feeSettings.value || 0);
+    const minFee = Number(feeSettings.min_fee_usdt || 0);
+    const maxFee = Number(feeSettings.max_fee_usdt || 0);
+
+    const netFees = feeSettings.network_fees || {};
+    const netFee = Number(netFees[network] || 0);
+
+    if (!enabled && feeValue <= 0 && netFee <= 0) {
+        return 0.0;
+    }
+
+    let calculated = 0;
+    if (feeType === "percentage") {
+        calculated = amount > 0 ? (amount * (feeValue / 100)) : 0;
+    } else {
+        calculated = feeValue;
+    }
+
+    if (netFee > 0) {
+        calculated += netFee;
+    }
+
+    if (minFee > 0 && calculated < minFee && amount > 0) {
+        calculated = minFee;
+    }
+    if (maxFee > 0 && calculated > maxFee) {
+        calculated = maxFee;
+    }
+
+    return calculated;
+}
+
+function txUpdateWithdrawalFeeDisplay(amount = 0, network = "TRC20") {
+    const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || "USDT").toUpperCase();
+    const feeVal = txGetConfiguredWithdrawalFee(amount, network);
+    const feeLabel = document.getElementById("txWithdrawModalFeeLabel");
+    if (feeLabel) feeLabel.textContent = "Withdrawal Fee";
+
+    const feeText = document.getElementById("txWithdrawModalFeeText");
+    if (feeText) {
+        if (activeCurrency === "INR") {
+            feeText.textContent = feeVal > 0 ? `₹${feeVal.toFixed(2)}` : "₹0.00 (Free)";
+        } else if (activeCurrency === "USDT") {
+            feeText.textContent = feeVal > 0 ? `$${feeVal.toFixed(2)} (≈ ${feeVal.toFixed(2)} USDT)` : "$0.00 (≈ 0.00 USDT)";
+        } else {
+            feeText.textContent = feeVal > 0 ? `${feeVal.toFixed(4)} ${activeCurrency}` : `0.00 ${activeCurrency}`;
+        }
+    }
+
+    const withPreviewFee = document.getElementById("modalWithdrawPreviewCompanyFee");
+    if (withPreviewFee) {
+        if (activeCurrency === "INR") {
+            withPreviewFee.textContent = `₹${feeVal.toFixed(2)}`;
+        } else if (activeCurrency === "USDT") {
+            withPreviewFee.textContent = `$${feeVal.toFixed(2)}`;
+        } else {
+            withPreviewFee.textContent = `${feeVal.toFixed(4)} ${activeCurrency}`;
+        }
+    }
+}
+
+function txInitUsdWithdrawModalInteractive() {
+    const assetBtn = document.getElementById("txWithdrawAssetBtn");
+    const assetMenu = document.getElementById("txWithdrawAssetMenu");
+    const networkBtn = document.getElementById("txWithdrawNetworkBtn");
+    const networkMenu = document.getElementById("txWithdrawNetworkMenu");
+    const amountInput = document.getElementById("modalWithdrawAmount");
+    const maxBtn = document.getElementById("txWithdrawUseMaxBtn");
+    const pasteBtn = document.getElementById("txWithdrawPasteAddressBtn");
+    const addressInput = document.getElementById("modalWithdrawalAddress");
+
+    // Toggle Asset Dropdown
+    if (assetBtn && assetMenu) {
+        assetBtn.onclick = (e) => {
+            e.stopPropagation();
+            assetMenu.classList.toggle("hidden");
+            if (networkMenu) networkMenu.classList.add("hidden");
+        };
+    }
+
+    // Toggle Network Dropdown
+    if (networkBtn && networkMenu) {
+        networkBtn.onclick = (e) => {
+            e.stopPropagation();
+            networkMenu.classList.toggle("hidden");
+            if (assetMenu) assetMenu.classList.add("hidden");
+        };
+    }
+
+    // Close Dropdowns on Click Outside
+    document.addEventListener("click", (e) => {
+        if (assetMenu && !assetMenu.contains(e.target) && !assetBtn?.contains(e.target)) {
+            assetMenu.classList.add("hidden");
+        }
+        if (networkMenu && !networkMenu.contains(e.target) && !networkBtn?.contains(e.target)) {
+            networkMenu.classList.add("hidden");
+        }
+    });
+
+    // Asset Selection Options
+    document.querySelectorAll(".tx-w-asset-opt").forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const asset = btn.getAttribute("data-withdraw-asset") || "USDT";
+            const assetTitle = document.getElementById("txWithdrawAssetTitle");
+            const assetIcon = document.getElementById("txWithdrawAssetIcon");
+            const assetHiddenInput = document.getElementById("modalWithdrawAsset");
+
+            if (assetTitle) assetTitle.textContent = asset;
+            if (assetHiddenInput) assetHiddenInput.value = asset;
+            
+            const iconMap = {
+                "USDT": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#26a17b] text-white flex items-center justify-center text-xs font-black">₮</span>`,
+                "BTC": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#f7931a] text-white flex items-center justify-center text-xs font-black">₿</span>`,
+                "ETH": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#627eea] text-white flex items-center justify-center text-xs font-black">Ξ</span>`,
+                "SOL": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#14f195] text-slate-950 flex items-center justify-center text-xs font-black">◎</span>`,
+                "BNB": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#f3ba2f] text-slate-950 flex items-center justify-center text-xs font-black">🟡</span>`,
+                "XRP": `<span id="txWithdrawAssetIcon" class="h-6 w-6 shrink-0 rounded-full bg-[#23292f] text-white flex items-center justify-center text-xs font-black">✕</span>`
+            };
+            if (assetIcon && iconMap[asset]) {
+                assetIcon.outerHTML = iconMap[asset];
+            }
+
+            // Update network options based on selected asset
+            txPopulateWithdrawNetworkOptions(asset);
+
+            WALLET_STATE.activeWithdrawalCurrency = asset;
+            updateWithdrawalModalUIByCurrency(asset, true);
+
+            if (assetMenu) assetMenu.classList.add("hidden");
+        };
+    });
+
+    // Network Selection Options Click handler
+    txBindWithdrawNetworkMenuOptions();
+
+    // Paste Address from Clipboard
+    if (pasteBtn && addressInput) {
+        pasteBtn.onclick = async (e) => {
+            e.preventDefault();
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        addressInput.value = text.trim();
+                        addressInput.dispatchEvent(new Event("input"));
+                        showWalletAlert("Wallet address pasted from clipboard!", "success");
+                    }
+                } else {
+                    showWalletAlert("Please paste address manually (Ctrl+V).", "info");
+                }
+            } catch (err) {
+                showWalletAlert("Please paste address manually (Ctrl+V).", "info");
+            }
+        };
+    }
+
+    // Use Max Button
+    if (maxBtn && amountInput) {
+        maxBtn.onclick = (e) => {
+            e.preventDefault();
+            const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || "USDT").toUpperCase();
+            const wallet = WALLET_STATE.wallet || {};
+            const key = activeCurrency === "INR" ? "main_wallet_inr" : activeCurrency === "USDT" ? "main_wallet_usdt" : `main_wallet_${activeCurrency.toLowerCase()}`;
+            const coinWallet = wallet[key] || wallet[`main_wallet_${activeCurrency.toLowerCase()}`] || { available_balance: 0 };
+            const avail = walletNumber(coinWallet.available_balance, 0);
+            
+            amountInput.value = avail > 0 ? (avail < 1 ? avail.toFixed(6) : avail.toFixed(2)) : "0.00";
+            amountInput.dispatchEvent(new Event("input"));
+        };
+    }
+
+    // Live Receive & Fee calculation on input
+    if (amountInput) {
+        const calculateReceive = () => {
+            const amt = parseFloat(amountInput.value) || 0;
+            const netSelect = document.getElementById("modalWithdrawNetwork");
+            const selectedNet = netSelect?.value || "ERC20";
+            const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || "USDT").toUpperCase();
+
+            const fee = txGetConfiguredWithdrawalFee(amt, selectedNet);
+            const receive = Math.max(0, amt - fee);
+
+            const receiveApproxEl = document.getElementById("txWithdrawModalReceiveApprox");
+            if (receiveApproxEl) {
+                receiveApproxEl.textContent = amt > 0 ? `${receive.toFixed(2)} ${activeCurrency}` : `0.00 ${activeCurrency}`;
+            }
+
+            const pAmt = document.getElementById("modalWithdrawPreviewAmount");
+            const pRec = document.getElementById("modalWithdrawPreviewReceive");
+            const pFee = document.getElementById("modalWithdrawPreviewCompanyFee");
+            const pDeb = document.getElementById("modalWithdrawPreviewTotalDebit");
+            const pNote = document.getElementById("modalWithdrawPreviewNote");
+
+            if (pAmt) pAmt.textContent = amt > 0 ? (activeCurrency === "INR" ? `₹${amt.toFixed(2)}` : `$${amt.toFixed(2)}`) : "--";
+            if (pRec) pRec.textContent = amt > 0 ? (activeCurrency === "INR" ? `₹${receive.toFixed(2)}` : `$${receive.toFixed(2)}`) : "--";
+            if (pFee) pFee.textContent = activeCurrency === "INR" ? `₹${fee.toFixed(2)}` : `$${fee.toFixed(2)}`;
+            if (pDeb) pDeb.textContent = amt > 0 ? (activeCurrency === "INR" ? `₹${amt.toFixed(2)}` : `$${amt.toFixed(2)}`) : "--";
+            if (pNote) {
+                pNote.textContent = amt > 0 
+                    ? (fee > 0 ? `Withdrawal fee of ${activeCurrency === "INR" ? "₹" : "$"}${fee.toFixed(2)} will be deducted automatically from payout.` : `No withdrawal fee applicable (Free).`)
+                    : `Enter amount to calculate fees and receive amount.`;
+            }
+
+            // Also debounce query to backend fee estimate
+            scheduleWithdrawalFeeEstimate();
+        };
+
+        amountInput.oninput = calculateReceive;
+        amountInput.onkeyup = calculateReceive;
+        calculateReceive();
+    }
+}
+
+function txPopulateWithdrawNetworkOptions(asset = "USDT") {
+    const netMenu = document.getElementById("txWithdrawNetworkMenu");
+    const netSelect = document.getElementById("modalWithdrawNetwork");
+    if (!netMenu || !netSelect) return;
+
+    if (asset === "USDT") {
+        netMenu.innerHTML = `
+            <button type="button" data-withdraw-network="ERC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#627eea]/20 text-[#627eea] flex items-center justify-center text-[10px] font-black border border-[#627eea]/40">⬨</span>
+                <span>ERC20 (Ethereum)</span>
+            </button>
+            <button type="button" data-withdraw-network="TRC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#ef0027]/20 text-[#ef0027] flex items-center justify-center text-[10px] font-black border border-[#ef0027]/40">₮</span>
+                <span>TRC20 (TRON)</span>
+            </button>
+            <button type="button" data-withdraw-network="BEP20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#f3ba2f]/20 text-[#f3ba2f] flex items-center justify-center text-[10px] font-black border border-[#f3ba2f]/40">🟡</span>
+                <span>BEP20 (BNB Smart Chain)</span>
+            </button>
+        `;
+        netSelect.value = "ERC20";
+        txSetWithdrawNetworkDisplay("ERC20", "ERC20 (Ethereum)", "⬨", "#627eea");
+    } else if (asset === "BTC") {
+        netMenu.innerHTML = `
+            <button type="button" data-withdraw-network="BITCOIN" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#f7931a]/20 text-[#f7931a] flex items-center justify-center text-[10px] font-black border border-[#f7931a]/40">₿</span>
+                <span>Bitcoin Mainnet</span>
+            </button>
+            <button type="button" data-withdraw-network="ERC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#627eea]/20 text-[#627eea] flex items-center justify-center text-[10px] font-black border border-[#627eea]/40">⬨</span>
+                <span>ERC20 (Sepolia/MetaMask)</span>
+            </button>
+        `;
+        netSelect.value = "BITCOIN";
+        txSetWithdrawNetworkDisplay("BITCOIN", "Bitcoin Mainnet", "₿", "#f7931a");
+    } else if (asset === "ETH") {
+        netMenu.innerHTML = `
+            <button type="button" data-withdraw-network="ERC20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#627eea]/20 text-[#627eea] flex items-center justify-center text-[10px] font-black border border-[#627eea]/40">⬨</span>
+                <span>Ethereum Mainnet (ERC20)</span>
+            </button>
+        `;
+        netSelect.value = "ERC20";
+        txSetWithdrawNetworkDisplay("ERC20", "Ethereum Mainnet (ERC20)", "⬨", "#627eea");
+    } else if (asset === "SOL") {
+        netMenu.innerHTML = `
+            <button type="button" data-withdraw-network="SOLANA" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#14f195]/20 text-[#14f195] flex items-center justify-center text-[10px] font-black border border-[#14f195]/40">◎</span>
+                <span>Solana Network</span>
+            </button>
+        `;
+        netSelect.value = "SOLANA";
+        txSetWithdrawNetworkDisplay("SOLANA", "Solana Network", "◎", "#14f195");
+    } else if (asset === "BNB") {
+        netMenu.innerHTML = `
+            <button type="button" data-withdraw-network="BEP20" class="tx-w-net-opt w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-white hover:bg-cyan-500/20 hover:text-cyan-300 transition cursor-pointer">
+                <span class="h-5 w-5 rounded-full bg-[#f3ba2f]/20 text-[#f3ba2f] flex items-center justify-center text-[10px] font-black border border-[#f3ba2f]/40">🟡</span>
+                <span>BNB Smart Chain (BEP20)</span>
+            </button>
+        `;
+        netSelect.value = "BEP20";
+        txSetWithdrawNetworkDisplay("BEP20", "BNB Smart Chain (BEP20)", "🟡", "#f3ba2f");
+    }
+
+    txBindWithdrawNetworkMenuOptions();
+}
+
+function txSetWithdrawNetworkDisplay(netVal, netTitle, iconChar, colorHex) {
+    const netTitleEl = document.getElementById("txWithdrawNetworkTitle");
+    const netIconEl = document.getElementById("txWithdrawNetworkIcon");
+    const netSelect = document.getElementById("modalWithdrawNetwork");
+
+    if (netTitleEl) netTitleEl.textContent = netTitle;
+    if (netIconEl) {
+        netIconEl.outerHTML = `<span id="txWithdrawNetworkIcon" class="h-6 w-6 shrink-0 rounded-full bg-[${colorHex}]/20 text-[${colorHex}] flex items-center justify-center text-xs font-black border border-[${colorHex}]/40">${iconChar}</span>`;
+    }
+    if (netSelect) netSelect.value = netVal;
+
+    const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || "USDT").toUpperCase();
+    const addressInput = document.getElementById("modalWithdrawalAddress");
+    if (addressInput) {
+        addressInput.placeholder = `Enter ${activeCurrency} wallet address (${netVal})`;
+    }
+
+    const amountInput = document.getElementById("modalWithdrawAmount");
+    const amt = parseFloat(amountInput?.value) || 0;
+    txUpdateWithdrawalFeeDisplay(amt, netVal);
+
+    if (amountInput) amountInput.dispatchEvent(new Event("input"));
+}
+
+function txBindWithdrawNetworkMenuOptions() {
+    const netMenu = document.getElementById("txWithdrawNetworkMenu");
+    document.querySelectorAll(".tx-w-net-opt").forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const netVal = btn.getAttribute("data-withdraw-network") || "ERC20";
+            const labelText = btn.querySelector("span:last-child")?.textContent || netVal;
+            const iconChar = netVal === "TRC20" ? "₮" : netVal === "BEP20" ? "🟡" : netVal === "BITCOIN" ? "₿" : netVal === "SOLANA" ? "◎" : "⬨";
+            const colorHex = netVal === "TRC20" ? "#ef0027" : netVal === "BEP20" ? "#f3ba2f" : netVal === "BITCOIN" ? "#f7931a" : netVal === "SOLANA" ? "#14f195" : "#627eea";
+
+            txSetWithdrawNetworkDisplay(netVal, labelText, iconChar, colorHex);
+
+            if (netMenu) netMenu.classList.add("hidden");
+        };
+    });
 }
 
 function updateMainWithdrawalPageBalanceDisplay(currencyParam = null) {
