@@ -67,10 +67,32 @@ def read_image_from_filestorage(file_storage):
 
 
 def read_image_from_path(file_path):
-    """Safely load an image from absolute or relative file path."""
+    """Safely load an image from absolute or relative file path (supports JPG, PNG, WEBP, and PDF)."""
     if not file_path or not os.path.exists(file_path):
         return None
     try:
+        # Check if PDF (e.g. DigiLocker downloaded aadhaar.pdf / pan.pdf)
+        if file_path.lower().endswith(".pdf"):
+            try:
+                import fitz  # PyMuPDF
+                doc = fitz.open(file_path)
+                if len(doc) > 0:
+                    page = doc[0]
+                    pix = page.get_pixmap(dpi=200)
+                    img_np = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.h, pix.w, pix.n)
+                    if pix.n >= 4:
+                        img_np = cv2.cvtColor(img_np, cv2.COLOR_RGBA2BGR)
+                    elif pix.n == 3:
+                        img_np = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+                    elif pix.n == 1:
+                        img_np = cv2.cvtColor(img_np, cv2.COLOR_GRAY2BGR)
+                    doc.close()
+                    return img_np
+                doc.close()
+            except Exception as pdf_err:
+                print(f"[KYC Face Service] PDF render error for {file_path}:", pdf_err)
+            return None
+
         pil_img = ImageOps.exif_transpose(Image.open(file_path)).convert("RGB")
         img_np = np.array(pil_img)
         return cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
@@ -181,38 +203,92 @@ def validate_selfie_restrictions(selfie_file_storage):
         }
 
     # 3. Face Detection Check
-    faces = detect_faces_multiscale(img, score_threshold=0.48)
-    face_count = len(faces)
+    detected_faces = detect_faces_multiscale(img, score_threshold=0.55)
 
-    if face_count == 0:
+    if not detected_faces:
         return False, "No face detected in the selfie. Please ensure your face is fully visible, uncovered, looking at the camera, and well-lit.", {
             "faces_detected": 0
         }
 
-    if face_count > 1:
-        return False, f"Multiple faces ({face_count}) detected in the selfie. Please ensure only the document owner is in the photo frame.", {
-            "faces_detected": face_count
-        }
-
-    primary_face = faces[0]
+    # Sort faces by area descending (primary face is largest)
+    faces_sorted = sorted(detected_faces, key=lambda f: f[2] * f[3], reverse=True)
+    primary_face = faces_sorted[0]
     fx, fy, fw, fh = primary_face[0], primary_face[1], primary_face[2], primary_face[3]
     face_confidence = float(primary_face[-1])
+    pf_area = fw * fh
+
+    if face_confidence < 0.55:
+        return False, "Face is not clear. Please face the camera straight on with your full face visible.", {
+            "confidence": face_confidence
+        }
+
+    # Filter out secondary false positives: only count genuine extra people in frame
+    significant_faces = [primary_face]
+    for other_face in faces_sorted[1:]:
+        other_area = other_face[2] * other_face[3]
+        other_conf = float(other_face[-1])
+        # A true second person in frame will have substantial area (>= 25% of primary) and high confidence (>= 0.65)
+        if other_area >= 0.25 * pf_area and other_conf >= 0.65:
+            significant_faces.append(other_face)
+
+    if len(significant_faces) > 1:
+        return False, f"Multiple faces ({len(significant_faces)}) detected in the selfie. Please ensure only the document owner is in the photo frame.", {
+            "faces_detected": len(significant_faces)
+        }
 
     # 4. Face Size / Distance Framing Check
-    face_area = fw * fh
     total_area = w * h
-    area_ratio = face_area / float(total_area)
+    area_ratio = pf_area / float(total_area)
 
-    if fw < 50 or fh < 50 or (area_ratio < 0.015 and fh < (h * 0.10)):
+    if fw < (w * 0.18) or fh < (h * 0.18) or area_ratio < 0.035:
         return False, "Your face is too far from the camera. Please position your face closer inside the frame.", {
             "area_ratio": area_ratio
         }
 
-    # 5. Face Border Clipping Check
-    center_x = fx + fw / 2.0
-    center_y = fy + fh / 2.0
-    if center_x < 0 or center_x > w or center_y < 0 or center_y > h:
-        return False, "Your face is partially out of frame. Please position your face centrally in the camera view.", {}
+    # 5. Face Border Clipping / Half-Face Check
+    # Ensure bounding box is not cut off by edges (strict boundary guard)
+    margin_x = 0.02 * w
+    margin_y = 0.02 * h
+    if fx < margin_x or fy < margin_y or (fx + fw) > (w - margin_x) or (fy + fh) > (h - margin_y):
+        return False, "Incomplete or cut-off face detected. Please ensure your entire head and face are fully inside the camera frame.", {
+            "face_box": [float(fx), float(fy), float(fw), float(fh)],
+            "image_size": [w, h]
+        }
+
+    # 6. Check all 5 YuNet Facial Landmarks (Right Eye, Left Eye, Nose, Right Mouth Corner, Left Mouth Corner)
+    if len(primary_face) >= 14:
+        r_eye_x, r_eye_y = float(primary_face[4]), float(primary_face[5])
+        l_eye_x, l_eye_y = float(primary_face[6]), float(primary_face[7])
+        nose_x, nose_y = float(primary_face[8]), float(primary_face[9])
+        r_mouth_x, r_mouth_y = float(primary_face[10]), float(primary_face[11])
+        l_mouth_x, l_mouth_y = float(primary_face[12]), float(primary_face[13])
+
+        landmarks = [
+            ("Right eye", r_eye_x, r_eye_y),
+            ("Left eye", l_eye_x, l_eye_y),
+            ("Nose", nose_x, nose_y),
+            ("Right mouth", r_mouth_x, r_mouth_y),
+            ("Left mouth", l_mouth_x, l_mouth_y),
+        ]
+
+        lm_margin_x = 0.03 * w
+        lm_margin_y = 0.03 * h
+        for name, lx, ly in landmarks:
+            if lx < lm_margin_x or lx > (w - lm_margin_x) or ly < lm_margin_y or ly > (h - lm_margin_y):
+                return False, f"Your full face is not visible ({name} is out of frame). Please keep your entire face centered inside the circle.", {
+                    "missing_feature": name
+                }
+
+        # Check facial geometry: Eyes must be above nose, and nose must be above mouth
+        eye_y = (r_eye_y + l_eye_y) / 2.0
+        mouth_y = (r_mouth_y + l_mouth_y) / 2.0
+        if not (eye_y < nose_y < mouth_y):
+            return False, "Incomplete or tilted face detected. Please look straight at the camera with your full face visible.", {}
+
+        # Distance between eyes must be adequate (not a sideways or partially obscured face)
+        eye_dist = np.sqrt((l_eye_x - r_eye_x) ** 2 + (l_eye_y - r_eye_y) ** 2)
+        if eye_dist < (w * 0.06):
+            return False, "Facial features are too small or unclear. Please capture a clear, forward-facing photo.", {}
 
     return True, "", {
         "faces_detected": 1,
@@ -292,28 +368,32 @@ def verify_face_match_with_document(selfie_file_storage, document_front_path):
         feat_selfie = recognizer.feature(aligned_selfie)
         feat_doc = recognizer.feature(aligned_doc)
 
-        # Match using Cosine distance
-        cosine_dist = float(recognizer.match(feat_doc, feat_selfie, cv2.FaceRecognizerSF_FR_COSINE))
+        # Match using SFace Cosine Similarity & L2 Distance
+        # In OpenCV FaceRecognizerSF:
+        # cv2.FaceRecognizerSF_FR_COSINE -> Cosine Similarity (1.0 = identical face, 0.0 = completely different face)
+        # cv2.FaceRecognizerSF_FR_NORM_L2 -> Euclidean L2 distance (0.0 = identical face, > 1.128 = different face)
+        cosine_sim = float(recognizer.match(feat_doc, feat_selfie, cv2.FaceRecognizerSF_FR_COSINE))
         l2_dist = float(recognizer.match(feat_doc, feat_selfie, cv2.FaceRecognizerSF_FR_NORM_L2))
 
-        # In SFace: Cosine Distance threshold is typically 0.363 (L2 <= 1.128).
-        # We allow a balanced threshold of 0.385 for scanned document cards vs live webcams.
-        is_match = cosine_dist <= 0.385
+        # Strict Matching Criteria:
+        # Genuine match between Aadhaar card / PAN photo and live webcam requires:
+        # Cosine Similarity >= 0.50 AND L2 Distance <= 1.05
+        is_match = (cosine_sim >= 0.50) and (l2_dist <= 1.05)
 
-        # Compute intuitive match percentage (0% to 100%)
-        match_percentage = max(0.0, min(100.0, round((1.0 - (cosine_dist / 0.52)) * 100.0, 1)))
+        # Compute match percentage (0% to 100%)
+        match_percentage = max(0.0, min(100.0, round(cosine_sim * 100.0, 1)))
 
-        print(f"[KYC Face Service] Face Match Evaluation -> Cosine Dist: {cosine_dist:.4f}, L2 Dist: {l2_dist:.4f}, Match%: {match_percentage}%, IsMatch: {is_match}")
+        print(f"[KYC Face Service] Face Match Evaluation -> Cosine Similarity: {cosine_sim:.4f}, L2 Distance: {l2_dist:.4f}, Match%: {match_percentage}%, IsMatch: {is_match}")
 
         if not is_match:
             fail_msg = (
-                "Face verification failed: The uploaded selfie does not match the photo on your document. "
+                f"Face verification failed ({match_percentage}% match): The uploaded selfie does not match the photo on your document. "
                 "Please upload a clear live selfie of the actual document owner."
             )
             return False, fail_msg, {
                 "step": "face_match",
                 "matched": False,
-                "cosine_distance": cosine_dist,
+                "cosine_similarity": cosine_sim,
                 "l2_distance": l2_dist,
                 "match_score": match_percentage,
             }
@@ -321,7 +401,7 @@ def verify_face_match_with_document(selfie_file_storage, document_front_path):
         return True, f"Face verified successfully ({match_percentage}% match with document photo).", {
             "step": "face_match",
             "matched": True,
-            "cosine_distance": cosine_dist,
+            "cosine_similarity": cosine_sim,
             "l2_distance": l2_dist,
             "match_score": match_percentage,
             "selfie_verified": True,

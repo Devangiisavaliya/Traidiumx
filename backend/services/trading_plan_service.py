@@ -78,6 +78,14 @@ def get_onboarding_settings():
 
 
 def get_trading_balance(user_id, platform="traidiumx"):
+    platform = normalize_platform(platform)
+    if platform == "mt5":
+        from models.mt5_account_model import find_mt5_account_by_user_id
+        mt5_acc = find_mt5_account_by_user_id(user_id)
+        if mt5_acc and mt5_acc.get("status") in {"active", "connected"}:
+            return round(_number(mt5_acc.get("balance", 0.0)), 8)
+        return 0.0
+
     wallet = normalize_wallet_currency(find_wallet_by_user_id(user_id)) or {}
     
     # Check plan eligibility based on the user's active currency mode
@@ -359,6 +367,10 @@ def build_user_trading_profile(user, settings=None):
     if usdt_balance in (None, ""):
         usdt_balance = _number(usdt_wallet.get("available_balance")) + _number(usdt_wallet.get("locked_balance"))
 
+    from models.mt5_account_model import find_mt5_account_by_user_id
+    mt5_acc = find_mt5_account_by_user_id(str(user.get("_id"))) if user.get("_id") else None
+    mt5_balance = _number(mt5_acc.get("balance", 0.0)) if mt5_acc and mt5_acc.get("status") in {"active", "connected"} else 0.0
+
     return {
         "onboarding_complete": bool(platform and preferred),
         "platform_selected": bool(platform),
@@ -378,6 +390,7 @@ def build_user_trading_profile(user, settings=None):
         "preferred_minimum_balance": _number((preferred_plan_data or {}).get("minimum_balance"), 0),
         "active_minimum_balance": _number((active_plan_data or {}).get("minimum_balance"), 0),
         "trading_balance": balance,
+        "mt5_balance": mt5_balance,
         "source_trading_wallet_balance": source_trading_wallet_balance,
         "main_wallet_inr_balance": round(_number(inr_balance), 8),
         "main_wallet_usdt_balance": round(_number(usdt_balance), 8),

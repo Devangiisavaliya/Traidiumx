@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Crypto Spot & Quick Swap Trading | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        /* Custom Trade Page Professional Styling */
+        body {
+            background-color: #030712;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            overflow-x: hidden;
+        }
+
+        .tx-glass-card {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(9, 18, 36, 0.92) 100%);
+            border: 1px solid rgba(34, 211, 238, 0.16);
+            backdrop-filter: blur(16px);
+            border-radius: 18px;
+            box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
+        }
+
+        .tx-glass-card-subtle {
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+        }
+
+        /* Responsive 3-Column Trading Terminal Grid with Generous Spacing */
+        .tx-trade-terminal-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        @media (min-width: 1200px) {
+            .tx-trade-terminal-grid {
+                grid-template-columns: minmax(0, 1fr) 280px 330px;
+                gap: 16px;
+            }
+        }
+
+        @media (min-width: 1024px) and (max-width: 1199px) {
+            .tx-trade-terminal-grid {
+                grid-template-columns: minmax(0, 1fr) 270px 310px;
+                gap: 14px;
+            }
+        }
+
+        /* TradingView Chart Container Fixes */
+        .tx-tv-chart-box {
+            position: relative;
+            width: 100% !important;
+            height: 660px !important;
+            min-height: 660px !important;
+            background: #050b17;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(30, 41, 59, 0.7);
+        }
+
+        .tx-tv-chart-box .tradingview-widget-container,
+        .tx-tv-chart-box .tradingview-widget-container__widget,
+        .tx-tv-chart-box iframe {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 660px !important;
+            border: 0 !important;
+            display: block !important;
+        }
+
+        /* Orderbook Depth Bar */
+        .ob-depth-ask {
+            background: linear-gradient(90deg, transparent 0%, rgba(239, 68, 68, 0.14) 100%);
+        }
+        .ob-depth-bid {
+            background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.14) 100%);
+        }
+
+        /* Custom Scrollbar */
+        .tx-custom-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .tx-custom-scroll::-webkit-scrollbar-track {
+            background: rgba(3, 7, 18, 0.5);
+        }
+        .tx-custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.7);
+            border-radius: 4px;
+        }
+        .tx-custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(34, 211, 238, 0.5);
+        }
+
+        /* Ticker Pulse Animations */
+        @keyframes flashGreen {
+            0% { color: #34d399; text-shadow: 0 0 10px rgba(52, 211, 153, 0.6); }
+            100% { color: #10b981; text-shadow: none; }
+        }
+        @keyframes flashRed {
+            0% { color: #f87171; text-shadow: 0 0 10px rgba(248, 113, 113, 0.6); }
+            100% { color: #ef4444; text-shadow: none; }
+        }
+        .flash-up {
+            animation: flashGreen 0.6s ease;
+        }
+        .flash-down {
+            animation: flashRed 0.6s ease;
+        }
+
+        /* Pro Trade Panel Dedicated Classes */
+        .tx-side-btn {
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 1px solid #1e293b;
+            background: #091224;
+            color: #94a3b8;
+            text-align: center;
+        }
+        .tx-side-btn:hover {
+            color: #ffffff;
+            border-color: rgba(34, 211, 238, 0.35);
+        }
+        .tx-side-btn-buy.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: #020617 !important;
+            border: 1px solid #34d399 !important;
+            box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.45) !important;
+        }
+        .tx-side-btn-sell.active {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid #fb7185 !important;
+            box-shadow: 0 8px 20px -2px rgba(244, 63, 94, 0.45) !important;
+        }
+
+        .tx-btn-execute {
+            width: 100%;
+            border-radius: 14px;
+            padding: 13px 16px;
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+            text-align: center;
+            border: none;
+        }
+        .tx-btn-execute:active {
+            transform: scale(0.98);
+        }
+        .tx-btn-execute-buy {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: #020617 !important;
+            box-shadow: 0 10px 25px -3px rgba(16, 185, 129, 0.4) !important;
+        }
+        .tx-btn-execute-buy:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+            box-shadow: 0 12px 30px -2px rgba(16, 185, 129, 0.6) !important;
+        }
+        .tx-btn-execute-sell {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 25px -3px rgba(244, 63, 94, 0.4) !important;
+        }
+        .tx-btn-execute-sell:hover {
+            background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important;
+            box-shadow: 0 12px 30px -2px rgba(244, 63, 94, 0.6) !important;
+        }
+        .tx-btn-execute-convert {
+            background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%) !important;
+            color: #020617 !important;
+            box-shadow: 0 10px 25px -3px rgba(34, 211, 238, 0.4) !important;
+        }
+        .tx-btn-execute-convert:hover {
+            background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%) !important;
+            box-shadow: 0 12px 30px -2px rgba(34, 211, 238, 0.6) !important;
+        }
+
+        /* Range slider styling */
+        input[type="range"]#txOrderPctSlider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #091224;
+            border: 1px solid #1e293b;
+            border-radius: 9999px;
+            outline: none;
+        }
+        input[type="range"]#txOrderPctSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #22d3ee;
+            cursor: pointer;
+            border: 2px solid #080f1d;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]#txOrderPctSlider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Top Pair Selector Dropdown */
+        #txPairDropdownMenu {
+            background: #091224 !important;
+            background-color: #091224 !important;
+            opacity: 1 !important;
+            box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(34, 211, 238, 0.3) !important;
+        }
+
+        /* Clean number input alignment without browser spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+    </style>
+</head>
+
+<body data-page="trade" class="bg-[#030712] min-h-screen text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <!-- Global Toast Notification Container -->
+    <div id="txTradeToastContainer" class="fixed top-20 right-4 z-[999999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <div data-component="navbar"></div>
+
+    <!-- Main Trade Container -->
+    <main class="mx-auto max-w-[1800px] px-3 sm:px-4 lg:px-6 pt-32 sm:pt-36 lg:pt-40 pb-16">
+
+        <!-- 1. TOP TICKER & MARKET STATS BAR -->
+        <section class="tx-glass-card mb-5 sm:mb-6 px-4 py-3 sm:px-5 sm:py-3.5 transition-all relative z-[9999]" style="position: relative !important; z-index: 9999 !important; overflow: visible !important;">
+            <div class="flex flex-wrap items-center justify-between gap-y-3 gap-x-6" style="overflow: visible !important;">
+                
+                <!-- Left Group: Pair Selector & Current Price & 24h Change -->
+                <div class="flex items-center gap-4 sm:gap-6 flex-wrap" style="overflow: visible !important;">
+                    <!-- Pair Selector Dropdown Toggle -->
+                    <div class="relative z-[99999]" style="position: relative !important; z-index: 99999 !important;">
+                        <button id="txPairSelectorBtn" type="button" class="flex items-center gap-3 rounded-xl border border-cyan-400/25 bg-slate-900/90 px-3.5 py-2 text-left hover:border-cyan-400/60 transition group cursor-pointer select-none">
+                            <span id="txPairIcon" class="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-400 font-black text-xs border border-cyan-400/30">
+                                ₿
+                            </span>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="txActivePairSymbol" class="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition">BTC/USDT</span>
+                                    <span class="rounded bg-cyan-950/80 px-1.5 py-0.5 text-[10px] font-bold text-cyan-400 border border-cyan-500/20">SPOT</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-slate-400">Bitcoin</span>
+                            </div>
+                            <svg class="h-4 w-4 text-slate-400 group-hover:text-cyan-400 transition ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Pair Selection Dropdown Menu (Compact 100% Solid Dark) -->
+                        <div id="txPairDropdownMenu" class="absolute left-0 top-full mt-2 hidden w-[310px] overflow-hidden rounded-2xl p-3 border border-cyan-500/30 shadow-2xl" style="position: absolute !important; z-index: 9999999 !important; background-color: #080f1d !important; background: #080f1d !important; opacity: 1 !important; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(34, 211, 238, 0.25) !important;">
+                            <!-- Search & Filter Tabs -->
+                            <div class="mb-2">
+                                <div class="relative">
+                                    <input id="txPairSearchInput" type="text" placeholder="Search coin..." class="w-full rounded-xl border border-slate-700/80 bg-[#040814] pl-8 pr-3 py-2 text-xs font-bold text-white placeholder-slate-500 outline-none focus:border-cyan-400 transition" />
+                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 mb-2 border-b border-slate-800 pb-2">
+                                <button type="button" data-filter="all" class="tx-pair-filter active px-2.5 py-1 text-[11px] font-bold rounded-lg bg-cyan-500/20 text-cyan-300">All</button>
+                                <button type="button" data-filter="layer1" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">Layer 1</button>
+                                <button type="button" data-filter="defi" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">DeFi</button>
+                                <button type="button" data-filter="meme" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">Meme</button>
+                            </div>
+                            <!-- Pairs List -->
+                            <div id="txPairsListContainer" class="tx-custom-scroll max-h-72 overflow-y-auto space-y-1">
+                                <!-- Dynamically populated by trade.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Real-time Price -->
+                    <div class="border-l border-slate-800/80 pl-4 sm:pl-6">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Mark Price</div>
+                        <div class="flex items-baseline gap-2 whitespace-nowrap">
+                            <span id="txHeaderPrice" class="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight transition-colors">$88,450.00</span>
+                            <span id="txHeaderInrPrice" class="text-xs font-semibold text-slate-400 hidden sm:inline">≈ ₹7,827,825</span>
+                        </div>
+                    </div>
+
+                    <!-- 24h Change Pill -->
+                    <div class="border-l border-slate-800/80 pl-4 sm:pl-6">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">24h Change</div>
+                        <div id="txHeaderChangeBadge" class="inline-flex items-center gap-1 text-xs sm:text-sm font-black text-emerald-400 whitespace-nowrap">
+                            <span>▲ +3.42%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Group: 24h High, Low, Volume, Turnover Stats + Wallet -->
+                <div class="flex items-center flex-wrap gap-y-2 text-xs">
+                    <div class="px-3.5 sm:px-5 border-l border-slate-800/80 whitespace-nowrap">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">24h High</span>
+                        <span id="txHeader24hHigh" class="font-extrabold text-slate-100 text-xs sm:text-sm">$89,240.00</span>
+                    </div>
+                    <div class="px-3.5 sm:px-5 border-l border-slate-800/80 whitespace-nowrap">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">24h Low</span>
+                        <span id="txHeader24hLow" class="font-extrabold text-slate-100 text-xs sm:text-sm">$85,120.50</span>
+                    </div>
+                    <div class="px-3.5 sm:px-5 border-l border-slate-800/80 whitespace-nowrap">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">24h Volume (BTC)</span>
+                        <span id="txHeader24hVolBase" class="font-extrabold text-slate-100 text-xs sm:text-sm">28,491.42</span>
+                    </div>
+                    <div class="px-3.5 sm:px-5 border-l border-slate-800/80 whitespace-nowrap">
+                        <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">24h Turnover (USDT)</span>
+                        <span id="txHeader24hVolQuote" class="font-extrabold text-slate-100 text-xs sm:text-sm">$2.49B</span>
+                    </div>
+
+                    <!-- User Wallet Quick Balance Chip -->
+                    <div class="border-l border-slate-800/80 pl-4 sm:pl-6 ml-1 flex items-center gap-3 whitespace-nowrap">
+                        <div class="text-right">
+                            <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Main Wallet</span>
+                            <span id="txUserUsdtBalance" class="font-black text-cyan-300 text-xs sm:text-sm">0.00 USDT</span>
+                        </div>
+                        <a href="wallet.html" class="flex items-center justify-center h-8 w-8 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30 hover:text-white transition shadow-lg shadow-cyan-950/40" title="Deposit / Manage Main Wallet">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. MAIN 3-COLUMN TRADING WORKSPACE GRID -->
+        <div class="tx-trade-terminal-grid">
+
+            <!-- COLUMN 1 (LEFT / CENTER): TRADINGVIEW CHART -->
+            <div class="flex flex-col min-w-0">
+                <div class="tx-glass-card p-2 sm:p-3 flex flex-col relative overflow-hidden">
+                    <div class="tx-tv-chart-box">
+                        <div id="txTradingViewChartContainer" class="w-full h-full">
+                            <div class="flex h-full items-center justify-center text-slate-400 font-bold text-sm gap-2">
+                                <span class="h-2 w-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                Loading TradingView Real-Time Chart...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 2 (MIDDLE): ORDER BOOK & RECENT TRADES -->
+            <div class="tx-glass-card p-3 sm:p-4 flex flex-col justify-between" style="min-height: 660px;">
+                
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-2.5">
+                        <div class="flex items-center gap-1.5">
+                            <button id="txTabOrderBookBtn" type="button" class="px-2.5 py-1 text-xs font-black rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">
+                                Order Book
+                            </button>
+                            <button id="txTabMarketTradesBtn" type="button" class="px-2.5 py-1 text-xs font-black rounded-lg text-slate-400 hover:text-white transition">
+                                Recent Trades
+                            </button>
+                        </div>
+                        
+                        <!-- Order Book Depth Mode Toggle Icons -->
+                        <div id="txOrderBookModeToggles" class="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+                            <!-- Mode 1: Both (Green/Red) -->
+                            <button type="button" data-ob-mode="both" class="tx-ob-mode-btn active p-1 rounded hover:bg-slate-800 text-cyan-400" title="Both Asks and Bids">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="3" y="4" width="18" height="6" rx="1" fill="#ef4444" />
+                                    <rect x="3" y="14" width="18" height="6" rx="1" fill="#10b981" />
+                                </svg>
+                            </button>
+                            <!-- Mode 2: Bids only (Green) -->
+                            <button type="button" data-ob-mode="bids" class="tx-ob-mode-btn p-1 rounded hover:bg-slate-800 text-slate-500" title="Buy Bids Only">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="3" y="4" width="18" height="16" rx="1" fill="#10b981" />
+                                </svg>
+                            </button>
+                            <!-- Mode 3: Asks only (Red) -->
+                            <button type="button" data-ob-mode="asks" class="tx-ob-mode-btn p-1 rounded hover:bg-slate-800 text-slate-500" title="Sell Asks Only">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="3" y="4" width="18" height="16" rx="1" fill="#ef4444" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ORDER BOOK VIEW -->
+                    <div id="txOrderBookView" class="block">
+                        
+                        <!-- Header -->
+                        <div class="grid grid-cols-3 text-xs font-black uppercase text-slate-300 pb-2 border-b border-slate-800/80 tracking-wide">
+                            <span>Price (USDT)</span>
+                            <span class="text-right">Size (<span class="tx-base-sym">BTC</span>)</span>
+                            <span class="text-right">Sum (<span class="tx-base-sym">BTC</span>)</span>
+                        </div>
+
+                        <!-- Asks (Sells - Red) -->
+                        <div id="txOrderBookAsks" class="space-y-0.5 py-1 font-bold">
+                        </div>
+
+                        <!-- Mid Market Price Banner (Prominent Centered Card) -->
+                        <div id="txMidPriceBanner" class="my-2.5 py-2.5 px-3 rounded-xl bg-[#09152b] border border-cyan-500/30 flex items-center justify-center gap-2 shadow-inner">
+                            <span id="txMidPrice" class="text-lg sm:text-xl font-black text-cyan-300 font-mono tracking-wider">$77,902.55 USDT</span>
+                            <span id="txMidIcon" class="text-sm font-black text-emerald-400">▲</span>
+                        </div>
+
+                        <!-- Bids (Buys - Green) -->
+                        <div id="txOrderBookBids" class="space-y-0.5 py-1 font-bold">
+                        </div>
+
+                    </div>
+
+                    <!-- RECENT TRADES VIEW -->
+                    <div id="txRecentTradesView" class="hidden">
+                        <!-- Header -->
+                        <div class="grid grid-cols-3 text-xs font-black uppercase text-slate-300 pb-2 border-b border-slate-800/80 tracking-wide mb-1">
+                            <span>Price (USDT)</span>
+                            <span class="text-right">Amount</span>
+                            <span class="text-right">Time</span>
+                        </div>
+                        <div id="txRecentTradesList" class="tx-custom-scroll max-h-[520px] overflow-y-auto space-y-1 font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Buyer vs Seller Volume Ratio Bar -->
+                <div id="txOrderBookRatioSection" class="pt-2.5 border-t border-slate-800/80 mt-2">
+                    <div class="flex items-center justify-between text-xs sm:text-sm font-black mb-1.5 font-mono">
+                        <span id="txBuyRatioText" class="text-emerald-400">B 84.69%</span>
+                        <span id="txSellRatioText" class="text-rose-400">S 15.31%</span>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-slate-900 overflow-hidden flex">
+                        <div id="txBuyRatioBar" class="h-full bg-emerald-400 transition-all duration-300" style="width: 84.69%;"></div>
+                        <div id="txSellRatioBar" class="h-full bg-rose-500 transition-all duration-300" style="width: 15.31%;"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMN 3 (RIGHT): DUAL-MODE TRADE PANEL -->
+            <div class="tx-glass-card p-3.5 sm:p-4 flex flex-col justify-between" style="min-height: 660px;">
+                
+                <div class="space-y-3.5">
+                    <!-- Main Mode Tabs: Pro Spot vs Instant Swap -->
+                    <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-950 border border-cyan-400/50 shadow-sm shadow-cyan-500/10">
+                        <button id="txModeTabSpot" type="button" class="flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">
+                            <svg class="w-4 h-4 text-cyan-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 3v4M6 11v10M18 3v10M18 17v4M3 7h6v4H3zM15 13h6v4h-6z" />
+                            </svg>
+                            <span>Spot</span>
+                        </button>
+                        <button id="txModeTabConvert" type="button" class="flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-lg text-slate-400 hover:text-white transition">
+                            <svg class="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-5v7h7" />
+                                <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 5v-7h-7" />
+                            </svg>
+                            <span>Convert <span class="text-xs text-emerald-400 font-bold">(0 Fee)</span></span>
+                        </button>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- MODE 1: PRO SPOT TRADING PANEL             -->
+                    <!-- ========================================== -->
+                    <div id="txSpotOrderPanel" class="block space-y-3.5">
+                        <!-- Side Switcher: BUY vs SELL -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="txSideBuyBtn" type="button" class="tx-side-btn tx-side-btn-buy active py-2.5">
+                                Buy BTC
+                            </button>
+                            <button id="txSideSellBtn" type="button" class="tx-side-btn tx-side-btn-sell py-2.5">
+                                Sell BTC
+                            </button>
+                        </div>
+
+                        <!-- Order Type: Limit vs Market vs Stop-Limit -->
+                        <div class="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80">
+                            <button type="button" data-order-type="limit" class="tx-order-type-btn active flex-1 py-2 text-xs sm:text-sm font-black rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition text-center">Limit</button>
+                            <button type="button" data-order-type="market" class="tx-order-type-btn flex-1 py-2 text-xs sm:text-sm font-black rounded-lg text-slate-400 hover:text-white transition text-center">Market</button>
+                            <button type="button" data-order-type="stop-limit" class="tx-order-type-btn flex-1 py-2 text-xs sm:text-sm font-black rounded-lg text-slate-400 hover:text-white transition text-center">Stop-Limit</button>
+                        </div>
+
+                        <!-- Available Balance Display Bar -->
+                        <div class="flex items-center justify-between text-xs px-0.5 pt-1">
+                            <span class="font-bold text-slate-400">Available</span>
+                            <span id="txFormAvailableBalance" class="text-cyan-300 font-bold font-mono tracking-wide">10,000.00 USDT</span>
+                        </div>
+
+                        <!-- Price Input -->
+                        <div id="txPriceInputGroup" class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold uppercase text-slate-400 px-0.5">
+                                <label for="txOrderPrice" class="tracking-wider">Order Price</label>
+                                <div class="flex items-center gap-2.5 font-bold normal-case text-xs">
+                                    <button id="txBestBidBtn" type="button" class="text-emerald-400 hover:text-emerald-300 transition">Best Bid</button>
+                                    <button id="txBestAskBtn" type="button" class="text-rose-400 hover:text-rose-300 transition">Best Ask</button>
+                                </div>
+                            </div>
+                            <div class="relative flex items-center rounded-xl border border-slate-800 bg-[#060d1b] focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/30 transition hover:border-slate-700 shadow-inner overflow-hidden">
+                                <input id="txOrderPrice" type="number" step="any" placeholder="0.00" class="w-full bg-transparent pl-4 pr-20 py-2.5 text-sm font-extrabold font-mono text-white placeholder-slate-600 outline-none" />
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-cyan-400 font-mono pointer-events-none select-none tracking-wide">USDT</span>
+                            </div>
+                        </div>
+
+                        <!-- Amount Input -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold uppercase text-slate-400 px-0.5">
+                                <label for="txOrderAmount" class="tracking-wider">Amount</label>
+                            </div>
+                            <div class="relative flex items-center rounded-xl border border-slate-800 bg-[#060d1b] focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/30 transition hover:border-slate-700 shadow-inner overflow-hidden">
+                                <input id="txOrderAmount" type="number" step="any" placeholder="0.00" class="w-full bg-transparent pl-4 pr-20 py-2.5 text-sm font-extrabold font-mono text-white placeholder-slate-600 outline-none" />
+                                <span id="txAmountCurrency" class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-black text-cyan-400 font-mono pointer-events-none select-none tracking-wide">BTC</span>
+                            </div>
+                        </div>
+
+                        <!-- Percentage Slider & Chips -->
+                        <div class="space-y-2 pt-0.5">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-400 px-0.5">
+                                <span>Ratio:</span>
+                                <span id="txPctSliderVal" class="text-cyan-300 font-black font-mono">0%</span>
+                            </div>
+                            <input id="txOrderPctSlider" type="range" min="0" max="100" value="0" step="1" />
+                            <div class="grid grid-cols-4 gap-1.5 pt-1">
+                                <button type="button" data-pct="25" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">25%</button>
+                                <button type="button" data-pct="50" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">50%</button>
+                                <button type="button" data-pct="75" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">75%</button>
+                                <button type="button" data-pct="100" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">100%</button>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary Box -->
+                        <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs space-y-2">
+                            <div class="flex items-center justify-between text-slate-400 font-bold">
+                                <span>Total Value:</span>
+                                <span id="txOrderTotalVal" class="text-white text-sm font-black font-mono">0.00 USDT</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400 text-xs font-bold border-t border-slate-800/60 pt-1.5">
+                                <span>Est. Trading Fee (0.05%):</span>
+                                <span id="txOrderFeeVal" class="text-cyan-400 font-mono font-bold">0.00 USDT</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Order Button -->
+                        <button id="txExecuteOrderBtn" type="button" class="tx-btn-execute tx-btn-execute-buy py-3.5 text-sm font-black shadow-lg">
+                            Buy BTC
+                        </button>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- MODE 2: INSTANT CONVERT / QUICK SWAP       -->
+                    <!-- ========================================== -->
+                    <div id="txConvertPanel" class="hidden space-y-3.5">
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-bold text-slate-400 mb-1 px-0.5">
+                                    <span>You Pay / Convert From</span>
+                                    <span class="text-cyan-300">Bal: <strong id="txConvertFromBal" class="font-mono text-white">10,000.00 USDT</strong></span>
+                                </div>
+                                <div class="flex items-center rounded-xl border border-slate-700/90 bg-slate-950 p-2 shadow-inner">
+                                    <input id="txConvertFromAmount" type="number" step="any" placeholder="0.00" class="w-full bg-transparent px-2 text-base font-black font-mono text-white outline-none" />
+                                    <button id="txConvertMaxBtn" type="button" class="px-2 py-1 mr-2 rounded-lg text-xs font-black uppercase bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 border border-cyan-400/30 transition">MAX</button>
+                                    <select id="txConvertFromAsset" class="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs font-black text-white outline-none focus:border-cyan-400">
+                                        <option value="USDT">USDT</option>
+                                        <option value="BTC">BTC</option>
+                                        <option value="ETH">ETH</option>
+                                        <option value="SOL">SOL</option>
+                                        <option value="INR">INR</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Flip Direction Button -->
+                            <div class="flex justify-center -my-1 relative z-10">
+                                <button id="txConvertFlipBtn" type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 transition shadow-md shadow-cyan-500/20 cursor-pointer" title="Switch Assets">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-bold text-slate-400 mb-1 px-0.5">
+                                    <span>You Receive</span>
+                                    <span class="text-cyan-300">Est. Amount</span>
+                                </div>
+                                <div class="flex items-center rounded-xl border border-slate-700/90 bg-slate-950 p-2 shadow-inner">
+                                    <input id="txConvertToAmount" type="number" step="any" placeholder="0.00" readonly class="w-full bg-transparent px-2 text-base font-black font-mono text-emerald-400 outline-none cursor-default" />
+                                    <select id="txConvertToAsset" class="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs font-black text-white outline-none focus:border-cyan-400">
+                                        <option value="BTC">BTC</option>
+                                        <option value="USDT">USDT</option>
+                                        <option value="ETH">ETH</option>
+                                        <option value="SOL">SOL</option>
+                                        <option value="INR">INR</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Guaranteed Rate Box & Countdown -->
+                            <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs space-y-1.5 font-bold">
+                                <div class="flex items-center justify-between text-slate-400">
+                                    <span>Guaranteed Rate:</span>
+                                    <span id="txConvertRateText" class="text-white font-black font-mono">1 BTC ≈ 88,450.00 USDT</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-400 text-xs">
+                                    <span>Trading Fee:</span>
+                                    <span class="text-emerald-400 font-black">0.00% (FREE)</span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-400 text-xs">
+                                    <span>Rate Refresh in:</span>
+                                    <span id="txConvertTimer" class="text-cyan-400 font-black font-mono">5s</span>
+                                </div>
+                            </div>
+
+                            <!-- Convert Action Button -->
+                            <button id="txExecuteConvertBtn" type="button" class="tx-btn-execute tx-btn-execute-convert py-3.5 text-sm font-black shadow-lg">
+                                Convert Instantly
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Pro Status Strip at Bottom -->
+                <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-slate-400 mt-3">
+                    <div class="flex items-center gap-1.5">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>VIP 0 • Spot 0.05% Fee</span>
+                    </div>
+                    <a href="wallet.html" class="text-cyan-400 hover:text-cyan-300 transition flex items-center gap-1 font-bold">
+                        Deposit [+]
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 3. LOWER FULL-WIDTH TABS: OPEN ORDERS, ORDER HISTORY, TRADE HISTORY, MY ASSETS -->
+        <section class="tx-glass-card p-3 sm:p-4 mt-5 sm:mt-6">
+            <!-- Tab Headers -->
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5 mb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
+                    <button type="button" data-table-tab="open-orders" class="tx-tab-btn active px-3 py-1.5 text-xs font-black rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">
+                        Open Orders (<span id="txOpenOrdersCount">0</span>)
+                    </button>
+                    <button type="button" data-table-tab="order-history" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                        Order History
+                    </button>
+                    <button type="button" data-table-tab="trade-history" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                        Trade History
+                    </button>
+                    <button type="button" data-table-tab="my-assets" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                        Asset Holdings
+                    </button>
+                </div>
+
+                <!-- Cancel All Button (Visible for Open Orders) -->
+                <button id="txCancelAllOrdersBtn" type="button" class="hidden text-xs font-bold text-rose-400 hover:text-rose-300 transition px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                    Cancel All
+                </button>
+            </div>
+
+            <!-- Tab 1: Open Orders Content -->
+            <div id="txTabOpenOrders" class="tx-tab-content block">
+                <div class="tx-custom-scroll overflow-x-auto min-h-[160px] max-h-72">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-800">
+                                <th class="py-2.5 px-3">Time</th>
+                                <th class="py-2.5 px-3">Pair</th>
+                                <th class="py-2.5 px-3">Type</th>
+                                <th class="py-2.5 px-3">Side</th>
+                                <th class="py-2.5 px-3">Price</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3">Filled</th>
+                                <th class="py-2.5 px-3">Total (USDT)</th>
+                                <th class="py-2.5 px-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txOpenOrdersTableBody" class="divide-y divide-slate-800/50 font-medium text-slate-300">
+                            <tr>
+                                <td colspan="9" class="py-8 text-center text-slate-500 font-semibold">
+                                    No open orders currently. Place an order to see it live!
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: Order History Content -->
+            <div id="txTabOrderHistory" class="tx-tab-content hidden">
+                <div class="tx-custom-scroll overflow-x-auto min-h-[160px] max-h-72">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-800">
+                                <th class="py-2.5 px-3">Date / Time</th>
+                                <th class="py-2.5 px-3">Pair</th>
+                                <th class="py-2.5 px-3">Type</th>
+                                <th class="py-2.5 px-3">Side</th>
+                                <th class="py-2.5 px-3">Order Price</th>
+                                <th class="py-2.5 px-3">Executed Price</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3">Total</th>
+                                <th class="py-2.5 px-3 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txOrderHistoryTableBody" class="divide-y divide-slate-800/50 font-medium text-slate-300">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Trade History Content -->
+            <div id="txTabTradeHistory" class="tx-tab-content hidden">
+                <div class="tx-custom-scroll overflow-x-auto min-h-[160px] max-h-72">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-800">
+                                <th class="py-2.5 px-3">Execution Time</th>
+                                <th class="py-2.5 px-3">Pair</th>
+                                <th class="py-2.5 px-3">Side</th>
+                                <th class="py-2.5 px-3">Execution Price</th>
+                                <th class="py-2.5 px-3">Filled Amount</th>
+                                <th class="py-2.5 px-3">Fee (0.05%)</th>
+                                <th class="py-2.5 px-3 text-right">Total (USDT)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txTradeHistoryTableBody" class="divide-y divide-slate-800/50 font-medium text-slate-300">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 4: My Asset Holdings Content -->
+            <div id="txTabMyAssets" class="tx-tab-content hidden">
+                <div class="tx-custom-scroll overflow-x-auto min-h-[160px] max-h-72">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-800">
+                                <th class="py-2.5 px-3">Asset</th>
+                                <th class="py-2.5 px-3">Total Balance</th>
+                                <th class="py-2.5 px-3">Available</th>
+                                <th class="py-2.5 px-3">In Orders</th>
+                                <th class="py-2.5 px-3">USD Value</th>
+                                <th class="py-2.5 px-3 text-right">Quick Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txMyAssetsTableBody" class="divide-y divide-slate-800/50 font-medium text-slate-300">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Global Footer -->
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js?v=21"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/trade.js?v=2"></script>
+</body>
+</html>

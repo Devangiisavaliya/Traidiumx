@@ -667,7 +667,8 @@ def binance_get(endpoint, params=None):
         try:
             # If endpoint is /fapi/... but targeting a spot mirror base, map appropriately
             req_endpoint = endpoint
-            if "api.binance.com" in base_url or "api1.binance.com" in base_url:
+            is_spot_base = "fapi." not in base_url and "dapi." not in base_url
+            if is_spot_base and endpoint.startswith("/fapi/"):
                 if endpoint.startswith("/fapi/v1/ticker/24hr"):
                     req_endpoint = "/api/v3/ticker/24hr"
                 elif endpoint.startswith("/fapi/v1/depth"):
@@ -993,9 +994,17 @@ def build_market_board_item(stored_symbol, ticker=None, board_timestamp=None, pr
     provider_symbol = get_provider_symbol(stored_symbol)
     quote_asset = clean_string(stored_symbol.get("quote_asset", "USDT")).upper() or "USDT"
     ticker = ticker or {}
-    last_price = safe_float(ticker.get("lastPrice"))
+    last_price = safe_float(ticker.get("lastPrice") or ticker.get("price"))
     change_percent = safe_float(ticker.get("priceChangePercent"))
     quote_volume = safe_float(ticker.get("quoteVolume"))
+
+    clean_key = clean_string(provider_symbol).upper().replace("-", "").replace("/", "")
+    fallback_price = safe_float(stored_symbol.get("price") or stored_symbol.get("default_price") or FALLBACK_PRICES.get(clean_key), 0.0)
+
+    if last_price <= 0 and fallback_price > 0:
+        last_price = fallback_price
+        if quote_volume <= 0:
+            quote_volume = fallback_price * 1000.0
 
     premium_item = (premium_map or {}).get(provider_symbol, {})
     mark_price = safe_float(premium_item.get("markPrice"), last_price)
@@ -1022,11 +1031,11 @@ def build_market_board_item(stored_symbol, ticker=None, board_timestamp=None, pr
         "funding_rate": safe_float(premium_item.get("lastFundingRate"), 0.0),
         "price_change": safe_float(ticker.get("priceChange")),
         "price_change_percent": change_percent,
-        "high_price": safe_float(ticker.get("highPrice")),
-        "low_price": safe_float(ticker.get("lowPrice")),
-        "volume": safe_float(ticker.get("volume")),
+        "high_price": safe_float(ticker.get("highPrice"), last_price * 1.02 if last_price > 0 else 0.0),
+        "low_price": safe_float(ticker.get("lowPrice"), last_price * 0.98 if last_price > 0 else 0.0),
+        "volume": safe_float(ticker.get("volume"), 1000.0 if last_price > 0 else 0.0),
         "quote_volume": quote_volume,
-        "open_price": safe_float(ticker.get("openPrice")),
+        "open_price": safe_float(ticker.get("openPrice"), last_price),
         "is_live": last_price > 0,
         "is_active": stored_symbol.get("is_active", True),
         "sort_order": stored_symbol.get("sort_order", 0),

@@ -51,42 +51,45 @@ function renderTradingAccount() {
     ta.active.textContent = data.active_plan_name ? `${data.active_plan_name} · ${formatSpread(data.active_spread_value, data.active_spread_type)}` : "Not active";
     
     const isMt5 = data.selected_platform === "mt5";
+    const account = data.mt5?.account || null;
+    const caps = data.mt5?.capabilities || {};
+
     if (ta.balanceLabel) {
-        ta.balanceLabel.textContent = isMt5 ? "MT5 Account Balance" : "TraidiumX Balance";
+        ta.balanceLabel.textContent = isMt5 ? "MT5 Account Balance" : "TraidiumX Trading Balance";
     }
     if (ta.sourceCard) {
-        ta.sourceCard.classList.toggle("hidden", true);
+        // When MT5 is selected, hide TraidiumX source card completely for a 100% clean MT5 view
+        ta.sourceCard.classList.toggle("hidden", isMt5);
     }
     if (ta.sourceBalanceLabel) {
-        ta.sourceBalanceLabel.textContent = isMt5 ? "TraidiumX Wallet (Funding Source)" : "TraidiumX Trading Wallet";
+        ta.sourceBalanceLabel.textContent = "TraidiumX Main Deposit Wallet";
     }
     
-    ta.balance.textContent = `${taMoney(data.trading_balance)} USDT`;
-    ta.sourceBalance.textContent = `${taMoney(data.source_trading_wallet_balance)} USDT`;
+    if (isMt5) {
+        const mt5Bal = account?.balance ?? data.mt5_balance ?? 0;
+        const mt5Curr = account?.account_currency || "USD";
+        ta.balance.textContent = `${taMoney(mt5Bal)} ${mt5Curr}`;
+    } else {
+        ta.balance.textContent = `${taMoney(data.trading_balance)} USDT`;
+    }
+    ta.sourceBalance.textContent = `${taMoney(data.main_wallet_usdt_balance)} USDT | ₹${taMoney(data.main_wallet_inr_balance)} INR`;
     document.querySelectorAll("[data-ta-platform]").forEach((button) => button.classList.toggle("active", button.dataset.taPlatform === data.selected_platform));
     ta.plans.innerHTML = (data.plans || []).map((plan) => `<button type="button" class="ta-plan ${data.preferred_plan === plan.key ? "active" : ""}" data-ta-plan="${taEsc(plan.key)}"><strong>${taEsc(plan.name)}</strong><p class="mt-2 text-2xl font-black text-cyan-300">${formatSpread(plan.spread_value, plan.spread_type)}</p><p class="mt-2 text-xs font-semibold text-slate-400">Minimum ${taMoney(plan.minimum_balance)} USDT</p></button>`).join("");
     document.querySelectorAll("[data-ta-plan]").forEach((button) => button.addEventListener("click", () => savePlan(button.dataset.taPlan)));
     ta.mt5Section.classList.toggle("hidden", data.selected_platform !== "mt5");
-    const account = data.mt5?.account || null;
-    const caps = data.mt5?.capabilities || {};
     ta.mt5Status.textContent = account?.status || "Not created";
     ta.mt5Login.textContent = account?.masked_login_id || "--";
     ta.mt5Server.textContent = account?.server || caps.server_name || "--";
     ta.mt5Group.textContent = account?.group || "--";
-    ta.mt5Balance.textContent = `${taMoney(account?.balance)} ${account?.account_currency || "USD"}`;
+    ta.mt5Balance.textContent = `${taMoney(account?.balance ?? data.mt5_balance ?? 0)} ${account?.account_currency || "USD"}`;
     ta.mt5Note.textContent = account?.provisioning_note || caps.note || "MT5 account setup has not started.";
-    const preferredEligible = data.provisioning_balance_eligible !== false;
-    document.getElementById("taProvisionMt5").disabled = !preferredEligible;
+    document.getElementById("taProvisionMt5").disabled = false;
     const activeAccount = !!account?.login_id && ["active", "connected"].includes(String(account?.status || "").toLowerCase());
     const fundingConfigured = !!caps.funding_configured;
     const fundButton = document.getElementById("taMt5FundButton");
     if (fundButton) fundButton.disabled = !activeAccount || !fundingConfigured;
     if (ta.mt5FundingNote) {
-        ta.mt5FundingNote.textContent = !activeAccount
-            ? "Create or connect an active MT5 account before transferring funds."
-            : !fundingConfigured
-                ? "Admin must configure MT5_FUNDING_API_URL before live MT5 transfers can run."
-                : `Available TraidiumX Trading Wallet balance: ${taMoney(data.source_trading_wallet_balance)} USDT.`;
+        ta.mt5FundingNote.textContent = "";
     }
 }
 
@@ -117,23 +120,69 @@ function taCheckKycRedirect(error, fallback_message, action = "trading") {
 }
 
 document.getElementById("taProvisionMt5")?.addEventListener("click",async()=>{try{const response=await apiRequest("/onboarding/mt5/provision",{method:"POST",body:"{}"});taShowMessage(response.message,response.status===202?"info":"success");await loadTradingAccount();}catch(error){taCheckKycRedirect(error,"MT5 setup failed.");}});
-document.getElementById("taExistingMt5Form")?.addEventListener("submit",async(event)=>{event.preventDefault();const payload=Object.fromEntries(new FormData(event.currentTarget).entries());try{const response=await apiRequest("/onboarding/mt5/connect-existing",{method:"POST",body:JSON.stringify(payload)});event.currentTarget.reset();taShowMessage(response.message,"success");await loadTradingAccount();}catch(error){taCheckKycRedirect(error,"MT5 connection failed.");}});
-
-
-document.getElementById("taMt5FundingForm")?.addEventListener("submit",async(event)=>{
+document.getElementById("taExistingMt5Form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const amount=Number(document.getElementById("taMt5FundingAmount")?.value||0);
-    if(!(amount>0)){taShowMessage("Enter a valid MT5 funding amount.","error");return;}
-    try{
-        const response=await apiRequest("/onboarding/mt5/fund",{method:"POST",body:JSON.stringify({amount})});
-        event.currentTarget.reset();
-        taShowMessage(response.message||"MT5 account funded successfully.","success");
+    const form = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(form).entries());
+    try {
+        const response = await apiRequest("/onboarding/mt5/connect-existing", {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
+        form?.reset?.();
+        taShowMessage(response.message, "success");
         await loadTradingAccount();
-    }catch(error){taCheckKycRedirect(error,"MT5 funding failed.");}
+    } catch (error) {
+        taCheckKycRedirect(error, "MT5 connection failed.");
+    }
+});
+
+document.getElementById("taMt5FundingForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const amount = Number(document.getElementById("taMt5FundingAmount")?.value || 0);
+    if (!(amount > 0)) {
+        taShowMessage("Enter a valid MT5 funding amount.", "error");
+        return;
+    }
+    try {
+        const response = await apiRequest("/onboarding/mt5/fund", {
+            method: "POST",
+            body: JSON.stringify({ amount }),
+        });
+        form?.reset?.();
+        taShowMessage(response.message || "MT5 account funded successfully.", "success");
+        await loadTradingAccount();
+    } catch (error) {
+        taCheckKycRedirect(error, "MT5 funding failed.");
+    }
 });
 
 const setupToken = new URLSearchParams(window.location.search).get("mt5_setup") || "";
-if (setupToken) { document.getElementById("taMt5SetupToken").value=setupToken; document.getElementById("taMt5PasswordForm").classList.remove("hidden"); }
-document.getElementById("taMt5PasswordForm")?.addEventListener("submit",async(event)=>{event.preventDefault();try{const response=await apiRequest("/onboarding/mt5/password/setup",{method:"POST",body:JSON.stringify({token:document.getElementById("taMt5SetupToken").value,password:document.getElementById("taMt5Password").value,confirm_password:document.getElementById("taMt5ConfirmPassword").value})});taShowMessage(response.message,"success");event.currentTarget.reset();event.currentTarget.classList.add("hidden");window.history.replaceState({},"",window.location.pathname);await loadTradingAccount();}catch(error){taShowMessage(error?.message||"Password setup failed.","error");}});
+if (setupToken) {
+    document.getElementById("taMt5SetupToken").value = setupToken;
+    document.getElementById("taMt5PasswordForm").classList.remove("hidden");
+}
+document.getElementById("taMt5PasswordForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    try {
+        const response = await apiRequest("/onboarding/mt5/password/setup", {
+            method: "POST",
+            body: JSON.stringify({
+                token: document.getElementById("taMt5SetupToken").value,
+                password: document.getElementById("taMt5Password").value,
+                confirm_password: document.getElementById("taMt5ConfirmPassword").value,
+            }),
+        });
+        taShowMessage(response.message, "success");
+        form?.reset?.();
+        form?.classList.add("hidden");
+        window.history.replaceState({}, "", window.location.pathname);
+        await loadTradingAccount();
+    } catch (error) {
+        taShowMessage(error?.message || "Password setup failed.", "error");
+    }
+});
 
 document.addEventListener("DOMContentLoaded", loadTradingAccount);

@@ -363,6 +363,13 @@ def create_app():
     except Exception as error:
         print(f"Warning: Failed to start blockchain monitor: {error}")
 
+    # Start periodic MT5 live balance sync background thread
+    try:
+        from services.mt5_service import start_mt5_sync_worker
+        start_mt5_sync_worker()
+    except Exception as error:
+        print(f"Warning: Failed to start MT5 live sync worker: {error}")
+
     import time
     @app.before_request
     def start_timer():

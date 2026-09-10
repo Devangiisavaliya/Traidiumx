@@ -5,11 +5,7 @@ import uuid
 from config.settings import settings
 
 def is_mock_enabled():
-    print(f"[DEBUG MOCK] settings.DIGIO_CLIENT_ID = {repr(settings.DIGIO_CLIENT_ID)}")
-    print(f"[DEBUG MOCK] settings.DIGIO_CLIENT_SECRET = {repr(settings.DIGIO_CLIENT_SECRET)}")
-    val = not settings.DIGIO_CLIENT_ID or not settings.DIGIO_CLIENT_SECRET or settings.DIGIO_CLIENT_ID.startswith("your_") or settings.DIGIO_CLIENT_ID == ""
-    print(f"[DEBUG MOCK] returns: {val}")
-    return val
+    return False
 
 def _get_headers():
     auth_str = f"{settings.DIGIO_CLIENT_ID}:{settings.DIGIO_CLIENT_SECRET}"

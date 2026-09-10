@@ -17,7 +17,13 @@ onboarding_api = Blueprint("onboarding_api", __name__, url_prefix="/api/onboardi
 
 def _respond(result):
     if result.get("success"):
-        return success_response(message=result.get("message", "Success."), data=result.get("data", {}), status_code=result.get("status_code", 200))
+        data = dict(result.get("data") or {})
+        if "mt5" not in data and getattr(g, "current_user_id", None):
+            try:
+                data["mt5"] = get_user_mt5_status(g.current_user_id).get("data", {})
+            except Exception:
+                pass
+        return success_response(message=result.get("message", "Success."), data=data, status_code=result.get("status_code", 200))
     return error_response(message=result.get("message", "Request failed."), errors=result.get("errors", {}), status_code=result.get("status_code", 400))
 
 

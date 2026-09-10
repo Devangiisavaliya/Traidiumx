@@ -269,26 +269,64 @@ function stopSelfieTimer() {
     }
 }
 
+function showKycCamError(msg) {
+    const errorOverlay = document.getElementById("kycInBoxErrorOverlay");
+    const errorText = document.getElementById("kycInBoxErrorText");
+    const camContainer = document.getElementById("kycCamContainer");
+    const scannerOverlay = document.getElementById("kycScannerOverlay");
+    const analyzingOverlay = document.getElementById("kycAnalyzingOverlay");
+
+    if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
+    if (errorText) errorText.textContent = msg || "Face verification failed. Please retake photo.";
+    if (errorOverlay) errorOverlay.classList.remove("hidden");
+    if (camContainer) camContainer.classList.add("has-error");
+    if (scannerOverlay) scannerOverlay.classList.add("hidden");
+}
+
+function clearKycCamError() {
+    const errorOverlay = document.getElementById("kycInBoxErrorOverlay");
+    const analyzingOverlay = document.getElementById("kycAnalyzingOverlay");
+    const camContainer = document.getElementById("kycCamContainer");
+    if (errorOverlay) errorOverlay.classList.add("hidden");
+    if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
+    if (camContainer) camContainer.classList.remove("has-error");
+}
+
 async function startWebcamStream() {
     stopWebcamStream();
+    clearKycCamError();
     const video = document.getElementById("kycWebcamStream");
     const preview = document.getElementById("kycWebcamPreview");
     const captureBtn = document.getElementById("kycCaptureSnapBtn");
     const retakeBtn = document.getElementById("kycRetakeSnapBtn");
+    const scannerOverlay = document.getElementById("kycScannerOverlay");
+    const scannerText = document.getElementById("kycScannerStatusText");
+    const analyzingOverlay = document.getElementById("kycAnalyzingOverlay");
 
     if (video) video.style.display = "block";
     if (preview) preview.classList.add("hidden");
+    if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
     if (captureBtn) captureBtn.classList.remove("hidden");
     if (retakeBtn) retakeBtn.classList.add("hidden");
+    if (scannerOverlay) {
+        scannerOverlay.classList.remove("hidden");
+        if (scannerText) scannerText.textContent = "Position face inside frame";
+    }
 
     try {
         webcamStream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "user", width: 640, height: 480 },
             audio: false
         });
-        if (video) video.srcObject = webcamStream;
+        if (video) {
+            video.srcObject = webcamStream;
+            video.onloadedmetadata = () => {
+                video.play();
+            };
+        }
     } catch (err) {
         console.error("Failed to access webcam:", err);
+        showKycCamError("Camera access blocked. Please allow camera permissions or upload file.");
         showKycMessage("Camera access blocked or not available. Please choose a file instead.", "error");
     }
 }
@@ -305,6 +343,8 @@ function captureWebcamSnap() {
     const preview = document.getElementById("kycWebcamPreview");
     const captureBtn = document.getElementById("kycCaptureSnapBtn");
     const retakeBtn = document.getElementById("kycRetakeSnapBtn");
+    const scannerOverlay = document.getElementById("kycScannerOverlay");
+    const analyzingOverlay = document.getElementById("kycAnalyzingOverlay");
 
     if (!video || !video.videoWidth) return;
 
@@ -325,18 +365,22 @@ function captureWebcamSnap() {
                 preview.classList.remove("hidden");
             }
             if (video) video.style.display = "none";
+            if (scannerOverlay) scannerOverlay.classList.add("hidden");
+            if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
             
             if (captureBtn) captureBtn.classList.add("hidden");
             if (retakeBtn) retakeBtn.classList.remove("hidden");
 
             const submitBtn = document.getElementById("kycSubmitVerificationBtn");
             if (submitBtn) submitBtn.disabled = false;
+            clearKycCamError();
         }
     }, "image/jpeg", 0.90);
 }
 
 function retakeWebcamSnap() {
     selfieCapturedFile = null;
+    clearKycCamError();
     const submitBtn = document.getElementById("kycSubmitVerificationBtn");
     if (submitBtn) submitBtn.disabled = true;
     startWebcamStream();
@@ -429,6 +473,12 @@ async function initSelfieStep() {
         retakeSnapBtn.addEventListener("click", retakeWebcamSnap);
     }
 
+    const inBoxRetryBtn = document.getElementById("kycInBoxRetryBtn");
+    if (inBoxRetryBtn && !inBoxRetryBtn.dataset.bound) {
+        inBoxRetryBtn.dataset.bound = "true";
+        inBoxRetryBtn.addEventListener("click", retakeWebcamSnap);
+    }
+
     // Bind File Input fallback
     const fileInput = document.getElementById("kycSelfie");
     const fileNameText = document.getElementById("kycSelfieFileName");
@@ -465,6 +515,10 @@ function stopSelfiePolling() {
 
 async function submitKycVerificationRequest() {
     const submitBtn = document.getElementById("kycSubmitVerificationBtn");
+    const analyzingOverlay = document.getElementById("kycAnalyzingOverlay");
+    const scannerOverlay = document.getElementById("kycScannerOverlay");
+    const errorOverlay = document.getElementById("kycInBoxErrorOverlay");
+
     if (submitBtn) submitBtn.disabled = true;
 
     try {
@@ -472,6 +526,14 @@ async function submitKycVerificationRequest() {
             showKycMessage("Please capture a selfie or choose a file first.", "error");
             if (submitBtn) submitBtn.disabled = false;
             return;
+        }
+
+        if (errorOverlay) errorOverlay.classList.add("hidden");
+        if (scannerOverlay) scannerOverlay.classList.add("hidden");
+        
+        // Show dedicated Biometric Analyzing animation screen inside the box
+        if (analyzingOverlay) {
+            analyzingOverlay.classList.remove("hidden");
         }
 
         showKycMessage("Submitting selfie verification request...", "success");
@@ -484,11 +546,14 @@ async function submitKycVerificationRequest() {
             body: formData
         });
 
+        if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
         showKycMessage("KYC verification request submitted successfully!", "success");
         stopWebcamStream();
         await loadKycStatus();
     } catch (err) {
         console.error("KYC submission failed:", err);
+        if (analyzingOverlay) analyzingOverlay.classList.add("hidden");
+        showKycCamError(err.message || "Face verification failed. Please retake photo.");
         showKycMessage(err.message || "Selfie submission failed.", "error");
         if (submitBtn) submitBtn.disabled = false;
     }
@@ -716,12 +781,18 @@ function renderSubmittedKyc(kyc, progress = {}) {
 function setFinalPanels(status) {
     const approved = status === "approved";
     const pending = ["pending", "under_review", "review"].includes(status);
-    if (kycEl.approvedMessagePanel) kycEl.approvedMessagePanel.classList.toggle("hidden", !approved);
-    if (kycEl.pendingMessagePanel) kycEl.pendingMessagePanel.classList.toggle("hidden", !pending);
+    const approvedPanel = document.getElementById("kycApprovedMessagePanel") || kycEl.approvedMessagePanel;
+    const pendingPanel = document.getElementById("kycPendingMessagePanel") || kycEl.pendingMessagePanel;
+    const mobilePanel = document.getElementById("kycMobilePanel") || kycEl.mobilePanel;
+    const formPanel = document.getElementById("kycForm") || kycEl.form;
+    const selfiePanel = document.getElementById("kycSelfiePanel") || kycEl.selfiePanel;
+
+    if (approvedPanel) approvedPanel.classList.toggle("hidden", !approved);
+    if (pendingPanel) pendingPanel.classList.toggle("hidden", !pending);
     if (approved || pending) {
-        if (kycEl.mobilePanel) kycEl.mobilePanel.classList.add("hidden");
-        if (kycEl.form) kycEl.form.classList.add("hidden");
-        if (kycEl.selfiePanel) kycEl.selfiePanel.classList.add("hidden");
+        if (mobilePanel) mobilePanel.classList.add("hidden");
+        if (formPanel) formPanel.classList.add("hidden");
+        if (selfiePanel) selfiePanel.classList.add("hidden");
     }
 }
 
@@ -1268,8 +1339,8 @@ async function handleOpenDigioKyc() {
         const data = response?.data || {};
         const kid = data.kid;
         const accessToken = data.access_token;
+        const customerIdentifier = data.customer_identifier || "";
         const environment = data.environment || "sandbox";
-        const customerIdentifier = data.customer_identifier || kycState.mobileNumber || "user@traidiumx.com";
         
         await loadDigioScript(environment);
         
@@ -1480,6 +1551,17 @@ function initKycPage() {
     kycEl.sendOtpBtn?.addEventListener("click", handleSendOtp);
     kycEl.verifyOtpBtn?.addEventListener("click", handleVerifyOtp);
     document.getElementById("kycOpenDigioBtn")?.addEventListener("click", handleOpenDigioKyc);
+    document.getElementById("selfieTabDeviceBtn")?.addEventListener("click", () => switchSelfieTab("device"));
+    document.getElementById("selfieTabMobileBtn")?.addEventListener("click", () => switchSelfieTab("mobile"));
+    document.getElementById("kycShutterBtnWrapper")?.addEventListener("click", () => {
+        if (!kycIsFaceReady) {
+            const pillText = document.getElementById("kycStatusPillText");
+            if (pillText) pillText.textContent = "Please center your face inside the circle first";
+            return;
+        }
+        captureWebcamSnap();
+    });
+    document.getElementById("kycRetakeSnapBtn")?.addEventListener("click", retakeWebcamSnap);
     kycEl.mobileNumber?.addEventListener("input", () => {
         kycEl.mobileNumber.value = kycEl.mobileNumber.value.replace(/\D/g, "").slice(0, 10);
         if (kycEl.mobileNumberError) kycEl.mobileNumberError.textContent = "";

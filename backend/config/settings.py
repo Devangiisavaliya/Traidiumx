@@ -112,7 +112,7 @@ class Settings:
     MT5_BROKER_NAME = os.getenv("MT5_BROKER_NAME", "TraidiumX Broker").strip()
     MT5_SERVER_NAME = os.getenv("MT5_SERVER_NAME", "TraidiumX-Live").strip()
     MT5_ACCOUNT_CURRENCY = os.getenv("MT5_ACCOUNT_CURRENCY", "USD").strip()
-    MT5_API_TIMEOUT_SECONDS = int(os.getenv("MT5_API_TIMEOUT_SECONDS", 15))
+    MT5_API_TIMEOUT_SECONDS = int(os.getenv("MT5_API_TIMEOUT_SECONDS", 60))
 
     # Central server-side Futures engine. Browser JavaScript never executes
     # pending orders, TP/SL, or liquidation decisions.

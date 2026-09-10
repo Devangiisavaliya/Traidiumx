@@ -527,22 +527,23 @@
                 <div class="tx-ob-box"><span>Preferred plan</span><strong>${esc(data.preferred_plan_name || state.selectedPlan)}</strong></div>
                 <div class="tx-ob-box"><span>Active plan</span><strong>${esc(data.active_plan_name || "Basic")} · ${formatSpread(data.active_spread_value, data.active_spread_type)}</strong></div>
                 <div class="tx-ob-box">
-                    <span>${state.selectedPlatform === "mt5" ? "MT5 balance" : "Main Wallet balance"}</span>
+                    <span>${state.selectedPlatform === "mt5" ? "MT5 Account Balance" : "Main Wallet balance"}</span>
                     <strong>
                         ${state.selectedPlatform === "mt5"
-                            ? formatCurrencyValue(data.trading_balance)
+                            ? `${money(data.mt5?.account?.balance ?? data.mt5_balance ?? 0)} USD`
                             : `${money(data.main_wallet_usdt_balance)} USDT | ₹${money(data.main_wallet_inr_balance)} INR`
                         }
                     </strong>
                 </div>
-                ${state.selectedPlatform === "mt5" ? `<div class="tx-ob-box"><span>TraidiumX Trading Wallet</span><strong>${formatCurrencyValue(data.source_trading_wallet_balance)}</strong></div>` : ""}
             </div>
-            <div class="tx-ob-notice ${funding ? "" : preferredEligible ? "success" : ""}">
-                ${funding
-                    ? `Funding required. Deposit and transfer enough funds to meet the Basic plan minimum of ${formatCurrencyValue(data.active_minimum_balance)}.`
-                    : preferredEligible
-                        ? "Your preferred plan is active. KYC is not required for deposit or trading."
-                        : `Your preferred ${esc(data.preferred_plan_name || state.selectedPlan)} plan needs ${formatCurrencyValue(data.preferred_minimum_balance || data.minimum_balance)}. You can trade now on the automatically selected ${esc(data.active_plan_name || "Basic")} plan.`}
+            <div class="tx-ob-notice ${state.selectedPlatform === "mt5" ? "success" : funding ? "" : preferredEligible ? "success" : ""}">
+                ${state.selectedPlatform === "mt5"
+                    ? "MT5 Platform selected. Your MT5 trading account operates independently with its own broker balance."
+                    : funding
+                        ? `Funding required. Deposit and transfer enough funds to meet the Basic plan minimum of ${formatCurrencyValue(data.active_minimum_balance)}.`
+                        : preferredEligible
+                            ? "Your preferred plan is active. KYC is not required for deposit or trading."
+                            : `Your preferred ${esc(data.preferred_plan_name || state.selectedPlan)} plan needs ${formatCurrencyValue(data.preferred_minimum_balance || data.minimum_balance)}. You can trade now on the automatically selected ${esc(data.active_plan_name || "Basic")} plan.`}
             </div>
             ${mt5Section}`;
     }
@@ -552,7 +553,7 @@
         if (step === 4) return ``; // Step 4 (Mobile App) renders its own actions inside the mockup body
         if (step === 2) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
         const data = state.data || {};
-        const needsFunding = !!data.funding_required || (state.selectedPlatform === "mt5" && data.provisioning_balance_eligible === false);
+        const needsFunding = state.selectedPlatform === "mt5" ? false : !!data.funding_required;
         return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObConfirm">Confirm</button>`}</div>`;
     }
 

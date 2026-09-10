@@ -9501,8 +9501,9 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             const submitBtn = elements.placeOrderBtn || elements.buyBtn || elements.sellBtn;
             const originalText = submitBtn ? submitBtn.textContent : (payload.side === "sell" ? "Sell / Short" : "Buy / Long");
 
-            // 1. Instant 0ms optimistic UI paint
+            // 1. Instant 0ms optimistic UI paint + instant toast
             const optimistic = txApplyOptimisticOrder(payload);
+            showOrderMessage("Order placed and executed successfully.", "success");
 
             // Clear inputs immediately for seamless user experience
             if (elements.quantityInput) elements.quantityInput.value = "";
@@ -9528,7 +9529,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
                 txResolveOptimisticOrder(response, payload, optimistic);
                 txEndOptimisticAction();
-                showOrderMessage("Order placed and executed successfully.", "success");
             } catch (error) {
                 txRestoreFuturesState(optimistic.snapshot);
                 txEndOptimisticAction();
@@ -9764,9 +9764,113 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     };
 
     let txSubAccountsLocalCache = [];
+    let txCustomAccountDropdownInitialized = false;
+
+    function txOpenCustomAccountDropdown() {
+        const trigger = document.getElementById("txCustomAccountTrigger");
+        const menu = document.getElementById("txCustomAccountMenu");
+        if (trigger) trigger.classList.add("open");
+        if (menu) menu.classList.add("open");
+    }
+
+    function txCloseCustomAccountDropdown() {
+        const trigger = document.getElementById("txCustomAccountTrigger");
+        const menu = document.getElementById("txCustomAccountMenu");
+        if (trigger) trigger.classList.remove("open");
+        if (menu) menu.classList.remove("open");
+    }
+
+    function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
+        const labelEl = document.getElementById("txCustomAccountLabel");
+        const listEl = document.getElementById("txCustomAccountList");
+        if (!labelEl || !listEl) return;
+
+        activeSubId = activeSubId || "main";
+        const allAccounts = [
+            { id: "main", name: "Main Trading Account" },
+            ...subAccounts.map(s => ({ id: s.id, name: s.name }))
+        ];
+
+        const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
+        labelEl.textContent = currentAcc ? currentAcc.name : "Main Trading Account";
+
+        listEl.innerHTML = allAccounts.map(acc => {
+            const isSelected = String(acc.id) === String(activeSubId);
+            return `
+                <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''}">
+                    <div class="flex items-center gap-2.5 truncate">
+                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500'}"></span>
+                        <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'}">${escapeHtml(acc.name)}</span>
+                    </div>
+                    ${isSelected ? '<svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                </button>
+            `;
+        }).join("");
+
+        listEl.querySelectorAll(".tx-custom-acc-item").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const accId = btn.getAttribute("data-acc-id");
+                txCloseCustomAccountDropdown();
+
+                const selector = document.getElementById("tradingAccountSelector");
+                if (selector) {
+                    selector.value = accId;
+                    selector.dispatchEvent(new Event("change"));
+                }
+            });
+        });
+    }
+
+    function txInitCustomAccountDropdown() {
+        if (txCustomAccountDropdownInitialized) return;
+        txCustomAccountDropdownInitialized = true;
+
+        const trigger = document.getElementById("txCustomAccountTrigger");
+        const menu = document.getElementById("txCustomAccountMenu");
+        const createBtn = document.getElementById("txCustomAccountCreateBtn");
+
+        if (!trigger || !menu) return;
+
+        trigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = menu.classList.contains("open");
+            if (isOpen) {
+                txCloseCustomAccountDropdown();
+            } else {
+                txOpenCustomAccountDropdown();
+            }
+        });
+
+        if (createBtn) {
+            createBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                txCloseCustomAccountDropdown();
+                const subModal = document.getElementById("subAccountModal");
+                if (subModal) {
+                    subModal.classList.remove("hidden");
+                    subModal.classList.add("flex");
+                    txRenderSubAccountsList();
+                }
+            });
+        }
+
+        document.addEventListener("click", (e) => {
+            if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+                txCloseCustomAccountDropdown();
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && menu.classList.contains("open")) {
+                txCloseCustomAccountDropdown();
+            }
+        });
+    }
 
     async function txInitSubAccountsAndSelector() {
         if (!isLoggedIn()) return;
+        txInitCustomAccountDropdown();
         // Fetch live USDT rate on init
         txFetchFuturesUsdtRate();
         try {
@@ -9795,6 +9899,9 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             } else {
                 selector.value = "main";
             }
+
+            // Render custom sleek dropdown
+            txRenderCustomAccountDropdown(subAccounts, activeSubId || "main");
 
             const mobSelector = document.getElementById("tradingAccountSelectorMobile");
             if (mobSelector) {

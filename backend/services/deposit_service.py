@@ -365,6 +365,41 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
 
     amount = round(float(deposit.get("amount", 0.0)), 8)
     currency = str(deposit.get("currency") or "USDT").upper()
+
+    from models.user_model import find_user_by_id
+    user = find_user_by_id(user_id) or {}
+    platform = str(user.get("selected_platform") or user.get("trading_platform") or "").lower()
+
+    if platform == "mt5":
+        from services.mt5_service import credit_mt5_deposit
+        mt5_acc = credit_mt5_deposit(
+            user_id=user_id,
+            amount=amount,
+            reference_id=deposit_id,
+            description=f"Verified {currency} deposit credited to MT5 Account for reference {deposit.get('deposit_reference')}",
+        )
+        updated = update_deposit_status(
+            deposit_id,
+            "completed",
+            {
+                "platform": "mt5",
+                "verification_status": "verified",
+                "verification_message": verification_result.get("message", f"{currency} blockchain transfer verified and credited to MT5."),
+                "confirmations": verification_result.get("confirmations", 0),
+                "required_confirmations": verification_result.get("required_confirmations", get_crypto_network_confirmations(deposit.get("crypto_network"))),
+                "verified_amount": verification_result.get("verified_amount", amount),
+                "verified_to_address": verification_result.get("verified_to_address", deposit.get("deposit_address", "")),
+                "explorer_url": verification_result.get("explorer_url", build_explorer_url(deposit.get("crypto_network"), deposit.get("tx_hash"))),
+                "credited_at": now_utc(),
+                "remark": f"Blockchain verification completed. {currency} credited to MT5 Account.",
+                "mt5_account_after_credit": {
+                    "balance": (mt5_acc or {}).get("balance", 0.0),
+                    "equity": (mt5_acc or {}).get("equity", 0.0),
+                },
+            },
+        )
+        return updated, "Deposit verified and MT5 account credited successfully."
+
     wallet = credit_main_wallet(
         user_id=user_id,
         amount=amount,
@@ -528,6 +563,34 @@ def create_deposit_request(user_id, data):
                 "risk_note": "Instant INR Deposit.",
             }
         )
+        from models.user_model import find_user_by_id
+        user = find_user_by_id(user_id) or {}
+        platform = str(user.get("selected_platform") or user.get("trading_platform") or "").lower()
+
+        if platform == "mt5":
+            from services.system_settings_service import get_usdt_inr_rate
+            usdt_inr_rate = float(get_usdt_inr_rate() or 88.50)
+            usd_amount = round(cleaned["amount"] / usdt_inr_rate, 2)
+
+            from services.mt5_service import credit_mt5_deposit, format_mt5_account
+            mt5_acc = credit_mt5_deposit(
+                user_id=user_id,
+                amount=usd_amount,
+                reference_id=str(deposit_id),
+                description=f"INR deposit of ₹{cleaned['amount']:g} credited to MT5 Account as ${usd_amount:g} USD. Ref: {deposit_reference}",
+            )
+            deposit = find_deposit_by_id(str(deposit_id))
+            return {
+                "success": True,
+                "message": f"INR deposit of ₹{cleaned['amount']:g} (${usd_amount:g} USD) credited to MT5 Account successfully.",
+                "data": {
+                    "mt5_account": format_mt5_account(mt5_acc),
+                    "deposit": format_deposit(deposit),
+                    "reference_id": str(deposit_id),
+                },
+                "status_code": 200,
+            }
+
         wallet = credit_main_wallet(
             user_id=user_id,
             amount=cleaned["amount"],

@@ -359,7 +359,8 @@ def start_digio():
             "kid": kid,
             "access_token": access_token_id,
             "environment": settings.DIGIO_ENVIRONMENT,
-            "customer_identifier": identifier
+            "customer_identifier": identifier,
+            "is_mock": digio_service.is_mock_enabled()
         }
     )
 

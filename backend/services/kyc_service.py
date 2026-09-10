@@ -1147,14 +1147,31 @@ def submit_kyc(user_id, form_data, files):
         address = user.get("kyc_draft_address")
         
         selfie = files.get("selfie")
-        selfie_error = _validate_selfie_image(selfie)
-        if selfie_error:
+        if not selfie or not selfie.filename:
             return {
                 "success": False,
-                "message": selfie_error,
-                "errors": {"selfie": selfie_error},
+                "message": "Selfie image is required.",
+                "errors": {"selfie": "Selfie image is required."},
                 "status_code": 422,
             }
+
+        document_front_path = clean_string(user.get("kyc_draft_document_front"))
+
+        # Run Deep Face Matching against Document Photo (from DigiLocker Aadhaar/PAN)
+        from services.kyc_face_service import verify_face_match_with_document
+
+        match_success, match_msg, match_data = verify_face_match_with_document(
+            selfie_file_storage=selfie,
+            document_front_path=document_front_path,
+        )
+        if not match_success:
+            return {
+                "success": False,
+                "message": match_msg,
+                "errors": {"selfie": match_msg},
+                "status_code": 422,
+            }
+
         selfie_result = save_kyc_file(selfie, user_id, "selfie")
         if not selfie_result["success"]:
             return {
@@ -1165,8 +1182,9 @@ def submit_kyc(user_id, form_data, files):
             }
             
         status = "pending"
-        remark = "Pending admin review after successful Digio DigiLocker verification."
-        message = "KYC steps completed successfully and submitted for verification."
+        match_score = float(match_data.get("match_score", 100.0))
+        remark = f"DigiLocker verified. Selfie face matched with document photo ({match_score:.1f}% confidence). Pending admin review."
+        message = f"KYC verified successfully! Face matched with document photo ({match_score:.1f}% match)."
         
         kyc_payload = {
             "user_id": str(user_id),

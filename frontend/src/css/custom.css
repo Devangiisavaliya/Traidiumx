@@ -8730,6 +8730,115 @@ body.light .coin-logo-svg {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
 }
 
+#walletActionModalCard.tx-inr-modal-mode {
+    max-width: 860px !important;
+    width: 95vw !important;
+}
+
+.tx-inr-grid-container {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+}
+
+@media (min-width: 768px) {
+    .tx-inr-grid-container {
+        grid-template-columns: 1.25fr 0.95fr !important;
+        gap: 1.25rem !important;
+        align-items: start !important;
+    }
+}
+
+/* Currency Toggle Tabs (USD / INR) */
+#modalWithdrawCurrencyToggleBar {
+    background: #070e1b !important;
+    border: 1px solid #1e293b !important;
+    border-radius: 16px !important;
+    padding: 5px !important;
+}
+
+#modalSelectWithdrawInrBtn,
+#modalSelectWithdrawUsdtBtn {
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border: 1px solid transparent !important;
+    background: #0c1424 !important;
+    color: #94a3b8 !important;
+}
+
+#modalSelectWithdrawInrBtn.is-active,
+#modalSelectWithdrawInrBtn.active {
+    background: #34d399 !important;
+    color: #020617 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 4px 18px rgba(52, 211, 153, 0.35) !important;
+    border-color: #34d399 !important;
+}
+
+#modalSelectWithdrawInrBtn.is-active span,
+#modalSelectWithdrawInrBtn.active span {
+    color: #020617 !important;
+    font-weight: 900 !important;
+}
+
+#modalSelectWithdrawUsdtBtn.is-active,
+#modalSelectWithdrawUsdtBtn.active {
+    background: #22d3ee !important;
+    color: #020617 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 4px 18px rgba(34, 211, 238, 0.35) !important;
+    border-color: #22d3ee !important;
+}
+
+#modalSelectWithdrawUsdtBtn.is-active span,
+#modalSelectWithdrawUsdtBtn.active span {
+    color: #020617 !important;
+    font-weight: 900 !important;
+}
+
+/* INR Submit Button - Solid Emerald Green */
+#modalWithdrawInrSubmitBtn {
+    background: #34d399 !important;
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    color: #020617 !important;
+    font-weight: 900 !important;
+    font-size: 14px !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: 0 8px 25px rgba(52, 211, 153, 0.35) !important;
+    border: none !important;
+    border-radius: 16px !important;
+    padding: 14px 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+#modalWithdrawInrSubmitBtn * {
+    color: #020617 !important;
+    font-weight: 900 !important;
+}
+
+#modalWithdrawInrSubmitBtn:hover {
+    background: linear-gradient(135deg, #2fe8b7 0%, #059669 100%) !important;
+    box-shadow: 0 10px 32px rgba(52, 211, 153, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+#modalWithdrawInrSubmitBtn:active {
+    transform: translateY(0) !important;
+}
+
 /* Modal Header Bar */
 #walletActionModalCard > div.sticky {
     background: #081021 !important;

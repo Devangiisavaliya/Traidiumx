@@ -276,12 +276,22 @@ def ensure_user_wallet(user_id):
 def get_wallet_balance(user_id):
     platform_fee_result = apply_account_platform_fee_if_due(user_id, "wallet_balance")
     wallet = ensure_user_wallet(user_id)
+    
+    mt5_data = None
+    try:
+        from services.mt5_service import get_user_mt5_status
+        mt5_res = get_user_mt5_status(user_id)
+        if mt5_res.get("success"):
+            mt5_data = mt5_res.get("data")
+    except Exception as err:
+        print(f"MT5 balance attachment notice: {err}")
 
     return {
         "success": True,
         "message": "Wallet balance fetched successfully.",
         "data": {
             "wallet": format_wallet(wallet),
+            "mt5": mt5_data or {},
             "platform_fee": {
                 "charged": bool(platform_fee_result.get("charged")),
                 "amount": _money((platform_fee_result.get("fee") or {}).get("platform_fee_usdt", 0.0)),

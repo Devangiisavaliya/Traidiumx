@@ -37,11 +37,36 @@ def get_mt5_capabilities():
 
 
 def get_user_mt5_status(user_id):
+    account = find_mt5_account_by_user_id(user_id)
+    if account and account.get("mode") == "existing_account" and account.get("provider_account_id"):
+        token = str(getattr(settings, "METAAPI_TOKEN", "") or "").strip()
+        provisioning_url = str(getattr(settings, "METAAPI_PROVISIONING_URL", "") or "").strip()
+        if token and provisioning_url:
+            try:
+                acc_id = account.get("provider_account_id")
+                base_url = provisioning_url.split("/users/current/accounts")[0]
+                resp = requests.get(
+                    f"{base_url}/users/current/accounts/{acc_id}",
+                    headers={"auth-token": token, "Accept": "application/json"},
+                    timeout=5,
+                )
+                if resp.status_code == 200:
+                    remote = resp.json()
+                    state = str(remote.get("state") or "").upper()
+                    conn_state = str(remote.get("connectionStatus") or "").lower()
+                    new_status = "connected" if state == "DEPLOYED" else ("connection_pending" if state in {"CREATED", "IMPORTING"} else account.get("status"))
+                    account = upsert_mt5_account(user_id, {
+                        "status": new_status,
+                        "connection_status": conn_state or ("active" if state == "DEPLOYED" else account.get("connection_status")),
+                        "metaapi_state": state,
+                    })
+            except Exception:
+                pass
     return {
         "success": True,
         "message": "MT5 account status fetched successfully.",
         "data": {
-            "account": format_mt5_account(find_mt5_account_by_user_id(user_id)),
+            "account": format_mt5_account(account),
             "capabilities": get_mt5_capabilities(),
         },
         "status_code": 200,
@@ -92,7 +117,9 @@ def provision_mt5_account(user_id):
 
     existing = find_mt5_account_by_user_id(user_id)
     if existing and existing.get("status") in {"active", "connected", "provisioning"}:
-        return {"success": True, "message": "MT5 account already exists.", "data": {"account": format_mt5_account(existing), "capabilities": get_mt5_capabilities()}, "status_code": 200}
+        refresh_mt5_balance(user_id)
+        fresh_acc = find_mt5_account_by_user_id(user_id) or existing
+        return {"success": True, "message": "MT5 account refreshed successfully.", "data": {"account": format_mt5_account(fresh_acc), "capabilities": get_mt5_capabilities()}, "status_code": 200}
 
     plan = profile.get("active_plan") or "basic"
     plans = get_plan_settings()
@@ -189,6 +216,45 @@ def provision_mt5_account(user_id):
         return {"success": False, "message": "MT5 account creation failed.", "errors": {"mt5": str(error)}, "data": {"account": format_mt5_account(account)}, "status_code": 502}
 
 
+def credit_mt5_deposit(user_id, amount, reference_id=None, description=""):
+    amount = float(amount or 0.0)
+    if amount <= 0:
+        return find_mt5_account_by_user_id(user_id)
+        
+    existing = find_mt5_account_by_user_id(user_id) or {}
+    current_balance = float(existing.get("balance", 0.0))
+    current_equity = float(existing.get("equity", current_balance))
+    new_balance = round(current_balance + amount, 8)
+    new_equity = round(current_equity + amount, 8)
+    
+    account = upsert_mt5_account(user_id, {
+        "status": existing.get("status") if existing.get("status") in {"active", "connected"} else "active",
+        "balance": new_balance,
+        "equity": new_equity,
+        "last_funding_amount": amount,
+        "last_funding_reference_id": reference_id,
+        "last_funded_at": now_utc(),
+        "funding_status": "funded",
+    })
+    
+    token = str(getattr(settings, "METAAPI_TOKEN", "") or "").strip()
+    login_id = existing.get("login_id")
+    if token and login_id:
+        try:
+            from services.metaapi_service import add_balance
+            add_balance(login_id, amount, description or f"MT5 deposit {reference_id}")
+        except Exception as err:
+            print("METAAPI BALANCE CREDIT NOTICE:", err)
+            
+    from services.trading_plan_service import reconcile_user_plan
+    try:
+        reconcile_user_plan(user_id, send_notice=False)
+    except Exception as err:
+        print("MT5 PLAN RECONCILE ERROR:", err)
+        
+    return account
+
+
 def fund_mt5_account(user_id, data):
     return {
         "success": False,
@@ -200,11 +266,6 @@ def fund_mt5_account(user_id, data):
 
 
 def connect_existing_mt5_account(user_id, data):
-    from services.kyc_status_service import require_kyc_approved
-    kyc_restriction = require_kyc_approved(user_id, "trading")
-    if kyc_restriction:
-        return kyc_restriction
-
     login_id = str(data.get("login_id") or "").strip()
     password = str(data.get("password") or "")
     server = str(data.get("server") or "").strip()
@@ -268,6 +329,16 @@ def connect_existing_mt5_account(user_id, data):
         return {"success": False, "message": "MetaApi provisioning URL is missing.", "errors": {"metaapi": "Set METAAPI_PROVISIONING_URL."}, "status_code": 503}
 
     user = get_database().users.find_one({"_id": ObjectId(str(user_id))}) or {}
+    keywords = [broker_name] if broker_name else []
+    if "-" in server:
+        broker_part = server.split("-")[0].strip()
+        if broker_part and broker_part not in keywords:
+            keywords.append(broker_part)
+    if "CXM" in server and "CXM Direct" not in keywords:
+        keywords.append("CXM Direct")
+    if "MetaQuotes" in server and "MetaQuotes" not in keywords:
+        keywords.append("MetaQuotes")
+
     payload = {
         "login": login_id,
         "password": password,
@@ -275,7 +346,7 @@ def connect_existing_mt5_account(user_id, data):
         "server": server,
         "platform": "mt5",
         "magic": int(getattr(settings, "METAAPI_MAGIC", 20260716)),
-        "keywords": [broker_name] if broker_name else [],
+        "keywords": keywords,
         "metadata": {
             "traidiumxUserId": str(user_id),
             "traidiumxEmail": user.get("email", ""),
@@ -292,14 +363,15 @@ def connect_existing_mt5_account(user_id, data):
             provisioning_url,
             json=payload,
             headers=headers,
-            timeout=int(getattr(settings, "MT5_API_TIMEOUT_SECONDS", 15)),
+            timeout=int(getattr(settings, "MT5_API_TIMEOUT_SECONDS", 60)),
         )
         body = response.json() if response.content else {}
-        if response.status_code not in {200, 201, 202}:
+        is_accepted = response.status_code == 202 or body.get("error") == "AcceptedError"
+        if response.status_code not in {200, 201, 202} and not is_accepted:
             raise RuntimeError(body.get("message") or f"MetaApi returned HTTP {response.status_code}.")
 
         provider_account_id = str(body.get("id") or body.get("_id") or existing.get("provider_account_id") or "")
-        accepted = response.status_code == 202 or not provider_account_id
+        accepted = is_accepted or not provider_account_id
         state = str(body.get("state") or "").upper()
         status = "connection_pending" if accepted else ("connected" if state == "DEPLOYED" else "provisioning")
         connection_status = str(body.get("connectionStatus") or body.get("connection_status") or ("waiting_for_metaapi" if accepted else state.lower() or "deploying")).lower()
@@ -476,26 +548,100 @@ def sync_mt5_plan(user_id, active_plan, spread_pips, balance=None):
 
 
 def refresh_mt5_balance(user_id):
-    """Fetch the latest remote MT5 balance and equity, updating the database."""
+    """Fetch the latest remote MT5 balance and equity from MetaApi, updating the database."""
     account = find_mt5_account_by_user_id(user_id)
     if not account or not account.get("login_id"):
         return None
 
-    # If MetaApi is enabled and configured, fetch the remote balance/equity
-    if getattr(settings, "METAAPI_ENABLED", False):
-        from services.metaapi_service import configuration_status, get_account_information
-        if configuration_status().get("ready"):
-            try:
-                login = account.get("login_id")
-                info = get_account_information(login)
-                if info:
-                    balance = float(info.get("balance", account.get("balance", 0.0)))
-                    equity = float(info.get("equity", account.get("equity", 0.0)))
-                    upsert_mt5_account(user_id, {
-                        "balance": balance,
-                        "equity": equity,
-                    })
-                    return {"balance": balance, "equity": equity}
-            except Exception as err:
-                print(f"Failed to refresh MT5 balance via MetaApi for user {user_id}: {err}")
+    token = str(getattr(settings, "METAAPI_TOKEN", "") or "").strip()
+    if not token or not getattr(settings, "METAAPI_ENABLED", False):
+        return None
+
+    login_str = str(account.get("login_id") or "").strip()
+    provider_acc_id = str(account.get("provider_account_id") or "").strip()
+    provisioning_url = str(getattr(settings, "METAAPI_PROVISIONING_URL", "") or "").strip()
+    base_prov_url = provisioning_url.split("/users/current/accounts")[0] if provisioning_url else "https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai"
+
+    # 1. Look for account in MetaApi accounts list
+    try:
+        headers = {"auth-token": token, "Accept": "application/json"}
+        resp = requests.get(f"{base_prov_url}/users/current/accounts", headers=headers, timeout=5)
+        if resp.status_code == 200:
+            accounts_list = resp.json() or []
+            matched = None
+            for acc in accounts_list:
+                if str(acc.get("login") or "").strip() == login_str or (provider_acc_id and str(acc.get("id") or "") == provider_acc_id):
+                    matched = acc
+                    break
+
+            if matched:
+                account_id = matched.get("id") or matched.get("_id")
+                state = str(matched.get("state") or "").upper()
+                conn_status = str(matched.get("connectionStatus") or "").lower()
+
+                # Fetch account information from MetaApi client API
+                balance = None
+                equity = None
+                regions = ["new-york", "london", "singapore", "tokyo", "frankfurt"]
+                for reg in regions:
+                    client_url = f"https://mt-client-api-v1.{reg}.agiliumtrade.ai/users/current/accounts/{account_id}/information"
+                    try:
+                        info_resp = requests.get(client_url, headers=headers, timeout=3)
+                        if info_resp.status_code == 200:
+                            info_data = info_resp.json() or {}
+                            if "balance" in info_data:
+                                balance = float(info_data.get("balance", 0.0))
+                                equity = float(info_data.get("equity", balance))
+                                break
+                    except Exception:
+                        continue
+
+                update_fields = {
+                    "provider_account_id": str(account_id),
+                    "metaapi_state": state,
+                    "connection_status": conn_status or ("active" if state == "DEPLOYED" else "connecting"),
+                    "status": "connected" if state == "DEPLOYED" else account.get("status", "connected"),
+                    "updated_at": now_utc(),
+                }
+                if balance is not None:
+                    update_fields["balance"] = balance
+                    update_fields["equity"] = equity if equity is not None else balance
+                    update_fields["balance_snapshot"] = balance
+
+                updated_acc = upsert_mt5_account(user_id, update_fields)
+                return {"balance": update_fields.get("balance", account.get("balance", 0.0)), "equity": update_fields.get("equity", account.get("equity", 0.0))}
+    except Exception as err:
+        print(f"MT5 Auto-Sync Notice for user {user_id}: {err}")
+
     return None
+
+
+_MT5_SYNC_STARTED = False
+
+def start_mt5_sync_worker():
+    global _MT5_SYNC_STARTED
+    if _MT5_SYNC_STARTED:
+        return
+    _MT5_SYNC_STARTED = True
+
+    import threading
+    import time
+
+    def _sync_loop():
+        while True:
+            try:
+                time.sleep(5)
+                db = get_database()
+                active_accounts = list(db.mt5_accounts.find({"status": {"$in": ["connected", "active", "connection_pending"]}}))
+                for acc in active_accounts:
+                    u_id = acc.get("user_id")
+                    if u_id:
+                        refresh_mt5_balance(str(u_id))
+            except Exception as e:
+                print(f"MT5 background sync error: {e}")
+                time.sleep(10)
+
+    thread = threading.Thread(target=_sync_loop, daemon=True, name="MT5LiveSyncWorker")
+    thread.start()
+    print("MT5 Live Sync background worker started.")
+

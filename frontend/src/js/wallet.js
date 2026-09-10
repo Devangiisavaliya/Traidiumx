@@ -1811,35 +1811,51 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
     }
     if (target === "withdraw") {
         const modalContainer = document.getElementById("walletActionModalCard");
+        const cur = String(selectedAsset || WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "INR").toUpperCase();
+        WALLET_STATE.activeWithdrawalCurrency = cur;
+
         if (modalContainer) {
-            modalContainer.style.maxWidth = "520px";
+            if (cur === "INR") {
+                modalContainer.classList.add("tx-inr-modal-mode");
+                modalContainer.style.setProperty("max-width", "860px", "important");
+                modalContainer.style.setProperty("width", "95vw", "important");
+            } else {
+                modalContainer.classList.remove("tx-inr-modal-mode");
+                modalContainer.style.setProperty("max-width", "520px", "important");
+            }
+            modalContainer.scrollTop = 0;
+            setTimeout(() => { modalContainer.scrollTop = 0; }, 30);
         }
 
         const pretitle = document.getElementById("txModalHeaderPretitle");
         if (pretitle) {
-            pretitle.textContent = "WALLET QUICK ACTION";
-            pretitle.className = "mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#2fe8b7]";
-            pretitle.classList.remove("hidden");
-        }
-
-        const headerIcon = document.getElementById("txModalHeaderIcon");
-        if (headerIcon) {
-            headerIcon.innerHTML = `<svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-4a2 2 0 00-2 2v0a2 2 0 002 2h4"/></svg>`;
-            headerIcon.classList.remove("hidden");
-            headerIcon.classList.add("flex");
-            headerIcon.className = "h-11 w-11 shrink-0 rounded-2xl bg-[#0e2736] border border-[#144654] text-cyan-400 flex items-center justify-center font-bold select-none shadow-lg shadow-[#0e2736]/50";
+            if (cur === "INR") {
+                pretitle.classList.add("hidden");
+            } else {
+                pretitle.textContent = "WALLET QUICK ACTION";
+                pretitle.className = "mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#2fe8b7]";
+                pretitle.classList.remove("hidden");
+            }
         }
 
         const statsGrid = document.getElementById("walletModalStatsGrid");
         if (statsGrid) statsGrid.classList.add("hidden");
 
-        const cur = String(selectedAsset || WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-        WALLET_STATE.activeWithdrawalCurrency = cur;
         txFetchFeeStructure().then(() => {
             updateWithdrawalModalUIByCurrency(cur, true);
+            const m = document.getElementById("walletActionModalCard");
+            if (m) {
+                m.scrollTop = 0;
+                setTimeout(() => { m.scrollTop = 0; }, 30);
+            }
         });
         updateWithdrawalModalUIByCurrency(cur, true);
         txInitUsdWithdrawModalInteractive();
+        txInitInrWithdrawModalInteractive();
+        if (modalContainer) {
+            modalContainer.scrollTop = 0;
+            setTimeout(() => { modalContainer.scrollTop = 0; }, 50);
+        }
     }
     if (target === "exchange") {
         const modalContainer = document.getElementById("walletActionModalCard");
@@ -2723,7 +2739,7 @@ async function loadWalletData(options = {}) {
         const accountStatusPromise = WALLET_STATE.accountStatus ? Promise.resolve() : loadWalletAccountStatus();
         const environmentPromise = WALLET_STATE.environment ? Promise.resolve() : loadWalletEnvironment();
 
-        const [_, __, balanceRes, boardRes] = await Promise.all([
+        const [_, __, balanceRes, boardRes, mt5Res] = await Promise.all([
             accountStatusPromise,
             environmentPromise,
             apiRequest("/wallet/balance").catch(err => {
@@ -2733,8 +2749,15 @@ async function loadWalletData(options = {}) {
             apiRequest("/market/board").catch(err => {
                 console.error("Failed to load market board:", err);
                 return { success: false, data: { board: [] } };
-            })
+            }),
+            getOptionalApi("/onboarding/mt5/status", {})
         ]);
+
+        if (mt5Res && mt5Res.data) {
+            WALLET_STATE.mt5 = mt5Res.data;
+        } else if (balanceRes?.data?.mt5) {
+            WALLET_STATE.mt5 = balanceRes.data.mt5;
+        }
 
         if (isWalletRestrictedMode()) {
             if (silent) {
@@ -2756,6 +2779,9 @@ async function loadWalletData(options = {}) {
         if (balanceRes && requestSeq === WALLET_STATE.walletLoadRequestSeq) {
             WALLET_STATE.wallet = balanceRes.data.wallet || balanceRes.data || null;
             WALLET_STATE.board = boardRes.data?.board || [];
+            if (balanceRes.data?.mt5) {
+                WALLET_STATE.mt5 = balanceRes.data.mt5;
+            }
             renderWalletPage();
             setWalletStatus("Active", "live");
         }
@@ -2907,8 +2933,16 @@ function renderWalletPage() {
         }
     }
 
-    if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoneyPrivate(mainAvailable, mainCurrency);
-    if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoneyPrivate(mainTotal, mainCurrency);
+    if (isMt5) {
+        const mt5Account = WALLET_STATE.mt5?.account || {};
+        const mt5Curr = mt5Account.account_currency || "USD";
+        const mt5Bal = walletNumber(mt5Account.balance, 0);
+        if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoneyPrivate(mt5Bal, mt5Curr);
+        if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoneyPrivate(mt5Bal, mt5Curr);
+    } else {
+        if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoneyPrivate(mainAvailable, mainCurrency);
+        if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoneyPrivate(mainTotal, mainCurrency);
+    }
 
     if (walletElements.ledgerCount) walletElements.ledgerCount.textContent = String(getDisplayLedgerRows(WALLET_STATE.ledger).length);
 
@@ -2954,18 +2988,14 @@ function renderWalletBalanceCardsOnly() {
         if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "MT5 Account Balance";
         if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "MetaTrader 5 server balance";
         if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
+        if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
+        if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoney(tradingAvailable, mt5Curr);
     } else {
         if (walletElements.lockedBalanceLabel) walletElements.lockedBalanceLabel.textContent = "Trading Wallet";
         if (walletElements.lockedBalanceNote) walletElements.lockedBalanceNote.textContent = "Trades use this balance";
         if (walletElements.lockedBalance) walletElements.lockedBalance.textContent = formatWalletMoney(tradingAvailable, tradingCurrency);
-    }
-
-    if (walletElements.availableBalance) {
-        walletElements.availableBalance.textContent = formatWalletMoney(mainAvailable, mainCurrency);
-    }
-
-    if (walletElements.totalBalance) {
-        walletElements.totalBalance.textContent = formatWalletMoney(mainTotal, mainCurrency);
+        if (walletElements.availableBalance) walletElements.availableBalance.textContent = formatWalletMoney(mainAvailable, mainCurrency);
+        if (walletElements.totalBalance) walletElements.totalBalance.textContent = formatWalletMoney(mainTotal, mainCurrency);
     }
 
     setWalletStatus("Active", "live");
@@ -3973,12 +4003,21 @@ function scheduleDemoWithdrawalFeeEstimate() {
 function validateWithdrawalForm(formData) {
     const isModal = isWalletActionModalOpen();
     const prefix = isModal ? "modal" : "main";
-    const isINR = (WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase() === "INR";
-    const amount = walletNumber(formData.get("amount"), 0);
+    const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || (isModal ? WALLET_STATE.activeWithdrawalCurrency : localStorage.getItem("tx_navbar_currency")) || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+    
+    let rawAmount = formData.get("amount");
+    if (isINR && isModal) {
+        const inrAmtInput = document.getElementById("modalWithdrawInrAmount");
+        if (inrAmtInput && inrAmtInput.value) {
+            rawAmount = inrAmtInput.value;
+        }
+    }
+    const amount = walletNumber(rawAmount, 0);
     const address = String(formData.get("withdrawal_address") || "").trim();
 
     if (isINR) {
-        if (amount < 10) return "Minimum INR withdrawal amount is ₹10.";
+        if (amount < 100) return "Minimum INR withdrawal amount is ₹100.00.";
         
         const holder = document.getElementById(`${prefix}WithdrawHolderName`)?.value.trim() || "";
         const bank = document.getElementById(`${prefix}WithdrawBankName`)?.value.trim() || "";
@@ -3993,7 +4032,6 @@ function validateWithdrawalForm(formData) {
     }
 
     const network = getSelectedWithdrawalCryptoNetwork();
-    const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || (isModal ? WALLET_STATE.activeWithdrawalCurrency : localStorage.getItem("tx_navbar_currency")) || "USDT").toUpperCase();
 
     if (activeCurrency === "USDT") {
         if (amount < 10) return "Minimum crypto withdrawal amount is 10 USDT.";
@@ -4236,14 +4274,23 @@ async function handleWithdrawalSubmit(event) {
         return;
     }
 
-    const amount = walletNumber(formData.get("amount"), 0);
-    const isINR = (WALLET_STATE.activeWithdrawalCurrency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase() === "INR";
+    const isModal = isWalletActionModalOpen();
+    const prefix = isModal ? "modal" : "main";
+    const activeCurrency = String(WALLET_STATE.activeWithdrawalCurrency || (isModal ? WALLET_STATE.activeWithdrawalCurrency : localStorage.getItem("tx_navbar_currency")) || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+
+    let rawAmount = formData.get("amount");
+    if (isINR && isModal) {
+        const inrAmtInput = document.getElementById("modalWithdrawInrAmount");
+        if (inrAmtInput && inrAmtInput.value) {
+            rawAmount = inrAmtInput.value;
+        }
+    }
+    const amount = walletNumber(rawAmount, 0);
+
     if (!isINR) {
         await estimateWithdrawalFee(true);
     }
-
-    const isModal = isWalletActionModalOpen();
-    const prefix = isModal ? "modal" : "main";
 
     let withdrawalAddress = "";
     if (isINR) {
@@ -4907,7 +4954,7 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     const requiresTag = activeCurrency === "XRP";
     const isCryptoSpecific = !["USDT", "INR"].includes(activeCurrency);
 
-    // Modal containers (Image 2 isolation)
+    // Modal containers (Image 2 isolation & INR full width view)
     const cryptoContainer = document.getElementById("modalWithdrawCryptoContainer");
     const inrContainer = document.getElementById("modalWithdrawInrContainer");
     if (cryptoContainer && inrContainer && isModal) {
@@ -5011,7 +5058,7 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
 
     if (subTitle) {
         subTitle.textContent = isINR
-            ? "Submit your Bank Details for INR withdrawal payout after Admin approval."
+            ? "Submit your bank details for INR withdrawal. Admin approval completes payout."
             : `Submit your external crypto wallet address for ${activeCurrency} payout after Admin approval.`;
     }
 
@@ -5022,16 +5069,56 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
         addressInput.placeholder = `Enter ${activeCurrency} wallet address (${selectedNetVal})`;
     }
 
-    const activeTabClass = "flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20";
-    const inactiveTabClass = "flex items-center justify-center rounded-xl py-2.5 text-xs font-black transition bg-transparent text-slate-400 hover:text-white";
-
+    // Tab buttons styling
     if (btnInr && btnUsdt) {
         if (isINR) {
-            btnInr.className = activeTabClass;
-            btnUsdt.className = inactiveTabClass;
+            btnInr.classList.add("is-active", "active");
+            btnUsdt.classList.remove("is-active", "active");
         } else {
-            btnUsdt.className = activeTabClass;
-            btnInr.className = inactiveTabClass;
+            btnUsdt.classList.add("is-active", "active");
+            btnInr.classList.remove("is-active", "active");
+        }
+    }
+
+    // Modal Header & Sizing styling for INR vs Crypto
+    if (isModal) {
+        const modalContainer = document.getElementById("walletActionModalCard");
+        const modalTitle = document.getElementById("walletActionModalTitle");
+        const pretitle = document.getElementById("txModalHeaderPretitle");
+        const headerIcon = document.getElementById("txModalHeaderIcon");
+
+        const actionSubtitle = document.getElementById("walletActionModalSubtitle");
+        if (isINR) {
+            if (modalContainer) {
+                modalContainer.classList.add("tx-inr-modal-mode");
+                modalContainer.style.setProperty("max-width", "860px", "important");
+                modalContainer.style.setProperty("width", "95vw", "important");
+                modalContainer.scrollTop = 0;
+            }
+            if (pretitle) pretitle.classList.add("hidden");
+            if (modalTitle) modalTitle.innerHTML = 'Withdraw <span class="text-[#34d399]">INR</span> to Bank Account';
+            if (actionSubtitle) actionSubtitle.textContent = "Submit your bank details for INR withdrawal. Admin approval completes payout.";
+            if (headerIcon) {
+                headerIcon.className = "h-11 w-11 shrink-0 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold select-none shadow-lg shadow-emerald-500/10";
+                headerIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V10M5 21V10M9 21V10M13 21V10M3 10h18M12 3L2 10h20L12 3z"/></svg>`;
+            }
+        } else {
+            if (modalContainer) {
+                modalContainer.classList.remove("tx-inr-modal-mode");
+                modalContainer.style.setProperty("max-width", "520px", "important");
+                modalContainer.scrollTop = 0;
+            }
+            if (pretitle) {
+                pretitle.textContent = "WALLET QUICK ACTION";
+                pretitle.className = "mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#2fe8b7]";
+                pretitle.classList.remove("hidden");
+            }
+            if (modalTitle) modalTitle.textContent = "Withdraw from Main Wallet";
+            if (actionSubtitle) actionSubtitle.textContent = `Submit your external crypto wallet address for ${activeCurrency} payout after Admin approval.`;
+            if (headerIcon) {
+                headerIcon.className = "h-11 w-11 shrink-0 rounded-2xl bg-[#0e2736] border border-[#144654] text-cyan-400 flex items-center justify-center font-bold select-none shadow-lg shadow-[#0e2736]/50";
+                headerIcon.innerHTML = `<svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5zm0 0h-4a2 2 0 00-2 2v0a2 2 0 002 2h4"/></svg>`;
+            }
         }
     }
 
@@ -5040,11 +5127,19 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
         amountSymbol.textContent = isINR ? "INR" : activeCurrency;
     }
 
-    // Modal Image 2 Dynamic Balance & Limits Card
+    // Modal Dynamic Balance & Limits Card
     const wallet = WALLET_STATE.wallet || {};
     const key = activeCurrency === "INR" ? "main_wallet_inr" : activeCurrency === "USDT" ? "main_wallet_usdt" : `main_wallet_${activeCurrency.toLowerCase()}`;
     const coinWallet = wallet[key] || wallet[`main_wallet_${activeCurrency.toLowerCase()}`] || { available_balance: 0 };
     const avail = walletNumber(coinWallet.available_balance, 0);
+
+    const inrWallet = wallet["main_wallet_inr"] || { available_balance: 0 };
+    const inrAvail = walletNumber(inrWallet.available_balance, 0);
+
+    const inrAvailText = document.getElementById("txInrAvailText");
+    const inrCardBal = document.getElementById("txWithdrawInrCardBalance");
+    if (inrAvailText) inrAvailText.textContent = `₹ ${inrAvail.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (inrCardBal) inrCardBal.textContent = `₹ ${inrAvail.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const modalAvailMain = document.getElementById("txWithdrawModalAvailMain");
     const modalAvailSub = document.getElementById("txWithdrawModalAvailSub");
@@ -5099,6 +5194,13 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
         }
         withInput.dispatchEvent(new Event("input"));
     }
+
+    if (isINR && isModal) {
+        txInitInrWithdrawModalInteractive();
+        const inrInput = document.getElementById("modalWithdrawInrAmount");
+        if (inrInput) inrInput.dispatchEvent(new Event("input"));
+    }
+
     updateWalletActionModalBalances();
 
     // Dynamically update the FAQ items for the active currency
@@ -5338,6 +5440,141 @@ function txInitUsdWithdrawModalInteractive() {
     }
 }
 
+async function txPromptOrAutofillSavedBank(force = false) {
+    const isModal = isWalletActionModalOpen();
+    const prefix = isModal ? "modal" : "main";
+    try {
+        let accounts = [];
+        if (typeof window.txGetPrimaryBankAccount === "function") {
+            const primary = await window.txGetPrimaryBankAccount();
+            if (primary) accounts = [primary];
+        }
+        if (!accounts.length) {
+            const resp = await apiRequest("/user/bank-accounts");
+            accounts = resp.data?.bank_accounts || [];
+        }
+
+        if (!accounts.length) {
+            if (force) {
+                showWalletAlert("No saved bank accounts found. Please enter your bank details manually.", "info");
+            }
+            return;
+        }
+
+        const populateAccount = (acc) => {
+            const holderInput = document.getElementById(`${prefix}WithdrawHolderName`);
+            const bankNameInput = document.getElementById(`${prefix}WithdrawBankName`);
+            const accNumInput = document.getElementById(`${prefix}WithdrawAccountNumber`);
+            const ifscInput = document.getElementById(`${prefix}WithdrawIfscCode`);
+            const upiInput = document.getElementById(`${prefix}WithdrawUpiId`);
+
+            if (holderInput) holderInput.value = acc.account_holder_name || "";
+            if (bankNameInput) bankNameInput.value = acc.bank_name || "";
+            if (accNumInput) accNumInput.value = acc.account_number || "";
+            if (ifscInput) ifscInput.value = (acc.ifsc_code || "").toUpperCase();
+            if (upiInput) upiInput.value = acc.upi_id || "";
+
+            if (force) {
+                showWalletAlert(`Autofilled bank details for ${acc.account_holder_name || acc.bank_name || "Saved Account"}!`, "success");
+            }
+        };
+
+        const primaryAcc = accounts.find(a => a.is_primary) || accounts[0];
+        populateAccount(primaryAcc);
+    } catch (err) {
+        if (force) {
+            showWalletAlert("Unable to load saved bank accounts. Please enter details manually.", "error");
+        }
+    }
+}
+
+function txInitInrWithdrawModalInteractive() {
+    const inrAmountInput = document.getElementById("modalWithdrawInrAmount");
+    const maxBtn = document.getElementById("txWithdrawInrMaxBtn");
+    const refreshBtn = document.getElementById("txWithdrawInrRefreshBtn");
+    const useSavedBtn = document.getElementById("txUseSavedBankBtn");
+
+    const updateInrSummary = () => {
+        const amt = parseFloat(inrAmountInput?.value) || 0;
+        const fee = txGetConfiguredWithdrawalFee(amt, "UPI/BANK");
+        const receive = Math.max(0, amt - fee);
+
+        const summaryAmt = document.getElementById("modalWithdrawSummaryAmount");
+        const summaryFee = document.getElementById("modalWithdrawSummaryFee");
+        const summaryRec = document.getElementById("modalWithdrawSummaryReceive");
+
+        if (summaryAmt) summaryAmt.textContent = `₹ ${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (summaryFee) summaryFee.textContent = `₹ ${fee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (summaryRec) summaryRec.textContent = `₹ ${receive.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
+
+    if (inrAmountInput) {
+        inrAmountInput.oninput = updateInrSummary;
+        inrAmountInput.onkeyup = updateInrSummary;
+    }
+
+    if (maxBtn && inrAmountInput) {
+        maxBtn.onclick = (e) => {
+            e.preventDefault();
+            const wallet = WALLET_STATE.wallet || {};
+            const inrWallet = wallet["main_wallet_inr"] || { available_balance: 0 };
+            const avail = walletNumber(inrWallet.available_balance, 0);
+            inrAmountInput.value = avail > 0 ? avail.toFixed(2) : "0.00";
+            updateInrSummary();
+        };
+    }
+
+    if (refreshBtn) {
+        refreshBtn.onclick = async (e) => {
+            e.preventDefault();
+            const svgIcon = refreshBtn.querySelector("svg");
+            if (svgIcon) svgIcon.classList.add("animate-spin");
+            try {
+                await loadWalletData({ silent: true });
+                const wallet = WALLET_STATE.wallet || {};
+                const inrWallet = wallet["main_wallet_inr"] || { available_balance: 0 };
+                const avail = walletNumber(inrWallet.available_balance, 0);
+                const inrAvailText = document.getElementById("txInrAvailText");
+                const inrCardBal = document.getElementById("txWithdrawInrCardBalance");
+                if (inrAvailText) inrAvailText.textContent = `₹ ${avail.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (inrCardBal) inrCardBal.textContent = `₹ ${avail.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                showWalletAlert("Wallet balance refreshed!", "success");
+            } catch (err) {
+                console.warn(err);
+            } finally {
+                if (svgIcon) setTimeout(() => svgIcon.classList.remove("animate-spin"), 500);
+            }
+        };
+    }
+
+    if (useSavedBtn) {
+        useSavedBtn.onclick = async (e) => {
+            e.preventDefault();
+            await txPromptOrAutofillSavedBank(true);
+        };
+    }
+
+    const clearBankBtn = document.getElementById("txClearBankDetailsBtn");
+    if (clearBankBtn) {
+        clearBankBtn.onclick = (e) => {
+            e.preventDefault();
+            const holderInput = document.getElementById("modalWithdrawHolderName");
+            const bankNameInput = document.getElementById("modalWithdrawBankName");
+            const accNumInput = document.getElementById("modalWithdrawAccountNumber");
+            const ifscInput = document.getElementById("modalWithdrawIfscCode");
+            const upiInput = document.getElementById("modalWithdrawUpiId");
+
+            if (holderInput) holderInput.value = "";
+            if (bankNameInput) bankNameInput.value = "";
+            if (accNumInput) accNumInput.value = "";
+            if (ifscInput) ifscInput.value = "";
+            if (upiInput) upiInput.value = "";
+
+            showWalletAlert("Bank details cleared. You can enter new details.", "info");
+        };
+    }
+}
+
 function txPopulateWithdrawNetworkOptions(asset = "USDT") {
     const netMenu = document.getElementById("txWithdrawNetworkMenu");
     const netSelect = document.getElementById("modalWithdrawNetwork");
@@ -5572,6 +5809,13 @@ function initWalletEvents() {
         event.preventDefault();
         loadWalletData();
     });
+
+    // Automatically poll and sync live MT5 and wallet balances in real-time
+    setInterval(() => {
+        if (document.visibilityState === "visible" && typeof isLoggedIn === "function" && isLoggedIn()) {
+            loadWalletData({ silent: true });
+        }
+    }, 4000);
 
     document.getElementById("copyInrUpiBtn")?.addEventListener("click", copyInrUpiIdToClipboard);
 
@@ -6319,48 +6563,53 @@ function txRenderAssetLists() {
     const wallet = WALLET_STATE.wallet || {};
     const rate = walletNumber(wallet.usdt_inr_rate || localStorage.getItem("tx_usdt_inr_rate") || 88.50, 88.50);
 
-    // Retrieve live backend balances
-    const inrBalance = walletNumber(wallet.main_wallet_inr?.available_balance, 0);
-    const inrLocked = walletNumber(wallet.main_wallet_inr?.locked_balance, 0);
-    const usdtBalance = walletNumber(wallet.main_wallet_usdt?.available_balance, 0);
-    const usdtLocked = walletNumber(wallet.main_wallet_usdt?.locked_balance, 0);
-    const btcBalance = walletNumber(wallet.main_wallet_btc?.available_balance, 0);
-    const btcLocked = walletNumber(wallet.main_wallet_btc?.locked_balance, 0);
-    const ethBalance = walletNumber(wallet.main_wallet_eth?.available_balance, 0);
-    const ethLocked = walletNumber(wallet.main_wallet_eth?.locked_balance, 0);
-    const usdcBalance = walletNumber(wallet.main_wallet_usdc?.available_balance, 0);
-    const usdcLocked = walletNumber(wallet.main_wallet_usdc?.locked_balance, 0);
-    const solBalance = walletNumber(wallet.main_wallet_sol?.available_balance, 0);
-    const solLocked = walletNumber(wallet.main_wallet_sol?.locked_balance, 0);
-    const bnbBalance = walletNumber(wallet.main_wallet_bnb?.available_balance, 0);
-    const bnbLocked = walletNumber(wallet.main_wallet_bnb?.locked_balance, 0);
-    const xrpBalance = walletNumber(wallet.main_wallet_xrp?.available_balance, 0);
-    const xrpLocked = walletNumber(wallet.main_wallet_xrp?.locked_balance, 0);
-    const adaBalance = walletNumber(wallet.main_wallet_ada?.available_balance, 0);
-    const adaLocked = walletNumber(wallet.main_wallet_ada?.locked_balance, 0);
+    const user = typeof getAuthUser === "function" ? getAuthUser() : null;
+    const isMt5 = user && user.selected_platform === "mt5";
+    const mt5Account = WALLET_STATE.mt5?.account || {};
+    const mt5Bal = walletNumber(mt5Account.balance, 0);
 
-    const trxBalance = walletNumber(wallet.main_wallet_trx?.available_balance, 0);
-    const trxLocked = walletNumber(wallet.main_wallet_trx?.locked_balance, 0);
-    const dotBalance = walletNumber(wallet.main_wallet_dot?.available_balance, 0);
-    const dotLocked = walletNumber(wallet.main_wallet_dot?.locked_balance, 0);
-    const ltcBalance = walletNumber(wallet.main_wallet_ltc?.available_balance, 0);
-    const ltcLocked = walletNumber(wallet.main_wallet_ltc?.locked_balance, 0);
-    const avaxBalance = walletNumber(wallet.main_wallet_avax?.available_balance, 0);
-    const avaxLocked = walletNumber(wallet.main_wallet_avax?.locked_balance, 0);
-    const shibBalance = walletNumber(wallet.main_wallet_shib?.available_balance, 0);
-    const shibLocked = walletNumber(wallet.main_wallet_shib?.locked_balance, 0);
-    const linkBalance = walletNumber(wallet.main_wallet_link?.available_balance, 0);
-    const linkLocked = walletNumber(wallet.main_wallet_link?.locked_balance, 0);
-    const uniBalance = walletNumber(wallet.main_wallet_uni?.available_balance, 0);
-    const uniLocked = walletNumber(wallet.main_wallet_uni?.locked_balance, 0);
-    const etcBalance = walletNumber(wallet.main_wallet_etc?.available_balance, 0);
-    const etcLocked = walletNumber(wallet.main_wallet_etc?.locked_balance, 0);
-    const xlmBalance = walletNumber(wallet.main_wallet_xlm?.available_balance, 0);
-    const xlmLocked = walletNumber(wallet.main_wallet_xlm?.locked_balance, 0);
-    const tonBalance = walletNumber(wallet.main_wallet_ton?.available_balance, 0);
-    const tonLocked = walletNumber(wallet.main_wallet_ton?.locked_balance, 0);
-    const bchBalance = walletNumber(wallet.main_wallet_bch?.available_balance, 0);
-    const bchLocked = walletNumber(wallet.main_wallet_bch?.locked_balance, 0);
+    // Retrieve live backend balances (Isolated for MT5 vs TraidiumX)
+    const inrBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_inr?.available_balance, 0);
+    const inrLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_inr?.locked_balance, 0);
+    const usdtBalance = isMt5 ? mt5Bal : walletNumber(wallet.main_wallet_usdt?.available_balance, 0);
+    const usdtLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_usdt?.locked_balance, 0);
+    const btcBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_btc?.available_balance, 0);
+    const btcLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_btc?.locked_balance, 0);
+    const ethBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_eth?.available_balance, 0);
+    const ethLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_eth?.locked_balance, 0);
+    const usdcBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_usdc?.available_balance, 0);
+    const usdcLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_usdc?.locked_balance, 0);
+    const solBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_sol?.available_balance, 0);
+    const solLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_sol?.locked_balance, 0);
+    const bnbBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_bnb?.available_balance, 0);
+    const bnbLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_bnb?.locked_balance, 0);
+    const xrpBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_xrp?.available_balance, 0);
+    const xrpLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_xrp?.locked_balance, 0);
+    const adaBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_ada?.available_balance, 0);
+    const adaLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_ada?.locked_balance, 0);
+
+    const trxBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_trx?.available_balance, 0);
+    const trxLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_trx?.locked_balance, 0);
+    const dotBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_dot?.available_balance, 0);
+    const dotLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_dot?.locked_balance, 0);
+    const ltcBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_ltc?.available_balance, 0);
+    const ltcLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_ltc?.locked_balance, 0);
+    const avaxBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_avax?.available_balance, 0);
+    const avaxLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_avax?.locked_balance, 0);
+    const shibBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_shib?.available_balance, 0);
+    const shibLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_shib?.locked_balance, 0);
+    const linkBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_link?.available_balance, 0);
+    const linkLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_link?.locked_balance, 0);
+    const uniBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_uni?.available_balance, 0);
+    const uniLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_uni?.locked_balance, 0);
+    const etcBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_etc?.available_balance, 0);
+    const etcLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_etc?.locked_balance, 0);
+    const xlmBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_xlm?.available_balance, 0);
+    const xlmLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_xlm?.locked_balance, 0);
+    const tonBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_ton?.available_balance, 0);
+    const tonLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_ton?.locked_balance, 0);
+    const bchBalance = isMt5 ? 0 : walletNumber(wallet.main_wallet_bch?.available_balance, 0);
+    const bchLocked = isMt5 ? 0 : walletNumber(wallet.main_wallet_bch?.locked_balance, 0);
 
     const board = WALLET_STATE.board || [];
     function getAssetPrice(code) {
@@ -6372,7 +6621,17 @@ function txRenderAssetLists() {
     }
 
     // Money Listing Items
-    const moneyAssets = [
+    const moneyAssets = isMt5 ? [
+        {
+            code: "MT5",
+            displayCode: "USD",
+            name: "MetaTrader 5 Balance",
+            symbol: "$",
+            balance: mt5Bal,
+            pending: 0,
+            iconClass: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
+        }
+    ] : [
         {
             code: "INR",
             displayCode: "INR",
@@ -6420,6 +6679,8 @@ function txRenderAssetLists() {
     if (totalEl) {
         if (isBalanceHidden()) {
             totalEl.textContent = `≈ ******** ${activeCurrency}`;
+        } else if (isMt5) {
+            totalEl.textContent = `≈ $${mt5Bal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         } else if (activeCurrency === "INR") {
             totalEl.textContent = `≈ ₹${inrBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {

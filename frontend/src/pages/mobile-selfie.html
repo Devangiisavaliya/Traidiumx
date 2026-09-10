@@ -3,36 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mobile Selfie Verification | TraidiumX</title>
+    <title>Live Selfie Verification | TraidiumX</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #020617;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.12), transparent 50%),
-                radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.08), transparent 50%);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #060a13;
             color: #f1f5f9;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 24px;
+            justify-content: flex-start;
+            padding: 16px 20px;
             overflow-x: hidden;
         }
         .hidden {
             display: none !important;
         }
+
+        /* Top Bar */
         header {
             width: 100%;
-            text-align: center;
-            padding: 24px 0;
+            max-width: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0 16px 0;
         }
         .logo-container {
             display: inline-flex;
@@ -41,15 +44,15 @@
         }
         .logo-box {
             display: grid;
-            height: 36px;
-            width: 36px;
+            height: 32px;
+            width: 32px;
             place-items: center;
-            border-radius: 12px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #22d3ee, #3b82f6);
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 900;
             color: #020617;
-            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.25);
         }
         .logo-text {
             text-align: left;
@@ -58,7 +61,7 @@
             display: block;
             text-transform: uppercase;
             font-weight: 900;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.05em;
             color: #ffffff;
         }
@@ -66,62 +69,63 @@
             display: block;
             text-transform: uppercase;
             font-weight: 700;
-            font-size: 10px;
-            letter-spacing: 0.2em;
+            font-size: 9px;
+            letter-spacing: 0.18em;
             color: #22d3ee;
         }
+
+        /* Main Container */
         main {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 16px 0;
+            align-items: stretch;
         }
-        .card {
-            border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: rgba(255, 255, 255, 0.03);
-            padding: 24px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+
+        .header-content {
+            text-align: left;
+            margin-bottom: 14px;
         }
-        .card-success {
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            background-color: rgba(16, 185, 129, 0.02);
-        }
-        h1 {
-            font-size: 24px;
-            font-weight: 900;
+        .selfie-title {
+            font-size: 26px;
+            font-weight: 800;
             color: #ffffff;
             letter-spacing: -0.02em;
+            line-height: 1.2;
         }
-        p.subtitle {
-            margin-top: 8px;
-            font-size: 14px;
+        .selfie-subtitle {
+            font-size: 13px;
             color: #94a3b8;
-            line-height: 1.6;
+            margin-top: 4px;
+            font-weight: 500;
         }
+
+        /* Camera Viewport */
         .camera-container {
             position: relative;
             width: 100%;
             aspect-ratio: 3/4;
-            max-height: 40vh;
-            margin-top: 24px;
+            max-height: 54vh;
+            border-radius: 28px;
             overflow: hidden;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             background-color: #000000;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: box-shadow 0.3s ease;
+        }
+        .camera-container.has-error {
+            box-shadow: 0 0 0 2.5px #ef4444, 0 0 35px rgba(239, 68, 68, 0.6) !important;
+            animation: shakeBox 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        @keyframes shakeBox {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+            40%, 60% { transform: translate3d(5px, 0, 0); }
         }
         video, img.preview {
             width: 100%;
@@ -131,20 +135,347 @@
         video {
             transform: scaleX(-1);
         }
+
+        /* Biometric Scanner HUD & Laser */
+        .scanner-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 12;
+            transition: opacity 0.3s ease;
+        }
+        .scanner-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 65% 65% at 50% 48%, transparent 45%, rgba(6, 10, 19, 0.4) 62%, rgba(6, 10, 19, 0.85) 100%);
+        }
+        .scanner-laser {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(34, 211, 238, 0.4) 15%, #22d3ee 50%, rgba(34, 211, 238, 0.4) 85%, transparent 100%);
+            box-shadow: 0 0 16px 3px rgba(34, 211, 238, 0.85), 0 0 32px 6px rgba(59, 130, 246, 0.55);
+            top: 10%;
+            animation: scanLaser 2.4s ease-in-out infinite alternate;
+        }
+        @keyframes scanLaser {
+            0% { top: 8%; opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { top: 90%; opacity: 0.7; }
+        }
+
+        /* Oval Target Frame */
+        .scanner-target-wrapper {
+            position: relative;
+            width: 66%;
+            height: 62%;
+            margin-top: -10%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .scanner-oval {
+            width: 100%;
+            height: 100%;
+            border-radius: 50% / 50%;
+            border: 2px dashed rgba(34, 211, 238, 0.55);
+            position: relative;
+            box-shadow: 0 0 24px rgba(34, 211, 238, 0.2), inset 0 0 16px rgba(34, 211, 238, 0.12);
+            animation: ovalPulse 3s ease-in-out infinite;
+        }
+        @keyframes ovalPulse {
+            0%, 100% { border-color: rgba(34, 211, 238, 0.45); transform: scale(1); }
+            50% { border-color: rgba(56, 189, 248, 0.9); transform: scale(1.02); }
+        }
+
+        /* Corner Brackets around Oval */
+        .corner {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-color: #22d3ee;
+            filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.7));
+            transition: all 0.25s ease;
+        }
+        .corner-tl {
+            top: -10px;
+            left: -10px;
+            border-top: 3.5px solid;
+            border-left: 3.5px solid;
+            border-top-left-radius: 12px;
+        }
+        .corner-tr {
+            top: -10px;
+            right: -10px;
+            border-top: 3.5px solid;
+            border-right: 3.5px solid;
+            border-top-right-radius: 12px;
+        }
+        .corner-bl {
+            bottom: -10px;
+            left: -10px;
+            border-bottom: 3.5px solid;
+            border-left: 3.5px solid;
+            border-bottom-left-radius: 12px;
+        }
+        .corner-br {
+            bottom: -10px;
+            right: -10px;
+            border-bottom: 3.5px solid;
+            border-right: 3.5px solid;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* Real-time Status Badge inside Camera Overlay */
+        .scanner-badge-container {
+            position: absolute;
+            bottom: 14px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: center;
+            z-index: 15;
+            pointer-events: none;
+        }
+        .scanner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(6, 10, 19, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            color: #e0f2fe;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            letter-spacing: 0.02em;
+        }
+        .scanner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #22d3ee;
+            box-shadow: 0 0 10px #22d3ee;
+            animation: dotBlink 1.4s ease-in-out infinite;
+        }
+        @keyframes dotBlink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.75); }
+        }
+
+        /* Biometric Analyzing / Scanning Screen while Submitting */
+        .analyzing-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(6, 10, 19, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 22;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 0.25s ease forwards;
+        }
+        .analyzing-overlay.hidden {
+            display: none !important;
+        }
+        .analyzing-laser {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(34, 211, 238, 0.5) 15%, #22d3ee 50%, rgba(34, 211, 238, 0.5) 85%, transparent 100%);
+            box-shadow: 0 0 18px 4px rgba(34, 211, 238, 0.9), 0 0 35px 8px rgba(59, 130, 246, 0.6);
+            top: 10%;
+            animation: scanLaser 1.8s ease-in-out infinite alternate;
+        }
+        .analyzing-radar {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .radar-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1.5px solid rgba(34, 211, 238, 0.4);
+        }
+        .radar-c1 {
+            width: 100%;
+            height: 100%;
+            animation: radarPulse 2s ease-out infinite;
+        }
+        .radar-c2 {
+            width: 72%;
+            height: 72%;
+            border-style: dashed;
+            animation: radarRotate 6s linear infinite;
+        }
+        @keyframes radarPulse {
+            0% { transform: scale(0.85); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.9; box-shadow: 0 0 20px rgba(34, 211, 238, 0.5); }
+            100% { transform: scale(0.85); opacity: 0.3; }
+        }
+        @keyframes radarRotate {
+            to { transform: rotate(360deg); }
+        }
+        .radar-icon {
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(34, 211, 238, 0.12);
+            border: 1.5px solid rgba(34, 211, 238, 0.6);
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.45);
+        }
+        .analyzing-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+            margin-bottom: 4px;
+        }
+        .analyzing-subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            max-width: 220px;
+            line-height: 1.4;
+        }
+        .analyzing-bar {
+            width: 160px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+        .analyzing-bar-fill {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 45%;
+            background: linear-gradient(90deg, #22d3ee, #3b82f6);
+            border-radius: 9999px;
+            box-shadow: 0 0 10px #22d3ee;
+            animation: barIndeterminate 1.4s ease-in-out infinite alternate;
+        }
+        @keyframes barIndeterminate {
+            0% { left: 0%; }
+            100% { left: 55%; }
+        }
+
+        /* In-Box Error Overlay */
+        .inbox-error-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(6, 10, 19, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            z-index: 25;
+            text-align: center;
+            animation: fadeIn 0.25s ease forwards;
+        }
+        .inbox-error-overlay.hidden {
+            display: none !important;
+        }
+        .inbox-error-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 280px;
+        }
+        .inbox-error-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            color: #f87171;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 0 24px rgba(239, 68, 68, 0.4);
+            animation: errorBounce 0.4s ease;
+        }
+        @keyframes errorBounce {
+            0% { transform: scale(0.6); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .inbox-error-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #fecaca;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+        .inbox-error-desc {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            line-height: 1.45;
+            margin-bottom: 16px;
+        }
+        .inbox-retry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+            transition: all 0.2s ease;
+        }
+        .inbox-retry-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Loading Overlay */
         .loading-overlay {
             position: absolute;
             inset: 0;
-            background-color: #020617;
+            background-color: #060a13;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 12px;
+            z-index: 20;
         }
         .spinner {
-            width: 32px;
-            height: 32px;
-            border: 4px solid #22d3ee;
+            width: 36px;
+            height: 36px;
+            border: 3.5px solid #22d3ee;
             border-top-color: transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -153,77 +484,175 @@
             to { transform: rotate(360deg); }
         }
         .loading-text {
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 12px;
+            font-weight: 600;
             color: #94a3b8;
             padding: 0 16px;
         }
-        .error-message {
-            margin-top: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #f87171;
-            min-height: 16px;
-            padding: 0 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
         }
-        .button-group {
+
+        /* Bottom Controls Area */
+        .controls-container {
             width: 100%;
-            margin-top: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            margin-top: 12px;
+            gap: 10px;
         }
-        button {
+        .shutter-hint {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 2px;
+            transition: color 0.2s ease;
+        }
+        .shutter-hint.ready {
+            color: #38bdf8;
+        }
+
+        /* Circular Shutter Trigger Button */
+        .shutter-btn-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 4px 0 8px 0;
+            user-select: none;
+        }
+        .shutter-ring {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            border: 4px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+        }
+        .shutter-circle {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #475569;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        /* Active / Unlocked Shutter */
+        .shutter-btn-wrapper.active .shutter-ring {
+            border-color: #3b82f6;
+            box-shadow: 0 0 22px rgba(59, 130, 246, 0.55);
+        }
+        .shutter-btn-wrapper.active .shutter-circle {
+            background: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+        .shutter-btn-wrapper.active:active .shutter-circle {
+            transform: scale(0.92);
+        }
+        .shutter-btn-wrapper.disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        /* Action Buttons (Retake / Submit) */
+        .action-buttons-group {
             width: 100%;
-            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 15px;
             border-radius: 16px;
             font-size: 14px;
-            font-weight: 900;
+            font-weight: 800;
             border: none;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        button:active {
+        .btn-action:active {
             transform: scale(0.98);
         }
-        .btn-cyan {
-            background-color: #22d3ee;
-            color: #020617;
-            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
-        }
-        .btn-cyan:disabled {
-            background-color: #475569;
-            color: #94a3b8;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-        .btn-outline {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: #0f172a;
+        .btn-dark {
+            background-color: #0b1120;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #ffffff;
         }
+        .btn-dark:hover {
+            background-color: #111827;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
         .btn-emerald {
-            background: linear-gradient(to right, #34d399, #14b8a6);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+        }
+        .btn-emerald:hover {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45);
+        }
+        .btn-emerald:disabled {
+            background: #334155;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-cyan {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
             color: #020617;
-            box-shadow: 0 4px 15px rgba(52, 211, 153, 0.2);
+            font-weight: 800;
+            box-shadow: 0 4px 18px rgba(6, 182, 212, 0.35);
+        }
+        .btn-cyan:hover {
+            background: linear-gradient(135deg, #67e8f9, #22d3ee);
+            box-shadow: 0 6px 22px rgba(6, 182, 212, 0.45);
+        }
+
+        /* Success Card Screen */
+        .card-success {
+            border-radius: 28px;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.04);
+            padding: 32px 24px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            margin-top: 20px;
         }
         .success-icon {
-            width: 64px;
-            height: 64px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
-            background-color: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            background-color: rgba(16, 185, 129, 0.12);
+            border: 1.5px solid rgba(16, 185, 129, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #34d399;
             margin-bottom: 20px;
-            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
         }
+
         footer {
             width: 100%;
             text-align: center;
-            padding: 16px 0;
+            padding: 14px 0 6px 0;
             font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
@@ -241,74 +670,145 @@
             <div class="logo-box">TX</div>
             <div class="logo-text">
                 <span class="logo-title">TraidiumX</span>
-                <span class="logo-subtitle">Security Gate</span>
+                <span class="logo-subtitle">Security KYC</span>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
     <main>
-        <div id="selfieCard" class="card">
+        <div id="selfieMainContainer">
             
-            <div id="selfieInstructions">
-                <h1>Step 3: Capture Selfie</h1>
-                <p class="subtitle">Please capture a clear, front-facing selfie of yourself to complete your KYC verification.</p>
-                <div style="margin-top: 12px; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.2); border-radius: 16px; padding: 12px; text-align: left; font-size: 11px; line-height: 1.5; color: #cbd5e1;">
-                    <b style="color: #22d3ee; display: block; margin-bottom: 4px;">⚠️ Verification Requirements:</b>
-                    <ul style="padding-left: 16px; margin: 0;">
-                        <li>Face must match the photo on your Aadhaar / PAN card.</li>
-                        <li>Single face only (no group photos or others in background).</li>
-                        <li>Good lighting (no dark shadows or direct glare).</li>
-                        <li>Hold camera steady to avoid blur.</li>
-                    </ul>
-                </div>
+            <!-- Header Titles -->
+            <div class="header-content">
+                <h1 class="selfie-title">Capture with Mobile Camera</h1>
+                <p class="selfie-subtitle">Align your face in the camera and click Capture snap</p>
             </div>
 
-            <!-- Video/Preview Container -->
-            <div class="camera-container">
-                <video id="webcam" autoplay playsinline></video>
+            <!-- Video Camera Container -->
+            <div id="cameraContainer" class="camera-container">
+                <video id="webcam" autoplay playsinline muted></video>
                 <img id="selfiePreview" class="preview hidden" alt="Selfie Preview" />
+
+                <!-- Biometric Scanning HUD & Laser -->
+                <div id="scannerOverlay" class="scanner-overlay">
+                    <div class="scanner-vignette"></div>
+                    <div id="scannerLaser" class="scanner-laser"></div>
+                    <div class="scanner-target-wrapper">
+                        <div class="scanner-oval"></div>
+                        <div class="corner corner-tl"></div>
+                        <div class="corner corner-tr"></div>
+                        <div class="corner corner-bl"></div>
+                        <div class="corner corner-br"></div>
+                    </div>
+                    <div class="scanner-badge-container">
+                        <div class="scanner-badge">
+                            <span class="scanner-dot"></span>
+                            <span id="scannerStatusText">Position face inside frame</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Loading Spinner -->
                 <div id="cameraLoading" class="loading-overlay">
                     <div class="spinner"></div>
-                    <p id="loadingMsg" class="loading-text">Requesting camera access...</p>
+                    <p id="loadingMsg" class="loading-text">Starting high-definition camera...</p>
+                </div>
+
+                <!-- In-Box Error Overlay -->
+                <div id="inBoxErrorOverlay" class="inbox-error-overlay hidden">
+                    <div class="inbox-error-card">
+                        <div class="inbox-error-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div class="inbox-error-title">Verification Failed</div>
+                        <p id="inBoxErrorText" class="inbox-error-desc">Face mismatch or unclear photo. Please retake.</p>
+                        <button id="inBoxRetryBtn" type="button" class="inbox-retry-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                            </svg>
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Biometric Analyzing Overlay (shown while submitting) -->
+                <div id="analyzingOverlay" class="analyzing-overlay hidden">
+                    <div class="analyzing-laser"></div>
+                    <div class="analyzing-radar">
+                        <div class="radar-circle radar-c1"></div>
+                        <div class="radar-circle radar-c2"></div>
+                        <div class="radar-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                                <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                                <path d="M7 21v-1a5 5 0 0 1 10 0v1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="analyzing-title">Analyzing Biometrics...</div>
+                    <div class="analyzing-subtitle">Scanning face match & lighting quality</div>
+                    <div class="analyzing-bar">
+                        <div class="analyzing-bar-fill"></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Error message feedback -->
             <p id="selfieError" class="error-message"></p>
 
-            <!-- Fallback native device camera input -->
+            <!-- Fallback native device camera input for insecure/unsupported contexts -->
             <input id="nativeCameraInput" type="file" accept="image/*" capture="user" class="hidden" />
 
-            <!-- Buttons -->
-            <div class="button-group">
-                <button id="captureBtn" type="button" class="btn-cyan">
-                    Capture Photo
-                </button>
+            <!-- Controls Area -->
+            <div class="controls-container">
                 
-                <button id="retakeBtn" type="button" class="btn-outline hidden">
-                    Retake Snaps
-                </button>
-                
-                <button id="submitBtn" type="button" class="btn-emerald hidden">
-                    Submit Selfie
-                </button>
+                <!-- Live Shutter Area (shown during live camera stream) -->
+                <div id="shutterArea" class="w-full flex flex-col items-center">
+                    <button id="captureSnapBtn" type="button" class="btn-action btn-cyan">
+                        Capture Snap
+                    </button>
+                    
+                    <button id="fallbackCaptureBtn" type="button" class="btn-action btn-dark hidden" style="margin-top: 8px;">
+                        Open Device Camera
+                    </button>
+                </div>
+
+                <!-- Post-Capture Action Buttons (shown after taking a snap) -->
+                <div id="postCaptureActions" class="action-buttons-group hidden">
+                    <button id="retakeBtn" type="button" class="btn-action btn-dark">
+                        Retake
+                    </button>
+                    
+                    <button id="submitBtn" type="button" class="btn-action btn-emerald">
+                        Submit Selfie
+                    </button>
+                </div>
+
             </div>
 
         </div>
 
         <!-- Success Screen -->
-        <div id="successCard" class="card card-success hidden">
+        <div id="successCard" class="card-success hidden">
             <div class="success-icon">
-                <svg style="width: 32px; height: 32px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg style="width: 34px; height: 34px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>
-            <h1>Upload Successful!</h1>
-            <p class="subtitle" style="max-width: 280px; margin: 12px auto 0 auto;">Your selfie has been securely uploaded. You can now close this tab and return to your desktop screen to check the status.</p>
+            <h1 style="font-size: 22px; font-weight: 800; color: #fff;">Upload Successful!</h1>
+            <p style="font-size: 13px; color: #94a3b8; max-width: 290px; margin: 10px auto 0 auto; line-height: 1.5;">Your live selfie has been verified and uploaded. You can now close this tab and continue on your screen.</p>
         </div>
     </main>
 
-    <!-- Bottom Copy -->
+    <!-- Bottom Footer -->
     <footer>
         &copy; <span id="currentYear"></span> TraidiumX. Secure Encryption.
     </footer>
@@ -316,7 +816,7 @@
     <!-- App Configuration -->
     <script src="/src/js/api-config.js"></script>
     <!-- Page Logic -->
-    <script src="/src/js/mobile-selfie.js"></script>
+    <script src="/src/js/mobile-selfie.js?v=3.7"></script>
     <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
