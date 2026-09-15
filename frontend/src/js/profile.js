@@ -1130,16 +1130,29 @@ function renderSubAccountsDOM(subAccounts) {
                 totalFormatted = `₹${totalInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
             }
 
+            const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+            const planName = isDemo ? "Demo" : (sub.plan_name || "Basic");
+            const planColor = isDemo ? "amber" : (sub.plan_color || "cyan");
+            const badgeColorClasses = {
+                "cyan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+                "emerald": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+                "purple": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+                "amber": "bg-amber-500/20 text-amber-300 border-amber-500/30"
+            }[planColor] || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
+
             html += `
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition gap-3 text-xs" style="min-width:0;overflow:hidden;">
                     <div style="min-width:0;flex:1;overflow:hidden;">
-                        <strong class="text-white text-sm font-black block truncate">${escapeHtml(sub.name)}</strong>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <strong class="text-white text-sm font-black truncate">${escapeHtml(sub.name)}</strong>
+                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${badgeColorClasses}">${escapeHtml(planName)}</span>
+                        </div>
                         <p class="text-[10px] text-slate-500 mt-1" style="word-break:break-all;white-space:normal;">ID: ${sub.id} · Client ID: ${sub.client_id}</p>
                     </div>
-                    <div class="flex gap-4 text-right" style="flex-shrink:0;">
+                    <div class="flex gap-4 text-right items-center" style="flex-shrink:0;">
                         <div>
                             <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Available</span>
-                            <strong class="text-cyan-300 font-black text-sm">${availFormatted}</strong>
+                            <strong class="${isDemo ? 'text-amber-300' : 'text-cyan-300'} font-black text-sm">${availFormatted}</strong>
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Locked</span>
@@ -1149,11 +1162,36 @@ function renderSubAccountsDOM(subAccounts) {
                             <span class="text-[10px] text-slate-500 block mb-0.5 uppercase tracking-wider font-bold">Total</span>
                             <strong class="text-white font-black text-sm">${totalFormatted}</strong>
                         </div>
+                        ${isDemo ? `
+                            <button type="button" data-demo-topup-id="${escapeHtml(sub.id)}" class="tx-profile-demo-topup-btn px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold rounded-xl text-xs border border-amber-500/30 transition cursor-pointer">
+                                +10k Demo
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
         });
         listContainer.innerHTML = html;
+
+        listContainer.querySelectorAll(".tx-profile-demo-topup-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const subId = btn.getAttribute("data-demo-topup-id");
+                if (!subId) return;
+                btn.disabled = true;
+                btn.textContent = "...";
+                try {
+                    await apiRequest(`/user/sub-accounts/${subId}/demo-deposit`, {
+                        method: "POST",
+                        body: JSON.stringify({ amount: 10000 })
+                    });
+                    await txInitProfileSubAccounts();
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.textContent = "+10k Demo";
+                }
+            });
+        });
     }
 }
 
@@ -1190,25 +1228,81 @@ function txBindProfileSubAccountEvents() {
         onPreviewChange();
     }
 
+    let profileSubMode = "real";
+    const realBtn = document.getElementById("profileSubModeRealBtn");
+    const demoBtn = document.getElementById("profileSubModeDemoBtn");
+    const planWrap = document.getElementById("profileSubPlanWrapper");
+    const demoWrap = document.getElementById("profileSubDemoInfoWrapper");
+    const nameInput = document.getElementById("profileNewSubNameInput");
+
+    const updateProfileDemoBtnState = () => {
+        const hasExistingDemo = (cachedSubAccountsList || []).some(s => s.is_demo || s.account_mode === "demo" || s.plan === "demo");
+        if (hasExistingDemo && demoBtn) {
+            demoBtn.disabled = true;
+            demoBtn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-500 cursor-not-allowed flex items-center justify-center gap-1.5 opacity-60";
+            demoBtn.title = "You can only create 1 Demo account (Already created)";
+            demoBtn.innerHTML = `<span>🟡 Demo (Limit 1)</span>`;
+            if (profileSubMode === "demo") {
+                setProfileMode("real");
+            }
+        }
+    };
+
+    const setProfileMode = (mode) => {
+        if (mode === "demo" && demoBtn && demoBtn.disabled) return;
+        profileSubMode = mode;
+        if (mode === "demo") {
+            demoBtn?.setAttribute("class", "py-2 px-3 rounded-lg text-xs font-extrabold bg-amber-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5");
+            realBtn?.setAttribute("class", "py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5");
+            planWrap?.classList.add("hidden");
+            demoWrap?.classList.remove("hidden");
+            if (nameInput && (!nameInput.value || nameInput.value.startsWith("Trading Sub"))) {
+                nameInput.value = "Demo Account";
+            }
+        } else {
+            realBtn?.setAttribute("class", "py-2 px-3 rounded-lg text-xs font-extrabold bg-cyan-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5");
+            demoBtn?.setAttribute("class", "py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5");
+            planWrap?.classList.remove("hidden");
+            demoWrap?.classList.add("hidden");
+            if (nameInput && nameInput.value === "Demo Account") {
+                nameInput.value = "";
+            }
+        }
+    };
+
+    realBtn?.addEventListener("click", () => setProfileMode("real"));
+    demoBtn?.addEventListener("click", () => {
+        if (!demoBtn.disabled) setProfileMode("demo");
+    });
+    updateProfileDemoBtnState();
+
     const createForm = document.getElementById("profileCreateSubForm");
     if (createForm) {
         createForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const input = document.getElementById("profileNewSubNameInput");
+            const planSelect = document.getElementById("profileNewSubPlanSelect");
             const msg = document.getElementById("profileCreateSubMessage");
             if (!input || !msg) return;
             
             msg.classList.remove("hidden", "text-red-400", "text-emerald-400");
             msg.className = "text-xs font-bold mt-2 text-slate-400";
             msg.textContent = "Creating sub account...";
+
+            const isDemo = profileSubMode === "demo";
             
             try {
                 await apiRequest("/user/sub-accounts", {
                     method: "POST",
-                    body: JSON.stringify({ name: input.value })
+                    body: JSON.stringify({
+                        name: input.value.trim(),
+                        account_mode: isDemo ? "demo" : "real",
+                        plan: isDemo ? "demo" : (planSelect ? planSelect.value : "basic"),
+                        is_demo: isDemo
+                    })
                 });
                 input.value = "";
-                msg.className = "text-xs font-bold mt-2 text-emerald-400 text-cyan-300";
+                msg.className = "text-xs font-bold mt-2 text-emerald-400";
                 msg.textContent = "Sub account created successfully!";
                 txInitProfileSubAccounts();
             } catch (err) {

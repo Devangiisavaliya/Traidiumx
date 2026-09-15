@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <script>
+        document.documentElement.classList.add("tx-motion-ready");
         (function() {
             const lang = localStorage.getItem("tx_language") || "English";
             if (lang !== "English") {
@@ -24,6 +25,31 @@
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         .market-sync-visual {
             display: inline-flex;
             align-items: center;
@@ -553,7 +579,7 @@
                 <div id="topMarketSlider" class="flex lg:grid lg:grid-cols-3 gap-6 overflow-x-auto lg:overflow-x-visible snap-x snap-mandatory scroll-smooth pb-4 lg:pb-0 no-scrollbar">
                     
                     <!-- Card 1: Top Gainers -->
-                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl tx-hover-lift">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Top Gainers</h3>
                             <span class="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-400">24H</span>
@@ -567,7 +593,7 @@
                     </div>
 
                     <!-- Card 2: Top Losers -->
-                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl tx-hover-lift">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Top Losers</h3>
                             <span class="rounded-full bg-red-400/10 px-3 py-1 text-xs font-black text-red-400">24H</span>
@@ -581,7 +607,7 @@
                     </div>
 
                     <!-- Card 3: Trending -->
-                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl">
+                    <div class="min-w-full lg:min-w-0 snap-center rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 backdrop-blur-xl tx-hover-lift">
                         <div class="mb-4 flex items-center justify-between">
                             <h3 class="text-xl font-black">Trending</h3>
                             <span class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400">Hot</span>
@@ -681,10 +707,85 @@
 
     <div data-component="footer"></div>
 
+    <script src="../js/lenis.min.js"></script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>
     <script src="../js/markets.js?v=23"></script>
+
+    <script>
+        // Initialize Butter-Smooth Lenis Momentum Scrolling on Markets Page
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                // Smooth scroll for internal links
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
+
     <!-- MARKETS PAGE MOBILE BOTTOM NAV BAR (Only visible on mobile <= 1024px) -->
     <div id="marketsMobileBottomNav" class="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 items-center justify-items-center bg-[#070b14]/95 backdrop-blur-xl border-t border-white/10 py-2.5 px-2 lg:hidden shadow-2xl w-full box-border">
         <a href="futures.html" class="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-cyan-400 transition-colors w-full text-center group py-1">

@@ -1,16 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>My Portfolio | TraidiumX Command Center</title>
-    <link rel="stylesheet" href="/dist/output.css" />
-    <link rel="stylesheet" href="/src/css/custom.css" />
-    <link rel="stylesheet" href="/src/css/animations.css" />
-    <link rel="stylesheet" href="/src/css/responsive.css" />
-    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         :root {
             --color-bg: #030712;
             --color-card-bg: rgba(15, 23, 42, 0.75);
@@ -653,7 +690,7 @@
 
     <main class="pf-shell">
         <!-- Master Hero Header Section -->
-        <section class="pf-master-hero p-6 sm:p-8 lg:p-10 mb-8 relative overflow-hidden">
+        <section class="tx-scroll-reveal pf-master-hero p-6 sm:p-8 lg:p-10 mb-8 relative overflow-hidden">
             <!-- Background Decorative Glows -->
             <div class="absolute -right-24 -top-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -left-24 -bottom-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -703,7 +740,7 @@
         <div id="pfMessage" class="mb-6 hidden"></div>
 
         <!-- CHARTS SECTION: 2/3 Performance Line Chart + 1/3 Asset Allocation Donut Chart -->
-        <section class="grid gap-6 lg:grid-cols-3 mb-8">
+        <section class="tx-scroll-reveal grid gap-6 lg:grid-cols-3 mb-8" data-reveal-delay="100">
             <!-- Left 2/3 Box: Portfolio Performance Line Chart -->
             <div class="pf-glass-card p-6 sm:p-7 lg:col-span-2 relative overflow-hidden flex flex-col justify-between" style="background: linear-gradient(145deg, rgba(13, 19, 34, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%); border-color: rgba(255,255,255,0.08);">
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-4 z-10">
@@ -797,7 +834,7 @@
         </section>
 
         <!-- Wallets Grid Section -->
-        <section class="grid gap-6 lg:grid-cols-2 mb-8">
+        <section class="tx-scroll-reveal grid gap-6 lg:grid-cols-2 mb-8" data-reveal-delay="100">
             <!-- Left Vault: Main Wallet (Green Emerald Theme) -->
             <div class="pf-glass-card p-6 sm:p-8 border border-emerald-500/30 rounded-3xl flex flex-col justify-between relative overflow-hidden">
                 <div class="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -884,7 +921,7 @@
         </section>
 
         <!-- 5 Performance Metrics Cards Grid -->
-        <section class="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-8">
+        <section class="tx-scroll-reveal grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-8" data-reveal-delay="150">
             <!-- Box 1: Total Equity -->
             <article class="pf-glass-card pf-stat-card p-5 border border-slate-800/80 rounded-2xl flex flex-col justify-between">
                 <div class="flex items-center gap-2 text-slate-400">
@@ -953,7 +990,7 @@
         </section>
 
         <!-- Asset Allocation Progress & Summary Section -->
-        <section class="grid gap-6 lg:grid-cols-3 mb-8">
+        <section class="tx-scroll-reveal grid gap-6 lg:grid-cols-3 mb-8" data-reveal-delay="200">
             <!-- Left 2 Cols: Asset Allocation Progress -->
             <div class="pf-glass-card p-6 sm:p-8 lg:col-span-2 flex flex-col justify-between">
                 <div>
@@ -1030,7 +1067,7 @@
         </section>
 
         <!-- Positions & Activity Workspace Section -->
-        <section id="pfHistorySection" class="pf-glass-card pf-history-workspace mb-8 overflow-hidden">
+        <section id="pfHistorySection" class="tx-scroll-reveal pf-glass-card pf-history-workspace mb-8 overflow-hidden" data-reveal-delay="250">
             <div class="pf-tab-nav-bar flex items-center gap-1.5 p-3 sm:p-4 border-b border-slate-800/80 overflow-x-auto no-scrollbar flex-nowrap w-full box-border">
                 <button type="button" class="pf-pill-tab active" data-tab="futures">
                     <svg class="w-4 h-4 hidden sm:inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
@@ -1171,5 +1208,78 @@
     <script src="/src/js/auth-state.js"></script>
     <script src="/src/js/portfolio.js"></script>
     <script src="/src/js/responsive.js"></script>
+    <script src="/src/js/lenis.min.js"></script>
+    <script>
+        // Initialize Lenis Ultra-Smooth Inertia Scroll Engine
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                // Handle in-page anchor clicks smoothly
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
 </body>
 </html>

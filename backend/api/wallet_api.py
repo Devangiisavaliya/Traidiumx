@@ -223,24 +223,24 @@ def select_primary_currency():
 @wallet_api.get("/balance")
 @auth_required
 def balance():
-    result = get_wallet_balance(g.current_user_id)
+    from bson import ObjectId
+    user_id = str(g.current_user["_id"])
+    sub_account_id = request.args.get("sub_account_id") or request.args.get("sub_user_id") or request.headers.get("X-Sub-User-Id")
 
-    parent_user_id = g.current_user.get("parent_user_id")
-    if parent_user_id and result.get("success") and "wallet" in result.get("data", {}):
-        parent_result = get_wallet_balance(parent_user_id)
-        if parent_result.get("success") and "wallet" in parent_result.get("data", {}):
-            parent_wallet = parent_result["data"]["wallet"]
-            sub_wallet = result["data"]["wallet"]
-            
-            # Merge parent's main wallet values into sub-account wallet response
-            sub_wallet["main_wallet"] = parent_wallet.get("main_wallet")
-            sub_wallet["main_wallet_inr"] = parent_wallet.get("main_wallet_inr")
-            sub_wallet["main_wallet_usdt"] = parent_wallet.get("main_wallet_usdt")
-            sub_wallet["deposit_wallet"] = parent_wallet.get("deposit_wallet")
-            sub_wallet["withdrawal_wallet"] = parent_wallet.get("withdrawal_wallet")
-            sub_wallet["currency"] = parent_wallet.get("currency")
-            sub_wallet["primary_currency"] = parent_wallet.get("primary_currency")
-            sub_wallet["is_currency_locked"] = parent_wallet.get("is_currency_locked")
+    target_user_id = user_id
+    if sub_account_id and str(sub_account_id) != "main" and str(sub_account_id) != user_id:
+        db = get_database()
+        user_doc = db.users.find_one({"_id": ObjectId(user_id)})
+        if user_doc:
+            actual_parent_id = user_doc.get("parent_user_id") or user_id
+            sub_user = db.users.find_one({
+                "_id": ObjectId(sub_account_id),
+                "parent_user_id": actual_parent_id
+            })
+            if sub_user:
+                target_user_id = str(sub_user["_id"])
+
+    result = get_wallet_balance(target_user_id)
 
     return success_response(
         message=result["message"],
@@ -418,12 +418,17 @@ def transfer_sub():
         return error_response(message="Transfer amount must be greater than 0.", status_code=422)
 
     direction = str(data.get("direction") or "").strip().lower()
-    if direction not in {"main_to_sub", "sub_to_main"}:
+    if direction not in {"main_to_sub", "sub_to_main", "main_to_trading", "trading_to_main"}:
         return error_response(message="Invalid transfer direction. Use main_to_sub or sub_to_main.", status_code=422)
+
+    if direction == "main_to_trading":
+        direction = "main_to_sub"
+    elif direction == "trading_to_main":
+        direction = "sub_to_main"
 
     sub_user_id = str(data.get("sub_user_id") or "").strip()
     if not sub_user_id:
-        return error_response(message="Sub-account ID is required.", status_code=422)
+        sub_user_id = str(request.headers.get("X-Active-User-Id") or "main")
 
     # Get the token owner (Main User)
     token = get_bearer_token(request)
@@ -432,15 +437,20 @@ def transfer_sub():
 
     # Target account validation
     db = get_database()
-    if sub_user_id == "main" or sub_user_id == main_user_id:
+    if sub_user_id in ("main", str(main_user_id)):
         target_user = db.users.find_one({"_id": ObjectId(main_user_id)})
         is_sub = False
     else:
         target_user = db.users.find_one({"_id": ObjectId(sub_user_id), "parent_user_id": str(main_user_id)})
+        if not target_user:
+            target_user = db.users.find_one({"_id": ObjectId(sub_user_id)})
         is_sub = True
 
     if not target_user:
         return error_response(message="Target account not found or does not belong to you.", status_code=404)
+
+    target_sub_id = str(target_user["_id"])
+    is_demo_account = bool(target_user.get("is_demo") or target_user.get("account_mode") == "demo" or target_user.get("plan") == "demo")
 
     # Fetch wallets
     main_wallet_doc = db.wallets.find_one({"user_id": str(main_user_id)})
@@ -448,7 +458,7 @@ def transfer_sub():
         return error_response(message="Main wallet not found.", status_code=404)
     main_wallet_doc = normalize_wallet_currency(main_wallet_doc)
 
-    target_wallet_doc = db.wallets.find_one({"user_id": str(sub_user_id) if is_sub else str(main_user_id)})
+    target_wallet_doc = db.wallets.find_one({"user_id": target_sub_id})
     if not target_wallet_doc:
         return error_response(message="Target trading wallet not found.", status_code=404)
     target_wallet_doc = normalize_wallet_currency(target_wallet_doc)
@@ -457,96 +467,158 @@ def transfer_sub():
     if requested_currency:
         primary_currency = requested_currency
     else:
-        if target_user.get("is_inr_trading_account"):
-            primary_currency = "INR"
-        else:
-            primary_currency = str(main_wallet_doc.get("primary_currency") or "INR").upper()
+        primary_currency = "USDT" if is_demo_account else str(main_wallet_doc.get("primary_currency") or "INR").upper()
 
     bucket_prefix = "main_wallet_inr" if primary_currency == "INR" else "main_wallet_usdt"
-    main_wallet_bucket = main_wallet_doc.get(bucket_prefix) or {}
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
-    
+    amount_inr = round(amount * usdt_rate, 2)
     reference_id = f"TRF-SUB-{uuid.uuid4().hex[:12].upper()}"
 
-    if direction == "main_to_sub":
-        main_available = round(float(main_wallet_bucket.get("available_balance", 0.0)), 8)
-        if main_available < amount:
-            return error_response(message=f"Insufficient Main Wallet ({primary_currency}) balance.", status_code=422)
+    # Determine if transferring within the sub-account's own main wallet (demo or funded sub-account)
+    sub_main_avail = float((target_wallet_doc.get(bucket_prefix) or {}).get("available_balance", 0.0))
+    internal_sub_transfer = is_demo_account or (is_sub and sub_main_avail >= amount)
 
-        if primary_currency == "INR":
-            usdt_credit = round(amount / usdt_rate, 4)
-            inc_main = {
-                "main_wallet_inr.available_balance": -amount,
-                "main_wallet_inr.total_balance": -amount,
-            }
+    if direction == "main_to_sub":
+        if internal_sub_transfer:
+            # Transfer directly from sub-account's own main_wallet -> trading_wallet
+            if sub_main_avail < amount:
+                return error_response(message=f"Insufficient Main Wallet ({primary_currency}) balance in this account.", status_code=422)
+
             inc_target = {
-                "trading_wallet_inr.available_balance": usdt_credit,
-                "trading_wallet_inr.total_balance": usdt_credit,
-                "trading_wallet.available_balance": usdt_credit,
-                "trading_wallet.total_balance": usdt_credit,
-                "available_balance": usdt_credit,
-                "total_balance": usdt_credit,
-            }
-            main_desc = f"Transferred ₹{amount:g} INR from Main Wallet -> Sent ${usdt_credit:g} USDT to {target_user.get('name')}'s Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
-            target_desc = f"Received ${usdt_credit:g} USDT in Trading Wallet <- Transferred ₹{amount:g} INR from Main Wallet."
-        else:
-            inc_main = {
                 "main_wallet_usdt.available_balance": -amount,
                 "main_wallet_usdt.total_balance": -amount,
-            }
-            inc_target = {
+                "main_wallet.available_balance": -amount,
+                "main_wallet.total_balance": -amount,
+                "main_wallet_inr.available_balance": -amount_inr,
+                "main_wallet_inr.total_balance": -amount_inr,
                 "trading_wallet_usdt.available_balance": amount,
                 "trading_wallet_usdt.total_balance": amount,
                 "trading_wallet.available_balance": amount,
                 "trading_wallet.total_balance": amount,
+                "trading_wallet_inr.available_balance": amount_inr,
+                "trading_wallet_inr.total_balance": amount_inr,
                 "available_balance": amount,
                 "total_balance": amount,
             }
-            main_desc = f"Transferred ${amount:g} USDT from Main Wallet -> Sent ${amount:g} USDT to {target_user.get('name')}'s Trading Wallet."
-            target_desc = f"Received ${amount:g} USDT in Trading Wallet <- Transferred ${amount:g} USDT from Main Wallet."
 
-        res_main = db.wallets.find_one_and_update(
-            {"_id": main_wallet_doc["_id"], f"{bucket_prefix}.available_balance": {"$gte": amount}},
-            {"$inc": inc_main, "$set": {"updated_at": now_utc()}},
-            return_document=ReturnDocument.AFTER
-        )
-        if not res_main:
-            return error_response(message="Transfer failed due to insufficient funds.", status_code=422)
+            res_target = db.wallets.find_one_and_update(
+                {"_id": target_wallet_doc["_id"], f"{bucket_prefix}.available_balance": {"$gte": amount}},
+                {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+            if not res_target:
+                return error_response(message="Transfer failed due to insufficient Main Wallet funds.", status_code=422)
 
-        res_target = db.wallets.find_one_and_update(
-            {"_id": target_wallet_doc["_id"]},
-            {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
-            return_document=ReturnDocument.AFTER
-        )
+            create_ledger_entry(
+                user_id=target_sub_id,
+                wallet_id=target_wallet_doc["_id"],
+                transaction_type="main_to_trading_transfer",
+                direction="transfer",
+                amount=amount,
+                balance_before=sub_main_avail,
+                balance_after=round(sub_main_avail - amount, 8),
+                reference_id=reference_id,
+                description=f"Transferred ${amount:g} USDT from Main Wallet -> Trading Wallet.",
+                currency=primary_currency
+            )
 
-        main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
-        create_ledger_entry(
-            user_id=main_user_id,
-            wallet_id=main_wallet_doc["_id"],
-            transaction_type="sub_transfer_debit",
-            direction="transfer",
-            amount=amount,
-            balance_before=round(main_balance_after + amount, 8),
-            balance_after=main_balance_after,
-            reference_id=reference_id,
-            description=main_desc,
-            currency=primary_currency
-        )
+            return success_response(
+                message="Wallet transfer completed successfully.",
+                data={
+                    "wallet": format_wallet(res_target),
+                    "reference_id": reference_id
+                }
+            )
 
-        target_balance_after = round(float(res_target.get("trading_wallet", {}).get("available_balance", 0.0)), 8)
-        credit_amt = usdt_credit if primary_currency == "INR" else amount
-        create_ledger_entry(
-            user_id=str(target_user["_id"]),
-            wallet_id=target_wallet_doc["_id"],
-            transaction_type="sub_transfer_credit",
-            direction="transfer",
-            amount=credit_amt,
-            balance_before=round(target_balance_after - credit_amt, 8),
-            balance_after=target_balance_after,
-            reference_id=reference_id,
-            description=target_desc,
-            currency="USDT"
-        )
+        else:
+            # Transfer from parent main wallet -> sub trading wallet
+            main_wallet_bucket = main_wallet_doc.get(bucket_prefix) or {}
+            main_available = round(float(main_wallet_bucket.get("available_balance", 0.0)), 8)
+            if main_available < amount:
+                return error_response(message=f"Insufficient Main Wallet ({primary_currency}) balance.", status_code=422)
+
+            if primary_currency == "INR":
+                usdt_credit = round(amount / usdt_rate, 4)
+                inc_main = {
+                    "main_wallet_inr.available_balance": -amount,
+                    "main_wallet_inr.total_balance": -amount,
+                }
+                inc_target = {
+                    "trading_wallet_inr.available_balance": usdt_credit,
+                    "trading_wallet_inr.total_balance": usdt_credit,
+                    "trading_wallet.available_balance": usdt_credit,
+                    "trading_wallet.total_balance": usdt_credit,
+                    "available_balance": usdt_credit,
+                    "total_balance": usdt_credit,
+                }
+                main_desc = f"Transferred ₹{amount:g} INR from Main Wallet -> Sent ${usdt_credit:g} USDT to {target_user.get('name')}'s Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
+                target_desc = f"Received ${usdt_credit:g} USDT in Trading Wallet <- Transferred ₹{amount:g} INR from Main Wallet."
+            else:
+                inc_main = {
+                    "main_wallet_usdt.available_balance": -amount,
+                    "main_wallet_usdt.total_balance": -amount,
+                }
+                inc_target = {
+                    "trading_wallet_usdt.available_balance": amount,
+                    "trading_wallet_usdt.total_balance": amount,
+                    "trading_wallet.available_balance": amount,
+                    "trading_wallet.total_balance": amount,
+                    "available_balance": amount,
+                    "total_balance": amount,
+                }
+                main_desc = f"Transferred ${amount:g} USDT from Main Wallet -> Sent ${amount:g} USDT to {target_user.get('name')}'s Trading Wallet."
+                target_desc = f"Received ${amount:g} USDT in Trading Wallet <- Transferred ${amount:g} USDT from Main Wallet."
+
+            res_main = db.wallets.find_one_and_update(
+                {"_id": main_wallet_doc["_id"], f"{bucket_prefix}.available_balance": {"$gte": amount}},
+                {"$inc": inc_main, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+            if not res_main:
+                return error_response(message="Transfer failed due to insufficient funds.", status_code=422)
+
+            res_target = db.wallets.find_one_and_update(
+                {"_id": target_wallet_doc["_id"]},
+                {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+
+            main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
+            create_ledger_entry(
+                user_id=main_user_id,
+                wallet_id=main_wallet_doc["_id"],
+                transaction_type="sub_transfer_debit",
+                direction="transfer",
+                amount=amount,
+                balance_before=round(main_balance_after + amount, 8),
+                balance_after=main_balance_after,
+                reference_id=reference_id,
+                description=main_desc,
+                currency=primary_currency
+            )
+
+            target_balance_after = round(float(res_target.get("trading_wallet", {}).get("available_balance", 0.0)), 8)
+            credit_amt = usdt_credit if primary_currency == "INR" else amount
+            create_ledger_entry(
+                user_id=target_sub_id,
+                wallet_id=target_wallet_doc["_id"],
+                transaction_type="sub_transfer_credit",
+                direction="transfer",
+                amount=credit_amt,
+                balance_before=round(target_balance_after - credit_amt, 8),
+                balance_after=target_balance_after,
+                reference_id=reference_id,
+                description=target_desc,
+                currency="USDT"
+            )
+
+            return success_response(
+                message="Sub-account transfer completed successfully.",
+                data={
+                    "wallet": format_wallet(res_target if is_sub else res_main),
+                    "reference_id": reference_id
+                }
+            )
 
     else: # direction == "sub_to_main"
         bucket_trading = "trading_wallet_inr" if primary_currency == "INR" else "trading_wallet_usdt"
@@ -555,90 +627,139 @@ def transfer_sub():
         
         if target_available < amount:
             return error_response(message=f"Insufficient Trading Wallet ({'INR' if primary_currency == 'INR' else 'USDT'} Margin) balance.", status_code=422)
- 
-        if primary_currency == "INR":
-            inr_credit = round(amount * usdt_rate, 2)
-            inc_target = {
-                "trading_wallet_inr.available_balance": -amount,
-                "trading_wallet_inr.total_balance": -amount,
-                "trading_wallet.available_balance": -amount,
-                "trading_wallet.total_balance": -amount,
-                "available_balance": -amount,
-                "total_balance": -amount,
-            }
-            inc_main = {
-                "main_wallet_inr.available_balance": inr_credit,
-                "main_wallet_inr.total_balance": inr_credit,
-            }
-            main_desc = f"Received ₹{inr_credit:g} INR in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
-            target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ₹{inr_credit:g} INR to Main Wallet."
-        else:
+
+        if internal_sub_transfer:
+            # Transfer directly from sub-account's trading_wallet -> its own main_wallet
             inc_target = {
                 "trading_wallet_usdt.available_balance": -amount,
                 "trading_wallet_usdt.total_balance": -amount,
                 "trading_wallet.available_balance": -amount,
                 "trading_wallet.total_balance": -amount,
+                "trading_wallet_inr.available_balance": -amount_inr,
+                "trading_wallet_inr.total_balance": -amount_inr,
                 "available_balance": -amount,
                 "total_balance": -amount,
-            }
-            inc_main = {
                 "main_wallet_usdt.available_balance": amount,
                 "main_wallet_usdt.total_balance": amount,
+                "main_wallet.available_balance": amount,
+                "main_wallet.total_balance": amount,
+                "main_wallet_inr.available_balance": amount_inr,
+                "main_wallet_inr.total_balance": amount_inr,
             }
-            main_desc = f"Received ${amount:g} USDT in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet."
-            target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ${amount:g} USDT to Main Wallet."
- 
-        res_target = db.wallets.find_one_and_update(
-            {"_id": target_wallet_doc["_id"], f"{bucket_trading}.available_balance": {"$gte": amount}},
-            {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
-            return_document=ReturnDocument.AFTER
-        )
-        if not res_target:
-            return error_response(message="Transfer failed due to insufficient funds in trading wallet.", status_code=422)
 
-        res_main = db.wallets.find_one_and_update(
-            {"_id": main_wallet_doc["_id"]},
-            {"$inc": inc_main, "$set": {"updated_at": now_utc()}},
-            return_document=ReturnDocument.AFTER
-        )
+            res_target = db.wallets.find_one_and_update(
+                {"_id": target_wallet_doc["_id"], f"{bucket_trading}.available_balance": {"$gte": amount}},
+                {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+            if not res_target:
+                return error_response(message="Transfer failed due to insufficient Trading Wallet funds.", status_code=422)
 
-        target_balance_after = round(float(res_target.get("trading_wallet", {}).get("available_balance", 0.0)), 8)
-        create_ledger_entry(
-            user_id=str(target_user["_id"]),
-            wallet_id=target_wallet_doc["_id"],
-            transaction_type="sub_transfer_debit",
-            direction="transfer",
-            amount=amount,
-            balance_before=round(target_balance_after + amount, 8),
-            balance_after=target_balance_after,
-            reference_id=reference_id,
-            description=target_desc,
-            currency="USDT"
-        )
+            create_ledger_entry(
+                user_id=target_sub_id,
+                wallet_id=target_wallet_doc["_id"],
+                transaction_type="trading_to_main_transfer",
+                direction="transfer",
+                amount=amount,
+                balance_before=target_available,
+                balance_after=round(target_available - amount, 8),
+                reference_id=reference_id,
+                description=f"Transferred ${amount:g} USDT from Trading Wallet -> Main Wallet.",
+                currency=primary_currency
+            )
 
-        main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
-        credit_amt = inr_credit if primary_currency == "INR" else amount
-        create_ledger_entry(
-            user_id=main_user_id,
-            wallet_id=main_wallet_doc["_id"],
-            transaction_type="sub_transfer_credit",
-            direction="transfer",
-            amount=credit_amt,
-            balance_before=round(main_balance_after - credit_amt, 8),
-            balance_after=main_balance_after,
-            reference_id=reference_id,
-            description=main_desc,
-            currency=primary_currency
-        )
+            return success_response(
+                message="Wallet transfer completed successfully.",
+                data={
+                    "wallet": format_wallet(res_target),
+                    "reference_id": reference_id
+                }
+            )
 
-    updated_main_wallet = db.wallets.find_one({"user_id": str(main_user_id)})
-    return success_response(
-        message="Sub-account transfer completed successfully.",
-        data={
-            "wallet": format_wallet(updated_main_wallet),
-            "reference_id": reference_id
-        }
-    )
+        else:
+            # Transfer from sub trading wallet -> parent main wallet
+            if primary_currency == "INR":
+                inr_credit = round(amount * usdt_rate, 2)
+                inc_target = {
+                    "trading_wallet_inr.available_balance": -amount,
+                    "trading_wallet_inr.total_balance": -amount,
+                    "trading_wallet.available_balance": -amount,
+                    "trading_wallet.total_balance": -amount,
+                    "available_balance": -amount,
+                    "total_balance": -amount,
+                }
+                inc_main = {
+                    "main_wallet_inr.available_balance": inr_credit,
+                    "main_wallet_inr.total_balance": inr_credit,
+                }
+                main_desc = f"Received ₹{inr_credit:g} INR in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
+                target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ₹{inr_credit:g} INR to Main Wallet."
+            else:
+                inc_target = {
+                    "trading_wallet_usdt.available_balance": -amount,
+                    "trading_wallet_usdt.total_balance": -amount,
+                    "trading_wallet.available_balance": -amount,
+                    "trading_wallet.total_balance": -amount,
+                    "available_balance": -amount,
+                    "total_balance": -amount,
+                }
+                inc_main = {
+                    "main_wallet_usdt.available_balance": amount,
+                    "main_wallet_usdt.total_balance": amount,
+                }
+                main_desc = f"Received ${amount:g} USDT in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet."
+                target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ${amount:g} USDT to Main Wallet."
+
+            res_target = db.wallets.find_one_and_update(
+                {"_id": target_wallet_doc["_id"], f"{bucket_trading}.available_balance": {"$gte": amount}},
+                {"$inc": inc_target, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+            if not res_target:
+                return error_response(message="Transfer failed due to insufficient funds in trading wallet.", status_code=422)
+
+            res_main = db.wallets.find_one_and_update(
+                {"_id": main_wallet_doc["_id"]},
+                {"$inc": inc_main, "$set": {"updated_at": now_utc()}},
+                return_document=ReturnDocument.AFTER
+            )
+
+            target_balance_after = round(float(res_target.get("trading_wallet", {}).get("available_balance", 0.0)), 8)
+            create_ledger_entry(
+                user_id=target_sub_id,
+                wallet_id=target_wallet_doc["_id"],
+                transaction_type="sub_transfer_debit",
+                direction="transfer",
+                amount=amount,
+                balance_before=round(target_balance_after + amount, 8),
+                balance_after=target_balance_after,
+                reference_id=reference_id,
+                description=target_desc,
+                currency="USDT"
+            )
+
+            main_balance_after = round(float(res_main.get(bucket_prefix, {}).get("available_balance", 0.0)), 8)
+            credit_amt = inr_credit if primary_currency == "INR" else amount
+            create_ledger_entry(
+                user_id=main_user_id,
+                wallet_id=main_wallet_doc["_id"],
+                transaction_type="sub_transfer_credit",
+                direction="transfer",
+                amount=credit_amt,
+                balance_before=round(main_balance_after - credit_amt, 8),
+                balance_after=main_balance_after,
+                reference_id=reference_id,
+                description=main_desc,
+                currency=primary_currency
+            )
+
+            return success_response(
+                message="Sub-account transfer completed successfully.",
+                data={
+                    "wallet": format_wallet(res_target if is_sub else res_main),
+                    "reference_id": reference_id
+                }
+            )
 
 
 @wallet_api.post("/exchange")

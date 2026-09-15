@@ -20,6 +20,33 @@ const MARKET_INTRO_MAX_VISIBLE_MS = 5200;
 const BINANCE_WS_BASE = "wss://fstream.binance.com/stream?streams=";
 const BINANCE_TICKER_URL = "https://fapi.binance.com/fapi/v1/ticker/24hr";
 
+const DEFAULT_FALLBACK_MARKETS = [
+    { symbol: "BTCUSDT", providerSymbol: "BTCUSDT", pair: "BTC-USDT", name: "Bitcoin", category: "USDT Futures", rawPrice: 77120.30, ltp: "77,120.30 USDT", change: -1.35, leverage: "1000x", volume: "10.14B USDT", rawVolume: 10140000000, quoteAsset: "USDT", isLive: true, sortOrder: 1 },
+    { symbol: "ETHUSDT", providerSymbol: "ETHUSDT", pair: "ETH-USDT", name: "Ethereum", category: "USDT Futures", rawPrice: 2472.15, ltp: "2,472.15 USDT", change: -0.17, leverage: "1000x", volume: "8.83B USDT", rawVolume: 8830000000, quoteAsset: "USDT", isLive: true, sortOrder: 2 },
+    { symbol: "XAUUSD", providerSymbol: "XAUUSDT", pair: "XAU-USDT", name: "Gold", category: "Commodities", rawPrice: 4349.60, ltp: "4,349.60 USDT", change: -1.11, leverage: "1000x", volume: "2.27B USDT", rawVolume: 2270000000, quoteAsset: "USDT", isLive: true, sortOrder: 3 },
+    { symbol: "SOLUSDT", providerSymbol: "SOLUSDT", pair: "SOL-USDT", name: "Solana", category: "USDT Futures", rawPrice: 99.55, ltp: "99.55 USDT", change: -1.76, leverage: "1000x", volume: "1.67B USDT", rawVolume: 1670000000, quoteAsset: "USDT", isLive: true, sortOrder: 4 },
+    { symbol: "XRPUSDT", providerSymbol: "XRPUSDT", pair: "XRP-USDT", name: "XRP", category: "USDT Futures", rawPrice: 1.348, ltp: "1.348 USDT", change: -2.56, leverage: "1000x", volume: "891.02M USDT", rawVolume: 891020000, quoteAsset: "USDT", isLive: true, sortOrder: 5 },
+    { symbol: "DOGEUSDT", providerSymbol: "DOGEUSDT", pair: "DOGE-USDT", name: "Dogecoin", category: "USDT Futures", rawPrice: 0.08385, ltp: "0.08385 USDT", change: -1.63, leverage: "1000x", volume: "440.45M USDT", rawVolume: 440450000, quoteAsset: "USDT", isLive: true, sortOrder: 6 },
+    { symbol: "NEARUSDT", providerSymbol: "NEARUSDT", pair: "NEAR-USDT", name: "NEAR Protocol", category: "USDT Futures", rawPrice: 2.453, ltp: "2.453 USDT", change: 2.00, leverage: "1000x", volume: "310.20M USDT", rawVolume: 310200000, quoteAsset: "USDT", isLive: true, sortOrder: 7 },
+    { symbol: "BCHUSDT", providerSymbol: "BCHUSDT", pair: "BCH-USDT", name: "Bitcoin Cash", category: "USDT Futures", rawPrice: 226.41, ltp: "226.41 USDT", change: -8.56, leverage: "1000x", volume: "185.40M USDT", rawVolume: 185400000, quoteAsset: "USDT", isLive: true, sortOrder: 8 },
+    { symbol: "BNBUSDT", providerSymbol: "BNBUSDT", pair: "BNB-USDT", name: "BNB", category: "USDT Futures", rawPrice: 713.50, ltp: "713.50 USDT", change: -0.72, leverage: "1000x", volume: "520.10M USDT", rawVolume: 520100000, quoteAsset: "USDT", isLive: true, sortOrder: 9 },
+    { symbol: "DOTUSDT", providerSymbol: "DOTUSDT", pair: "DOT-USDT", name: "Polkadot", category: "USDT Futures", rawPrice: 1.115, ltp: "1.115 USDT", change: 0.94, leverage: "1000x", volume: "95.30M USDT", rawVolume: 95300000, quoteAsset: "USDT", isLive: true, sortOrder: 10 },
+    { symbol: "LTCUSDT", providerSymbol: "LTCUSDT", pair: "LTC-USDT", name: "Litecoin", category: "USDT Futures", rawPrice: 52.89, ltp: "52.89 USDT", change: 0.82, leverage: "1000x", volume: "120.40M USDT", rawVolume: 120400000, quoteAsset: "USDT", isLive: true, sortOrder: 11 },
+    { symbol: "UNIUSDT", providerSymbol: "UNIUSDT", pair: "UNI-USDT", name: "Uniswap", category: "USDT Futures", rawPrice: 6.057, ltp: "6.057 USDT", change: 0.46, leverage: "1000x", volume: "88.20M USDT", rawVolume: 88200000, quoteAsset: "USDT", isLive: true, sortOrder: 12 },
+    { symbol: "SUIUSDT", providerSymbol: "SUIUSDT", pair: "SUI-USDT", name: "Sui", category: "USDT Futures", rawPrice: 0.7338, ltp: "0.7338 USDT", change: -4.15, leverage: "1000x", volume: "145.60M USDT", rawVolume: 145600000, quoteAsset: "USDT", isLive: true, sortOrder: 13 },
+    { symbol: "ADAUSDT", providerSymbol: "ADAUSDT", pair: "ADA-USDT", name: "Cardano", category: "USDT Futures", rawPrice: 0.7059, ltp: "0.7059 USDT", change: -4.14, leverage: "1000x", volume: "110.80M USDT", rawVolume: 110800000, quoteAsset: "USDT", isLive: true, sortOrder: 14 },
+    { symbol: "ARBUSDT", providerSymbol: "ARBUSDT", pair: "ARB-USDT", name: "Arbitrum", category: "USDT Futures", rawPrice: 0.14265, ltp: "0.14265 USDT", change: -4.22, leverage: "1000x", volume: "75.40M USDT", rawVolume: 75400000, quoteAsset: "USDT", isLive: true, sortOrder: 15 },
+    { symbol: "1000PEPEUSDT", providerSymbol: "1000PEPEUSDT", pair: "1000PEPE-USDT", name: "Pepe", category: "USDT Futures", rawPrice: 0.00130, ltp: "0.00130 USDT", change: -4.21, leverage: "1000x", volume: "210.50M USDT", rawVolume: 210500000, quoteAsset: "USDT", isLive: true, sortOrder: 16 }
+];
+
+const DEFAULT_FALLBACK_STATS = {
+    total_contracts: 40,
+    futures_count: 36,
+    commodity_count: 1,
+    options_count: 3,
+    max_leverage: 1000
+};
+
 let allMarkets = [];
 let activeCategory = "USDT Futures";
 let marketSocket = null;
@@ -64,6 +91,8 @@ const marketsPageIntro = document.getElementById("marketsPageIntro");
 
 function closeMarketsPageIntro(force = false) {
     if (!marketsPageIntro || marketsPageIntro.dataset.closed === "true") return;
+
+    if (!force && allMarkets.length === 0) return;
 
     const now = typeof performance !== "undefined" ? performance.now() : Date.now();
     const elapsed = Math.max(0, now - marketIntroStartedAt);
@@ -332,7 +361,7 @@ function getTradeLink(market) {
         return `./options.html?symbol=${encodeURIComponent(underlyingSymbol)}`;
     }
 
-    return `./futures.html?symbol=${encodeURIComponent(market.symbol)}`;
+    return `./trade.html?symbol=${encodeURIComponent(market.symbol)}`;
 }
 
 function getTradeText(market) {
@@ -445,7 +474,7 @@ function normalizeMarketItem(item) {
         isLive: Boolean(item.is_live || item.isLive || rawPrice > 0),
         quoteAsset,
         marketType: item.market_type || item.marketType || "futures",
-        tradePage: item.trade_page || item.tradePage || (category === "Options" ? "options" : "futures"),
+        tradePage: item.trade_page || item.tradePage || (category === "Options" ? "options" : "trade"),
         sortOrder: Number(item.sort_order || item.sortOrder || 999),
         highPrice: Number(item.high_price || item.highPrice || 0),
         lowPrice: Number(item.low_price || item.lowPrice || 0),
@@ -739,9 +768,39 @@ function refreshMarketUI(stats = null) {
 }
 
 function applyMarkets(markets, stats = null) {
+    if (!Array.isArray(markets) || !markets.length) return;
     allMarkets = sortMarketsByDefault(markets);
     updateLookupMaps();
     refreshMarketUI(stats);
+
+    try {
+        localStorage.setItem("tx_cached_market_board", JSON.stringify({
+            markets: allMarkets,
+            stats: stats || null,
+            timestamp: Date.now()
+        }));
+    } catch (e) {}
+}
+
+function hydrateMarketCache() {
+    try {
+        const raw = localStorage.getItem("tx_cached_market_board");
+        if (raw) {
+            const cached = JSON.parse(raw);
+            if (Array.isArray(cached.markets) && cached.markets.length > 0) {
+                applyMarkets(cached.markets, cached.stats);
+                return true;
+            }
+        }
+    } catch (e) {}
+
+    // Initial fallback if no cache exists yet
+    if (Array.isArray(DEFAULT_FALLBACK_MARKETS) && DEFAULT_FALLBACK_MARKETS.length > 0) {
+        applyMarkets(DEFAULT_FALLBACK_MARKETS, DEFAULT_FALLBACK_STATS);
+        return true;
+    }
+
+    return false;
 }
 
 function setActiveTab(button) {
@@ -1149,6 +1208,13 @@ function initMarketSlider() {
 }
 
 async function loadMarkets() {
+    initTabs();
+    initSearchAndSort();
+    initMarketSlider();
+
+    // Instant local cache hydration so UI is immediately loaded behind the intro
+    hydrateMarketCache();
+
     const txIntroStatus = document.getElementById("marketsIntroStatus");
     if (txIntroStatus) {
         const statuses = [
@@ -1174,9 +1240,6 @@ async function loadMarkets() {
     }
 
     setMarketStatus("", "loading");
-    initTabs();
-    initSearchAndSort();
-    initMarketSlider();
 
     if (typeof apiRequest !== "function") {
         setMarketStatus("Config Error", "error", "api-config.js missing");

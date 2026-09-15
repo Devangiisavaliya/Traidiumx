@@ -77,7 +77,7 @@ def validate_order_payload(data):
             errors["leverage"] = "Leverage must be at least 1."
 
         if stored_symbol:
-            max_leverage = int(stored_symbol.get("max_leverage", 20))
+            max_leverage = int(stored_symbol.get("max_leverage", 1000))
 
             if leverage > max_leverage:
                 errors["leverage"] = f"Maximum leverage for {symbol} is {max_leverage}x."

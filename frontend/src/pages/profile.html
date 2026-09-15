@@ -6,10 +6,32 @@
 
     <title>Profile | TraidiumX</title>
 
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+    </script>
+
     <link rel="stylesheet" href="../../dist/output.css" />
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <style>
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+    </style>
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
@@ -1946,7 +1968,7 @@
 
     <main class="tx-profile-main">
         <section class="tx-profile-wrap">
-            <div class="tx-profile-hero">
+            <div class="tx-profile-hero tx-scroll-reveal" data-reveal-delay="50">
                 <header class="tx-profile-card tx-profile-summary">
                     <div class="tx-profile-summary-main">
                         <div class="tx-profile-avatar" aria-hidden="true">
@@ -2001,7 +2023,7 @@
 
             <div id="profileMessage" class="mb-6 hidden rounded-2xl border px-5 py-4 text-sm font-black"></div>
 
-            <section id="profileKycNotice" class="tx-profile-kyc-notice" data-kyc-state="pending" aria-live="polite">
+            <section id="profileKycNotice" class="tx-profile-kyc-notice tx-scroll-reveal" data-reveal-delay="100" data-kyc-state="pending" aria-live="polite">
                 <div class="tx-profile-kyc-notice-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 5.5 5.6v5.1c0 4.2 2.5 7.9 6.5 9.3 4-1.4 6.5-5.1 6.5-9.3V5.6L12 3Z" stroke="currentColor" stroke-width="1.7"/><path d="m9.2 12 1.7 1.7 4-4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
@@ -2013,7 +2035,7 @@
                 <button id="profileKycNoticeBtn" type="button" class="tx-profile-kyc-notice-btn" data-profile-open-kyc>Complete KYC</button>
             </section>
 
-            <nav class="tx-profile-tabs" aria-label="Profile sections">
+            <nav class="tx-profile-tabs tx-scroll-reveal" data-reveal-delay="150" aria-label="Profile sections">
                 <button type="button" class="tx-profile-tab active" data-profile-tab="overview" aria-controls="profileOverviewPanel" aria-selected="true">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 20c.6-3.5 3-5.5 6.5-5.5s5.9 2 6.5 5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
                     Overview
@@ -2043,7 +2065,7 @@
 
             <div id="profileOverviewPanel" class="tx-profile-tab-panel" data-profile-panel="overview">
                 <div class="tx-profile-single-column">
-                    <section class="tx-profile-card tx-profile-overview-card">
+                    <section class="tx-profile-card tx-profile-overview-card tx-scroll-reveal" data-reveal-delay="200">
                         <div class="tx-profile-section-head">
                             <div class="tx-profile-heading-wrap">
                                 <p class="tx-profile-section-kicker">Account Overview</p>
@@ -2616,9 +2638,32 @@
                         <!-- Create Sub Account Form -->
                         <div class="border-b border-white/5 pb-6">
                             <h3 class="text-sm font-black uppercase tracking-wider text-cyan-300 mb-3">Create New Sub Account</h3>
+                            
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">1. Select a real or demo account:</label>
+                                <div class="grid grid-cols-2 gap-2 max-w-sm bg-slate-900/80 p-1 rounded-xl border border-slate-700/80">
+                                    <button type="button" id="profileSubModeRealBtn" class="py-2 px-3 rounded-lg text-xs font-extrabold bg-cyan-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <span>🟢 Real</span>
+                                    </button>
+                                    <button type="button" id="profileSubModeDemoBtn" class="py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5">
+                                        <span>🟡 Demo</span>
+                                    </button>
+                                </div>
+                            </div>
+
                             <form id="profileCreateSubForm" class="flex flex-col sm:flex-row gap-3">
                                 <input id="profileNewSubNameInput" type="text" placeholder="Sub account name (e.g. Scalping, Day Trading)" class="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400" required style="background-color: #090e1a;" />
-                                <button type="submit" class="rounded-xl bg-cyan-400 px-6 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300 transition">Create Account</button>
+                                <div id="profileSubPlanWrapper">
+                                    <select id="profileNewSubPlanSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-cyan-300 outline-none focus:border-cyan-400 cursor-pointer" style="background-color: #090e1a;">
+                                        <option value="basic">🟢 Basic (Fixed 18 USDT Spread · Min 0 USDT)</option>
+                                        <option value="standard">🔵 Standard (Fixed 12 USDT Spread · Min 2,000 USDT)</option>
+                                        <option value="advanced">🟣 Advanced (Fixed 5 USDT Spread · Min 5,000 USDT)</option>
+                                    </select>
+                                </div>
+                                <div id="profileSubDemoInfoWrapper" class="hidden p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs flex items-center">
+                                    <span class="text-amber-300 font-bold">🟡 $10,000 USDT Virtual Balance pre-credited</span>
+                                </div>
+                                <button type="submit" class="rounded-xl bg-cyan-400 px-6 py-3 text-sm font-black text-slate-950 hover:bg-cyan-300 transition shrink-0">Create Account</button>
                             </form>
                             <p id="profileCreateSubMessage" class="hidden text-xs font-bold mt-2"></p>
                         </div>
@@ -2805,6 +2850,77 @@
 
 
 
+    <script src="../js/lenis.min.js"></script>
+    <script>
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js"></script>

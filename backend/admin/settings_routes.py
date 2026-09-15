@@ -43,7 +43,7 @@ DEFAULT_SETTINGS = {
     "advanced_plan_spread_value": 5.0,
     "advanced_plan_minimum_balance": 5000,
 
-    "default_max_leverage": 20,
+    "default_max_leverage": 1000,
     "min_order_notional": 10,
     "max_order_notional": 10000,
 

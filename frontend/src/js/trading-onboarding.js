@@ -8,6 +8,7 @@
         data: null,
         selectedPlatform: "",
         selectedPlan: "",
+        accountMode: "real",
         loading: false,
         mobileAppStepCompleted: false,
         onboardingCompleted: false,
@@ -488,12 +489,53 @@
 
     function plansHtml(data) {
         const plans = Array.isArray(data.plans) ? data.plans : [];
-        return `<div class="tx-ob-plans">${plans.map((plan) => `
-            <button type="button" class="tx-ob-plan ${state.selectedPlan === plan.key ? "selected" : ""}" data-plan="${esc(plan.key)}">
-                <div class="tx-ob-plan-name">${esc(plan.name)}</div>
-                <div class="tx-ob-plan-pips">${formatSpread(plan.spread_value, plan.spread_type)}</div>
-                <div class="tx-ob-plan-min">Minimum trading balance<br><strong>${money(plan.minimum_balance)} USDT</strong></div>
-            </button>`).join("")}</div>`;
+        const mode = state.accountMode || "real";
+        return `
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                    1. Select a real or demo account:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(15, 23, 42, 0.8); padding: 4px; border-radius: 16px; border: 1px solid rgba(51, 65, 85, 0.7);">
+                    <button type="button" class="tx-ob-mode-btn" data-account-mode="real" style="padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; ${mode === 'real' ? 'background: #22d3ee; color: #020617; box-shadow: 0 4px 14px rgba(34,211,238,0.3);' : 'background: transparent; color: #94a3b8;'}">
+                        <span>🟢 Real</span>
+                    </button>
+                    <button type="button" class="tx-ob-mode-btn" data-account-mode="demo" style="padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; ${mode === 'demo' ? 'background: #f59e0b; color: #020617; box-shadow: 0 4px 14px rgba(245,158,11,0.3);' : 'background: transparent; color: #94a3b8;'}">
+                        <span>🟡 Demo</span>
+                    </button>
+                </div>
+            </div>
+
+            ${mode === 'real' ? `
+                <div style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                    2. Choose account type:
+                </div>
+                <div class="tx-ob-plans">${plans.map((plan) => `
+                    <button type="button" class="tx-ob-plan ${state.selectedPlan === plan.key ? "selected" : ""}" data-plan="${esc(plan.key)}">
+                        <div class="tx-ob-plan-name">${esc(plan.name)}</div>
+                        <div class="tx-ob-plan-pips">${formatSpread(plan.spread_value, plan.spread_type)}</div>
+                        <div class="tx-ob-plan-min">Minimum trading balance<br><strong>${money(plan.minimum_balance)} USDT</strong></div>
+                    </button>`).join("")}
+                </div>
+            ` : `
+                <div style="font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                    2. Demo account details:
+                </div>
+                <div style="border: 1.5px solid rgba(245, 158, 11, 0.45); background: linear-gradient(145deg, rgba(245, 158, 11, 0.12), rgba(15, 23, 42, 0.8)); border-radius: 20px; padding: 22px; text-align: left; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="font-size: 17px; font-weight: 950; color: #fbbf24;">TraidiumX Demo Sub-Account</span>
+                        <span style="font-size: 11px; font-weight: 900; background: #f59e0b; color: #020617; padding: 3px 10px; border-radius: 99px; text-transform: uppercase;">10,000 USDT Virtual</span>
+                    </div>
+                    <p style="color: #e2e8f0; font-size: 13px; line-height: 1.6; margin: 0 0 14px 0;">
+                        Practice trading with real market data and <strong>$10,000 in virtual funds</strong>. Risk-free environment with 1-click demo top-up & reset anytime.
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; font-weight: 800; color: #fde68a;">
+                        <span>✓ Live Binance Price Feeds</span>
+                        <span>✓ 1-Click Top-Up Anytime</span>
+                        <span>✓ Instant Switch to Real</span>
+                    </div>
+                </div>
+            `}
+        `;
     }
 
     function activationHtml(data) {
@@ -551,7 +593,18 @@
     function actionsHtml(step) {
         if (step === 1) return `<div class="tx-ob-actions"><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlatform ? "" : "disabled"}>Continue</button></div>`;
         if (step === 4) return ``; // Step 4 (Mobile App) renders its own actions inside the mockup body
-        if (step === 2) return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Back</button><button class="tx-ob-btn primary" id="txObNext" ${state.selectedPlan ? "" : "disabled"}>Continue</button></div>`;
+        if (step === 2) {
+            const isDemo = state.accountMode === "demo";
+            const canContinue = isDemo || !!state.selectedPlan;
+            return `
+                <div class="tx-ob-actions">
+                    <button class="tx-ob-btn" id="txObBack">Back</button>
+                    <button class="tx-ob-btn primary" id="txObNext" ${canContinue ? "" : "disabled"}>
+                        ${isDemo ? "Start Demo Trading" : "Continue"}
+                    </button>
+                </div>
+            `;
+        }
         const data = state.data || {};
         const needsFunding = state.selectedPlatform === "mt5" ? false : !!data.funding_required;
         return `<div class="tx-ob-actions"><button class="tx-ob-btn" id="txObBack">Change plan</button>${needsFunding ? `<a class="tx-ob-btn primary" href="/src/pages/wallet.html">Deposit / Transfer Funds</a>` : `<button class="tx-ob-btn primary" id="txObConfirm">Confirm</button>`}</div>`;
@@ -643,6 +696,10 @@
             document.querySelectorAll("[data-platform]").forEach((item) => item.classList.toggle("selected", item === button));
             const next = document.getElementById("txObNext"); if (next) next.disabled = false;
         }));
+        document.querySelectorAll("[data-account-mode]").forEach((btn) => btn.addEventListener("click", () => {
+            state.accountMode = btn.getAttribute("data-account-mode") || "real";
+            render();
+        }));
         document.querySelectorAll("[data-plan]").forEach((button) => button.addEventListener("click", () => {
             state.selectedPlan = button.dataset.plan || "";
             document.querySelectorAll("[data-plan]").forEach((item) => item.classList.toggle("selected", item === button));
@@ -664,6 +721,36 @@
         document.getElementById("txObNext")?.addEventListener("click", async () => {
             try {
                 setLoading(true); message("");
+
+                if (step === 2 && state.accountMode === "demo") {
+                    try {
+                        // Complete onboarding plan with default basic in background
+                        await apiRequest("/onboarding/plan", { method: "POST", body: JSON.stringify({ plan: "basic" }) });
+                        
+                        // Create Demo Sub-Account pre-funded with 10,000 USDT
+                        const demoResp = await apiRequest("/user/sub-accounts", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                name: "Demo Account",
+                                account_mode: "demo",
+                                plan: "demo",
+                                is_demo: true
+                            })
+                        });
+                        
+                        if (demoResp.data && demoResp.data.id) {
+                            localStorage.setItem("traidiumx_active_user_id", demoResp.data.id);
+                            localStorage.setItem("traidiumx_active_user_name", demoResp.data.name || "Demo Account");
+                        }
+                        hide();
+                        window.location.href = resolveAppPath("src/pages/futures.html");
+                        return;
+                    } catch (demoErr) {
+                        message(demoErr?.message || "Failed to create demo account.", "error");
+                        return;
+                    }
+                }
+
                 const endpoint = step === 1 ? "/onboarding/platform" : "/onboarding/plan";
                 const body = step === 1 ? { platform: state.selectedPlatform } : { plan: state.selectedPlan };
                 const response = await apiRequest(endpoint, { method: "POST", body: JSON.stringify(body) });

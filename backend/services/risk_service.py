@@ -13,6 +13,9 @@ def calculate_liquidation_price(position_side, entry_price, leverage, margin_mod
         return 0.0
 
     maintenance_margin_rate = float(settings.MAINTENANCE_MARGIN_RATE)
+    if leverage > 0:
+        # Maintenance margin rate must always be smaller than the initial margin rate (1/leverage)
+        maintenance_margin_rate = min(maintenance_margin_rate, (1.0 / leverage) * 0.5)
 
     if margin_mode == "cross" and wallet_balance is not None and quantity is not None and quantity > 0:
         wallet_balance = float(wallet_balance)

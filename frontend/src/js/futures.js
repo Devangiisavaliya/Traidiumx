@@ -24,41 +24,41 @@ const ORDERS_KEY = "traidiumx_demo_orders_v1";
 const HISTORY_KEY = "traidiumx_demo_history_v1";
 
 const pairs = [
-    { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿", minQty: 0.001, step: 0.001, maxLeverage: 50, quoteAsset: "USDT", categories: ["layer1"], baseVol: "8.54B", defaultFunding: "0.00996%", defaultChange: -1.25 },
-    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "504.19M", defaultFunding: "0.00000%", defaultChange: 1.00 },
-    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "◆", minQty: 0.01, step: 0.01, maxLeverage: 50, quoteAsset: "USDT", categories: ["layer1"], baseVol: "6.53B", defaultFunding: "0.00255%", defaultChange: -0.68 },
-    { symbol: "BCHUSDT", label: "BCH-USDT", icon: "C", minQty: 0.01, step: 0.01, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "122.64M", defaultFunding: "0.00181%", defaultChange: -0.16 },
-    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "795.47M", defaultFunding: "0.01000%", defaultChange: -0.38 },
-    { symbol: "LTCUSDT", label: "LTC-USDT", icon: "Ł", minQty: 0.01, step: 0.01, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "155.06M", defaultFunding: "-0.00333%", defaultChange: -0.82 },
-    { symbol: "TRXUSDT", label: "TRX-USDT", icon: "T", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.54M", defaultFunding: "+0.00068%", defaultChange: 0.58 },
-    { symbol: "ETCUSDT", label: "ETC-USDT", icon: "E", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.82M", defaultFunding: "0.01000%", defaultChange: 3.96 },
-    { symbol: "LINKUSDT", label: "LINK-USDT", icon: "L", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["defi"], baseVol: "200.92M", defaultFunding: "-0.00066%", defaultChange: -4.64 },
-    { symbol: "XLMUSDT", label: "XLM-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "86.79M", defaultFunding: "0.01000%", defaultChange: -1.28 },
-    { symbol: "ADAUSDT", label: "ADA-USDT", icon: "A", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "191.30M", defaultFunding: "0.01000%", defaultChange: -1.04 },
-    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "1.82B", defaultFunding: "0.00850%", defaultChange: 2.15 },
-    { symbol: "DOGEUSDT", label: "DOGE-USDT", icon: "Ð", minQty: 1, step: 1, maxLeverage: 20, quoteAsset: "USDT", categories: ["meme"], baseVol: "412.30M", defaultFunding: "0.01000%", defaultChange: -1.45 },
-    { symbol: "AVAXUSDT", label: "AVAX-USDT", icon: "V", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "178.60M", defaultFunding: "0.00920%", defaultChange: -0.95 },
-    { symbol: "DOTUSDT", label: "DOT-USDT", icon: "D", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "88.20M", defaultFunding: "0.00780%", defaultChange: 0.85 },
-    { symbol: "ATOMUSDT", label: "ATOM-USDT", icon: "M", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "62.40M", defaultFunding: "0.01000%", defaultChange: -0.55 },
-    { symbol: "UNIUSDT", label: "UNI-USDT", icon: "U", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["defi"], baseVol: "74.10M", defaultFunding: "0.00640%", defaultChange: 1.20 },
-    { symbol: "APTUSDT", label: "APT-USDT", icon: "P", minQty: 0.1, step: 0.1, maxLeverage: 20, quoteAsset: "USDT", categories: ["layer1"], baseVol: "95.80M", defaultFunding: "0.01000%", defaultChange: -2.10 },
-    { symbol: "NEARUSDT", label: "NEAR-USDT", icon: "N", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "ai"], baseVol: "142.30M", defaultFunding: "0.00890%", defaultChange: 3.40 },
-    { symbol: "SUIUSDT", label: "SUI-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "310.50M", defaultFunding: "0.01000%", defaultChange: 4.80 },
-    { symbol: "1000PEPEUSDT", label: "PEPE-USDT", icon: "P", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000PEPEUSDT", baseVol: "580.40M", defaultFunding: "0.01000%", defaultChange: -3.20 },
-    { symbol: "1000SHIBUSDT", label: "SHIB-USDT", icon: "S", minQty: 10, step: 10, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000SHIBUSDT", baseVol: "215.10M", defaultFunding: "0.01000%", defaultChange: -0.75 },
-    { symbol: "MATICUSDT", label: "MATIC-USDT", icon: "M", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "84.70M", defaultFunding: "0.01000%", defaultChange: 0.40 },
-    { symbol: "ARBUSDT", label: "ARB-USDT", icon: "A", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "110.20M", defaultFunding: "0.00950%", defaultChange: -1.15 },
-    { symbol: "OPUSDT", label: "OP-USDT", icon: "O", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "98.40M", defaultFunding: "0.00900%", defaultChange: 1.60 },
-    { symbol: "INJUSDT", label: "INJ-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["defi"], baseVol: "82.30M", defaultFunding: "0.01000%", defaultChange: 2.80 },
-    { symbol: "WIFUSDT", label: "WIF-USDT", icon: "W", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["meme", "new"], baseVol: "245.80M", defaultFunding: "0.01000%", defaultChange: -2.60 },
-    { symbol: "FETUSDT", label: "FET-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "165.40M", defaultFunding: "0.01000%", defaultChange: 5.10 },
-    { symbol: "TIAUSDT", label: "TIA-USDT", icon: "T", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "89.10M", defaultFunding: "0.01000%", defaultChange: -1.80 },
-    { symbol: "FILUSDT", label: "FIL-USDT", icon: "F", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "68.30M", defaultFunding: "0.00800%", defaultChange: -0.90 },
-    { symbol: "RENDERUSDT", label: "RENDER-USDT", icon: "R", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["ai"], baseVol: "135.20M", defaultFunding: "0.01000%", defaultChange: 3.75 },
-    { symbol: "SEIUSDT", label: "SEI-USDT", icon: "S", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "78.90M", defaultFunding: "0.01000%", defaultChange: 2.20 },
-    { symbol: "ICPUSDT", label: "ICP-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "54.20M", defaultFunding: "0.00750%", defaultChange: -1.10 },
-    { symbol: "FTMUSDT", label: "FTM-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 25, quoteAsset: "USDT", categories: ["layer1"], baseVol: "42.10M", defaultFunding: "0.01000%", defaultChange: 0.90 },
-    { symbol: "XAUUSDT", label: "XAU-USDT", icon: "G", minQty: 0.01, step: 0.01, maxLeverage: 20, marketType: "commodity", quoteAsset: "USDT", providerSymbol: "XAUUSDT", categories: ["tradfi"], baseVol: "1.15B", defaultFunding: "0.00500%", defaultChange: 0.35 }
+    { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿", minQty: 0.001, step: 0.001, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "8.54B", defaultFunding: "0.00996%", defaultChange: -1.25 },
+    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B", minQty: 0.01, step: 0.01, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "504.19M", defaultFunding: "0.00000%", defaultChange: 1.00 },
+    { symbol: "ETHUSDT", label: "ETH-USDT", icon: "◆", minQty: 0.01, step: 0.01, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "6.53B", defaultFunding: "0.00255%", defaultChange: -0.68 },
+    { symbol: "BCHUSDT", label: "BCH-USDT", icon: "C", minQty: 0.01, step: 0.01, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "122.64M", defaultFunding: "0.00181%", defaultChange: -0.16 },
+    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "795.47M", defaultFunding: "0.01000%", defaultChange: -0.38 },
+    { symbol: "LTCUSDT", label: "LTC-USDT", icon: "Ł", minQty: 0.01, step: 0.01, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "155.06M", defaultFunding: "-0.00333%", defaultChange: -0.82 },
+    { symbol: "TRXUSDT", label: "TRX-USDT", icon: "T", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.54M", defaultFunding: "+0.00068%", defaultChange: 0.58 },
+    { symbol: "ETCUSDT", label: "ETC-USDT", icon: "E", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "46.82M", defaultFunding: "0.01000%", defaultChange: 3.96 },
+    { symbol: "LINKUSDT", label: "LINK-USDT", icon: "L", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["defi"], baseVol: "200.92M", defaultFunding: "-0.00066%", defaultChange: -4.64 },
+    { symbol: "XLMUSDT", label: "XLM-USDT", icon: "X", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "86.79M", defaultFunding: "0.01000%", defaultChange: -1.28 },
+    { symbol: "ADAUSDT", label: "ADA-USDT", icon: "A", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "191.30M", defaultFunding: "0.01000%", defaultChange: -1.04 },
+    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "1.82B", defaultFunding: "0.00850%", defaultChange: 2.15 },
+    { symbol: "DOGEUSDT", label: "DOGE-USDT", icon: "Ð", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["meme"], baseVol: "412.30M", defaultFunding: "0.01000%", defaultChange: -1.45 },
+    { symbol: "AVAXUSDT", label: "AVAX-USDT", icon: "V", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "178.60M", defaultFunding: "0.00920%", defaultChange: -0.95 },
+    { symbol: "DOTUSDT", label: "DOT-USDT", icon: "D", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "88.20M", defaultFunding: "0.00780%", defaultChange: 0.85 },
+    { symbol: "ATOMUSDT", label: "ATOM-USDT", icon: "M", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "62.40M", defaultFunding: "0.01000%", defaultChange: -0.55 },
+    { symbol: "UNIUSDT", label: "UNI-USDT", icon: "U", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["defi"], baseVol: "74.10M", defaultFunding: "0.00640%", defaultChange: 1.20 },
+    { symbol: "APTUSDT", label: "APT-USDT", icon: "P", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "95.80M", defaultFunding: "0.01000%", defaultChange: -2.10 },
+    { symbol: "NEARUSDT", label: "NEAR-USDT", icon: "N", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1", "ai"], baseVol: "142.30M", defaultFunding: "0.00890%", defaultChange: 3.40 },
+    { symbol: "SUIUSDT", label: "SUI-USDT", icon: "S", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "310.50M", defaultFunding: "0.01000%", defaultChange: 4.80 },
+    { symbol: "1000PEPEUSDT", label: "PEPE-USDT", icon: "P", minQty: 10, step: 10, maxLeverage: 1000, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000PEPEUSDT", baseVol: "580.40M", defaultFunding: "0.01000%", defaultChange: -3.20 },
+    { symbol: "1000SHIBUSDT", label: "SHIB-USDT", icon: "S", minQty: 10, step: 10, maxLeverage: 1000, quoteAsset: "USDT", categories: ["meme"], providerSymbol: "1000SHIBUSDT", baseVol: "215.10M", defaultFunding: "0.01000%", defaultChange: -0.75 },
+    { symbol: "MATICUSDT", label: "MATIC-USDT", icon: "M", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "84.70M", defaultFunding: "0.01000%", defaultChange: 0.40 },
+    { symbol: "ARBUSDT", label: "ARB-USDT", icon: "A", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "110.20M", defaultFunding: "0.00950%", defaultChange: -1.15 },
+    { symbol: "OPUSDT", label: "OP-USDT", icon: "O", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "98.40M", defaultFunding: "0.00900%", defaultChange: 1.60 },
+    { symbol: "INJUSDT", label: "INJ-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["defi"], baseVol: "82.30M", defaultFunding: "0.01000%", defaultChange: 2.80 },
+    { symbol: "WIFUSDT", label: "WIF-USDT", icon: "W", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["meme", "new"], baseVol: "245.80M", defaultFunding: "0.01000%", defaultChange: -2.60 },
+    { symbol: "FETUSDT", label: "FET-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["ai"], baseVol: "165.40M", defaultFunding: "0.01000%", defaultChange: 5.10 },
+    { symbol: "TIAUSDT", label: "TIA-USDT", icon: "T", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "89.10M", defaultFunding: "0.01000%", defaultChange: -1.80 },
+    { symbol: "FILUSDT", label: "FIL-USDT", icon: "F", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["ai"], baseVol: "68.30M", defaultFunding: "0.00800%", defaultChange: -0.90 },
+    { symbol: "RENDERUSDT", label: "RENDER-USDT", icon: "R", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["ai"], baseVol: "135.20M", defaultFunding: "0.01000%", defaultChange: 3.75 },
+    { symbol: "SEIUSDT", label: "SEI-USDT", icon: "S", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1", "new"], baseVol: "78.90M", defaultFunding: "0.01000%", defaultChange: 2.20 },
+    { symbol: "ICPUSDT", label: "ICP-USDT", icon: "I", minQty: 0.1, step: 0.1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "54.20M", defaultFunding: "0.00750%", defaultChange: -1.10 },
+    { symbol: "FTMUSDT", label: "FTM-USDT", icon: "F", minQty: 1, step: 1, maxLeverage: 1000, quoteAsset: "USDT", categories: ["layer1"], baseVol: "42.10M", defaultFunding: "0.01000%", defaultChange: 0.90 },
+    { symbol: "XAUUSDT", label: "XAU-USDT", icon: "G", minQty: 0.01, step: 0.01, maxLeverage: 1000, marketType: "commodity", quoteAsset: "USDT", providerSymbol: "XAUUSDT", categories: ["tradfi"], baseVol: "1.15B", defaultFunding: "0.00500%", defaultChange: 0.35 }
 ];
 
 const defaultPrices = {
@@ -355,14 +355,14 @@ function getPair(symbol = state.currentSymbol) {
         icon: symbol.charAt(0),
         minQty: 0.01,
         step: 0.01,
-        maxLeverage: 50,
+        maxLeverage: 1000,
         quoteAsset: "USDT"
     };
 }
 
 function getMaxLeverageForPair(symbol = state.currentSymbol) {
     const pair = getPair(symbol);
-    return Number(pair.maxLeverage || 20);
+    return Number(pair.maxLeverage || 1000);
 }
 
 function syncLeverageOptions(symbol = state.currentSymbol) {
@@ -371,17 +371,18 @@ function syncLeverageOptions(symbol = state.currentSymbol) {
     }
 
     const maxLeverage = getMaxLeverageForPair(symbol);
-    const allowedValues = [1, 2, 3, 5, 10, 20, 25, 50].filter((value) => value <= maxLeverage);
-    const currentValue = Number(elements.leverageSelect.value || 10);
+    const allowedValues = [1, 2, 3, 5, 10, 20, 25, 50, 75, 100, 125, 150, 200, 250, 500, 1000].filter((value) => value <= maxLeverage);
+    const savedLeverage = Number(localStorage.getItem("tx_futures_leverage") || 100);
+    const currentValue = Number(elements.leverageSelect.value || savedLeverage || 100);
 
     elements.leverageSelect.innerHTML = allowedValues.map((value) => {
         return `<option value="${value}">${value}x</option>`;
     }).join("");
 
-    const nextValue = Math.min(currentValue || 10, maxLeverage);
-    const selectedValue = allowedValues.includes(nextValue)
-        ? nextValue
-        : allowedValues[allowedValues.length - 1];
+    let selectedValue = allowedValues.includes(currentValue) ? currentValue : 100;
+    if (!allowedValues.includes(selectedValue)) {
+        selectedValue = allowedValues[allowedValues.length - 1];
+    }
 
     elements.leverageSelect.value = String(selectedValue);
 
@@ -1275,8 +1276,7 @@ function updateMetricsFromTicker(ticker) {
     const sign = change >= 0 ? "+" : "";
 
     if (elements.markPrice) {
-        const mark = txGetLivePriceForSymbol(state.currentSymbol, price);
-        elements.markPrice.textContent = formatNumber(mark, mark < 1 ? 6 : 2);
+        elements.markPrice.textContent = formatNumber(price, price < 1 ? 4 : 2);
     }
 
     if (elements.indexPrice) {
@@ -1776,9 +1776,8 @@ function updateLivePrice(price) {
 
     const decimals = numericPrice < 1 ? 4 : 2;
 
-    const realMarkPrice = Number(state.markPrices[state.currentSymbol] || state.markPrices[txGetProviderSymbol(state.currentSymbol)] || 0);
     if (elements.markPrice) {
-        elements.markPrice.textContent = realMarkPrice > 0 ? formatNumber(realMarkPrice, realMarkPrice < 1 ? 6 : 2) : formatNumber(numericPrice, decimals);
+        elements.markPrice.textContent = formatNumber(numericPrice, decimals);
     }
 
     if (elements.indexPrice) {
@@ -3283,11 +3282,11 @@ function getQuantity() {
 }
 
 function getLeverage() {
-    const selectedLeverage = Number(elements.leverageSelect?.value || 1);
+    const selectedLeverage = Number(elements.leverageSelect?.value || 100);
     const maxLeverage = getMaxLeverageForPair();
 
     if (!Number.isFinite(selectedLeverage) || selectedLeverage < 1) {
-        return 1;
+        return 100;
     }
 
     return Math.min(selectedLeverage, maxLeverage);
@@ -4166,7 +4165,7 @@ function txUpdateEstimatedMargin() {
     const quantity = Number(elements.quantityInput ? elements.quantityInput.value : 0);
 
     // Get leverage
-    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 10);
+    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 100);
 
     // Calculate estimated margin
     let estMargin = 0;
@@ -4314,7 +4313,12 @@ function initEvents() {
         elements.limitPriceInput.addEventListener("change", txUpdateEstimatedMargin);
     }
     if (elements.leverageSelect) {
-        elements.leverageSelect.addEventListener("change", txUpdateEstimatedMargin);
+        elements.leverageSelect.addEventListener("change", () => {
+            try {
+                localStorage.setItem("tx_futures_leverage", elements.leverageSelect.value);
+            } catch (_) {}
+            txUpdateEstimatedMargin();
+        });
     }
     // Custom Margin Mode Dropdown Handler
     const marginModeBtn = document.getElementById("marginModeBtn");
@@ -4420,6 +4424,57 @@ function initEvents() {
         window.addEventListener("storage", (e) => {
             if (e.key === "tx_navbar_currency") {
                 syncActiveMobileCurrencyUI();
+            }
+        });
+    }
+
+    // Bind USD / INR Currency Toggle Pill inside Desktop Futures Header Bar
+    const headerCurrToggleContainer = document.getElementById("futuresHeaderCurrencyToggle");
+    if (headerCurrToggleContainer) {
+        const headerCurrBtns = headerCurrToggleContainer.querySelectorAll("[data-futures-curr]");
+
+        const syncActiveHeaderCurrencyUI = () => {
+            const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+            headerCurrBtns.forEach((btn) => {
+                const btnCurr = (btn.getAttribute("data-futures-curr") || "").toUpperCase();
+                const isActive = (btnCurr === activeCurr) || (btnCurr === "USDT" && activeCurr === "USD");
+                if (isActive) {
+                    btn.className = "px-2.5 py-1 rounded-full text-[11px] font-black transition cursor-pointer bg-cyan-400 text-slate-950 shadow-sm";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer bg-transparent text-slate-400 hover:text-white";
+                }
+            });
+        };
+
+        headerCurrBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const targetCurr = (btn.getAttribute("data-futures-curr") || "USDT").toUpperCase();
+                localStorage.setItem("tx_navbar_currency", targetCurr);
+                syncActiveHeaderCurrencyUI();
+                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: targetCurr } }));
+                window.dispatchEvent(new CustomEvent("traidiumx:wallet-sync"));
+                if (typeof updateFuturesDashboard === "function") {
+                    updateFuturesDashboard();
+                }
+                if (typeof renderPositionsTable === "function") {
+                    renderPositionsTable();
+                }
+            });
+        });
+
+        syncActiveHeaderCurrencyUI();
+        window.addEventListener("traidiumx:currency-change", () => {
+            syncActiveHeaderCurrencyUI();
+            if (typeof updateFuturesDashboard === "function") {
+                updateFuturesDashboard();
+            }
+        });
+        window.addEventListener("storage", (e) => {
+            if (e.key === "tx_navbar_currency") {
+                syncActiveHeaderCurrencyUI();
+                if (typeof updateFuturesDashboard === "function") {
+                    updateFuturesDashboard();
+                }
             }
         });
     }
@@ -6044,11 +6099,8 @@ function txBuildPositionRowHtml(position) {
     ) || txEstimateLiquidationPrice(entryPrice || markPrice, side, leverage);
     const rawPnl = calculatePositionPnl(position);
 
-    // Detect currency of the position
-    const posCurrency = String(position.currency || "USDT").toUpperCase();
-    const rate = posCurrency === "INR" ? (TX_FUTURES_USDT_RATE || 88.50) : 1.0;
-
-    const marginAmount = rawMargin * rate;
+    // Futures trading margin and P&L are strictly in USD
+    const marginAmount = rawMargin;
     const pnl = rawPnl; // Always in USD/USDT
 
     const pnlColorStyle = getPnlColorStyle(pnl);
@@ -6064,21 +6116,13 @@ function txBuildPositionRowHtml(position) {
     const tpValText = takeProfit > 0 ? formatNumber(takeProfit) : "-";
     const slValText = stopLoss > 0 ? formatNumber(stopLoss) : "-";
 
-    const badgeStyle = posCurrency === "INR"
-        ? "background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);"
-        : "background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35);";
-    const currencyBadgeHtml = `<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" style="margin-left: 8px; white-space: nowrap; ${badgeStyle}">${posCurrency === "USDT" || posCurrency === "USD" ? "USD" : "INR"}</span>`;
-
-    const marginDisplay = posCurrency === "INR"
-        ? `₹${formatNumber(marginAmount, 2)}`
-        : `${formatNumber(marginAmount, 2)} USD`;
+    const marginDisplay = `${formatNumber(marginAmount, 2)}`;
 
     return `
         <tr data-position-row="${txEscapeHtml(positionId)}">
             <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
                 <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                     <span>${txEscapeHtml(txFormatSymbol(symbol))}</span>
-                    ${currencyBadgeHtml}
                 </div>
             </td>
             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(side)}">${txEscapeHtml(displaySide)}</td>
@@ -6102,7 +6146,6 @@ function txBuildPositionRowHtml(position) {
                     <div class="flex justify-between items-center mb-1.5">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(symbol))}</span>
-                            ${currencyBadgeHtml}
                             <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(side)}">${displaySide} ${leverage}x</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -7190,7 +7233,12 @@ async function loadBackendWalletBalance() {
     try {
         TX_BACKEND_FUTURES.walletLoading = true;
 
-        const response = await txApiRequestWithTimeout("/wallet/balance", {}, 6000);
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        const balanceUrl = (activeSubId && activeSubId !== "main")
+            ? `/wallet/balance?sub_account_id=${encodeURIComponent(activeSubId)}`
+            : "/wallet/balance";
+
+        const response = await txApiRequestWithTimeout(balanceUrl, {}, 6000);
         TX_BACKEND_FUTURES.wallet = response.data.wallet || response.data || null;
         TX_BACKEND_FUTURES.walletLoaded = true;
 
@@ -7287,7 +7335,12 @@ async function refreshBackendFuturesData(force = false) {
     try {
         TX_BACKEND_FUTURES.dataLoading = true;
 
-        const walletPromise = txApiRequestWithTimeout("/wallet/balance").then((res) => {
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        const balanceUrl = (activeSubId && activeSubId !== "main")
+            ? `/wallet/balance?sub_account_id=${encodeURIComponent(activeSubId)}`
+            : "/wallet/balance";
+
+        const walletPromise = txApiRequestWithTimeout(balanceUrl).then((res) => {
             TX_BACKEND_FUTURES.wallet = res.data.wallet || res.data || null;
             TX_BACKEND_FUTURES.walletLoaded = true;
             updateWalletUI();
@@ -7397,6 +7450,37 @@ async function refreshBackendFuturesData(force = false) {
 
 
 function goToFuturesWalletAction(action = "deposit") {
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const subAccounts = TX_BACKEND_FUTURES.subAccounts || [];
+    const currentAcc = subAccounts.find(a => String(a.id) === String(activeSubId));
+    const isDemo = currentAcc ? (currentAcc.is_demo || currentAcc.account_mode === "demo" || currentAcc.plan === "demo") : false;
+
+    if (isDemo) {
+        if (action === "deposit" || action === "topup") {
+            const demoModal = document.getElementById("txDemoBalanceModal");
+            if (demoModal) {
+                const curBal = Number(TX_BACKEND_FUTURES.wallet?.trading_wallet?.available_balance ?? TX_BACKEND_FUTURES.wallet?.available_balance ?? 0);
+                const curBalEl = document.getElementById("txDemoModalCurrentBal");
+                if (curBalEl) {
+                    curBalEl.textContent = `${curBal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+                }
+                const msgEl = document.getElementById("txDemoModalMsg");
+                if (msgEl) {
+                    msgEl.classList.add("hidden");
+                    msgEl.textContent = "";
+                }
+                const input = document.getElementById("txDemoCustomAmountInput");
+                if (input) input.value = "";
+                demoModal.classList.remove("hidden");
+                demoModal.classList.add("flex");
+                return;
+            }
+        }
+        if (action === "transfer") {
+            return;
+        }
+    }
+
     // Backend mode override: keep user on Futures page and open quick wallet modal.
     txOpenFuturesWalletModal(action);
 }
@@ -7453,16 +7537,8 @@ function updateWalletUI() {
     const pnlSummary = TX_BACKEND_FUTURES.pnlSummary || {};
     const livePositions = TX_BACKEND_FUTURES.positions || [];
 
-    // Filter positions based on active navbar currency
-    const activeNavbarCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const filteredPositions = livePositions.filter((position) => {
-        const posCurr = (position.currency || "USDT").toUpperCase();
-        if (activeNavbarCurrency === "INR") {
-            return posCurr === "INR";
-        } else {
-            return posCurr === "USDT" || posCurr === "USD";
-        }
-    });
+    // All Futures trading positions belong to USD trading wallet
+    const filteredPositions = livePositions;
 
     const liveUnrealizedPnl = filteredPositions.reduce((total, position) => {
         return total + calculatePositionPnl(position);
@@ -7529,6 +7605,52 @@ function updateWalletUI() {
     const mainWallet = txGetMainWalletBucket();
     const tradingAvailableForDisplay = txToNumber(wallet.available, 0);
     const mainAvailable = txToNumber(mainWallet.available_balance, 0);
+
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const activeSubName = localStorage.getItem("traidiumx_active_user_name") || "";
+    let isCurrentDemo = false;
+    if (activeSubId) {
+        if (activeSubName.toLowerCase().includes("demo")) {
+            isCurrentDemo = true;
+        }
+        if (TX_BACKEND_FUTURES.wallet && (TX_BACKEND_FUTURES.wallet.is_demo || TX_BACKEND_FUTURES.wallet.account_mode === "demo")) {
+            isCurrentDemo = true;
+        }
+        if (typeof txSubAccountsLocalCache !== "undefined" && txSubAccountsLocalCache && txSubAccountsLocalCache.length) {
+            const currentSub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
+            if (currentSub && (currentSub.is_demo || currentSub.account_mode === "demo" || currentSub.plan === "demo")) {
+                isCurrentDemo = true;
+            }
+        }
+    }
+
+    const fundsGrid = document.querySelector(".rt-pair-funds-grid");
+    const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
+    const mobMainBalanceWrap = document.getElementById("mobileWalletMainBalanceWrap");
+
+    if (fundsGrid) {
+        if (isCurrentDemo) {
+            fundsGrid.classList.add("demo-mode");
+        } else {
+            fundsGrid.classList.remove("demo-mode");
+        }
+    }
+    if (mainWalletItem) {
+        if (isCurrentDemo) {
+            mainWalletItem.classList.add("hidden");
+            mainWalletItem.style.display = "none";
+        } else {
+            mainWalletItem.classList.remove("hidden");
+            mainWalletItem.style.display = "";
+        }
+    }
+    if (mobMainBalanceWrap) {
+        if (isCurrentDemo) {
+            mobMainBalanceWrap.classList.add("hidden");
+        } else {
+            mobMainBalanceWrap.classList.remove("hidden");
+        }
+    }
 
     if (elements.futuresTotalBalance) {
         elements.futuresTotalBalance.textContent = formatFuturesUsd(tradingAvailableForDisplay, 2);
@@ -8029,7 +8151,7 @@ function txBuildOptimisticOrder(payload = {}) {
         status: orderType === "market" ? "filled" : "open",
         created_at: nowIso,
         createdAt: nowIso,
-        currency: (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase(),
+        currency: "USDT",
         __optimistic: true
     };
 }
@@ -8113,7 +8235,7 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
         status: "open",
         opened_at: nowIso,
         created_at: nowIso,
-        currency: (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase(),
+        currency: "USDT",
         __optimistic: true
     };
 }
@@ -9146,9 +9268,11 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     txGetLivePriceForSymbol = function txGetLiveMarkPriceForSymbol(symbol, fallback = 0) {
         const internal = txNormalizeProviderSymbol(symbol);
         const provider = txGetProviderSymbol(internal);
-        return txToNumber(state.markPrices[internal], 0)
+        return (internal === state.currentSymbol ? txToNumber(state.currentPrice, 0) : 0)
+            || txGetLastPriceForSymbol(internal, fallback)
+            || txToNumber(state.markPrices[internal], 0)
             || txToNumber(state.markPrices[provider], 0)
-            || txGetLastPriceForSymbol(internal, fallback);
+            || txToNumber(fallback, 0);
     };
 
     updateLivePrice = function txUpdateLastTradePrice(price) {
@@ -9161,19 +9285,17 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         txUpdateDocumentTitle(numericPrice);
 
         const decimals = numericPrice < 1 ? 6 : 2;
-        const mark = txGetLivePriceForSymbol(state.currentSymbol, numericPrice);
         const index = Number(
             state.indexPrices[state.currentSymbol] ||
             state.indexPrices[txGetProviderSymbol(state.currentSymbol)] ||
             state.indexPrices[txNormalizeProviderSymbol(state.currentSymbol)] ||
             state.markPrices[state.currentSymbol] ||
             state.markPrices[txGetProviderSymbol(state.currentSymbol)] ||
-            mark ||
             numericPrice
         );
 
         if (elements.currentPriceBadge) elements.currentPriceBadge.textContent = formatNumber(numericPrice, decimals);
-        if (elements.markPrice) elements.markPrice.textContent = formatNumber(mark, mark < 1 ? 6 : 2);
+        if (elements.markPrice) elements.markPrice.textContent = formatNumber(numericPrice, decimals);
         if (elements.indexPrice) elements.indexPrice.textContent = index > 0 ? formatNumber(index, index < 1 ? 6 : 2) : "--";
         if (elements.orderBookMid) elements.orderBookMid.textContent = `${formatNumber(numericPrice, decimals)} ${getQuoteAsset()}`;
         if (elements.limitPriceInput && !elements.limitPriceInput.value) elements.limitPriceInput.value = numericPrice.toFixed(decimals);
@@ -9499,7 +9621,8 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         const runExecution = async () => {
             const submitBtn = elements.placeOrderBtn || elements.buyBtn || elements.sellBtn;
-            const originalText = submitBtn ? submitBtn.textContent : (payload.side === "sell" ? "Sell / Short" : "Buy / Long");
+            const isSell = String(payload.side || state.side || "BUY").toUpperCase() === "SELL";
+            const normalText = isSell ? "Sell / Short" : "Buy / Long";
 
             // 1. Instant 0ms optimistic UI paint + instant toast
             const optimistic = txApplyOptimisticOrder(payload);
@@ -9516,9 +9639,19 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             const slInput = document.getElementById("stopLossInput");
             if (slInput) slInput.value = "";
 
+            let resetTimer = null;
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Executing...";
+                resetTimer = setTimeout(() => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = normalText;
+                    }
+                    if (typeof updateSessionStatus === "function") {
+                        updateSessionStatus();
+                    }
+                }, 800);
             }
 
             try {
@@ -9544,9 +9677,13 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 }
                 showOrderMessage(showApiError(error, "Order failed."), "error");
             } finally {
+                if (resetTimer) clearTimeout(resetTimer);
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
+                    submitBtn.textContent = normalText;
+                }
+                if (typeof updateSessionStatus === "function") {
+                    updateSessionStatus();
                 }
             }
         };
@@ -9787,20 +9924,94 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         activeSubId = activeSubId || "main";
         const allAccounts = [
-            { id: "main", name: "Main Trading Account" },
-            ...subAccounts.map(s => ({ id: s.id, name: s.name }))
+            { id: "main", name: "Main Trading Account", is_demo: false, plan_name: "Real", plan_color: "emerald" },
+            ...subAccounts.map(s => ({
+                id: s.id,
+                name: s.name,
+                is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo",
+                account_mode: s.account_mode || (s.plan === "demo" ? "demo" : "real"),
+                plan_name: s.plan_name || (s.is_demo || s.plan === "demo" ? "Demo" : "Basic"),
+                plan_color: s.plan_color || (s.is_demo || s.plan === "demo" ? "amber" : "cyan")
+            }))
         ];
 
         const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
-        labelEl.textContent = currentAcc ? currentAcc.name : "Main Trading Account";
+        const isCurrentDemo = !!currentAcc.is_demo;
+
+        const dotEl = document.getElementById("txCustomAccountDot");
+        const triggerEl = document.getElementById("txCustomAccountTrigger");
+        const chevronEl = document.getElementById("txCustomAccountChevron");
+
+        if (dotEl) {
+            dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]'}`;
+        }
+        if (triggerEl) {
+            if (isCurrentDemo) {
+                triggerEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+            } else {
+                triggerEl.style.borderColor = "rgba(148, 163, 184, 0.25)";
+            }
+        }
+        if (chevronEl) {
+            chevronEl.style.color = isCurrentDemo ? "#f59e0b" : "#94a3b8";
+        }
+
+        labelEl.innerHTML = `
+            <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : 'text-cyan-300'}">${escapeHtml(currentAcc.name)}</span>
+            ${isCurrentDemo ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30">DEMO</span>' : ''}
+        `;
+
+        // Update Trading Wallet card grid mode (hide Main Wallet in Demo mode)
+        const fundsGrid = document.querySelector(".rt-pair-funds-grid");
+        const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
+        const mobMainBalanceWrap = document.getElementById("mobileWalletMainBalanceWrap");
+
+        if (fundsGrid) {
+            if (isCurrentDemo) {
+                fundsGrid.classList.add("demo-mode");
+            } else {
+                fundsGrid.classList.remove("demo-mode");
+            }
+        }
+        if (mainWalletItem) {
+            if (isCurrentDemo) {
+                mainWalletItem.classList.add("hidden");
+                mainWalletItem.style.display = "none";
+            } else {
+                mainWalletItem.classList.remove("hidden");
+                mainWalletItem.style.display = "";
+            }
+        }
+        if (mobMainBalanceWrap) {
+            if (isCurrentDemo) {
+                mobMainBalanceWrap.classList.add("hidden");
+            } else {
+                mobMainBalanceWrap.classList.remove("hidden");
+            }
+        }
+
+        // Update Demo Banner UI
+        const demoBanner = document.getElementById("txDemoAccountBanner");
+        const demoBannerName = document.getElementById("txDemoBannerAccountName");
+        if (demoBanner) {
+            if (isCurrentDemo) {
+                demoBanner.classList.remove("hidden");
+                if (demoBannerName) demoBannerName.textContent = `${currentAcc.name} (Demo Active)`;
+            } else {
+                demoBanner.classList.add("hidden");
+            }
+        }
+
 
         listEl.innerHTML = allAccounts.map(acc => {
             const isSelected = String(acc.id) === String(activeSubId);
+            const isDemo = !!acc.is_demo;
             return `
-                <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''}">
-                    <div class="flex items-center gap-2.5 truncate">
-                        <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500'}"></span>
-                        <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'}">${escapeHtml(acc.name)}</span>
+                <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''} flex items-center justify-between w-full p-2 rounded-lg text-left transition hover:bg-slate-800/60">
+                    <div class="flex items-center gap-2 truncate min-w-0">
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500')}"></span>
+                        <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'} text-xs">${escapeHtml(acc.name)}</span>
+                        ${isDemo ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-amber-500/20 text-amber-300 border-amber-500/30">DEMO</span>' : ''}
                     </div>
                     ${isSelected ? '<svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' : ''}
                 </button>
@@ -9846,11 +10057,17 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             createBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 txCloseCustomAccountDropdown();
-                const subModal = document.getElementById("subAccountModal");
-                if (subModal) {
-                    subModal.classList.remove("hidden");
-                    subModal.classList.add("flex");
-                    txRenderSubAccountsList();
+                if (typeof window.txOpenSubAccountModal === "function") {
+                    window.txOpenSubAccountModal("real");
+                } else {
+                    const subModal = document.getElementById("subAccountModal");
+                    if (subModal) {
+                        subModal.classList.remove("hidden");
+                        subModal.classList.add("flex");
+                        txRenderSubAccountsList();
+                        const sb = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
+                        if (sb) sb.scrollTop = 0;
+                    }
                 }
             });
         }
@@ -9884,8 +10101,9 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             selector.innerHTML = `<option value="main">Main Trading Account</option>`;
             subAccounts.forEach(sub => {
                 const opt = document.createElement("option");
+                const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
                 opt.value = sub.id;
-                opt.textContent = sub.name;
+                opt.textContent = isDemo ? `${sub.name} (Demo)` : sub.name;
                 selector.appendChild(opt);
             });
             const createOpt = document.createElement("option");
@@ -9905,11 +10123,12 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
             const mobSelector = document.getElementById("tradingAccountSelectorMobile");
             if (mobSelector) {
-                mobSelector.innerHTML = `<option value="main">Main Account</option>`;
+                mobSelector.innerHTML = `<option value="main">Main Account (Real)</option>`;
                 subAccounts.forEach(sub => {
                     const opt = document.createElement("option");
+                    const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
                     opt.value = sub.id;
-                    opt.textContent = sub.name;
+                    opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
                     mobSelector.appendChild(opt);
                 });
                 const mobCreateOpt = document.createElement("option");
@@ -9950,20 +10169,65 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             let html = "";
             subAccounts.forEach(sub => {
                 const bal = sub.wallet ? sub.wallet.available_balance : 0.0;
+                const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                const planName = isDemo ? "Demo" : (sub.plan_name || "Basic");
+                const planColor = isDemo ? "amber" : (sub.plan_color || "cyan");
+                const badgeColorClasses = {
+                    "cyan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+                    "emerald": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+                    "purple": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+                    "amber": "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                }[planColor] || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
+
                 html += `
                     <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs gap-2 min-w-0">
                         <div class="min-w-0 flex-1 pr-1">
-                            <strong class="text-white font-black truncate block">${escapeHtml(sub.name)}</strong>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <strong class="text-white font-black truncate">${escapeHtml(sub.name)}</strong>
+                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border ${badgeColorClasses}">${escapeHtml(planName)}</span>
+                            </div>
                             <p class="text-[10px] text-slate-500 mt-0.5 truncate">ID: ${sub.id}</p>
                         </div>
-                        <div class="text-right shrink-0">
-                            <strong class="text-cyan-300 font-black">${bal.toFixed(2)} USDT</strong>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Trading Balance</p>
+                        <div class="text-right shrink-0 flex items-center gap-2">
+                            <div>
+                                <strong class="${isDemo ? 'text-amber-300' : 'text-cyan-300'} font-black">${bal.toFixed(2)} USDT</strong>
+                                <p class="text-[10px] text-slate-500 mt-0.5">${isDemo ? 'Demo Balance' : 'Trading Balance'}</p>
+                            </div>
+                            ${isDemo ? `
+                                <button type="button" data-demo-deposit-id="${escapeHtml(sub.id)}" class="tx-quick-demo-deposit-btn px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold rounded-lg text-[10px] border border-amber-500/30 transition cursor-pointer" title="Add +$10,000 Demo Funds">
+                                    +10k
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 `;
             });
             container.innerHTML = html;
+
+            // Wire up quick demo deposit buttons in the sub-account list modal
+            container.querySelectorAll(".tx-quick-demo-deposit-btn").forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    const subId = btn.getAttribute("data-demo-deposit-id");
+                    if (!subId) return;
+                    btn.disabled = true;
+                    btn.textContent = "...";
+                    try {
+                        await apiRequest(`/user/sub-accounts/${subId}/demo-deposit`, {
+                            method: "POST",
+                            body: JSON.stringify({ amount: 10000 })
+                        });
+                        showOrderMessage("+$10,000 Demo USDT added successfully!", "success");
+                        await txRenderSubAccountsList();
+                        await refreshBackendFuturesData(true);
+                        await txInitSubAccountsAndSelector();
+                    } catch (err) {
+                        showOrderMessage(err.message || "Failed to add demo funds.", "error");
+                        btn.disabled = false;
+                        btn.textContent = "+10k";
+                    }
+                });
+            });
         } catch (e) {
             container.innerHTML = `<p class="text-xs text-red-400 font-semibold py-2">Failed to load sub accounts.</p>`;
         }
@@ -10041,20 +10305,18 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             if (val === "__create_new__") {
                 const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
                 e.target.value = activeSubId;
-
-                const subModal = document.getElementById("subAccountModal");
-                if (subModal) {
-                    subModal.classList.remove("hidden");
-                    subModal.classList.add("flex");
-                    txRenderSubAccountsList();
-                }
+                txOpenSubModal("real");
                 return;
             }
 
             if (val === "main") {
                 localStorage.removeItem("traidiumx_active_user_id");
+                localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
             } else {
+                const selectedSub = txSubAccountsLocalCache.find(s => s.id === val);
+                const selectedName = selectedSub ? selectedSub.name : "Sub Account";
                 localStorage.setItem("traidiumx_active_user_id", val);
+                localStorage.setItem("traidiumx_active_user_name", selectedName);
             }
             window.location.reload();
         };
@@ -10073,74 +10335,381 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const subOpenBtn = document.getElementById("subAccountSettingsBtn");
         const mobSubOpenBtn = document.getElementById("subAccountSettingsBtnMobile");
         const subCloseBtn = document.getElementById("subAccountModalClose");
+        const subBottomCloseBtn = document.getElementById("subAccountModalBottomClose");
 
-        if (subOpenBtn && subModal) {
-            subOpenBtn.addEventListener("click", () => {
-                subModal.classList.remove("hidden");
-                subModal.classList.add("flex");
-                txRenderSubAccountsList();
-            });
-        }
-        if (mobSubOpenBtn && subModal) {
-            mobSubOpenBtn.addEventListener("click", () => {
-                subModal.classList.remove("hidden");
-                subModal.classList.add("flex");
-                txRenderSubAccountsList();
-            });
-        }
-        if (subCloseBtn && subModal) {
-            subCloseBtn.addEventListener("click", () => {
+        const txCloseSubModal = () => {
+            if (subModal) {
                 subModal.classList.add("hidden");
                 subModal.classList.remove("flex");
-            });
-        }
+            }
+        };
 
-        const tabList = document.getElementById("subTabListBtn");
-        const tabTransfer = document.getElementById("subTabTransferBtn");
-        const panelList = document.getElementById("subPanelList");
-        const panelTransfer = document.getElementById("subPanelTransfer");
-
-        if (tabList && tabTransfer && panelList && panelTransfer) {
-            tabList.addEventListener("click", () => {
-                tabList.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400";
-                tabTransfer.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white";
-                panelList.classList.remove("hidden");
-                panelTransfer.classList.add("hidden");
-            });
-            tabTransfer.addEventListener("click", () => {
-                tabTransfer.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400";
-                tabList.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white";
-                panelTransfer.classList.remove("hidden");
-                panelList.classList.add("hidden");
-            });
-        }
-
-        const createForm = document.getElementById("createSubForm");
-        if (createForm) {
-            createForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const input = document.getElementById("newSubNameInput");
-                const msg = document.getElementById("createSubMessage");
-                if (!input || !msg) return;
-                
-                msg.classList.remove("hidden", "text-red-400", "text-emerald-400");
-                msg.classList.add("text-slate-400");
-                msg.textContent = "Creating sub account...";
-                
-                try {
-                    await apiRequest("/user/sub-accounts", {
-                        method: "POST",
-                        body: JSON.stringify({ name: input.value })
-                    });
-                    input.value = "";
-                    msg.className = "text-xs font-bold text-emerald-400 text-cyan-300";
-                    msg.textContent = "Sub account created successfully!";
-                    txRenderSubAccountsList();
-                    txInitSubAccountsAndSelector();
-                } catch (err) {
-                    msg.className = "text-xs font-bold text-red-400";
-                    msg.textContent = err.message || "Failed to create sub account.";
+        const txOpenSubModal = (mode = "real") => {
+            if (subModal) {
+                subModal.classList.remove("hidden");
+                subModal.classList.add("flex");
+                setModalMode(mode);
+                txRenderSubAccountsList();
+                const scrollBody = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
+                if (scrollBody) {
+                    scrollBody.scrollTop = 0;
                 }
+            }
+        };
+        window.txOpenSubAccountModal = txOpenSubModal;
+
+        if (subOpenBtn) subOpenBtn.addEventListener("click", () => txOpenSubModal("real"));
+        if (mobSubOpenBtn) mobSubOpenBtn.addEventListener("click", () => txOpenSubModal("real"));
+        if (subCloseBtn) subCloseBtn.addEventListener("click", txCloseSubModal);
+        if (subBottomCloseBtn) subBottomCloseBtn.addEventListener("click", txCloseSubModal);
+        if (subModal) {
+            subModal.addEventListener("click", (e) => {
+                if (e.target === subModal) txCloseSubModal();
+            });
+        }
+
+        // Collapsible Existing Accounts Drawer
+        const existingToggleBtn = document.getElementById("subExistingToggleBtn");
+        const existingDrawer = document.getElementById("subExistingDrawer");
+        const existingArrow = document.getElementById("subExistingArrow");
+        if (existingToggleBtn && existingDrawer) {
+            existingToggleBtn.addEventListener("click", () => {
+                const isHidden = existingDrawer.classList.contains("hidden");
+                existingDrawer.classList.toggle("hidden", !isHidden);
+                if (existingArrow) {
+                    existingArrow.textContent = isHidden ? "▲" : "▼";
+                }
+                if (isHidden) {
+                    setTimeout(() => {
+                        existingDrawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    }, 50);
+                }
+            });
+        }
+
+        let modalSubMode = "real";
+        let selectedPlan = "basic";
+        let selectedPlatform = "pxtrader";
+
+        // Platform Cards Interaction
+        const platPx = document.getElementById("subPlatformPxTrader");
+        const platMt5 = document.getElementById("subPlatformMT5");
+        const updatePlatformCards = (plat) => {
+            selectedPlatform = plat;
+            if (plat === "pxtrader") {
+                platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
+                platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            } else {
+                platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
+                platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            }
+        };
+        platPx?.addEventListener("click", () => updatePlatformCards("pxtrader"));
+        platMt5?.addEventListener("click", () => updatePlatformCards("mt5"));
+
+        // Plan Cards Interaction
+        const planCards = document.querySelectorAll(".tx-sub-plan-card");
+        const planSelect = document.getElementById("newSubPlanSelect");
+
+        const updatePlanCards = (plan) => {
+            selectedPlan = plan;
+            if (planSelect) planSelect.value = plan;
+
+            planCards.forEach(card => {
+                const cardPlan = card.getAttribute("data-plan");
+                const radio = card.querySelector(".tx-plan-radio div");
+                if (cardPlan === plan) {
+                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/90 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30";
+                    if (radio) radio.className = "w-2 h-2 rounded-full bg-cyan-400";
+                } else {
+                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 transition cursor-pointer hover:border-slate-700";
+                    if (radio) radio.className = "w-2 h-2 rounded-full bg-transparent";
+                }
+            });
+        };
+
+        planCards.forEach(card => {
+            card.addEventListener("click", () => {
+                const p = card.getAttribute("data-plan");
+                if (p) updatePlanCards(p);
+            });
+        });
+
+        const modalRealBtn = document.getElementById("subModalModeRealBtn");
+        const modalDemoBtn = document.getElementById("subModalModeDemoBtn");
+        const platformSection = document.getElementById("subModalPlatformSection");
+        const realPlanSection = document.getElementById("subModalRealPlanSection");
+        const demoExistingNotice = document.getElementById("subModalDemoExistingNotice");
+        const demoNewSection = document.getElementById("subModalDemoNewSection");
+        const submitBtn = document.getElementById("subAccountSubmitBtn");
+
+        const setModalMode = (mode) => {
+            modalSubMode = mode;
+            const hasExistingDemo = (txSubAccountsLocalCache || []).some(s => s.is_demo || s.account_mode === "demo" || s.plan === "demo");
+
+            if (mode === "demo") {
+                modalDemoBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-amber-400 text-slate-950 shadow-sm");
+                modalRealBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-white");
+                
+                platformSection?.classList.add("hidden");
+                realPlanSection?.classList.add("hidden");
+
+                if (hasExistingDemo) {
+                    demoExistingNotice?.classList.remove("hidden");
+                    demoNewSection?.classList.add("hidden");
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 text-xs font-black cursor-not-allowed opacity-60";
+                        submitBtn.textContent = "Account Limit Reached";
+                    }
+                } else {
+                    demoExistingNotice?.classList.add("hidden");
+                    demoNewSection?.classList.remove("hidden");
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-amber-500/20";
+                        submitBtn.textContent = "Create demo account";
+                    }
+                }
+            } else {
+                modalRealBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-white/10 text-white border border-white/20 shadow-sm");
+                modalDemoBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-white");
+
+                platformSection?.classList.remove("hidden");
+                realPlanSection?.classList.remove("hidden");
+                demoExistingNotice?.classList.add("hidden");
+                demoNewSection?.classList.add("hidden");
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/20";
+                    submitBtn.textContent = "Create account";
+                }
+            }
+        };
+
+        modalRealBtn?.addEventListener("click", () => setModalMode("real"));
+        modalDemoBtn?.addEventListener("click", () => setModalMode("demo"));
+
+        // Submit Handler
+        const handleSubAccountCreation = async () => {
+            const isDemo = modalSubMode === "demo";
+            const nameInput = isDemo ? document.getElementById("newSubDemoNameInput") : document.getElementById("newSubNameInput");
+            const msg = document.getElementById("createSubMessage");
+            
+            let nameVal = nameInput ? nameInput.value.trim() : "";
+            if (!nameVal) {
+                nameVal = isDemo ? "Demo Account" : `Trading Account ${(txSubAccountsLocalCache || []).length + 1}`;
+            }
+
+            if (msg) {
+                msg.classList.remove("hidden", "text-red-400", "text-emerald-400", "border-red-500/30", "border-emerald-500/30", "bg-red-500/10", "bg-emerald-500/10");
+                msg.classList.add("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                msg.textContent = "Creating account...";
+            }
+
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const res = await apiRequest("/user/sub-accounts", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name: nameVal,
+                        account_mode: isDemo ? "demo" : "real",
+                        plan: isDemo ? "demo" : selectedPlan,
+                        platform: selectedPlatform,
+                        is_demo: isDemo
+                    })
+                });
+
+                if (nameInput && !isDemo) nameInput.value = "";
+                
+                if (msg) {
+                    msg.classList.remove("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                    msg.classList.add("text-emerald-300", "border-emerald-500/30", "bg-emerald-500/10");
+                    msg.textContent = isDemo ? "Demo account created successfully!" : "Trading account created successfully!";
+                }
+
+                if (isDemo && res.data && res.data.id) {
+                    localStorage.setItem("traidiumx_active_user_id", res.data.id);
+                    localStorage.setItem("traidiumx_active_user_name", res.data.name || "Demo Account");
+                    setTimeout(() => window.location.reload(), 800);
+                    return;
+                }
+
+                await txRenderSubAccountsList();
+                await txInitSubAccountsAndSelector();
+
+                setTimeout(() => {
+                    if (msg) msg.classList.add("hidden");
+                    txCloseSubModal();
+                }, 1200);
+
+            } catch (err) {
+                if (msg) {
+                    msg.classList.remove("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                    msg.classList.add("text-red-300", "border-red-500/30", "bg-red-500/10");
+                    msg.textContent = err.message || "Failed to create account.";
+                }
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        };
+
+        if (submitBtn) {
+            submitBtn.addEventListener("click", handleSubAccountCreation);
+        }
+
+        function updateDemoModalBalance() {
+            const curBal = Number(TX_BACKEND_FUTURES.wallet?.trading_wallet?.available_balance ?? TX_BACKEND_FUTURES.wallet?.available_balance ?? 0);
+            const curBalEl = document.getElementById("txDemoModalCurrentBal");
+            if (curBalEl) {
+                curBalEl.textContent = `${curBal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            }
+        }
+
+        function openDemoBalanceModal() {
+            const modal = document.getElementById("txDemoBalanceModal");
+            if (!modal) return;
+            updateDemoModalBalance();
+            const msgEl = document.getElementById("txDemoModalMsg");
+            if (msgEl) {
+                msgEl.classList.add("hidden");
+                msgEl.textContent = "";
+            }
+            const input = document.getElementById("txDemoCustomAmountInput");
+            if (input) input.value = "";
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closeDemoBalanceModal() {
+            const modal = document.getElementById("txDemoBalanceModal");
+            if (!modal) return;
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        const demoModalCloseBtn = document.getElementById("txDemoBalanceModalClose");
+        if (demoModalCloseBtn) {
+            demoModalCloseBtn.addEventListener("click", closeDemoBalanceModal);
+        }
+
+        const demoModal = document.getElementById("txDemoBalanceModal");
+        if (demoModal) {
+            demoModal.addEventListener("click", (e) => {
+                if (e.target === demoModal) {
+                    closeDemoBalanceModal();
+                }
+            });
+        }
+
+        const demoTopUpBtn = document.getElementById("txDemoTopUpBtn");
+        if (demoTopUpBtn) {
+            demoTopUpBtn.addEventListener("click", () => {
+                openDemoBalanceModal();
+            });
+        }
+
+        // Instant Top-Up Buttons (+100, +1,000, +10,000)
+        document.querySelectorAll(".tx-demo-instant-topup-btn").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const addAmount = Number(btn.getAttribute("data-amount") || 1000);
+                const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "active";
+                const msgEl = document.getElementById("txDemoModalMsg");
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = `<span class="text-[10px]">...</span>`;
+
+                    await apiRequest(`/user/sub-accounts/${activeSubId}/demo-deposit`, {
+                        method: "POST",
+                        body: JSON.stringify({ amount: addAmount })
+                    });
+
+                    await refreshBackendFuturesData(true);
+                    await txInitSubAccountsAndSelector();
+                    updateDemoModalBalance();
+
+                    if (msgEl) {
+                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                        msgEl.textContent = `+$${addAmount.toLocaleString("en-US")} Demo USD deposited to Trading Wallet!`;
+                        msgEl.classList.remove("hidden");
+                    }
+                    showOrderMessage(`+$${addAmount.toLocaleString("en-US")} Demo USD deposited to Trading Wallet!`, "success");
+                } catch (err) {
+                    if (msgEl) {
+                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
+                        msgEl.textContent = err.message || "Failed to add demo funds.";
+                        msgEl.classList.remove("hidden");
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `
+                        <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300">+${addAmount >= 1000 ? addAmount.toLocaleString("en-US") : addAmount}</span>
+                    `;
+                }
+            });
+        });
+
+        // Set Balance Button (Custom Amount with reset: true)
+        const setBalBtn = document.getElementById("txDemoSetBalanceBtn");
+        if (setBalBtn) {
+            setBalBtn.addEventListener("click", async () => {
+                const input = document.getElementById("txDemoCustomAmountInput");
+                const customAmount = Number(input ? input.value : 0);
+                const msgEl = document.getElementById("txDemoModalMsg");
+
+                if (!customAmount || customAmount <= 0) {
+                    if (msgEl) {
+                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
+                        msgEl.textContent = "Please enter a valid amount.";
+                        msgEl.classList.remove("hidden");
+                    }
+                    return;
+                }
+
+                const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "active";
+
+                try {
+                    setBalBtn.disabled = true;
+                    setBalBtn.textContent = "Setting...";
+
+                    await apiRequest(`/user/sub-accounts/${activeSubId}/demo-deposit`, {
+                        method: "POST",
+                        body: JSON.stringify({ amount: customAmount, reset: true })
+                    });
+
+                    await refreshBackendFuturesData(true);
+                    await txInitSubAccountsAndSelector();
+                    updateDemoModalBalance();
+
+                    if (msgEl) {
+                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                        msgEl.textContent = `Demo Trading Wallet balance set to $${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} USD!`;
+                        msgEl.classList.remove("hidden");
+                    }
+                    showOrderMessage(`Demo Trading Wallet balance set to $${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} USD!`, "success");
+                } catch (err) {
+                    if (msgEl) {
+                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
+                        msgEl.textContent = err.message || "Failed to set demo balance.";
+                        msgEl.classList.remove("hidden");
+                    }
+                } finally {
+                    setBalBtn.disabled = false;
+                    setBalBtn.textContent = "Set balance";
+                }
+            });
+        }
+
+        const demoSwitchRealBtn = document.getElementById("txDemoSwitchRealBtn");
+        if (demoSwitchRealBtn) {
+            demoSwitchRealBtn.addEventListener("click", () => {
+                localStorage.removeItem("traidiumx_active_user_id");
+                localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
+                window.location.reload();
             });
         }
 

@@ -142,7 +142,7 @@ def _normalize_symbol_payload(payload, existing=None, partial=False):
 
     numeric_fields = {
         "min_qty": (0.001, 0, None),
-        "max_leverage": (20, 1, 125),
+        "max_leverage": (20, 1, 1000),
         "price_precision": (2, 0, 10),
         "quantity_precision": (3, 0, 10),
         "sort_order": (0, 0, None),

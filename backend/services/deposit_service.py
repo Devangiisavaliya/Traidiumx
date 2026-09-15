@@ -310,9 +310,13 @@ def _validate_deposit_input(user_id, data):
         cleaned_hash = inr_utr_number or f"INR-UTR-{uuid.uuid4().hex[:10].upper()}"
     elif clean_tx_hash:
         allow_demo_reference = bool(settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT)
-        is_valid_hash, hash_error, cleaned_hash = validate_crypto_tx_hash(clean_tx_hash, allow_demo_reference=allow_demo_reference)
-        if not is_valid_hash:
-            errors["tx_hash"] = hash_error
+        if allow_demo_reference and (clean_tx_hash.lower() == clean_target_address or clean_tx_hash.upper().startswith("DEMO") or not TX_HASH_PATTERN.match(clean_tx_hash)):
+            cleaned_hash = build_internal_address_confirmation_tx_hash()
+            address_confirmed_demo = True
+        else:
+            is_valid_hash, hash_error, cleaned_hash = validate_crypto_tx_hash(clean_tx_hash, allow_demo_reference=allow_demo_reference)
+            if not is_valid_hash:
+                errors["tx_hash"] = hash_error
     elif clean_confirmation:
         if not settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT:
             errors["deposit_address_confirmation"] = "Direct credit simulation is disabled in this environment."
@@ -325,9 +329,13 @@ def _validate_deposit_input(user_id, data):
             cleaned_hash = build_internal_address_confirmation_tx_hash()
     else:
         allow_demo_reference = bool(settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT)
-        is_valid_hash, hash_error, cleaned_hash = validate_crypto_tx_hash(clean_tx_hash, allow_demo_reference=allow_demo_reference)
-        if not is_valid_hash:
-            errors["tx_hash"] = hash_error
+        if allow_demo_reference:
+            cleaned_hash = build_internal_address_confirmation_tx_hash()
+            address_confirmed_demo = True
+        else:
+            is_valid_hash, hash_error, cleaned_hash = validate_crypto_tx_hash(clean_tx_hash, allow_demo_reference=allow_demo_reference)
+            if not is_valid_hash:
+                errors["tx_hash"] = hash_error
 
     return errors, {
         "amount": round(float(amount), 8) if not errors.get("amount") else 0.0,

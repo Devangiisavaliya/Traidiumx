@@ -130,6 +130,18 @@ def apply_account_platform_fee_if_due(user_id, trigger="wallet_access"):
     twice. Trading Fee remains handled only by futures/options execution.
     """
     wallet = ensure_user_wallet(user_id)
+
+    # Exclude demo accounts from platform fee
+    try:
+        from config.database import get_database
+        from bson import ObjectId
+        db = get_database()
+        u_doc = db.users.find_one({"_id": ObjectId(user_id)}) if ObjectId.is_valid(str(user_id)) else None
+        if u_doc and (u_doc.get("is_demo") or u_doc.get("account_mode") == "demo" or u_doc.get("plan") == "demo"):
+            return {"success": True, "charged": False, "reason": "demo_account", "wallet": wallet, "fee": {}}
+    except Exception:
+        pass
+
     fee_info = calculate_account_platform_fee(wallet.get("available_balance", 0.0))
     fee_amount = _money(fee_info.get("platform_fee_usdt", 0.0))
     cycle = fee_info.get("cycle", "one_time")

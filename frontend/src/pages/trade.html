@@ -32,6 +32,38 @@
             overflow-x: hidden;
         }
 
+        /* Generous top clearance so floating header navbar never overlaps the ticker bar */
+        main.tx-trade-main-shell {
+            padding-top: 130px !important;
+        }
+        @media (min-width: 1024px) {
+            main.tx-trade-main-shell {
+                padding-top: 145px !important;
+            }
+        }
+        @media (min-width: 1440px) {
+            main.tx-trade-main-shell {
+                padding-top: 155px !important;
+            }
+        }
+
+        /* Toast Container Enforcement - Clear of floating header */
+        #txTradeToastContainer {
+            position: fixed !important;
+            top: 110px !important;
+            right: 24px !important;
+            z-index: 9999999 !important;
+            pointer-events: none !important;
+        }
+        @media (max-width: 640px) {
+            #txTradeToastContainer {
+                top: 95px !important;
+                right: 12px !important;
+                left: 12px !important;
+                max-width: none !important;
+            }
+        }
+
         .tx-glass-card {
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(9, 18, 36, 0.92) 100%);
             border: 1px solid rgba(34, 211, 238, 0.16);
@@ -156,10 +188,10 @@
             box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.45) !important;
         }
         .tx-side-btn-sell.active {
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
             color: #ffffff !important;
-            border: 1px solid #fb7185 !important;
-            box-shadow: 0 8px 20px -2px rgba(244, 63, 94, 0.45) !important;
+            border: 1px solid #f87171 !important;
+            box-shadow: 0 8px 20px -2px rgba(239, 68, 68, 0.5) !important;
         }
 
         .tx-btn-execute {
@@ -189,13 +221,14 @@
             box-shadow: 0 12px 30px -2px rgba(16, 185, 129, 0.6) !important;
         }
         .tx-btn-execute-sell {
-            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%) !important;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
             color: #ffffff !important;
-            box-shadow: 0 10px 25px -3px rgba(244, 63, 94, 0.4) !important;
+            border: 1px solid #f87171 !important;
+            box-shadow: 0 10px 25px -3px rgba(239, 68, 68, 0.5) !important;
         }
         .tx-btn-execute-sell:hover {
-            background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important;
-            box-shadow: 0 12px 30px -2px rgba(244, 63, 94, 0.6) !important;
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+            box-shadow: 0 12px 30px -2px rgba(239, 68, 68, 0.7) !important;
         }
         .tx-btn-execute-convert {
             background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%) !important;
@@ -213,25 +246,37 @@
             appearance: none;
             width: 100%;
             height: 6px;
-            background: #091224;
-            border: 1px solid #1e293b;
+            background: linear-gradient(to right, #06b6d4 0%, #06b6d4 0%, #1e293b 0%, #1e293b 100%);
             border-radius: 9999px;
             outline: none;
+            cursor: pointer;
+            margin: 6px 0;
         }
         input[type="range"]#txOrderPctSlider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #22d3ee;
             cursor: pointer;
-            border: 2px solid #080f1d;
-            box-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
-            transition: transform 0.1s ease;
+            border: 3px solid #060d1b;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.9), 0 2px 5px rgba(0,0,0,0.5);
+            transition: transform 0.15s ease, background-color 0.15s ease;
         }
         input[type="range"]#txOrderPctSlider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+            transform: scale(1.25);
+            background: #67e8f9;
+        }
+        input[type="range"]#txOrderPctSlider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #22d3ee;
+            cursor: pointer;
+            border: 3px solid #060d1b;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.9);
+            transition: transform 0.15s ease;
         }
 
         /* Top Pair Selector Dropdown */
@@ -257,23 +302,23 @@
 
 <body data-page="trade" class="bg-[#030712] min-h-screen text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
 
-    <!-- Global Toast Notification Container -->
-    <div id="txTradeToastContainer" class="fixed top-20 right-4 z-[999999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+    <!-- Global Toast Notification Container (Positioned clearly below navbar) -->
+    <div id="txTradeToastContainer" class="fixed top-28 sm:top-32 right-4 sm:right-6 z-[999999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
 
     <!-- Navigation Header -->
     <div data-component="navbar"></div>
 
     <!-- Main Trade Container -->
-    <main class="mx-auto max-w-[1800px] px-3 sm:px-4 lg:px-6 pt-32 sm:pt-36 lg:pt-40 pb-16">
+    <main class="tx-trade-main-shell mx-auto max-w-[1800px] px-3 sm:px-4 lg:px-6 pb-16">
 
         <!-- 1. TOP TICKER & MARKET STATS BAR -->
-        <section class="tx-glass-card mb-5 sm:mb-6 px-4 py-3 sm:px-5 sm:py-3.5 transition-all relative z-[9999]" style="position: relative !important; z-index: 9999 !important; overflow: visible !important;">
-            <div class="flex flex-wrap items-center justify-between gap-y-3 gap-x-6" style="overflow: visible !important;">
+        <section class="tx-glass-card mb-5 sm:mb-6 px-4 py-3 sm:px-5 sm:py-3.5 transition-all relative z-20">
+            <div class="flex flex-wrap items-center justify-between gap-y-3 gap-x-6">
                 
                 <!-- Left Group: Pair Selector & Current Price & 24h Change -->
-                <div class="flex items-center gap-4 sm:gap-6 flex-wrap" style="overflow: visible !important;">
+                <div class="flex items-center gap-4 sm:gap-6 flex-wrap">
                     <!-- Pair Selector Dropdown Toggle -->
-                    <div class="relative z-[99999]" style="position: relative !important; z-index: 99999 !important;">
+                    <div class="relative z-30">
                         <button id="txPairSelectorBtn" type="button" class="flex items-center gap-3 rounded-xl border border-cyan-400/25 bg-slate-900/90 px-3.5 py-2 text-left hover:border-cyan-400/60 transition group cursor-pointer select-none">
                             <span id="txPairIcon" class="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-400 font-black text-xs border border-cyan-400/30">
                                 ₿
@@ -290,25 +335,25 @@
                             </svg>
                         </button>
 
-                        <!-- Pair Selection Dropdown Menu (Compact 100% Solid Dark) -->
-                        <div id="txPairDropdownMenu" class="absolute left-0 top-full mt-2 hidden w-[310px] overflow-hidden rounded-2xl p-3 border border-cyan-500/30 shadow-2xl" style="position: absolute !important; z-index: 9999999 !important; background-color: #080f1d !important; background: #080f1d !important; opacity: 1 !important; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(34, 211, 238, 0.25) !important;">
+                        <!-- Pair Selection Dropdown Menu (Spacious Luxury Dark) -->
+                        <div id="txPairDropdownMenu" class="absolute left-0 top-full mt-2 hidden w-[380px] overflow-hidden rounded-2xl p-4 border border-cyan-500/30 shadow-2xl z-50" style="background: #070e1c !important; opacity: 1 !important; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(34, 211, 238, 0.25) !important;">
                             <!-- Search & Filter Tabs -->
-                            <div class="mb-2">
-                                <div class="relative">
-                                    <input id="txPairSearchInput" type="text" placeholder="Search coin..." class="w-full rounded-xl border border-slate-700/80 bg-[#040814] pl-8 pr-3 py-2 text-xs font-bold text-white placeholder-slate-500 outline-none focus:border-cyan-400 transition" />
-                                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="mb-3">
+                                <div class="relative flex items-center rounded-xl border border-slate-700/80 bg-[#030712] px-3.5 py-2 focus-within:border-cyan-400 focus-within:ring-1 focus-within:ring-cyan-400/40 transition hover:border-slate-600">
+                                    <svg class="w-4 h-4 text-cyan-400 shrink-0 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
+                                    <input id="txPairSearchInput" type="text" placeholder="Search coin or pair..." class="w-full bg-transparent text-xs font-bold text-white placeholder-slate-500 outline-none" />
                                 </div>
                             </div>
-                            <div class="flex gap-1 mb-2 border-b border-slate-800 pb-2">
-                                <button type="button" data-filter="all" class="tx-pair-filter active px-2.5 py-1 text-[11px] font-bold rounded-lg bg-cyan-500/20 text-cyan-300">All</button>
-                                <button type="button" data-filter="layer1" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">Layer 1</button>
-                                <button type="button" data-filter="defi" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">DeFi</button>
-                                <button type="button" data-filter="meme" class="tx-pair-filter px-2.5 py-1 text-[11px] font-bold rounded-lg text-slate-400 hover:text-white">Meme</button>
+                            <div class="flex items-center gap-2 mb-3 border-b border-slate-800/80 pb-3">
+                                <button type="button" data-filter="all" class="tx-pair-filter active px-3.5 py-1.5 text-xs font-black rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">All</button>
+                                <button type="button" data-filter="layer1" class="tx-pair-filter px-3.5 py-1.5 text-xs font-black rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent transition">Layer 1</button>
+                                <button type="button" data-filter="defi" class="tx-pair-filter px-3.5 py-1.5 text-xs font-black rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent transition">DeFi</button>
+                                <button type="button" data-filter="meme" class="tx-pair-filter px-3.5 py-1.5 text-xs font-black rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent transition">Meme</button>
                             </div>
                             <!-- Pairs List -->
-                            <div id="txPairsListContainer" class="tx-custom-scroll max-h-72 overflow-y-auto space-y-1">
+                            <div id="txPairsListContainer" class="tx-custom-scroll max-h-80 overflow-y-auto space-y-1.5 pr-1">
                                 <!-- Dynamically populated by trade.js -->
                             </div>
                         </div>
@@ -457,7 +502,7 @@
                             <span class="text-right">Amount</span>
                             <span class="text-right">Time</span>
                         </div>
-                        <div id="txRecentTradesList" class="tx-custom-scroll max-h-[520px] overflow-y-auto space-y-1 font-bold">
+                        <div id="txRecentTradesList" class="tx-custom-scroll max-h-[600px] overflow-y-auto space-y-0.5 font-bold">
                         </div>
                     </div>
                 </div>
@@ -551,13 +596,13 @@
                         </div>
 
                         <!-- Percentage Slider & Chips -->
-                        <div class="space-y-2 pt-0.5">
+                        <div class="space-y-2 pt-1">
                             <div class="flex items-center justify-between text-xs font-bold text-slate-400 px-0.5">
-                                <span>Ratio:</span>
-                                <span id="txPctSliderVal" class="text-cyan-300 font-black font-mono">0%</span>
+                                <span class="tracking-wider uppercase text-[11px]">Ratio / Balance</span>
+                                <span id="txPctSliderVal" class="text-sm font-black font-mono text-cyan-400">0%</span>
                             </div>
                             <input id="txOrderPctSlider" type="range" min="0" max="100" value="0" step="1" />
-                            <div class="grid grid-cols-4 gap-1.5 pt-1">
+                            <div class="grid grid-cols-4 gap-2 pt-1">
                                 <button type="button" data-pct="25" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">25%</button>
                                 <button type="button" data-pct="50" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">50%</button>
                                 <button type="button" data-pct="75" class="tx-pct-chip py-1.5 rounded-lg text-xs font-black bg-slate-950 border border-slate-800 text-slate-300 hover:border-cyan-400 hover:text-cyan-300 transition shadow-sm">75%</button>
@@ -676,17 +721,17 @@
         <section class="tx-glass-card p-3 sm:p-4 mt-5 sm:mt-6">
             <!-- Tab Headers -->
             <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5 mb-3 flex-wrap gap-2">
-                <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
-                    <button type="button" data-table-tab="open-orders" class="tx-tab-btn active px-3 py-1.5 text-xs font-black rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">
+                <div class="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
+                    <button type="button" data-table-tab="open-orders" class="tx-tab-btn active px-4 py-2 text-sm font-black rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition">
                         Open Orders (<span id="txOpenOrdersCount">0</span>)
                     </button>
-                    <button type="button" data-table-tab="order-history" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                    <button type="button" data-table-tab="order-history" class="tx-tab-btn px-4 py-2 text-sm font-black rounded-xl text-slate-400 hover:text-white transition">
                         Order History
                     </button>
-                    <button type="button" data-table-tab="trade-history" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                    <button type="button" data-table-tab="trade-history" class="tx-tab-btn px-4 py-2 text-sm font-black rounded-xl text-slate-400 hover:text-white transition">
                         Trade History
                     </button>
-                    <button type="button" data-table-tab="my-assets" class="tx-tab-btn px-3 py-1.5 text-xs font-black rounded-xl text-slate-400 hover:text-white transition">
+                    <button type="button" data-table-tab="my-assets" class="tx-tab-btn px-4 py-2 text-sm font-black rounded-xl text-slate-400 hover:text-white transition">
                         Asset Holdings
                     </button>
                 </div>

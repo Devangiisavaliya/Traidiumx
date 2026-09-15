@@ -211,115 +211,143 @@
             font-weight: 700;
         }
 
-        .rt-pair-bar.rt-pair-bar-with-funds {
-            display: grid;
-            grid-template-columns: minmax(270px, 0.72fr) minmax(760px, 1.85fr) minmax(360px, 0.78fr);
-            align-items: stretch;
-            gap: 14px;
-            padding: 14px;
+        /* Force hide global navbar currency toggle on Futures page */
+        nav .tx-currency-toggle-wrapper,
+        .tx-pill-navbar .tx-currency-toggle-wrapper,
+        #txDesktopAuth .tx-currency-toggle-wrapper,
+        #mobileAuthArea .tx-currency-toggle-wrapper {
+            display: none !important;
         }
 
-        .rt-pair-bar-with-funds .rt-pair-main {
-            min-width: 0;
+        html body[data-page="futures"] .rt-pair-bar.rt-pair-bar-with-funds {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: nowrap !important;
+            gap: 12px !important;
+            padding: 8px 14px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
         }
 
-        .rt-pair-bar-with-funds .rt-metrics-grid {
-            grid-template-columns: repeat(7, minmax(92px, 1fr));
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
+        html body[data-page="futures"] .rt-pair-bar-with-funds .rt-pair-main {
+            flex-shrink: 0 !important;
+            min-width: 0 !important;
         }
 
-        .rt-pair-funds-card {
-            position: relative;
-            overflow: visible !important;
-            min-width: 0;
-            border: 1px solid rgba(34, 211, 238, 0.22);
-            border-radius: 16px;
-            background: linear-gradient(135deg, rgba(8, 20, 35, 0.98), rgba(17, 24, 39, 0.94));
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 35px rgba(0, 0, 0, 0.18);
-            padding: 11px;
-            z-index: 40;
+        html body[data-page="futures"] .rt-pair-bar-with-funds .rt-metrics-grid {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            overflow-x: auto !important;
+            scrollbar-width: none !important;
+        }
+        html body[data-page="futures"] .rt-metrics-grid::-webkit-scrollbar {
+            display: none !important;
         }
 
-        .rt-pair-funds-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 16px;
-            background: radial-gradient(circle at top right, rgba(34, 211, 238, 0.15), transparent 70%);
-            pointer-events: none;
+        html body[data-page="futures"] .rt-pair-bar-with-funds .rt-metric {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 0 4px !important;
+            flex-shrink: 0 !important;
         }
 
-        .rt-pair-funds-head {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 9px;
+        html body[data-page="futures"] .rt-pair-bar-with-funds .rt-metric span {
+            color: #94a3b8 !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.02em !important;
+            white-space: nowrap !important;
         }
 
-        .rt-pair-funds-head h3 {
-            margin: 0;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 950;
-            letter-spacing: -0.02em;
+        html body[data-page="futures"] .rt-pair-bar-with-funds .rt-metric strong {
+            display: inline-block !important;
+            margin-top: 3px !important;
+            color: #ffffff !important;
+            font-size: 13px !important;
+            font-weight: 900 !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+            white-space: nowrap !important;
         }
 
-        .rt-pair-funds-badge {
-            border: 1px solid rgba(34, 211, 238, 0.22);
-            border-radius: 999px;
-            background: rgba(34, 211, 238, 0.10);
-            color: #67e8f9;
-            padding: 4px 8px;
-            font-size: 9px;
-            font-weight: 950;
-            line-height: 1;
-            text-transform: uppercase;
-            white-space: nowrap;
+        html body[data-page="futures"] .rt-pair-funds-card {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 5px 12px 5px 6px !important;
+            border-radius: 9999px !important;
+            background: rgba(8, 14, 26, 0.92) !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+            flex-shrink: 0 !important;
+            width: auto !important;
+            min-width: auto !important;
+            z-index: 10 !important;
+            white-space: nowrap !important;
         }
 
-        .rt-pair-funds-grid {
-            position: relative;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+        html body[data-page="futures"] .rt-pair-funds-card::before {
+            content: none !important;
         }
 
-        .rt-pair-funds-item {
-            min-width: 0;
-            border: 1px solid rgba(148, 163, 184, 0.13);
-            border-radius: 13px;
-            background: rgba(2, 6, 23, 0.48);
-            padding: 8px 9px;
+        html body[data-page="futures"] .rt-pair-funds-grid {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 16px !important;
+            width: auto !important;
+            grid-template-columns: none !important;
+            white-space: nowrap !important;
         }
 
-        .rt-pair-funds-item span {
-            display: block;
-            color: #64748b;
-            font-size: 9px;
-            font-weight: 950;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            white-space: nowrap;
+        html body[data-page="futures"] .rt-pair-funds-grid.demo-mode .rt-pair-funds-item.estimate {
+            display: none !important;
         }
 
-        .rt-pair-funds-item strong {
-            display: block;
-            margin-top: 4px;
-            color: #e5e7eb;
-            font-size: 14px;
-            font-weight: 950;
-            letter-spacing: -0.03em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        html body[data-page="futures"] .rt-pair-funds-item {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            width: auto !important;
+            white-space: nowrap !important;
         }
 
-        .rt-pair-funds-item.estimate strong {
-            color: #67e8f9;
+        html body[data-page="futures"] .rt-pair-funds-item span {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            color: #94a3b8 !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em !important;
+            white-space: nowrap !important;
+        }
+
+        html body[data-page="futures"] .rt-pair-funds-item strong {
+            display: inline-block !important;
+            margin-top: 0 !important;
+            color: #ffffff !important;
+            font-size: 13px !important;
+            font-weight: 900 !important;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+            white-space: nowrap !important;
+        }
+
+        html body[data-page="futures"] .rt-pair-funds-item.estimate strong {
+            color: #38bdf8 !important;
+        }
+
+        html body[data-page="futures"] .rt-pair-funds-item.pnl strong {
+            color: #34d399 !important;
         }
 
         .rt-pair-funds-actions {
@@ -1054,8 +1082,52 @@
             width: 100%;
         }
 
+        .rt-order-type-tabs,
         .rt-order-type-tabs.three {
+            display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
+            background: #07101e !important;
+            border: 1px solid rgba(255, 255, 255, 0.09) !important;
+            border-radius: 12px !important;
+            padding: 4px !important;
+            gap: 4px !important;
+            margin-top: 10px !important;
+            box-sizing: border-box !important;
+        }
+
+        .rt-order-type-tabs button,
+        .rt-order-type-tabs.three button {
+            background: transparent !important;
+            border: 1.5px solid transparent !important;
+            color: #94a3b8 !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            padding: 8px 10px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.18s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .rt-order-type-tabs button:hover:not(.active),
+        .rt-order-type-tabs.three button:hover:not(.active) {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        .rt-order-type-tabs button.active,
+        .rt-order-type-tabs.three button.active {
+            background: rgba(34, 211, 238, 0.06) !important;
+            border: 1.5px solid #22d3ee !important;
+            color: #22d3ee !important;
+            box-shadow: 0 0 14px rgba(34, 211, 238, 0.25) !important;
+            font-weight: 900 !important;
         }
 
         /* Large Desktop Screen Layout (min-width: 1201px) */
@@ -1181,7 +1253,7 @@
         #txCustomAccountTrigger {
             display: inline-flex !important;
             align-items: center !important;
-            gap: 8px !important;
+            gap: 7px !important;
             padding: 5px 12px !important;
             border-radius: 9999px !important;
             background: #081224 !important;
@@ -1194,10 +1266,15 @@
             user-select: none !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
             transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+            white-space: nowrap !important;
         }
 
         #txCustomAccountTrigger #txCustomAccountLabel {
-            color: #22d3ee !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            color: inherit !important;
+            white-space: nowrap !important;
         }
 
         #txCustomAccountTrigger #txCustomAccountChevron {
@@ -1229,7 +1306,7 @@
         #txCustomAccountMenu {
             position: absolute !important;
             top: calc(100% + 7px) !important;
-            right: 0 !important;
+            left: 0 !important;
             width: 210px !important;
             background: #091224 !important;
             background-color: #091224 !important;
@@ -1238,7 +1315,7 @@
             padding: 6px !important;
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 20px rgba(34, 211, 238, 0.1) !important;
             z-index: 999999 !important;
-            transform-origin: top right !important;
+            transform-origin: top left !important;
             opacity: 0;
             transform: translateY(-8px) scale(0.96);
             pointer-events: none;
@@ -1285,6 +1362,26 @@
     <div data-component="navbar"></div>
 
     <main class="rt-page pt-32">
+        <!-- DEMO ACCOUNT BANNER (Shown when active account is Demo) -->
+        <div id="txDemoAccountBanner" class="hidden mx-auto mt-2 max-w-[96%] w-full px-4 py-2.5 rounded-2xl border border-amber-500/40 bg-amber-500/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-amber-950/30 z-30">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-sm">DEMO MODE</span>
+                <div>
+                    <span class="text-xs font-black text-amber-200" id="txDemoBannerAccountName">Demo Trading Active</span>
+                    <span class="text-[11px] text-amber-400/80 font-semibold ml-1.5">(Virtual Balance: Practice Mode)</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="txDemoTopUpBtn" class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Deposit Demo</span>
+                </button>
+                <button type="button" id="txDemoSwitchRealBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition cursor-pointer">
+                    Switch to Real
+                </button>
+            </div>
+        </div>
+
         <!-- PAIR INFO BAR (Desktop Only) -->
         <section class="mx-auto mt-4 w-full px-6 hidden lg:block">
             <div class="rt-pair-bar rt-pair-bar-with-funds">
@@ -1299,8 +1396,7 @@
                             <div class="rt-coin-badge w-8 h-8 flex-shrink-0" id="coinBadge"></div>
 
                             <div class="flex items-center gap-2">
-                                <h1 id="currentSymbolTitle" class="text-2xl font-black text-white leading-none tracking-tight">BTC-USDT</h1>
-                                <span class="tx-perp-badge">Perp</span>
+                                <h1 id="currentSymbolTitle" class="text-2xl font-black text-white leading-none tracking-tight whitespace-nowrap">BTC-USDT</h1>
                                 <svg id="marketSelectorArrow" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -1451,89 +1547,76 @@
                     </div>
                 </div>
 
-                <!-- FUNDS QUICK ACTIONS - Highlighted in top pair header -->
+                <!-- INLINE COMPACT WALLET BAR (IMAGE 2 MATCH) -->
                 <div class="rt-pair-funds-card">
-                    <div class="rt-pair-funds-head flex items-center justify-between">
-                        <h3>Trading Wallet</h3>
-                        <div class="flex items-center gap-2">
-                            <!-- Custom Compact Trading Account Dropdown -->
-                            <div class="relative" id="txCustomAccountDropdown">
-                                <button type="button" id="txCustomAccountTrigger" class="outline-none select-none">
-                                    <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]"></span>
-                                    <span id="txCustomAccountLabel" class="truncate max-w-[130px]">Main Trading Account</span>
-                                    <svg id="txCustomAccountChevron" class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                
-                                <div id="txCustomAccountMenu">
-                                    <div id="txCustomAccountList" class="max-h-52 overflow-y-auto space-y-0.5">
-                                        <!-- Dynamically populated -->
-                                    </div>
-                                    <div class="border-t border-slate-800/80 pt-1 mt-1">
-                                        <button type="button" id="txCustomAccountCreateBtn" class="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/10 transition">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                            <span>Create Sub Account</span>
-                                        </button>
-                                    </div>
-                                </div>
+                    <!-- Custom Account Dropdown Trigger Pill -->
+                    <div class="relative inline-block" id="txCustomAccountDropdown">
+                        <button type="button" id="txCustomAccountTrigger" class="outline-none select-none">
+                            <span class="w-5 h-5 rounded-md bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xs shrink-0 shadow-inner">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            </span>
+                            <span id="txCustomAccountDot" class="hidden"></span>
+                            <span id="txCustomAccountLabel" class="inline-flex items-center gap-1.5 whitespace-nowrap text-white font-bold">Main Trading Account</span>
+                            <svg id="txCustomAccountChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <div id="txCustomAccountMenu">
+                            <div id="txCustomAccountList" class="max-h-52 overflow-y-auto space-y-0.5">
+                                <!-- Dynamically populated -->
                             </div>
-
-                            <select id="tradingAccountSelector" class="hidden">
-                                <option value="main">Main Trading Account</option>
-                            </select>
+                            <div class="border-t border-slate-800/80 pt-1 mt-1">
+                                <button type="button" id="txCustomAccountCreateBtn" class="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/10 transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Create Sub Account</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="rt-pair-funds-grid">
-                        <div class="rt-pair-funds-item">
-                            <span>Trading Balance</span>
+                    <select id="tradingAccountSelector" class="hidden">
+                        <option value="main">Main Trading Account</option>
+                    </select>
+
+                    <!-- Horizontal Inline Balances with Bullets (Image 1 Match) -->
+                    <div class="rt-pair-funds-grid" id="futuresPairFundsGrid">
+                        <div class="rt-pair-funds-item" id="futuresTradingBalanceCardItem">
+                            <span id="futuresTradingBalanceCardLabel">Trading</span>
                             <strong id="futuresTotalBalance">$0.00</strong>
                         </div>
 
-                        <div class="rt-pair-funds-item estimate">
-                            <span>Main Wallet</span>
-                            <strong id="futuresEstimatedBalance">$0.00</strong>
+                        <div class="rt-pair-funds-item estimate" id="futuresMainWalletCardItem">
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] shrink-0"></span>
+                                <span>Main Wallet</span>
+                            </span>
+                            <strong id="futuresEstimatedBalance" class="text-cyan-400">$0.00</strong>
                         </div>
 
-                        <div class="rt-pair-funds-item pnl">
-                            <span>Trading P&amp;L</span>
+                        <div class="rt-pair-funds-item pnl" id="futuresTradingPnlCardItem">
+                            <span>P&amp;L</span>
                             <strong id="futuresTradingPnl">+0.00 USD</strong>
                         </div>
                     </div>
 
-                    <div class="rt-pair-funds-actions">
-                        <button id="futuresTransferBtn" type="button" class="rt-pair-funds-btn transfer">
-                            Transfer
+                    <!-- INR / USD Currency Toggle Pill inside Futures Header -->
+                    <div id="futuresHeaderCurrencyToggle" class="inline-flex items-center p-0.5 rounded-full bg-slate-950/90 border border-white/15 select-none shadow-inner ml-1">
+                        <button type="button" data-futures-curr="INR" class="px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer text-slate-400 hover:text-white">
+                            ₹ INR
                         </button>
-                        <button id="futuresDepositBtn" type="button" class="rt-pair-funds-btn deposit">
-                            Deposit
-                        </button>
-                        <button id="futuresWithdrawBtn" type="button" class="rt-pair-funds-btn withdraw">
-                Withdraw
+                        <button type="button" data-futures-curr="USDT" class="px-2.5 py-1 rounded-full text-[11px] font-black transition cursor-pointer bg-cyan-400 text-slate-950 shadow-sm">
+                            $ USD
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- MOBILE TRADING WALLET QUICK BAR (Image 2 - Transfer, Deposit, Withdraw, P/L & Balances) -->
+        <!-- MOBILE TRADING WALLET QUICK BAR -->
         <div id="futuresMobileWalletQuickBar" class="bg-[#08111e] p-3 border-b border-white/10 lg:hidden">
-            <!-- Top Row: 3 Action Buttons -->
-            <div class="grid grid-cols-3 gap-2.5 mb-2.5">
-                <button id="mobileWalletTransferBtn" type="button" class="rounded-xl border border-amber-500/60 bg-amber-500/15 py-2 text-center text-xs font-black text-amber-300 hover:bg-amber-500/25 active:scale-95 transition cursor-pointer">
-                    Transfer
-                </button>
-                <button id="mobileWalletDepositBtn" type="button" class="rounded-xl border border-emerald-500/60 bg-emerald-500/15 py-2 text-center text-xs font-black text-emerald-400 hover:bg-emerald-500/25 active:scale-95 transition cursor-pointer">
-                    Deposit
-                </button>
-                <button id="mobileWalletWithdrawBtn" type="button" class="rounded-xl border border-rose-500/60 bg-rose-500/15 py-2 text-center text-xs font-black text-rose-400 hover:bg-rose-500/25 active:scale-95 transition cursor-pointer">
-                    Withdraw
-                </button>
-            </div>
-
             <!-- Middle Row: USD / INR Currency Toggle Pill & P/L Display -->
-            <div class="flex items-center justify-between mt-2.5 mb-2 px-1 gap-2">
+            <div class="flex items-center justify-between mb-2 px-1 gap-2">
                 <!-- USD / INR Toggle Pill -->
                 <div id="mobileQuickBarCurrencyToggle" class="inline-flex items-center rounded-xl border border-cyan-400/25 bg-slate-900/90 p-0.5 text-xs font-black shadow-sm">
                     <button type="button" data-currency-switch="USDT" class="tx-mobile-curr-btn rounded-lg px-2.5 py-1 transition cursor-pointer text-cyan-300 bg-cyan-500/20 border border-cyan-400/40">
@@ -1551,7 +1634,7 @@
             <!-- Bottom: Trading & Main Wallet Balances (Respects INR / USD toggle) -->
             <div class="flex items-center justify-between gap-2 mt-1.5 px-1 text-xs font-bold text-slate-400 border-t border-white/5 pt-1.5">
                 <div>Trading <strong id="mobileWalletTradingBalance" class="text-white">$0.00</strong></div>
-                <div>Main Wallet <strong id="mobileWalletMainBalance" class="text-cyan-300">$0.00</strong></div>
+                <div id="mobileWalletMainBalanceWrap">Main Wallet <strong id="mobileWalletMainBalance" class="text-cyan-300">$0.00</strong></div>
             </div>
         </div>
 
@@ -1697,13 +1780,13 @@
                                 </div>
                             </div>
                         </div>
-                        <span id="orderHeaderLeverageBadge">Max 50x</span>
+                        <span id="orderHeaderLeverageBadge">Max 1000x</span>
                     </div>
 
                     <div class="rt-order-type-tabs three">
                         <button class="active" type="button" data-order-type="MARKET">Market</button>
                         <button type="button" data-order-type="LIMIT">Limit</button>
-                        <button type="button" data-order-type="STOP_LIMIT">Stop Limit</button>
+                        <button type="button" data-order-type="STOP_LIMIT">Stop-Limit</button>
                     </div>
 
                     <div id="limitPriceWrap" class="hidden">
@@ -1735,10 +1818,18 @@
                         <option value="2">2x</option>
                         <option value="3">3x</option>
                         <option value="5">5x</option>
-                        <option value="10" selected>10x</option>
+                        <option value="10">10x</option>
                         <option value="20">20x</option>
                         <option value="25">25x</option>
                         <option value="50">50x</option>
+                        <option value="75">75x</option>
+                        <option value="100" selected>100x</option>
+                        <option value="125">125x</option>
+                        <option value="150">150x</option>
+                        <option value="200">200x</option>
+                        <option value="250">250x</option>
+                        <option value="500">500x</option>
+                        <option value="1000">1000x</option>
                     </select>
 
                     <label class="rt-tp-sl-label mx-4 mt-4 flex items-center gap-2 text-sm text-slate-500">
@@ -1810,9 +1901,9 @@
                         </div>
 
                         <div class="px-4 py-4">
-                            <div class="flex items-center justify-between">
-                                <h2 id="walletPnl" class="text-3xl font-black text-emerald-400">+0.00 USD</h2>
-                                <span id="marginAssetBadge" class="rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400 border border-cyan-400/20">
+                            <div class="flex items-center justify-between gap-2 flex-nowrap">
+                                <h2 id="walletPnl" class="text-2xl sm:text-3xl font-black text-emerald-400 whitespace-nowrap overflow-hidden text-ellipsis">+0.00 USD</h2>
+                                <span id="marginAssetBadge" class="whitespace-nowrap shrink-0 rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-black text-cyan-400 border border-cyan-400/20 inline-flex items-center justify-center">
                                     BTC-USDT
                                 </span>
                             </div>
@@ -2116,79 +2207,328 @@
     </div>
 
 
-    <!-- Sub-Account Management Modal -->
-    <div id="subAccountModal" class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/75 px-3 sm:px-4 backdrop-blur-sm">
-        <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[24px] sm:rounded-[28px] border border-cyan-400/25 bg-slate-950 shadow-2xl shadow-cyan-950/40">
-            <div class="flex items-start justify-between border-b border-slate-800 px-4 sm:px-5 py-4">
-                <div>
-                    <p class="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">Sub Accounts settings</p>
-                    <h3 class="mt-1 text-xl sm:text-2xl font-black text-white">Manage Sub Accounts</h3>
-                    <p class="mt-1 text-xs font-semibold text-slate-400">Create, view, and transfer funds between your trading sub-accounts.</p>
+    <!-- Sub-Account Creation & Management Modal (PrimeXBT Style) -->
+    <div id="subAccountModal" data-lenis-prevent class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/80 px-2 sm:px-4 py-3 backdrop-blur-md">
+        <div data-lenis-prevent class="w-full max-w-5xl max-h-[95vh] flex flex-col rounded-[22px] sm:rounded-[26px] border border-cyan-400/25 bg-[#0b1320] text-slate-100 shadow-2xl shadow-cyan-950/50 overflow-hidden" onclick="event.stopPropagation();">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-md bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-white tracking-wide">Create new account</h3>
                 </div>
-                <button id="subAccountModalClose" type="button" class="shrink-0 rounded-full border border-slate-700 px-3 py-2 text-sm font-black text-slate-300 hover:border-red-400 hover:text-red-300 transition">✕</button>
+                <button id="subAccountModalClose" type="button" class="w-7 h-7 rounded-full border border-slate-700/80 hover:border-red-400/60 bg-slate-900/60 text-slate-400 hover:text-red-300 flex items-center justify-center text-xs font-bold transition cursor-pointer">✕</button>
             </div>
 
-            <div class="px-4 sm:px-5 pb-5 pt-4">
-                <!-- Tabs to switch between List and Transfer -->
-                <div class="mb-4 hidden gap-2 border-b border-slate-800 pb-2">
-                    <button id="subTabListBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400">Sub Accounts</button>
-                    <button id="subTabTransferBtn" type="button" class="px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white">Transfer Funds</button>
+            <!-- Modal Scrollable Body -->
+            <div id="subAccountModalScrollBody" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+                
+                <!-- 1. Real / Demo Selector -->
+                <div>
+                    <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 mb-1.5">
+                        <span>1. Select a real or demo account</span>
+                        <span class="text-slate-500 hover:text-slate-300 cursor-help text-[11px]" title="Real accounts trade with actual funds. Demo accounts provide $10,000 USD virtual balance.">ⓘ</span>
+                    </div>
+                    <div class="inline-flex p-0.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <button type="button" id="subModalModeRealBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-black transition cursor-pointer bg-white/10 text-white border border-white/20 shadow-sm">
+                            Real
+                        </button>
+                        <button type="button" id="subModalModeDemoBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-semibold transition cursor-pointer text-slate-400 hover:text-white">
+                            Demo
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Panel 1: Sub Accounts List & Creation -->
-                <div id="subPanelList" class="space-y-4">
-                    <form id="createSubForm" class="grid gap-2.5">
-                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400">Create New Sub Account</label>
-                        <div class="flex gap-2 min-w-0 w-full">
-                            <input id="newSubNameInput" type="text" placeholder="Sub account name (e.g. Sub 1)" class="flex-1 min-w-0 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white outline-none focus:border-cyan-400 placeholder:text-slate-500" required />
-                            <button type="submit" class="shrink-0 rounded-xl bg-cyan-400 px-3.5 sm:px-4 py-2 text-xs font-black text-slate-950 hover:bg-cyan-300 transition">Create</button>
+                <!-- 2. Platform Selector -->
+                <div id="subModalPlatformSection">
+                    <div class="text-[11px] font-bold text-slate-300 mb-1.5">
+                        2. Select platform
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- TraidiumX 2.0 Card -->
+                        <div id="subPlatformPxTrader" class="relative rounded-xl border-2 border-cyan-400/80 bg-slate-900/90 p-3 transition cursor-pointer ring-1 ring-cyan-400/30">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-white text-xs sm:text-sm">TraidiumX 2.0</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Active</span>
+                                    </div>
+                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade crypto futures and CFDs</p>
+                                </div>
+                                <div class="w-8 h-7 rounded-md bg-cyan-950/40 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1h18v1z"></path><path d="M8 12l3-3 2 2 3-3"></path></svg>
+                                </div>
+                            </div>
                         </div>
-                        <p id="createSubMessage" class="hidden text-xs font-bold"></p>
-                    </form>
 
-                    <div class="border-t border-slate-800 pt-3">
-                        <label class="block text-xs font-black uppercase tracking-wide text-slate-400 mb-2">Existing Sub Accounts</label>
-                        <div id="subAccountsContainer" class="max-h-[200px] overflow-y-auto space-y-2 pr-1">
-                            <p class="text-xs text-slate-500 font-semibold py-2">Loading sub accounts...</p>
+                        <!-- MetaTrader 5 Card -->
+                        <div id="subPlatformMT5" class="relative rounded-xl border border-slate-800 bg-slate-900/40 p-3 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-300 text-xs sm:text-sm">MetaTrader 5</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-slate-800 text-slate-400">MT5</span>
+                                    </div>
+                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade CFDs and Forex on MetaTrader 5</p>
+                                </div>
+                                <div class="w-8 h-7 rounded-md bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 shrink-0">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"></circle><circle cx="6" cy="17" r="3"></circle><circle cx="18" cy="17" r="3"></circle><path d="M10 9l-2.5 5.5M14 9l2.5 5.5M9 17h6"></path></svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Panel 2: Sub-Account Transfer Form -->
-                <div id="subPanelTransfer" class="hidden space-y-4">
-                    <form id="subTransferForm" class="grid gap-4">
-                        <div>
-                            <label for="subTransferAccount" class="block text-xs font-black uppercase tracking-wide text-slate-400">Target Trading Account</label>
-                            <select id="subTransferAccount" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                                <option value="main">Main Trading Account</option>
-                            </select>
+                <!-- 3. Real Mode: Account Name + 3 Plan Cards -->
+                <div id="subModalRealPlanSection" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
+                        <input id="newSubNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-cyan-400 placeholder:text-slate-500 transition" />
+                    </div>
+
+                    <div>
+                        <div class="text-[11px] font-bold text-slate-300 mb-2">
+                            3. Select account type
                         </div>
 
-                        <div>
-                            <label for="subTransferDirection" class="block text-xs font-black uppercase tracking-wide text-slate-400">Direction</label>
-                            <select id="subTransferDirection" class="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-                                <option value="main_to_sub">Main Wallet → Target Trading Account (USD)</option>
-                                <option value="sub_to_main">Target Trading Account (USD) → Main Wallet</option>
-                            </select>
-                        </div>
+                        <!-- 3 Plan Cards Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            
+                            <!-- Basic Plan Card -->
+                            <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border-2 border-cyan-400/90 bg-slate-900/90 p-3.5 transition cursor-pointer ring-1 ring-cyan-400/30">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-xs sm:text-sm font-black text-white">Basic</h4>
+                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border-2 border-cyan-400 flex items-center justify-center p-0.5">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10.5px] leading-snug text-slate-400">For traders trading perpetual crypto futures and CFD markets with standard leverage.</p>
+                                    
+                                    <!-- Leverage & Spreads Table -->
+                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
+                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
+                                            <span>MAX. LEVERAGE</span>
+                                            <span>SPREADS</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Crypto futures</span>
+                                            <span class="font-bold text-white">1:500 <span class="text-slate-500 font-normal">| Fixed 18 USDT</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Forex</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Commodities</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Indices</span>
+                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 1.0 pips</span></span>
+                                        </div>
+                                    </div>
 
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label for="subTransferAmount" id="subTransferAmountLabel" class="block text-xs font-black uppercase tracking-wide text-slate-400">Amount</label>
-                                <button id="subTransferMaxBtn" type="button" class="text-xs font-black uppercase tracking-wider text-cyan-300 hover:text-cyan-200">MAX</button>
+                                    <!-- Features list -->
+                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Cross & Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Customisable leverage</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Netting & Hedge modes</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Order Book & TV charts</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> 10% Cashback & VIP tiers</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">No min deposit</span>
+                                </div>
                             </div>
-                            <input id="subTransferAmount" type="number" min="0.00000001" step="any" placeholder="Transfer amount" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-lg font-extrabold text-white outline-none focus:border-cyan-400" required />
+
+                            <!-- Standard Plan Card -->
+                            <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <h4 class="text-xs sm:text-sm font-black text-white">Standard</h4>
+                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">Popular</span>
+                                        </div>
+                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10.5px] leading-snug text-slate-400">For intermediate traders wanting tighter spreads (12 USDT) and enhanced execution speed.</p>
+                                    
+                                    <!-- Leverage & Spreads Table -->
+                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
+                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
+                                            <span>MAX. LEVERAGE</span>
+                                            <span>SPREADS</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Crypto futures</span>
+                                            <span class="font-bold text-white">1:500 <span class="text-blue-400 font-normal">| Fixed 12 USDT</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Forex</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Commodities</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Indices</span>
+                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.8 pips</span></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Features list -->
+                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Cross & Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Customisable leverage</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Faster order routing</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> TradingView charts</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> 15% Cashback & Priority Support</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-300 border border-blue-500/30">Min $2,000</span>
+                                </div>
+                            </div>
+
+                            <!-- Advanced Plan Card -->
+                            <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <h4 class="text-xs sm:text-sm font-black text-white">Advanced</h4>
+                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">VIP Pro</span>
+                                        </div>
+                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10.5px] leading-snug text-slate-400">For high-volume traders seeking lowest spreads (5 USDT) and dedicated VIP conditions.</p>
+                                    
+                                    <!-- Leverage & Spreads Table -->
+                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
+                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
+                                            <span>MAX. LEVERAGE</span>
+                                            <span>SPREADS</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Crypto futures</span>
+                                            <span class="font-bold text-white">1:500 <span class="text-purple-400 font-normal">| Fixed 5 USDT</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Forex</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Commodities</span>
+                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-300">
+                                            <span class="text-slate-400">Indices</span>
+                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Features list -->
+                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Cross & Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Institutional Raw Spreads</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> TradingView charts</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> 25% Cashback & VIP Manager</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Zero fee internal transfers</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/30">Min $5,000</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div id="subTransferPreview" class="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">
-                            Rate: 1 USD = ₹88.50 INR. Enter amount to see preview.
-                        </div>
+                        <!-- Hidden Select for compatibility -->
+                        <select id="newSubPlanSelect" class="hidden">
+                            <option value="basic" selected>Basic</option>
+                            <option value="standard">Standard</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
 
-                        <button type="submit" class="w-full rounded-2xl bg-yellow-400 py-3.5 text-sm font-black text-slate-950 hover:bg-yellow-300">Execute Transfer</button>
-                        <div id="subTransferMessage" class="hidden text-xs font-bold p-3 rounded-xl"></div>
-                    </form>
+                <!-- 4. Demo Mode Views -->
+                <!-- Demo Mode: Already Exists Notice (matching PrimeXBT screenshot) -->
+                <div id="subModalDemoExistingNotice" class="hidden rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2.5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-black shrink-0 text-xs">ⓘ</div>
+                        <div>
+                            <h4 class="text-xs sm:text-sm font-bold text-amber-300">All available accounts have been created.</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">(1 Demo account per profile)</p>
+                            <p class="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                                You already have an active Demo account with virtual funds. You can continue trading or top up its balance from your existing sub-accounts list below.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Demo Mode: Create Demo Form (if none exists) -->
+                <div id="subModalDemoNewSection" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
+                        <input id="newSubDemoNameInput" type="text" value="Demo Account" placeholder="Demo Account Name" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-500 transition" />
+                    </div>
+                    <div class="rounded-xl border border-amber-500/30 bg-slate-900/80 p-4 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                <h4 class="text-xs sm:text-sm font-bold text-white">TraidiumX 2.0 Demo</h4>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">$10,000 USD</span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                            Practice risk-free with <strong>$10,000 USDT virtual funds</strong>. Access real-time price feeds, order books, and full charting features with zero financial risk.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feedback / Status Message -->
+                <p id="createSubMessage" class="hidden text-xs font-bold p-2.5 rounded-lg border"></p>
+
+                <!-- 5. Collapsible Existing Sub-Accounts Section -->
+                <div class="border-t border-slate-800/80 pt-3">
+                    <button type="button" id="subExistingToggleBtn" class="flex items-center justify-between w-full text-[11px] font-bold text-slate-400 hover:text-white transition cursor-pointer">
+                        <span class="flex items-center gap-2">
+                            <span>Your Existing Accounts</span>
+                            <span id="subExistingCountBadge" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[9.5px] text-cyan-300 font-black">0</span>
+                        </span>
+                        <span id="subExistingArrow" class="text-[10px] transition-transform duration-200">▼</span>
+                    </button>
+                    <div id="subExistingDrawer" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="hidden mt-2.5 max-h-[260px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                        <div id="subAccountsContainer" class="space-y-1.5">
+                            <p class="text-[11px] text-slate-500 font-semibold py-1">Loading sub accounts...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer Action Bar -->
+            <div class="border-t border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
+                <p class="text-[10.5px] text-slate-400 text-center sm:text-left">
+                    For detailed trading fees and conditions, please review our <a href="./fee-structure.html" class="text-cyan-400 hover:underline">Fee Schedule</a>.
+                </p>
+                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                    <button id="subAccountModalBottomClose" type="button" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">Close</button>
+                    <button id="subAccountSubmitBtn" type="button" class="flex-1 sm:flex-initial px-5 py-2 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed">Create account</button>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -2214,6 +2554,74 @@
             <div id="futuresMobileOrderFormSlot">
                 <!-- Order form will be moved here on mobile when opened -->
             </div>
+        </div>
+    </div>
+
+    <!-- Set Demo Account Balance Modal -->
+    <div id="txDemoBalanceModal" class="fixed inset-0 z-[99999] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 transition-all">
+        <div class="relative w-full max-w-md rounded-3xl border border-cyan-500/25 bg-[#0a1020]/95 backdrop-blur-2xl p-6 shadow-[0_25px_60px_rgba(0,0,0,0.8),0_0_40px_rgba(34,211,238,0.08)]">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/35 text-amber-400 flex items-center justify-center shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-white leading-tight">Set Demo Balance</h3>
+                        <p class="text-[11px] font-semibold text-slate-400">Manage your virtual practice funds</p>
+                    </div>
+                </div>
+                <button type="button" id="txDemoBalanceModalClose" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold shadow-sm" title="Close">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Current Balance Stat Card -->
+            <div class="mt-4 p-3.5 rounded-2xl border border-white/10 bg-slate-950/70 flex items-center justify-between shadow-inner">
+                <div>
+                    <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Current Demo Balance</span>
+                    <strong id="txDemoModalCurrentBal" class="block text-lg font-black text-cyan-400 font-mono mt-0.5 tracking-tight">0.00 USD</strong>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                    Virtual Mode
+                </span>
+            </div>
+
+            <!-- Instant Top-up Section -->
+            <div class="mt-5">
+                <label class="block text-xs font-black text-slate-300 mb-2.5 tracking-wide">Instant Quick Deposit</label>
+                <div class="grid grid-cols-3 gap-2.5">
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-slate-900/90 hover:bg-emerald-500/15 border border-slate-700/70 hover:border-emerald-500/50 text-white font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="100">
+                        <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+100</span>
+                    </button>
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-slate-900/90 hover:bg-emerald-500/15 border border-slate-700/70 hover:border-emerald-500/50 text-white font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="1000">
+                        <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+1,000</span>
+                    </button>
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl bg-slate-900/90 hover:bg-emerald-500/15 border border-slate-700/70 hover:border-emerald-500/50 text-white font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="10000">
+                        <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+10,000</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Balance Section -->
+            <div class="mt-5 pt-4 border-t border-slate-800/80">
+                <label for="txDemoCustomAmountInput" class="block text-xs font-black text-slate-300 mb-2 tracking-wide">Or Set Exact Balance</label>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <input id="txDemoCustomAmountInput" type="number" min="1" step="any" placeholder="Enter amount..." class="w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-bold text-white placeholder-slate-500 outline-none focus:border-cyan-400 pr-12 transition shadow-inner" />
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">USD</span>
+                    </div>
+                    <button id="txDemoSetBalanceBtn" type="button" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 active:scale-95 text-slate-950 font-black text-xs transition cursor-pointer shadow-lg shadow-cyan-950/50 whitespace-nowrap">
+                        Set Balance
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message alert -->
+            <div id="txDemoModalMsg" class="hidden mt-4 text-xs font-bold p-3 rounded-xl"></div>
         </div>
     </div>
 

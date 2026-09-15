@@ -61,8 +61,48 @@ html {
 }
 
 * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* ================================
+   Custom Scrollbar for Modals & Drawers
+================================ */
+.custom-scrollbar,
+.custom-scroll,
+[data-lenis-prevent] {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(34, 211, 238, 0.4) rgba(15, 23, 42, 0.7) !important;
+    -ms-overflow-style: auto !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar,
+.custom-scroll::-webkit-scrollbar,
+[data-lenis-prevent]::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+    display: block !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.custom-scroll::-webkit-scrollbar-track,
+[data-lenis-prevent]::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-radius: 9999px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.custom-scroll::-webkit-scrollbar-thumb,
+[data-lenis-prevent]::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.4) !important;
+    border-radius: 9999px !important;
+    border: 1px solid rgba(34, 211, 238, 0.15) !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.custom-scroll::-webkit-scrollbar-thumb:hover,
+[data-lenis-prevent]::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.75) !important;
 }
 
 
@@ -4143,8 +4183,7 @@ input:-webkit-autofill:active {
 }
 
 .rt-chart-tabs,
-.rt-chart-header,
-.rt-bottom-tabs {
+.rt-chart-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -4155,8 +4194,7 @@ input:-webkit-autofill:active {
 
 .rt-chart-tab,
 .rt-interval,
-.rt-tool-btn,
-.rt-bottom-tabs button {
+.rt-tool-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -4169,8 +4207,7 @@ input:-webkit-autofill:active {
     line-height: 1;
 }
 
-.rt-chart-tab,
-.rt-bottom-tabs button {
+.rt-chart-tab {
     border-color: transparent;
     background: transparent;
     padding: 8px 4px;
@@ -4193,9 +4230,7 @@ input:-webkit-autofill:active {
 .rt-interval:hover,
 .rt-interval.active,
 .rt-tool-btn:hover,
-.rt-tool-btn.active,
-.rt-bottom-tabs button:hover,
-.rt-bottom-tabs button.active {
+.rt-tool-btn.active {
     border-color: rgba(34, 211, 238, 0.45);
     background: rgba(34, 211, 238, 0.10);
     color: #67e8f9;
@@ -7991,6 +8026,8 @@ body .rt-terminal-3col {
 .rt-terminal-focused #marginAssetBadge {
     padding: 2px 8px !important;
     font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
 
 .rt-terminal-focused .px-4.py-4 {
@@ -8184,6 +8221,8 @@ body .rt-terminal-3col {
 .rt-terminal-focused #marginAssetBadge {
     padding: 2px 8px !important;
     font-size: 10px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
 
 .rt-terminal-focused .px-4.py-4 {
@@ -8427,8 +8466,89 @@ html.light .rt-perfect-tv-wrap iframe {
     filter: invert(1) hue-rotate(180deg) !important;
 }
 
-#txProfileDropdown {
+.tx-pill-header {
+    z-index: 10000 !important;
+}
+
+#txProfileDropdown,
+#txNavbarWalletMenu {
+    z-index: 10001 !important;
+    background-color: #0c101d !important;
+    backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(51, 65, 85, 0.8) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
     animation: txDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#txDepositChoiceModal,
+#futuresWalletModal,
+#subAccountModal,
+#optionsWalletModal,
+#walletActionModal,
+#txDemoBalanceModal {
+    z-index: 100005 !important;
+}
+
+/* ==========================================================================
+   PRIME XBT DEPOSIT CHOICE POPUP MODAL (SOLID BACKDROP & NON-TRANSPARENT CARD)
+   ========================================================================== */
+#txDepositChoiceModal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 100005 !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    padding: 16px !important;
+}
+
+#txDepositChoiceModal.hidden {
+    display: none !important;
+}
+
+#txDepositChoiceModal.flex {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#txDepositChoiceModal .tx-deposit-choice-card {
+    background-color: #131722 !important;
+    background: #131722 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9) !important;
+    width: 100% !important;
+    max-width: 420px !important;
+    padding: 24px 26px !important;
+    color: #e2e8f0 !important;
+    position: relative !important;
+    user-select: none !important;
+    opacity: 1 !important;
+}
+
+#txDepositChoiceModal .tx-deposit-choice-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background-color: #1c2230 !important;
+    background: #1c2230 !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 10px !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+}
+
+#txDepositChoiceModal .tx-deposit-choice-item:hover {
+    background-color: #242c3d !important;
+    background: #242c3d !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    transform: translateY(-1px) !important;
 }
 
 @keyframes txDropdownFadeIn {
@@ -8499,18 +8619,63 @@ body .rt-terminal-focused #stopLossInput {
 }
 
 body .rt-terminal-focused .rt-side-tabs,
-body .rt-terminal-focused .rt-order-type-tabs,
 body .rt-terminal-focused .rt-percent-row {
     padding: 8px 0 0 !important;
     gap: 8px !important;
 }
 
 body .rt-terminal-focused .rt-side-tabs button,
-body .rt-terminal-focused .rt-order-type-tabs button,
 body .rt-terminal-focused .rt-percent-row button {
     padding: 10px 14px !important;
     font-size: 12px !important;
     border-radius: 12px !important;
+}
+
+/* ========================================================================
+   FUTURES ORDER TYPE SEGMENTED TABS (Limit / Market / Stop-Limit)
+   ======================================================================== */
+body .rt-terminal-focused .rt-order-type-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    background: #080f1d !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    margin-top: 10px !important;
+    box-sizing: border-box !important;
+}
+
+body .rt-terminal-focused .rt-order-type-tabs button {
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    color: #94a3b8 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    padding: 8px 10px !important;
+    border-radius: 9px !important;
+    cursor: pointer !important;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+body .rt-terminal-focused .rt-order-type-tabs button:hover:not(.active) {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+body .rt-terminal-focused .rt-order-type-tabs button.active {
+    background: rgba(34, 211, 238, 0.08) !important;
+    border: 1px solid #22d3ee !important;
+    color: #22d3ee !important;
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
+    font-weight: 900 !important;
 }
 
 body .rt-terminal-focused .rt-wallet-mini-grid {
@@ -8570,8 +8735,14 @@ body .rt-terminal-focused #walletPnl {
 }
 
 body .rt-terminal-focused #marginAssetBadge {
-    padding: 4px 10px !important;
+    padding: 3px 8px !important;
     font-size: 11px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
 }
 
 body .rt-terminal-focused .px-4.py-4 {
@@ -9046,6 +9217,8 @@ div:has(> #txDepositSecurityNote) {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
     outline: none;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
 
 .tx-market-trigger:hover,
@@ -9486,6 +9659,313 @@ div:has(> #txDepositSecurityNote) {
 .tx-assets-submenu-inner {
     overflow: hidden;
     min-height: 0;
+}
+
+/* ==========================================================================
+   NEXUS / PRIME XBT DEPOSIT PAGE (EXACT MATCH TO REFERENCE DESIGN)
+   ========================================================================== */
+.tx-nexus-deposit-wrap {
+    max-width: 1100px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    padding: 0 16px !important;
+}
+
+.tx-nexus-subtabs {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 36px !important;
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-bottom: 14px !important;
+}
+
+.tx-nexus-subtab-btn {
+    background: transparent !important;
+    border: none !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
+    padding-bottom: 8px !important;
+    position: relative !important;
+    transition: all 0.2s ease !important;
+}
+
+.tx-nexus-subtab-btn:hover {
+    color: #ffffff !important;
+}
+
+.tx-nexus-subtab-btn.active {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+}
+
+.tx-nexus-subtab-btn.active::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: -15px !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 2px !important;
+    background: #ffffff !important;
+}
+
+.tx-nexus-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 350px !important;
+    gap: 24px !important;
+    align-items: start !important;
+}
+
+@media (max-width: 1023px) {
+    .tx-nexus-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.tx-nexus-main-card {
+    background-color: #121620 !important;
+    background: #121620 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 24px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+.tx-nexus-side-card {
+    background-color: #121620 !important;
+    background: #121620 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 24px !important;
+    padding: 24px 26px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+    margin-bottom: 24px !important;
+}
+
+.tx-nexus-toggle-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    background: #1c2230 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 999px !important;
+    padding: 4px !important;
+}
+
+.tx-nexus-toggle-pill button {
+    border: none !important;
+    border-radius: 999px !important;
+    padding: 6px 18px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    color: #94a3b8 !important;
+    background: transparent !important;
+}
+
+.tx-nexus-toggle-pill button.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.tx-nexus-stepper {
+    position: relative !important;
+    padding-left: 38px !important;
+}
+
+.tx-nexus-stepper-line {
+    position: absolute !important;
+    left: 11px !important;
+    top: 14px !important;
+    bottom: 24px !important;
+    width: 2px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.tx-nexus-step-dot {
+    position: absolute !important;
+    left: -38px !important;
+    top: 0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 999px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    background: #121620 !important;
+    border: 1px solid #334155 !important;
+    color: #64748b !important;
+    transition: all 0.25s ease !important;
+    z-index: 5 !important;
+}
+
+.tx-nexus-step-dot.active {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.45) !important;
+}
+
+.tx-nexus-step-dot.completed {
+    background: #0f172a !important;
+    border: 1.5px solid #22d3ee !important;
+    color: #22d3ee !important;
+    font-weight: 900 !important;
+}
+
+.tx-nexus-step-dot.inactive {
+    background: #121620 !important;
+    border: 1px solid #334155 !important;
+    color: #64748b !important;
+}
+
+.tx-nexus-select-box {
+    background: #161c28 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 12px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    cursor: pointer !important;
+    transition: border-color 0.2s ease !important;
+    user-select: none !important;
+}
+
+.tx-nexus-select-box:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.tx-nexus-dropdown-menu {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: calc(100% + 8px) !important;
+    background-color: #161c28 !important;
+    background: #161c28 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+    padding: 10px !important;
+    z-index: 9999 !important;
+    max-height: 290px !important;
+    overflow-y: auto !important;
+}
+
+.tx-nexus-dropdown-menu.hidden {
+    display: none !important;
+}
+
+.tx-nexus-dropdown-search {
+    width: 100% !important;
+    background: #0f141d !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 9px 12px !important;
+    font-size: 12.5px !important;
+    color: #ffffff !important;
+    outline: none !important;
+    transition: border-color 0.2s ease !important;
+}
+
+.tx-nexus-dropdown-search:focus {
+    border-color: #22d3ee !important;
+}
+
+.tx-nexus-coin-row {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    border: 1px solid transparent !important;
+    background: transparent !important;
+    color: #f8fafc !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    text-align: left !important;
+    text-decoration: none !important;
+}
+
+.tx-nexus-coin-row:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.tx-nexus-coin-row.selected {
+    background: rgba(34, 211, 238, 0.12) !important;
+    border-color: rgba(34, 211, 238, 0.3) !important;
+}
+
+.tx-nexus-to-box {
+    position: relative !important;
+    background: #161c28 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 16px !important;
+    padding: 14px 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    transition: border-color 0.2s ease !important;
+    user-select: none !important;
+}
+
+.tx-nexus-to-box:hover {
+    border-color: rgba(34, 211, 238, 0.4) !important;
+}
+
+.tx-nexus-to-box-label {
+    position: absolute !important;
+    top: -9px !important;
+    left: 14px !important;
+    background: #121620 !important;
+    padding: 0 6px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #94a3b8 !important;
+    letter-spacing: 0.05em !important;
+}
+
+.tx-nexus-account-dropdown {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: calc(100% + 8px) !important;
+    background-color: #161c28 !important;
+    background: #161c28 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+    padding: 12px !important;
+    z-index: 9999 !important;
+}
+
+#contentDeposit .tx-dep-net-pill {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#contentDeposit .tx-dep-net-pill.active {
+    border-color: #22d3ee !important;
+    background: rgba(34, 211, 238, 0.12) !important;
+    color: #22d3ee !important;
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
+}
+
+#contentDeposit .tx-faq-btn:hover .tx-faq-chevron {
+    color: #22d3ee !important;
+}
+
+#contentDeposit .tx-faq-chevron {
+    transition: transform 0.2s ease;
 }
 
 

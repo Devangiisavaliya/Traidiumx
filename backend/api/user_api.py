@@ -8,6 +8,7 @@ from services.user_service import change_user_password, get_user_profile, update
 from services.user_status_service import build_user_account_status_payload
 from services.notification_service import get_user_notifications, mark_notifications_read
 from utils.response import success_response, error_response
+from models.wallet_model import create_default_wallet, find_wallet_by_user_id, format_wallet
 
 
 user_api = Blueprint("user_api", __name__, url_prefix="/api/user")
@@ -219,6 +220,9 @@ def get_sub_accounts():
             "id": parent_user_id,
             "name": parent_user.get("name") or "Main Trading Account",
             "client_id": parent_user.get("client_id"),
+            "plan": "master",
+            "plan_name": "Main Master Account",
+            "plan_color": "cyan",
             "wallet": formatted_parent_wallet,
             "is_parent": True,
             "created_at": parent_user.get("created_at").isoformat() if parent_user.get("created_at") else None
@@ -230,10 +234,25 @@ def get_sub_accounts():
             continue
         wallet = find_wallet_by_user_id(sub_id)
         formatted_wallet = format_wallet(wallet) if wallet else None
+        plan_key = str(sub.get("plan") or "basic").lower()
+        is_demo = bool(sub.get("is_demo") or sub.get("account_mode") == "demo")
+        plan_names = {
+            "basic": ("Basic", "cyan"),
+            "standard": ("Standard", "emerald"),
+            "advanced": ("Advanced", "purple"),
+            "demo": ("Demo", "amber"),
+        }
+        plan_info = plan_names.get(plan_key, ("Demo" if is_demo else "Basic", "amber" if is_demo else "cyan"))
+
         sub_accounts_data.append({
             "id": sub_id,
             "name": sub.get("name"),
             "client_id": sub.get("client_id"),
+            "plan": plan_key,
+            "plan_name": sub.get("plan_name") or plan_info[0],
+            "plan_color": plan_info[1],
+            "account_mode": "demo" if is_demo else "real",
+            "is_demo": is_demo,
             "wallet": formatted_wallet,
             "created_at": sub.get("created_at").isoformat() if sub.get("created_at") else None
         })
@@ -251,12 +270,30 @@ def create_sub_account_endpoint():
     from models.user_model import create_user
     from models.wallet_model import create_default_wallet
     from bson import ObjectId
+    from datetime import datetime
     import uuid
 
     data = request.get_json(silent=True) or {}
     name = str(data.get("name") or "").strip()
     if not name:
         return error_response(message="Sub account name is required.", status_code=422)
+
+    account_mode = str(data.get("account_mode") or "real").strip().lower()
+    is_demo = account_mode == "demo" or bool(data.get("is_demo"))
+
+    if is_demo:
+        plan_key = "demo"
+        plan_name = "Demo"
+    else:
+        plan_key = str(data.get("plan") or "basic").strip().lower()
+        plan_names = {
+            "basic": "Basic",
+            "standard": "Standard",
+            "advanced": "Advanced",
+        }
+        if plan_key not in plan_names:
+            plan_key = "basic"
+        plan_name = plan_names[plan_key]
 
     token = get_bearer_token(request)
     token_result = verify_token(token)
@@ -268,6 +305,17 @@ def create_sub_account_endpoint():
 
     if count >= 10:
         return error_response(message="Maximum of 10 sub accounts exceeded.", status_code=400)
+
+    if is_demo:
+        existing_demo = db.users.find_one({
+            "parent_user_id": str(main_user_id),
+            "$or": [{"is_demo": True}, {"account_mode": "demo"}, {"plan": "demo"}]
+        })
+        if existing_demo:
+            return error_response(
+                message="You can only create one Demo account. A Demo account already exists for your profile.",
+                status_code=400
+            )
 
     main_user = db.users.find_one({"_id": ObjectId(main_user_id)})
     if not main_user:
@@ -288,19 +336,173 @@ def create_sub_account_endpoint():
         "email_verified": True,
         "mobile_verified": True,
         "kyc_status": "approved",
+        "account_mode": "demo" if is_demo else "real",
+        "is_demo": is_demo,
+        "plan": plan_key,
+        "plan_name": plan_name,
+        "preferred_plan": plan_key,
+        "preferred_plan_name": plan_name,
+        "active_plan": plan_key,
+        "active_plan_name": plan_name,
+        "selected_platform": "traidiumx",
+        "selected_platform_name": "TraidiumX",
     }
 
     sub_id = create_user(user_data)
     create_default_wallet(sub_id)
 
+    if is_demo:
+        # Pre-fund demo Trading Wallet directly with initial $10,000 Demo USDT
+        initial_amount = float(data.get("initial_demo_balance") or 10000.0)
+        from services.system_settings_service import get_usdt_inr_rate
+        usdt_rate = float(get_usdt_inr_rate() or 88.50)
+        initial_inr = round(initial_amount * usdt_rate, 2)
+
+        db.wallets.update_one(
+            {"user_id": str(sub_id)},
+            {
+                "$set": {
+                    "available_balance": initial_amount,
+                    "total_balance": initial_amount,
+                    "trading_wallet.available_balance": initial_amount,
+                    "trading_wallet.total_balance": initial_amount,
+                    "trading_wallet_usdt.available_balance": initial_amount,
+                    "trading_wallet_usdt.total_balance": initial_amount,
+                    "trading_wallet_inr.available_balance": initial_inr,
+                    "trading_wallet_inr.total_balance": initial_inr,
+                    "main_wallet.available_balance": 0.0,
+                    "main_wallet.total_balance": 0.0,
+                    "main_wallet_usdt.available_balance": 0.0,
+                    "main_wallet_usdt.total_balance": 0.0,
+                    "main_wallet_inr.available_balance": 0.0,
+                    "main_wallet_inr.total_balance": 0.0,
+                    "updated_at": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+
     return success_response(
-        message="Sub account created successfully.",
+        message="Demo sub account created successfully." if is_demo else "Sub account created successfully.",
         data={
             "id": str(sub_id),
             "name": name,
-            "client_id": mobile
+            "client_id": mobile,
+            "plan": plan_key,
+            "plan_name": plan_name,
+            "account_mode": "demo" if is_demo else "real",
+            "is_demo": is_demo
         },
         status_code=201
+    )
+
+
+@user_api.post("/sub-accounts/<sub_id>/demo-deposit")
+@auth_required
+def demo_deposit_endpoint(sub_id):
+    from config.database import get_database
+    from bson import ObjectId
+    from datetime import datetime
+    from services.system_settings_service import get_usdt_inr_rate
+
+    data = request.get_json(silent=True) or {}
+    amount = float(data.get("amount") or 10000.0)
+    reset_mode = bool(data.get("reset"))
+
+    token = get_bearer_token(request)
+    token_result = verify_token(token)
+    current_user_id = token_result["data"].get("user_id")
+
+    db = get_database()
+    
+    sub_user = None
+
+    if sub_id in ("main", "active", str(current_user_id)):
+        active_sub_header = request.headers.get("X-Active-User-Id")
+        if active_sub_header and ObjectId.is_valid(active_sub_header):
+            sub_user = db.users.find_one({"_id": ObjectId(active_sub_header)})
+        
+        if not sub_user or (not sub_user.get("is_demo") and sub_user.get("account_mode") != "demo"):
+            sub_user = db.users.find_one({
+                "parent_user_id": str(current_user_id),
+                "$or": [{"is_demo": True}, {"account_mode": "demo"}, {"plan": "demo"}]
+            })
+            
+        if not sub_user:
+            sub_user = db.users.find_one({"_id": ObjectId(current_user_id)})
+    else:
+        if ObjectId.is_valid(sub_id):
+            sub_user = db.users.find_one({"_id": ObjectId(sub_id)})
+
+    if not sub_user:
+        return error_response(message="Demo account not found.", status_code=404)
+
+    target_sub_id = str(sub_user["_id"])
+
+    if str(sub_user.get("parent_user_id")) != str(current_user_id) and target_sub_id != str(current_user_id):
+        return error_response(message="Unauthorized access to this sub account.", status_code=403)
+
+    if not sub_user.get("is_demo") and sub_user.get("account_mode") != "demo" and sub_user.get("plan") != "demo":
+        return error_response(message="Demo deposit is only allowed on Demo accounts.", status_code=400)
+
+    usdt_rate = float(get_usdt_inr_rate() or 88.50)
+    amount_inr = round(amount * usdt_rate, 2)
+
+    if reset_mode:
+        db.wallets.update_one(
+            {"user_id": target_sub_id},
+            {
+                "$set": {
+                    "available_balance": amount,
+                    "total_balance": amount,
+                    "trading_wallet.available_balance": amount,
+                    "trading_wallet.total_balance": amount,
+                    "trading_wallet_usdt.available_balance": amount,
+                    "trading_wallet_usdt.total_balance": amount,
+                    "trading_wallet_inr.available_balance": amount_inr,
+                    "trading_wallet_inr.total_balance": amount_inr,
+                    "main_wallet.available_balance": 0.0,
+                    "main_wallet.total_balance": 0.0,
+                    "main_wallet_usdt.available_balance": 0.0,
+                    "main_wallet_usdt.total_balance": 0.0,
+                    "main_wallet_inr.available_balance": 0.0,
+                    "main_wallet_inr.total_balance": 0.0,
+                    "updated_at": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+    else:
+        db.wallets.update_one(
+            {"user_id": target_sub_id},
+            {
+                "$inc": {
+                    "available_balance": amount,
+                    "total_balance": amount,
+                    "trading_wallet.available_balance": amount,
+                    "trading_wallet.total_balance": amount,
+                    "trading_wallet_usdt.available_balance": amount,
+                    "trading_wallet_usdt.total_balance": amount,
+                    "trading_wallet_inr.available_balance": amount_inr,
+                    "trading_wallet_inr.total_balance": amount_inr,
+                },
+                "$set": {
+                    "updated_at": datetime.utcnow(),
+                    "trading_wallet.updated_at": datetime.utcnow(),
+                    "trading_wallet_usdt.updated_at": datetime.utcnow(),
+                    "trading_wallet_inr.updated_at": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+
+    wallet = find_wallet_by_user_id(target_sub_id)
+    return success_response(
+        message=f"Successfully set demo balance to {amount} Demo USDT!" if reset_mode else f"Successfully credited {amount} Demo USDT!",
+        data={
+            "wallet": format_wallet(wallet) if wallet else None,
+            "sub_id": target_sub_id
+        }
     )
 
 

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <script>
+        document.documentElement.classList.add("tx-motion-ready");
         (function() {
             const lang = localStorage.getItem("tx_language") || "English";
             if (lang !== "English") {
@@ -27,6 +28,27 @@
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         /* ================= PREMIUM ACADEMY STYLES ================= */
         .tx-learn-main {
             padding-top: 140px;
@@ -347,7 +369,7 @@
         </div>
 
         <!-- ================= HERO SECTION ================= -->
-        <section class="relative z-10 py-12 lg:py-16">
+        <section class="tx-scroll-reveal relative z-10 py-12 lg:py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
 
@@ -416,7 +438,7 @@
                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-cyan-400/20 text-cyan-300">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                                             <circle cx="12" cy="12" r="9"></circle>
-                                            <circle cx="12" cy="12" r="4"></circle>
+                                             <circle cx="12" cy="12" r="4"></circle>
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
                                         </svg>
                                     </span>
@@ -435,7 +457,7 @@
 
 
         <!-- ================= 3 LEARNING PATHS OVERVIEW ================= -->
-        <section class="py-10 border-y border-white/5 bg-[#030816]/70 relative z-10">
+        <section class="tx-scroll-reveal py-10 border-y border-white/5 bg-[#030816]/70 relative z-10" data-reveal-delay="100">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-3">
@@ -535,7 +557,7 @@
 
 
         <!-- ================= 6 CORE LEARNING MODULES GRID ================= -->
-        <section class="py-16 relative z-10">
+        <section class="tx-scroll-reveal py-16 relative z-10" data-reveal-delay="100">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10">
@@ -713,7 +735,7 @@
 
 
         <!-- ================= INTERACTIVE TOOLS SECTION ================= -->
-        <section id="toolsSection" class="py-16 bg-[#030714] border-t border-white/5 relative z-10">
+        <section id="toolsSection" class="tx-scroll-reveal py-16 bg-[#030714] border-t border-white/5 relative z-10" data-reveal-delay="100">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 
                 <div class="text-center mb-12">
@@ -939,7 +961,7 @@
 
 
         <!-- ================= A TO Z TRADING GLOSSARY ================= -->
-        <section class="py-16 relative z-10">
+        <section class="tx-scroll-reveal py-16 relative z-10" data-reveal-delay="100">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
@@ -1098,7 +1120,7 @@
 
 
         <!-- ================= FAQS ACCORDION ================= -->
-        <section class="py-16 bg-[#030816] border-t border-white/5 relative z-10">
+        <section class="tx-scroll-reveal py-16 bg-[#030816] border-t border-white/5 relative z-10" data-reveal-delay="100">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="grid gap-12 lg:grid-cols-[1fr_1.8fr] lg:items-start">
                     
@@ -1204,5 +1226,78 @@
     <script src="../js/auth-state.js"></script>
     <script src="../js/learn.js?v=2"></script>
     <script src="../js/responsive.js"></script>
+    <script src="../js/lenis.min.js"></script>
+    <script>
+        // Initialize Lenis Ultra-Smooth Inertia Scroll Engine
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                // Handle in-page anchor clicks smoothly
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
 </body>
 </html>

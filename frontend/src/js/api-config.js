@@ -94,11 +94,13 @@ async function apiRequest(endpoint, options = {}) {
     const normalizedEndpoint = String(endpoint || "").startsWith("/") ? endpoint : `/${endpoint}`;
 
     const activeUserId = localStorage.getItem("traidiumx_active_user_id");
-    const isTradingOrWalletApi = normalizedEndpoint.startsWith("/wallet/balance") ||
-                                 normalizedEndpoint.startsWith("/wallet/ledger") ||
-                                 normalizedEndpoint.startsWith("/trading/") ||
-                                 normalizedEndpoint.startsWith("/options/");
-    if (token && activeUserId && isTradingOrWalletApi) {
+    const isTradingOrWalletApi = normalizedEndpoint.startsWith("/wallet") ||
+                                 normalizedEndpoint.startsWith("/trading") ||
+                                 normalizedEndpoint.startsWith("/options") ||
+                                 normalizedEndpoint.startsWith("/deposit") ||
+                                 normalizedEndpoint.startsWith("/withdrawal");
+    const isSubAccountsList = normalizedEndpoint === "/user/sub-accounts" || normalizedEndpoint.startsWith("/user/sub-accounts?");
+    if (token && activeUserId && isTradingOrWalletApi && !isSubAccountsList) {
         headers["X-Active-User-Id"] = activeUserId;
     }
 

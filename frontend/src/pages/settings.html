@@ -5,10 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Settings | TraidiumX</title>
 
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+    </script>
+
     <link rel="stylesheet" href="../../dist/output.css" />
     <link rel="stylesheet" href="../css/custom.css" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
+    <style>
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+    </style>
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
@@ -705,6 +727,77 @@
         </a>
     </div>
 
+    <script src="../js/lenis.min.js"></script>
+    <script>
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
     <script src="../js/settings.js?v=28"></script>
 </body>
 </html>

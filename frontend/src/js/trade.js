@@ -92,23 +92,25 @@
         if (!container) return;
 
         const toast = document.createElement("div");
-        toast.className = "flex items-center gap-3 p-3.5 rounded-2xl bg-[#091224] border border-cyan-400/30 text-white shadow-2xl backdrop-blur-xl transition-all transform duration-300 translate-y-[-10px] opacity-0 pointer-events-auto";
+        toast.className = "flex items-center gap-3.5 p-4 rounded-2xl bg-[#081224] border border-cyan-400/40 text-white shadow-2xl backdrop-blur-2xl transition-all transform duration-300 translate-y-[-10px] opacity-0 pointer-events-auto";
+        toast.style.boxShadow = "0 20px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(34, 211, 238, 0.15)";
         
-        let iconHtml = `<div class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✓</div>`;
+        let iconHtml = `<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-black text-sm shrink-0">✓</div>`;
         if (type === "error") {
-            toast.classList.replace("border-cyan-400/30", "border-rose-500/40");
-            iconHtml = `<div class="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">✕</div>`;
+            toast.className = "flex items-center gap-3.5 p-4 rounded-2xl bg-[#140810] border border-rose-500/50 text-white shadow-2xl backdrop-blur-2xl transition-all transform duration-300 translate-y-[-10px] opacity-0 pointer-events-auto";
+            toast.style.boxShadow = "0 20px 40px -10px rgba(0, 0, 0, 0.9), 0 0 20px rgba(239, 68, 68, 0.2)";
+            iconHtml = `<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 font-black text-sm shrink-0">✕</div>`;
         } else if (type === "info") {
-            iconHtml = `<div class="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">ℹ</div>`;
+            iconHtml = `<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-black text-sm shrink-0">ℹ</div>`;
         }
 
         toast.innerHTML = `
             ${iconHtml}
-            <div class="flex-1 min-w-0">
-                <h4 class="text-xs font-black text-white">${title}</h4>
-                <p class="text-[11px] font-medium text-slate-300 truncate">${message}</p>
+            <div class="flex-1 min-w-0 pr-1">
+                <h4 class="text-xs font-black tracking-wide text-white mb-0.5">${title}</h4>
+                <p class="text-[12px] font-semibold text-slate-300 leading-snug">${message}</p>
             </div>
-            <button type="button" class="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 cursor-pointer">✕</button>
+            <button type="button" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition cursor-pointer text-xs shrink-0">✕</button>
         `;
 
         toast.querySelector("button").addEventListener("click", () => {
@@ -549,7 +551,7 @@
         };
 
         recentTrades.unshift(item);
-        if (recentTrades.length > 25) recentTrades.pop();
+        if (recentTrades.length > 22) recentTrades.pop();
 
         let html = "";
         recentTrades.forEach(t => {
@@ -610,22 +612,22 @@
             filtered.forEach(p => {
                 const item = document.createElement("button");
                 item.type = "button";
-                item.className = `w-full flex items-center justify-between p-2 rounded-xl text-left transition hover:bg-[#13203c] bg-[#080f1d] border border-transparent cursor-pointer ${p.symbol === currentPair.symbol ? "!bg-cyan-500/20 !border-cyan-400/40" : ""}`;
+                item.className = `w-full flex items-center justify-between p-2.5 rounded-xl text-left transition hover:bg-[#101b33] bg-[#091224] border border-slate-800/60 hover:border-cyan-500/30 cursor-pointer ${p.symbol === currentPair.symbol ? "!bg-cyan-500/20 !border-cyan-400/50" : ""}`;
                 
                 const isPositive = p.change >= 0;
                 item.innerHTML = `
-                    <div class="flex items-center gap-2.5">
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-400 font-black text-xs border border-cyan-400/30 shrink-0">
+                    <div class="flex items-center gap-3">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400 font-black text-sm border border-cyan-400/30 shrink-0 shadow-sm">
                             ${p.icon}
                         </span>
                         <div>
-                            <div class="text-xs font-black text-white tracking-tight">${p.base}/<span class="text-slate-400">${p.quote}</span></div>
-                            <div class="text-[10px] text-slate-400 font-semibold">${p.name}</div>
+                            <div class="text-xs sm:text-[13px] font-black text-white tracking-tight">${p.base}/<span class="text-slate-400 font-bold">${p.quote}</span></div>
+                            <div class="text-[11px] text-slate-400 font-semibold">${p.name}</div>
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-xs font-mono font-black text-slate-100">$${formatCurrency(p.price, p.precision)}</div>
-                        <div class="text-[10px] font-extrabold ${isPositive ? "text-emerald-400" : "text-rose-400"} mt-0.5">${isPositive ? "+" : ""}${p.change}%</div>
+                        <div class="text-xs sm:text-[13px] font-mono font-black text-slate-100">$${formatCurrency(p.price, p.precision)}</div>
+                        <div class="text-[11px] font-black ${isPositive ? "text-emerald-400" : "text-rose-400"} mt-0.5">${isPositive ? "+" : ""}${p.change}%</div>
                     </div>
                 `;
 
@@ -798,9 +800,16 @@
         const priceInput = document.getElementById("txOrderPrice");
         const amountInput = document.getElementById("txOrderAmount");
 
+        // Manual price typing detection
         if (priceInput) {
             priceInput.value = currentPair.price.toFixed(currentPair.precision);
-            priceInput.addEventListener("input", recalcOrderTotal);
+            priceInput.addEventListener("input", () => {
+                userHasManuallyEditedPrice = true;
+                recalcOrderTotal();
+            });
+            priceInput.addEventListener("focus", () => {
+                userHasManuallyEditedPrice = true;
+            });
         }
         if (amountInput) {
             amountInput.addEventListener("input", recalcOrderTotal);
@@ -809,6 +818,12 @@
         // Percentage Range Slider & Chips
         const pctSlider = document.getElementById("txOrderPctSlider");
         const pctSliderVal = document.getElementById("txPctSliderVal");
+
+        function updateSliderTrack(val) {
+            if (pctSlider) {
+                pctSlider.style.background = `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${val}%, #1e293b ${val}%, #1e293b 100%)`;
+            }
+        }
 
         function applyPercentage(pct) {
             const price = parseFloat(priceInput ? priceInput.value : currentPair.price) || currentPair.price;
@@ -822,8 +837,10 @@
                 const coinToSell = availableCoin * pct;
                 if (amountInput) amountInput.value = coinToSell > 0 ? coinToSell.toFixed(4) : "";
             }
-            if (pctSlider) pctSlider.value = Math.round(pct * 100);
-            if (pctSliderVal) pctSliderVal.innerText = `${Math.round(pct * 100)}%`;
+            const pctVal = Math.round(pct * 100);
+            if (pctSlider) pctSlider.value = pctVal;
+            if (pctSliderVal) pctSliderVal.innerText = `${pctVal}%`;
+            updateSliderTrack(pctVal);
             recalcOrderTotal();
         }
 
@@ -847,7 +864,10 @@
         if (bestBidBtn) {
             bestBidBtn.addEventListener("click", () => {
                 if (priceInput) {
-                    priceInput.value = (currentPair.price * 0.9998).toFixed(currentPair.precision);
+                    userHasManuallyEditedPrice = true;
+                    // Best bid: highest buyer bid
+                    const bestBidPrice = (currentPair.price * (1 - 0.00035)).toFixed(currentPair.precision);
+                    priceInput.value = bestBidPrice;
                     recalcOrderTotal();
                 }
             });
@@ -855,11 +875,23 @@
         if (bestAskBtn) {
             bestAskBtn.addEventListener("click", () => {
                 if (priceInput) {
-                    priceInput.value = (currentPair.price * 1.0002).toFixed(currentPair.precision);
+                    userHasManuallyEditedPrice = true;
+                    // Best ask: lowest seller ask
+                    const bestAskPrice = (currentPair.price * (1 + 0.00035)).toFixed(currentPair.precision);
+                    priceInput.value = bestAskPrice;
                     recalcOrderTotal();
                 }
             });
         }
+
+        // Global function for Orderbook row click filling
+        window.txFillOrderPrice = function(fillPrice) {
+            if (priceInput) {
+                userHasManuallyEditedPrice = true;
+                priceInput.value = Number(fillPrice).toFixed(currentPair.precision);
+                recalcOrderTotal();
+            }
+        };
 
         // Order Execution Button Click
         if (executeBtn) {
@@ -1243,10 +1275,10 @@
         document.querySelectorAll(".tx-tab-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 document.querySelectorAll(".tx-tab-btn").forEach(b => {
-                    b.classList.remove("active", "bg-cyan-500/20", "text-cyan-300", "border-cyan-400/30");
+                    b.classList.remove("active", "bg-cyan-500/20", "text-cyan-300", "border", "border-cyan-400/30");
                     b.classList.add("text-slate-400");
                 });
-                btn.classList.add("active", "bg-cyan-500/20", "text-cyan-300", "border-cyan-400/30");
+                btn.classList.add("active", "bg-cyan-500/20", "text-cyan-300", "border", "border-cyan-400/30");
                 btn.classList.remove("text-slate-400");
 
                 const targetTab = btn.getAttribute("data-table-tab");
@@ -1488,11 +1520,12 @@
         initLowerTabs();
         fetchAllBinanceTickers();
 
-        // Check if symbol passed in URL query e.g. ?symbol=ETHUSDT
+        // Check if symbol passed in URL query e.g. ?symbol=ETHUSDT or in localStorage
         const urlParams = new URLSearchParams(window.location.search);
-        const sym = urlParams.get("symbol");
+        const sym = urlParams.get("symbol") || localStorage.getItem("traidiumx_selected_symbol");
         if (sym) {
-            const found = PAIRS.find(p => p.symbol.toUpperCase() === sym.toUpperCase());
+            const cleanSym = String(sym).replace(/[-_\s]/g, "").toUpperCase();
+            const found = PAIRS.find(p => p.symbol.toUpperCase() === cleanSym || p.base.toUpperCase() === cleanSym);
             if (found) selectPair(found);
             else selectPair(PAIRS[0]);
         } else {

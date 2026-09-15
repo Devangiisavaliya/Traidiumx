@@ -770,7 +770,9 @@ async function loadWalletBalance(silent = true) {
     try {
         state.wallet.loading = true;
         renderWalletBox();
-        const response = await apiRequest(`/wallet/balance?_=${Date.now()}`);
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        const subParam = (activeSubId && activeSubId !== "main") ? `&sub_account_id=${encodeURIComponent(activeSubId)}` : "";
+        const response = await apiRequest(`/wallet/balance?_=${Date.now()}${subParam}`);
         const wallet = response?.data?.wallet || response?.data || {};
         applyWallet(wallet);
         return wallet;
@@ -4347,11 +4349,12 @@ async function txInitSubAccountsAndSelector() {
         const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
         txSubAccountsLocalCache = subAccounts;
         
-        selector.innerHTML = `<option value="main">Main Trading Account</option>`;
+        selector.innerHTML = `<option value="main">Main Trading Account (Real)</option>`;
         subAccounts.forEach(sub => {
             const opt = document.createElement("option");
+            const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
             opt.value = sub.id;
-            opt.textContent = sub.name;
+            opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
             selector.appendChild(opt);
         });
 
@@ -4361,10 +4364,31 @@ async function txInitSubAccountsAndSelector() {
         selector.appendChild(createOpt);
         
         let activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        let isCurrentDemo = false;
         if (activeSubId && subAccounts.some(s => s.id === activeSubId)) {
             selector.value = activeSubId;
+            const sub = subAccounts.find(s => s.id === activeSubId);
+            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo")) {
+                isCurrentDemo = true;
+            }
         } else {
             selector.value = "main";
+        }
+
+        const fundsGrid = document.querySelector(".rt-pair-funds-grid");
+        const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
+        if (fundsGrid) {
+            if (isCurrentDemo) fundsGrid.classList.add("demo-mode");
+            else fundsGrid.classList.remove("demo-mode");
+        }
+        if (mainWalletItem) {
+            if (isCurrentDemo) {
+                mainWalletItem.classList.add("hidden");
+                mainWalletItem.style.display = "none";
+            } else {
+                mainWalletItem.classList.remove("hidden");
+                mainWalletItem.style.display = "";
+            }
         }
 
         const transferSelect = document.getElementById("subTransferAccount");
@@ -4397,20 +4421,63 @@ async function txRenderSubAccountsList() {
         let html = "";
         subAccounts.forEach(sub => {
             const bal = sub.wallet ? sub.wallet.available_balance : 0.0;
+            const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+            const planName = isDemo ? "Demo" : (sub.plan_name || "Basic");
+            const planColor = isDemo ? "amber" : (sub.plan_color || "cyan");
+            const badgeColorClasses = {
+                "cyan": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+                "emerald": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+                "purple": "bg-purple-500/20 text-purple-300 border-purple-500/30",
+                "amber": "bg-amber-500/20 text-amber-300 border-amber-500/30"
+            }[planColor] || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30";
+
             html += `
                 <div class="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs gap-2 min-w-0">
                     <div class="min-w-0 flex-1 pr-1">
-                        <strong class="text-white font-black truncate block">${escapeHtml(sub.name)}</strong>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <strong class="text-white font-black truncate">${escapeHtml(sub.name)}</strong>
+                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border ${badgeColorClasses}">${escapeHtml(planName)}</span>
+                        </div>
                         <p class="text-[10px] text-slate-500 mt-0.5 truncate">ID: ${sub.id}</p>
                     </div>
-                    <div class="text-right shrink-0">
-                        <strong class="text-cyan-300 font-black">${bal.toFixed(2)} USDT</strong>
-                        <p class="text-[10px] text-slate-500 mt-0.5">Trading Balance</p>
+                    <div class="text-right shrink-0 flex items-center gap-2">
+                        <div>
+                            <strong class="${isDemo ? 'text-amber-300' : 'text-cyan-300'} font-black">${bal.toFixed(2)} USDT</strong>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${isDemo ? 'Demo Balance' : 'Trading Balance'}</p>
+                        </div>
+                        ${isDemo ? `
+                            <button type="button" data-demo-deposit-id="${escapeHtml(sub.id)}" class="tx-options-demo-deposit-btn px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold rounded-lg text-[10px] border border-amber-500/30 transition cursor-pointer" title="Add +$10,000 Demo Funds">
+                                +10k
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `;
         });
         container.innerHTML = html;
+
+        container.querySelectorAll(".tx-options-demo-deposit-btn").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const subId = btn.getAttribute("data-demo-deposit-id");
+                if (!subId) return;
+                btn.disabled = true;
+                btn.textContent = "...";
+                try {
+                    await apiRequest(`/user/sub-accounts/${subId}/demo-deposit`, {
+                        method: "POST",
+                        body: JSON.stringify({ amount: 10000 })
+                    });
+                    if (typeof showOrderMessage === "function") showOrderMessage("+$10,000 Demo USDT added successfully!", "success");
+                    await txRenderSubAccountsList();
+                    await txInitSubAccountsAndSelector();
+                } catch (err) {
+                    if (typeof showOrderMessage === "function") showOrderMessage(err.message || "Failed to add demo funds.", "error");
+                    btn.disabled = false;
+                    btn.textContent = "+10k";
+                }
+            });
+        });
     } catch (e) {
         container.innerHTML = `<p class="text-xs text-red-400 font-semibold py-2">Failed to load sub accounts.</p>`;
     }
@@ -4487,20 +4554,19 @@ function txBindSubAccountEvents() {
         selector.addEventListener("change", (e) => {
             const val = e.target.value;
             if (val === "create_new" || val === "manage") {
-                const subModal = document.getElementById("subAccountModal");
-                if (subModal) {
-                    subModal.style.display = "flex";
-                    subModal.classList.remove("hidden");
-                    txRenderSubAccountsList();
-                }
+                openSubModal("real");
                 const activeUser = localStorage.getItem("traidiumx_active_user_id") || "main";
                 e.target.value = activeUser;
                 return;
             }
             if (val === "main") {
                 localStorage.removeItem("traidiumx_active_user_id");
+                localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
             } else {
+                const selectedSub = txSubAccountsLocalCache.find(s => s.id === val);
+                const selectedName = selectedSub ? selectedSub.name : "Sub Account";
                 localStorage.setItem("traidiumx_active_user_id", val);
+                localStorage.setItem("traidiumx_active_user_name", selectedName);
             }
             window.location.reload();
         });
@@ -4509,6 +4575,7 @@ function txBindSubAccountEvents() {
     const subModal = document.getElementById("subAccountModal");
     const subOpenBtn = document.getElementById("subAccountSettingsBtn");
     const subCloseBtn = document.getElementById("subAccountModalClose");
+    const subBottomCloseBtn = document.getElementById("subAccountModalBottomClose");
 
     const hideSubModal = () => {
         if (subModal) {
@@ -4518,67 +4585,214 @@ function txBindSubAccountEvents() {
         }
     };
 
-    if (subOpenBtn && subModal) {
-        subOpenBtn.addEventListener("click", () => {
+    const openSubModal = (mode = "real") => {
+        if (subModal) {
             subModal.style.display = "flex";
             subModal.classList.remove("hidden");
+            subModal.classList.add("flex");
+            setModalMode(mode);
             txRenderSubAccountsList();
-        });
-    }
-    if (subCloseBtn && subModal) {
-        subCloseBtn.addEventListener("click", hideSubModal);
-    }
+            const scrollBody = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
+            if (scrollBody) scrollBody.scrollTop = 0;
+        }
+    };
+
+    if (subOpenBtn) subOpenBtn.addEventListener("click", () => openSubModal("real"));
+    if (subCloseBtn) subCloseBtn.addEventListener("click", hideSubModal);
+    if (subBottomCloseBtn) subBottomCloseBtn.addEventListener("click", hideSubModal);
     if (subModal) {
         subModal.addEventListener("click", (e) => {
             if (e.target === subModal) hideSubModal();
         });
     }
 
-    const tabList = document.getElementById("subTabListBtn");
-    const tabTransfer = document.getElementById("subTabTransferBtn");
-    const panelList = document.getElementById("subPanelList");
-    const panelTransfer = document.getElementById("subPanelTransfer");
-
-    if (tabList && tabTransfer && panelList && panelTransfer) {
-        tabList.addEventListener("click", () => {
-            tabList.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400";
-            tabTransfer.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white";
-            panelList.classList.remove("hidden");
-            panelTransfer.classList.add("hidden");
-        });
-        tabTransfer.addEventListener("click", () => {
-            tabTransfer.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-cyan-300 border-b-2 border-cyan-400";
-            tabList.className = "px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white";
-            panelTransfer.classList.remove("hidden");
-            panelList.classList.add("hidden");
+    // Collapsible Existing Accounts Drawer
+    const existingToggleBtn = document.getElementById("subExistingToggleBtn");
+    const existingDrawer = document.getElementById("subExistingDrawer");
+    const existingArrow = document.getElementById("subExistingArrow");
+    if (existingToggleBtn && existingDrawer) {
+        existingToggleBtn.addEventListener("click", () => {
+            const isHidden = existingDrawer.classList.contains("hidden");
+            existingDrawer.classList.toggle("hidden", !isHidden);
+            if (existingArrow) {
+                existingArrow.textContent = isHidden ? "▲" : "▼";
+            }
+            if (isHidden) {
+                setTimeout(() => {
+                    existingDrawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }, 50);
+            }
         });
     }
 
-    const createForm = document.getElementById("createSubForm");
-    if (createForm) {
-        createForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const input = document.getElementById("newSubNameInput");
+    let modalSubMode = "real";
+    let selectedPlan = "basic";
+    let selectedPlatform = "pxtrader";
+
+    // Platform selection
+    const platPx = document.getElementById("subPlatformPxTrader");
+    const platMt5 = document.getElementById("subPlatformMT5");
+    const updatePlatformCards = (plat) => {
+        selectedPlatform = plat;
+        if (plat === "pxtrader") {
+            platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
+            platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+        } else {
+            platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
+            platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+        }
+    };
+    platPx?.addEventListener("click", () => updatePlatformCards("pxtrader"));
+    platMt5?.addEventListener("click", () => updatePlatformCards("mt5"));
+
+    // Plan selection
+    const planCards = document.querySelectorAll(".tx-sub-plan-card");
+    const planSelect = document.getElementById("newSubPlanSelect");
+
+    const updatePlanCards = (plan) => {
+        selectedPlan = plan;
+        if (planSelect) planSelect.value = plan;
+
+        planCards.forEach(card => {
+            const cardPlan = card.getAttribute("data-plan");
+            const radio = card.querySelector(".tx-plan-radio div");
+            if (cardPlan === plan) {
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/90 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30";
+                if (radio) radio.className = "w-2 h-2 rounded-full bg-cyan-400";
+            } else {
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 transition cursor-pointer hover:border-slate-700";
+                if (radio) radio.className = "w-2 h-2 rounded-full bg-transparent";
+            }
+        });
+    };
+
+    planCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const p = card.getAttribute("data-plan");
+            if (p) updatePlanCards(p);
+        });
+    });
+
+    const modalRealBtn = document.getElementById("subModalModeRealBtn");
+    const modalDemoBtn = document.getElementById("subModalModeDemoBtn");
+    const platformSection = document.getElementById("subModalPlatformSection");
+    const realPlanSection = document.getElementById("subModalRealPlanSection");
+    const demoExistingNotice = document.getElementById("subModalDemoExistingNotice");
+    const demoNewSection = document.getElementById("subModalDemoNewSection");
+    const submitBtn = document.getElementById("subAccountSubmitBtn");
+
+    const setModalMode = (mode) => {
+        modalSubMode = mode;
+        const hasExistingDemo = (txSubAccountsLocalCache || []).some(s => s.is_demo || s.account_mode === "demo" || s.plan === "demo");
+
+        if (mode === "demo") {
+            modalDemoBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-amber-400 text-slate-950 shadow-sm");
+            modalRealBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-white");
+            
+            platformSection?.classList.add("hidden");
+            realPlanSection?.classList.add("hidden");
+
+            if (hasExistingDemo) {
+                demoExistingNotice?.classList.remove("hidden");
+                demoNewSection?.classList.add("hidden");
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-slate-800 text-slate-500 text-xs font-black cursor-not-allowed opacity-60";
+                    submitBtn.textContent = "Account Limit Reached";
+                }
+            } else {
+                demoExistingNotice?.classList.add("hidden");
+                demoNewSection?.classList.remove("hidden");
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-amber-500/20";
+                    submitBtn.textContent = "Create demo account";
+                }
+            }
+        } else {
+            modalRealBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-white/10 text-white border border-white/20 shadow-sm");
+            modalDemoBtn?.setAttribute("class", "px-5 sm:px-6 py-2 rounded-lg text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-white");
+
+            platformSection?.classList.remove("hidden");
+            realPlanSection?.classList.remove("hidden");
+            demoExistingNotice?.classList.add("hidden");
+            demoNewSection?.classList.add("hidden");
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/20";
+                submitBtn.textContent = "Create account";
+            }
+        }
+    };
+
+    modalRealBtn?.addEventListener("click", () => setModalMode("real"));
+    modalDemoBtn?.addEventListener("click", () => setModalMode("demo"));
+
+    // Submit Handler
+    if (submitBtn && submitBtn.dataset.bound !== "1") {
+        submitBtn.dataset.bound = "1";
+        submitBtn.addEventListener("click", async () => {
+            const isDemo = modalSubMode === "demo";
+            const nameInput = isDemo ? document.getElementById("newSubDemoNameInput") : document.getElementById("newSubNameInput");
             const msg = document.getElementById("createSubMessage");
-            if (!input || !msg) return;
             
-            msg.classList.remove("hidden", "text-red-400", "text-emerald-400");
-            msg.classList.add("text-slate-400");
-            msg.textContent = "Creating sub account...";
-            
+            let nameVal = nameInput ? nameInput.value.trim() : "";
+            if (!nameVal) {
+                nameVal = isDemo ? "Demo Account" : `Trading Account ${(txSubAccountsLocalCache || []).length + 1}`;
+            }
+
+            if (msg) {
+                msg.classList.remove("hidden", "text-red-400", "text-emerald-400", "border-red-500/30", "border-emerald-500/30", "bg-red-500/10", "bg-emerald-500/10");
+                msg.classList.add("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                msg.textContent = "Creating account...";
+            }
+
+            submitBtn.disabled = true;
+
             try {
-                await apiRequest("/user/sub-accounts", {
+                const res = await apiRequest("/user/sub-accounts", {
                     method: "POST",
-                    body: JSON.stringify({ name: input.value })
+                    body: JSON.stringify({
+                        name: nameVal,
+                        account_mode: isDemo ? "demo" : "real",
+                        plan: isDemo ? "demo" : selectedPlan,
+                        platform: selectedPlatform,
+                        is_demo: isDemo
+                    })
                 });
-                input.value = "";
-                msg.className = "text-xs font-bold text-emerald-400 text-cyan-300";
-                msg.textContent = "Sub account created successfully!";
-                txRenderSubAccountsList();
-                txInitSubAccountsAndSelector();
+
+                if (nameInput && !isDemo) nameInput.value = "";
+                
+                if (msg) {
+                    msg.classList.remove("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                    msg.classList.add("text-emerald-300", "border-emerald-500/30", "bg-emerald-500/10");
+                    msg.textContent = isDemo ? "Demo account created successfully!" : "Trading account created successfully!";
+                }
+
+                if (isDemo && res.data && res.data.id) {
+                    localStorage.setItem("traidiumx_active_user_id", res.data.id);
+                    localStorage.setItem("traidiumx_active_user_name", res.data.name || "Demo Account");
+                    setTimeout(() => window.location.reload(), 800);
+                    return;
+                }
+
+                await txRenderSubAccountsList();
+                await txInitSubAccountsAndSelector();
+
+                setTimeout(() => {
+                    if (msg) msg.classList.add("hidden");
+                    hideSubModal();
+                }, 1200);
+
             } catch (err) {
-                msg.className = "text-xs font-bold text-red-400";
-                msg.textContent = err.message || "Failed to create sub account.";
+                if (msg) {
+                    msg.classList.remove("text-slate-300", "border-slate-800", "bg-slate-900/60");
+                    msg.classList.add("text-red-300", "border-red-500/30", "bg-red-500/10");
+                    msg.textContent = err.message || "Failed to create account.";
+                }
+            } finally {
+                submitBtn.disabled = false;
             }
         });
     }

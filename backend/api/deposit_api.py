@@ -16,10 +16,37 @@ from utils.response import error_response, success_response
 deposit_api = Blueprint("deposit_api", __name__, url_prefix="/api/deposit")
 
 
+def _resolve_target_user_id(current_user_id, data_or_args=None):
+    from bson import ObjectId
+    from config.database import get_database
+    data_or_args = data_or_args or {}
+    sub_account_id = (
+        data_or_args.get("sub_account_id")
+        or data_or_args.get("sub_user_id")
+        or request.args.get("sub_account_id")
+        or request.args.get("sub_user_id")
+        or request.headers.get("X-Sub-Account-Id")
+        or request.headers.get("X-Sub-User-Id")
+    )
+    if sub_account_id and str(sub_account_id) != "main" and str(sub_account_id) != str(current_user_id):
+        db = get_database()
+        try:
+            sub = db.users.find_one({
+                "_id": ObjectId(str(sub_account_id)),
+                "parent_user_id": str(current_user_id)
+            })
+            if sub:
+                return str(sub["_id"])
+        except Exception:
+            pass
+    return str(current_user_id)
+
+
 @deposit_api.get("/crypto-addresses")
 @auth_required
 def crypto_addresses():
-    result = get_crypto_deposit_addresses(g.current_user_id)
+    target_user_id = _resolve_target_user_id(g.current_user_id, request.args)
+    result = get_crypto_deposit_addresses(target_user_id)
     return success_response(message=result["message"], data=result["data"], status_code=result["status_code"])
 
 
@@ -37,7 +64,8 @@ def inr_details():
 def create():
     try:
         data = request.get_json(silent=True) or {}
-        result = create_deposit_request(g.current_user_id, data)
+        target_user_id = _resolve_target_user_id(g.current_user_id, data)
+        result = create_deposit_request(target_user_id, data)
 
         if result.get("success"):
             return success_response(message=result.get("message", "Deposit created successfully."), data=result.get("data", {}), status_code=result.get("status_code", 200))
@@ -64,7 +92,8 @@ def verify(deposit_id):
 @deposit_api.get("/history")
 @auth_required_allow_restricted
 def history():
-    result = get_deposit_history(g.current_user_id)
+    target_user_id = _resolve_target_user_id(g.current_user_id, request.args)
+    result = get_deposit_history(target_user_id)
     return success_response(message=result["message"], data=result["data"], status_code=result["status_code"])
 
 

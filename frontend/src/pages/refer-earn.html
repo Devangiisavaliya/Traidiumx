@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
@@ -23,6 +35,27 @@
     <link rel="stylesheet" href="../css/responsive.css" />
     <!-- Background Gradient Fix to prevent browser backdrop-filter seam lines -->
     <style>
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         body {
             background: #020617 !important;
         }
@@ -76,7 +109,7 @@
     <main class="overflow-clip pt-32">
 
         <!-- ================= REFER HERO START ================= -->
-        <section class="relative">
+        <section class="tx-scroll-reveal relative">
 
             <div class="mx-auto grid min-h-[82vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
 
@@ -233,7 +266,7 @@
 
 
         <!-- ================= HOW IT WORKS START ================= -->
-        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <section class="tx-scroll-reveal mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8" data-reveal-delay="100">
             <div class="mb-12 text-center">
                 <div class="mb-6 flex justify-center">
                     <div class="tx-section-pill">
@@ -299,7 +332,7 @@
 
 
         <!-- ================= REWARD CALCULATOR START ================= -->
-        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <section class="tx-scroll-reveal mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8" data-reveal-delay="100">
             <div class="grid gap-8 rounded-[2.5rem] border border-white/10 bg-white/[0.05] p-6 backdrop-blur-xl sm:p-10 lg:grid-cols-[0.9fr_1.1fr]">
 
                 <div>
@@ -380,7 +413,7 @@
 
 
         <!-- ================= FAQ START ================= -->
-        <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <section class="tx-scroll-reveal mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8" data-reveal-delay="100">
             <div class="grid gap-12 lg:grid-cols-[1fr_1.8fr] lg:items-start">
                 
                 <!-- Left Column: Heading & CTA -->
@@ -463,5 +496,78 @@
     <script src="../js/auth-state.js"></script>
     <script src="../js/refer-earn.js"></script>
     <script src="../js/responsive.js"></script>
+    <script src="../js/lenis.min.js"></script>
+    <script>
+        // Initialize Lenis Ultra-Smooth Inertia Scroll Engine
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+
+                // Handle in-page anchor clicks smoothly
+                document.addEventListener("click", function(e) {
+                    const link = e.target.closest('a[href^="#"]');
+                    if (!link) return;
+                    const href = link.getAttribute("href");
+                    if (href && href !== "#" && href.length > 1) {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            e.preventDefault();
+                            lenis.scrollTo(target, { offset: -90, duration: 1.2 });
+                        }
+                    }
+                });
+            }
+        })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const revealItems = Array.from(document.querySelectorAll(".tx-scroll-reveal"));
+
+            revealItems.forEach(function (item) {
+                const delay = Number(item.getAttribute("data-reveal-delay") || 0);
+                item.style.setProperty("--tx-reveal-delay", delay + "ms");
+            });
+
+            function showRevealItem(item) {
+                window.requestAnimationFrame(function () {
+                    item.classList.add("is-visible");
+                });
+            }
+
+            if ("IntersectionObserver" in window) {
+                const revealObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        showRevealItem(entry.target);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.08,
+                    rootMargin: "0px 0px -35px 0px"
+                });
+
+                revealItems.forEach(function (item) {
+                    revealObserver.observe(item);
+                });
+            } else {
+                revealItems.forEach(showRevealItem);
+            }
+        });
+    </script>
 </body>
 </html>

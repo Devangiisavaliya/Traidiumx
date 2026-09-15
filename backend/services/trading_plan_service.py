@@ -158,81 +158,27 @@ def reconcile_user_plan(user_id, send_notice=False):
     if not user:
         return {"success": False, "message": "User not found.", "status_code": 404}
 
-    parent_user_id = user.get("parent_user_id")
-    if parent_user_id:
-        parent_user = db.users.find_one({"_id": _safe_user_id(parent_user_id)})
-        if parent_user:
-            # Reconcile parent plan first to ensure it has the latest balance/warnings/plan
-            reconcile_user_plan(parent_user_id, send_notice=send_notice)
-            parent_user = db.users.find_one({"_id": _safe_user_id(parent_user_id)})
-            
-            settings = get_onboarding_settings()
-            active = parent_user.get("active_plan") or "basic"
-            plan = settings["plans"].get(active) or settings["plans"]["basic"]
-            update = {
-                "selected_platform": parent_user.get("selected_platform"),
-                "selected_platform_name": parent_user.get("selected_platform_name"),
-                "preferred_plan": parent_user.get("preferred_plan"),
-                "preferred_plan_name": parent_user.get("preferred_plan_name"),
-                "active_plan": active,
-                "active_plan_name": plan["name"],
-                "active_spread_type": plan["spread_type"],
-                "active_spread_value": plan["spread_value"],
-                "active_spread_pips": plan["spread_value"],
-                "plan_minimum_balance": plan["minimum_balance"],
-                "plan_funding_required": parent_user.get("plan_funding_required", False),
-                "plan_balance_snapshot": parent_user.get("plan_balance_snapshot", 0.0),
-                "plan_checked_at": now_utc(),
-                "show_downgrade_warning": False,
-                "updated_at": now_utc(),
-            }
-            db.users.update_one({"_id": oid}, {"$set": update})
-            user = dict(user)
-            user.update(update)
-
-            platform = normalize_platform(user.get("selected_platform")) or ""
-            if platform == "mt5":
-                try:
-                    from services.mt5_service import sync_mt5_plan
-                    sync_mt5_plan(user_id, active, plan["spread_value"], balance=parent_user.get("plan_balance_snapshot", 0.0))
-                except Exception as error:
-                    print("MT5 PLAN SYNC ERROR:", error)
-
-            return {
-                "success": True,
-                "message": "Sub-account plan synchronized with parent.",
-                "data": build_user_trading_profile(user, settings=settings),
-                "status_code": 200,
-            }
-
     settings = get_onboarding_settings()
-    platform = normalize_platform(user.get("selected_platform")) or ""
-    preferred = normalize_plan(user.get("preferred_plan")) or ""
+    platform = normalize_platform(user.get("selected_platform")) or "traidiumx"
+    preferred = normalize_plan(user.get("preferred_plan") or user.get("plan")) or "basic"
 
-    # When admin disables the first-login platform picker, keep the existing
-    # product usable by assigning the first enabled platform and Basic plan to
-    # users who have never completed onboarding. Existing user choices are not
-    # overwritten.
-    if not settings["platform_selection_enabled"] and (not platform or not preferred):
-        default_platform = "traidiumx" if settings["traidiumx_enabled"] else ("mt5" if settings["mt5_enabled"] else "")
-        if default_platform:
-            platform = platform or default_platform
-            preferred = preferred or "basic"
-            db.users.update_one({"_id": oid}, {"$set": {
-                "selected_platform": platform,
-                "selected_platform_name": PLATFORM_NAMES[platform],
-                "preferred_plan": preferred,
-                "preferred_plan_name": PLAN_NAMES[preferred],
-                "platform_selected_at": user.get("platform_selected_at") or now_utc(),
-                "plan_selected_at": user.get("plan_selected_at") or now_utc(),
-                "updated_at": now_utc(),
-            }})
-            user.update({
-                "selected_platform": platform,
-                "selected_platform_name": PLATFORM_NAMES[platform],
-                "preferred_plan": preferred,
-                "preferred_plan_name": PLAN_NAMES[preferred],
-            })
+    # When onboarding selection is not complete or defaults need assignment
+    if not user.get("selected_platform") or not user.get("preferred_plan"):
+        db.users.update_one({"_id": oid}, {"$set": {
+            "selected_platform": platform,
+            "selected_platform_name": PLATFORM_NAMES.get(platform, "TraidiumX"),
+            "preferred_plan": preferred,
+            "preferred_plan_name": PLAN_NAMES.get(preferred, "Basic"),
+            "platform_selected_at": user.get("platform_selected_at") or now_utc(),
+            "plan_selected_at": user.get("plan_selected_at") or now_utc(),
+            "updated_at": now_utc(),
+        }})
+        user.update({
+            "selected_platform": platform,
+            "selected_platform_name": PLATFORM_NAMES.get(platform, "TraidiumX"),
+            "preferred_plan": preferred,
+            "preferred_plan_name": PLAN_NAMES.get(preferred, "Basic"),
+        })
 
     if not platform or not preferred:
         return {

@@ -57,7 +57,7 @@ def format_market_symbol(symbol):
         "display_name": symbol.get("display_name"),
         "market_type": symbol.get("market_type", "futures"),
         "min_qty": symbol.get("min_qty", 0.001),
-        "max_leverage": symbol.get("max_leverage", 20),
+        "max_leverage": symbol.get("max_leverage", 1000),
         "price_precision": symbol.get("price_precision", 2),
         "quantity_precision": symbol.get("quantity_precision", 3),
         "is_active": symbol.get("is_active", True),

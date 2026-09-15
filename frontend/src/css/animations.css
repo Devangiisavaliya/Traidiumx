@@ -702,3 +702,71 @@ body .tx-pill-header.tx-navbar-scrolled .tx-pill-trade-btn {
     border-radius: 15px !important;
     box-shadow: 0 12px 30px rgba(34, 211, 238, 0.2) !important;
 }
+
+/* ========================================================================
+   GLOBAL SCROLL REVEAL ANIMATION SYSTEM
+   ======================================================================== */
+.tx-scroll-reveal {
+    --tx-reveal-delay: 0ms;
+}
+
+.tx-motion-ready .tx-scroll-reveal {
+    opacity: 0;
+    transform: translate3d(0, 42px, 0) scale(0.985);
+    transition:
+        opacity 650ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 750ms cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 220ms ease,
+        box-shadow 220ms ease;
+    transition-delay: var(--tx-reveal-delay);
+    will-change: opacity, transform;
+}
+
+.tx-motion-ready .tx-scroll-reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-left {
+    transform: translate3d(-42px, 20px, 0) scale(0.985);
+}
+
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-right {
+    transform: translate3d(42px, 20px, 0) scale(0.985);
+}
+
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-zoom {
+    transform: scale(0.92);
+}
+
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-left.is-visible,
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-right.is-visible,
+.tx-motion-ready .tx-scroll-reveal.tx-reveal-zoom.is-visible {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (max-width: 639px) {
+    .tx-motion-ready .tx-scroll-reveal {
+        transform: translate3d(0, 28px, 0) scale(0.99);
+    }
+
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-left,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-right {
+        transform: translate3d(0, 24px, 0) scale(0.99);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tx-motion-ready .tx-scroll-reveal,
+    .tx-motion-ready .tx-scroll-reveal.is-visible,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-left,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-right,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-left.is-visible,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-right.is-visible,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-zoom,
+    .tx-motion-ready .tx-scroll-reveal.tx-reveal-zoom.is-visible {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}
