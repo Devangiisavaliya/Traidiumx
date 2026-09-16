@@ -165,7 +165,25 @@ def cancel(withdrawal_id):
 @withdrawal_api.get("/history")
 @auth_required_allow_restricted
 def history():
-    result = get_withdrawal_history(g.current_user_id)
+    parent_id = getattr(g, "token_user_id", None) or str(g.current_user_id)
+    target_user_id = str(g.current_user_id)
+    sub_account_id = request.args.get("sub_account_id") or request.args.get("sub_user_id")
+
+    if sub_account_id == "main":
+        target_user_id = parent_id
+    elif sub_account_id and sub_account_id != target_user_id:
+        from bson import ObjectId
+        from config.database import get_database
+        if ObjectId.is_valid(str(sub_account_id)):
+            db = get_database()
+            sub_user = db.users.find_one({
+                "_id": ObjectId(str(sub_account_id)),
+                "parent_user_id": parent_id
+            })
+            if sub_user:
+                target_user_id = str(sub_user["_id"])
+
+    result = get_withdrawal_history(target_user_id)
     return success_response(message=result["message"], data=result["data"], status_code=result["status_code"])
 
 

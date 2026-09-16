@@ -772,6 +772,65 @@ function initPrimeXbtNavbarControls() {
 
     // Load live wallet balance into navbar
     loadNavbarWalletBalance();
+
+    // Bind mouse hover for wallet balance dropdown
+    bindNavbarWalletHover();
+}
+
+let txNavbarWalletCloseTimer = null;
+
+function openNavbarWalletMenu() {
+    if (txNavbarWalletCloseTimer) {
+        clearTimeout(txNavbarWalletCloseTimer);
+        txNavbarWalletCloseTimer = null;
+    }
+    const walletMenu = document.getElementById("txNavbarWalletMenu");
+    const walletChevron = document.getElementById("txNavbarWalletChevron");
+    const profileMenu = document.getElementById("txProfileDropdown");
+    if (profileMenu) profileMenu.classList.add("hidden");
+
+    if (walletMenu) {
+        walletMenu.classList.remove("hidden");
+    }
+    if (walletChevron) {
+        walletChevron.style.transform = "rotate(180deg)";
+    }
+}
+
+function closeNavbarWalletMenu(immediate = false) {
+    if (txNavbarWalletCloseTimer) {
+        clearTimeout(txNavbarWalletCloseTimer);
+        txNavbarWalletCloseTimer = null;
+    }
+    const doClose = () => {
+        const walletMenu = document.getElementById("txNavbarWalletMenu");
+        const walletChevron = document.getElementById("txNavbarWalletChevron");
+        if (walletMenu) {
+            walletMenu.classList.add("hidden");
+        }
+        if (walletChevron) {
+            walletChevron.style.transform = "rotate(0deg)";
+        }
+    };
+    if (immediate) {
+        doClose();
+    } else {
+        txNavbarWalletCloseTimer = setTimeout(doClose, 200);
+    }
+}
+
+function bindNavbarWalletHover() {
+    const walletRoot = document.getElementById("txNavbarWalletRoot");
+    if (!walletRoot || walletRoot.__txHoverBound) return;
+    walletRoot.__txHoverBound = true;
+
+    walletRoot.addEventListener("mouseenter", function () {
+        openNavbarWalletMenu();
+    });
+
+    walletRoot.addEventListener("mouseleave", function () {
+        closeNavbarWalletMenu(false);
+    });
 }
 
 // Global click delegation for PrimeXBT navbar deposit and wallet dropdown
@@ -785,8 +844,7 @@ document.addEventListener("click", function(e) {
     if (depositBtn) {
         e.preventDefault();
         e.stopPropagation();
-        if (walletMenu) walletMenu.classList.add("hidden");
-        if (walletChevron) walletChevron.style.transform = "rotate(0deg)";
+        closeNavbarWalletMenu(true);
 
         if (depositModal) {
             depositModal.classList.remove("hidden");
@@ -804,19 +862,22 @@ document.addEventListener("click", function(e) {
         if (walletMenu) {
             const isHidden = walletMenu.classList.contains("hidden");
             if (isHidden) {
-                walletMenu.classList.remove("hidden");
-                if (walletChevron) walletChevron.style.transform = "rotate(180deg)";
+                openNavbarWalletMenu();
             } else {
-                walletMenu.classList.add("hidden");
-                if (walletChevron) walletChevron.style.transform = "rotate(0deg)";
+                closeNavbarWalletMenu(true);
             }
         }
         return;
     }
 
-    if (walletMenu && !walletMenu.contains(e.target)) {
-        walletMenu.classList.add("hidden");
-        if (walletChevron) walletChevron.style.transform = "rotate(0deg)";
+    const walletMenuLink = e.target.closest("#txNavbarWalletMenu a, #txNavbarWalletMenu button");
+    if (walletMenuLink) {
+        closeNavbarWalletMenu(true);
+        return;
+    }
+
+    if (walletMenu && !walletMenu.contains(e.target) && !e.target.closest("#txNavbarWalletRoot")) {
+        closeNavbarWalletMenu(true);
     }
 });
 

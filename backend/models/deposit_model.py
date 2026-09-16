@@ -44,7 +44,7 @@ def find_completed_deposit_by_tx_hash(tx_hash):
     return get_deposits_collection().find_one({"tx_hash": str(tx_hash), "status": "completed"})
 
 
-def get_user_deposits(user_id, limit=50):
+def get_user_deposits(user_id, limit=500):
     deposits = get_deposits_collection().find({"user_id": str(user_id)}).sort("created_at", -1).limit(limit)
     return list(deposits)
 

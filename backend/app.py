@@ -337,9 +337,9 @@ def create_app():
     @app.after_request
     def add_header(response):
         response.headers["Access-Control-Allow-Origin"] = "*"
-        if request.path.endswith(".jpg") or request.path.endswith(".png") or request.path == "/" or request.path.endswith(".html"):
+        if request.path.endswith(".jpg") or request.path.endswith(".png"):
             response.headers["Cache-Control"] = "public, max-age=3600"
-        elif request.path.startswith("/src/") or request.path.startswith("/admin/static/") or request.path.endswith(".js") or request.path.endswith(".css"):
+        else:
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"

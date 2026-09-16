@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Transfer & Activity History | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css?v=38" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        :root {
+            --tx-hist-bg: #030712;
+            --tx-hist-card: rgba(15, 23, 42, 0.75);
+            --tx-hist-border: rgba(148, 163, 184, 0.12);
+        }
+
+        body[data-page="transfer-history"] {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 15% 15%, rgba(34, 211, 238, 0.07), transparent 35rem),
+                radial-gradient(circle at 85% 25%, rgba(99, 102, 241, 0.07), transparent 35rem),
+                var(--tx-hist-bg);
+            color: #f8fafc;
+        }
+
+        .tx-history-container {
+            width: min(100% - 2rem, 78rem);
+            margin: 0 auto;
+            padding-top: 7rem;
+            padding-bottom: 5rem;
+        }
+
+        .tx-card-glass {
+            background: var(--tx-hist-card);
+            border: 1px solid var(--tx-hist-border);
+            border-radius: 1.25rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .tx-category-pill {
+            padding: 0.5rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 800;
+            border-radius: 9999px;
+            color: #94a3b8;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tx-category-pill:hover {
+            color: #ffffff;
+            border-color: rgba(34, 211, 238, 0.3);
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .tx-category-pill.active {
+            color: #020617;
+            background: #22d3ee;
+            border-color: #22d3ee;
+            box-shadow: 0 0 16px rgba(34, 211, 238, 0.35);
+        }
+
+        .tx-table-cell {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            font-size: 0.84rem;
+        }
+
+        .tx-table-header {
+            padding: 0.875rem 1.25rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #64748b;
+            background: rgba(2, 6, 23, 0.5);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .custom-select-dark {
+            background-color: #0f172a;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .custom-select-dark:focus {
+            border-color: #22d3ee;
+        }
+
+        .custom-input-dark {
+            background-color: #0f172a;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #ffffff;
+            border-radius: 0.75rem;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8125rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .custom-input-dark:focus {
+            border-color: #22d3ee;
+        }
+    </style>
+</head>
+
+<body data-page="transfer-history">
+    <div data-component="navbar"></div>
+
+    <main class="tx-history-container">
+        <!-- Top Action Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="flex items-center gap-3">
+                <a href="./wallet.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-400 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm cursor-pointer">
+                    <span>‹</span>
+                    <span>Back to Wallet</span>
+                </a>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Transfer & Activity History</h1>
+                    <p class="text-xs text-slate-400 mt-0.5">Audit-ready unified record of all deposits, withdrawals, transfers, rewards & fees.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                <button type="button" id="refreshHistoryBtn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400/10 border border-cyan-400/30 hover:bg-cyan-400/20 text-xs font-bold text-cyan-300 transition cursor-pointer">
+                    <span id="refreshSpinner" class="inline-block">↻</span>
+                    <span>Refresh</span>
+                </button>
+                <button type="button" id="exportCsvBtn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-white/20 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">
+                    <span>↓</span>
+                    <span>Export CSV</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Metric Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
+            <div class="tx-card-glass p-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Activity Entries</p>
+                <h3 id="statTotalCount" class="text-xl sm:text-2xl font-black text-white mt-1">--</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Recorded in ledger</p>
+            </div>
+            <div class="tx-card-glass p-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Total Deposits</p>
+                <h3 id="statDepositCount" class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">--</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Credits into wallet</p>
+            </div>
+            <div class="tx-card-glass p-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-rose-400">Total Withdrawals</p>
+                <h3 id="statWithdrawCount" class="text-xl sm:text-2xl font-black text-rose-400 mt-1">--</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Payout requests</p>
+            </div>
+            <div class="tx-card-glass p-4">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Internal Transfers</p>
+                <h3 id="statTransferCount" class="text-xl sm:text-2xl font-black text-cyan-400 mt-1">--</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Main ↔ Trading wallet</p>
+            </div>
+        </div>
+
+        <!-- Main History Card -->
+        <div class="tx-card-glass p-4 sm:p-6">
+            <!-- Category Tabs / Filter Bar -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 custom-scrollbar border-b border-white/5">
+                <button type="button" data-category="all" class="tx-category-pill active">🌟 All Activity</button>
+                <button type="button" data-category="transfers" class="tx-category-pill">🔄 Transfers</button>
+                <button type="button" data-category="deposits" class="tx-category-pill">📥 Deposits</button>
+                <button type="button" data-category="withdrawals" class="tx-category-pill">📤 Withdrawals</button>
+                <button type="button" data-category="referral" class="tx-category-pill">🎁 Refer & Earn</button>
+                <button type="button" data-category="trading" class="tx-category-pill">📊 Trading Fees & PnL</button>
+            </div>
+
+            <!-- Controls Row: Search & Filters -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+                <div class="flex-1 flex items-center gap-2">
+                    <input type="search" id="searchInput" placeholder="Search reference, description, tx hash, type..." class="custom-input-dark w-full md:max-w-md" />
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="accountFilter" class="custom-select-dark font-bold text-cyan-300 border-cyan-500/30">
+                        <option value="main">💼 Main Trading Account</option>
+                        <option value="all">🌟 All Accounts (Combined)</option>
+                    </select>
+
+                    <select id="currencyFilter" class="custom-select-dark">
+                        <option value="all">All Currencies</option>
+                        <option value="USDT">USDT ($)</option>
+                        <option value="INR">INR (₹)</option>
+                    </select>
+
+                    <select id="directionFilter" class="custom-select-dark">
+                        <option value="all">All Directions</option>
+                        <option value="credit">Credits (+)</option>
+                        <option value="debit">Debits (-)</option>
+                        <option value="transfer">Transfers</option>
+                    </select>
+
+                    <select id="pageSizeSelect" class="custom-select-dark">
+                        <option value="10">10 / page</option>
+                        <option value="25">25 / page</option>
+                        <option value="50">50 / page</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="tx-table-header">Date & Time</th>
+                            <th class="tx-table-header">Transaction / Activity</th>
+                            <th class="tx-table-header">Category</th>
+                            <th class="tx-table-header">Direction</th>
+                            <th class="tx-table-header">Amount</th>
+                            <th class="tx-table-header">Balance After</th>
+                            <th class="tx-table-header">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="7" class="tx-table-cell text-center text-slate-500 py-12">
+                                <span class="animate-spin inline-block mr-2">◌</span> Loading complete history...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="historyEmptyState" class="hidden text-center py-16">
+                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-500 text-lg">📄</div>
+                <h4 class="text-sm font-bold text-slate-300">No activity records found</h4>
+                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">No transaction matches your selected category or filter.</p>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div id="paginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t border-white/5 text-xs text-slate-400">
+                <span id="paginationInfo">Showing 0 of 0 entries</span>
+                <div id="paginationControls" class="flex items-center gap-1.5"></div>
+            </div>
+        </div>
+    </main>
+
+    <div data-component="mobile-menu"></div>
+    <div data-component="footer"></div>
+
+    <script src="../js/api-config.js?v=21"></script>
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/auth-state.js"></script>
+    <script src="../js/transfer-history.js?v=4"></script>
+</body>
+</html>

@@ -47,7 +47,7 @@ def find_user_withdrawal_by_id(user_id, withdrawal_id):
         return None
 
 
-def get_user_withdrawals(user_id, limit=50):
+def get_user_withdrawals(user_id, limit=500):
     withdrawals = get_withdrawals_collection().find(_user_id_match(user_id)).sort("created_at", -1).limit(limit)
     return list(withdrawals)
 

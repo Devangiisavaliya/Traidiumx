@@ -73,7 +73,7 @@ def create_ledger_entry(
     return result.inserted_id
 
 
-def get_user_ledger(user_id, limit=50):
+def get_user_ledger(user_id, limit=500):
     ledger_items = get_wallet_ledger_collection().find({
         "user_id": str(user_id)
     }).sort("created_at", -1).limit(limit)

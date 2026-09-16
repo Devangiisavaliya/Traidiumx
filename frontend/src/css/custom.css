@@ -9665,10 +9665,12 @@ div:has(> #txDepositSecurityNote) {
    NEXUS / PRIME XBT DEPOSIT PAGE (EXACT MATCH TO REFERENCE DESIGN)
    ========================================================================== */
 .tx-nexus-deposit-wrap {
-    max-width: 1100px !important;
+    max-width: 1140px !important;
     margin: 0 auto !important;
     width: 100% !important;
-    padding: 0 16px !important;
+    padding: 16px 16px 60px 16px !important;
+    position: relative !important;
+    z-index: 5 !important;
 }
 
 .tx-nexus-subtabs {
@@ -9713,15 +9715,25 @@ div:has(> #txDepositSecurityNote) {
 }
 
 .tx-nexus-grid {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 350px !important;
-    gap: 24px !important;
-    align-items: start !important;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 24px;
+    align-items: start;
+}
+
+.tx-nexus-grid.hidden,
+#txNexusGrid.hidden,
+#txNexusHistoryMainPanel.hidden {
+    display: none !important;
+}
+
+#txNexusHistoryMainPanel:not(.hidden) {
+    display: block !important;
 }
 
 @media (max-width: 1023px) {
-    .tx-nexus-grid {
-        grid-template-columns: 1fr !important;
+    .tx-nexus-grid:not(.hidden) {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -9949,23 +9961,57 @@ div:has(> #txDepositSecurityNote) {
     z-index: 9999 !important;
 }
 
-#contentDeposit .tx-dep-net-pill {
+#contentDeposit .tx-dep-net-pill,
+#contentWithdraw .tx-dep-net-pill,
+.tx-with-net-pill {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#contentDeposit .tx-dep-net-pill.active {
+#contentDeposit .tx-dep-net-pill.active,
+#contentWithdraw .tx-dep-net-pill.active,
+.tx-with-net-pill.active {
     border-color: #22d3ee !important;
     background: rgba(34, 211, 238, 0.12) !important;
     color: #22d3ee !important;
     box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
 }
 
-#contentDeposit .tx-faq-btn:hover .tx-faq-chevron {
+.tx-faq-btn:hover .tx-faq-chevron {
     color: #22d3ee !important;
 }
 
-#contentDeposit .tx-faq-chevron {
+.tx-faq-chevron {
     transition: transform 0.2s ease;
 }
 
+/* ================================
+   Navbar Wallet Dropdown Animation
+================================ */
+@keyframes txWalletDropdownOpen {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.96);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
 
+#txNavbarWalletMenu:not(.hidden) {
+    animation: txWalletDropdownOpen 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top right;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.95), 0 0 25px -5px rgba(34, 211, 238, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+#txNavbarWalletMenu a {
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#txNavbarWalletMenu a:hover {
+    transform: translateX(4px);
+}

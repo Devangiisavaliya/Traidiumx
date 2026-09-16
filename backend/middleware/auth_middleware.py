@@ -59,6 +59,10 @@ def _load_authenticated_user(enforce_active_status=True):
             status_code=result["status_code"]
         )
 
+    # Store parent authenticated token user
+    g.token_user = user
+    g.token_user_id = str(user["_id"])
+
     # Sub-account context override
     active_user_id = request.headers.get("X-Active-User-Id")
     if active_user_id and active_user_id != str(user["_id"]):

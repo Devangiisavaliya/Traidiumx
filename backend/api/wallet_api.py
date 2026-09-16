@@ -253,38 +253,151 @@ def balance():
 @wallet_api.get("/ledger")
 @auth_required
 def ledger():
-    user_id = str(g.current_user["_id"])
-    sub_account_id = request.args.get("sub_account_id")
+    parent_id = getattr(g, "token_user_id", None) or str(g.current_user["_id"])
+    target_user_id = str(g.current_user["_id"])
+    sub_account_id = request.args.get("sub_account_id") or request.args.get("sub_user_id")
 
-    if sub_account_id:
+    if sub_account_id == "main":
+        target_user_id = parent_id
+    elif sub_account_id and sub_account_id != target_user_id:
         from bson import ObjectId
-        db = get_database()
-        
-        user_doc = db.users.find_one({"_id": ObjectId(user_id)})
-        if not user_doc:
-            return error_response(message="User not found.", status_code=404)
+        from config.database import get_database
+        if ObjectId.is_valid(str(sub_account_id)):
+            db = get_database()
+            sub_user = db.users.find_one({
+                "_id": ObjectId(str(sub_account_id)),
+                "parent_user_id": parent_id
+            })
+            if not sub_user:
+                return error_response(
+                    message="Unauthorized: This sub-account does not belong to your account.",
+                    status_code=403
+                )
+            target_user_id = str(sub_user["_id"])
 
-        actual_parent_id = user_doc.get("parent_user_id") or user_id
-
-        # Verify that sub_account_id belongs to a sub-account owned by the parent
-        sub_user = db.users.find_one({
-            "_id": ObjectId(sub_account_id),
-            "parent_user_id": actual_parent_id
-        })
-        if not sub_user:
-            return error_response(
-                message="Unauthorized: This sub-account does not belong to your account.",
-                status_code=403
-            )
-        # Use sub-account user ID to load ledger
-        user_id = sub_account_id
-
-    result = get_wallet_ledger_history(user_id)
+    result = get_wallet_ledger_history(target_user_id)
 
     return success_response(
         message=result["message"],
         data=result["data"],
         status_code=result["status_code"]
+    )
+
+
+@wallet_api.get("/overview-stats")
+@auth_required
+def overview_stats():
+    from datetime import datetime, timedelta
+    from config.database import get_database
+    from bson import ObjectId
+    db = get_database()
+    
+    parent_id = getattr(g, "token_user_id", None) or str(g.current_user["_id"])
+    target_user_id = str(g.current_user["_id"])
+    sub_account_id = request.args.get("sub_account_id") or request.args.get("sub_user_id")
+
+    if sub_account_id == "main":
+        target_user_id = parent_id
+    elif sub_account_id and sub_account_id != target_user_id:
+        if ObjectId.is_valid(str(sub_account_id)):
+            sub_user = db.users.find_one({
+                "_id": ObjectId(str(sub_account_id)),
+                "parent_user_id": parent_id
+            })
+            if sub_user:
+                target_user_id = str(sub_user["_id"])
+    
+    # 1. Calculate 30d Trading Volume
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    trades = list(db.trades.find({
+        "user_id": target_user_id,
+        "created_at": {"$gte": thirty_days_ago}
+    }))
+    
+    total_volume = sum(
+        float(t.get("amount") or (float(t.get("quantity", 0)) * float(t.get("price", 0))))
+        for t in trades
+    )
+    
+    # Determine VIP tier
+    if total_volume >= 250000:
+        vip_tier = "VIP 3"
+        next_vip = "VIP 4"
+        tier_target = 1000000
+        tier_name = "Pro Max"
+    elif total_volume >= 50000:
+        vip_tier = "VIP 2"
+        next_vip = "VIP 3"
+        tier_target = 250000
+        tier_name = "Pro"
+    elif total_volume >= 10000:
+        vip_tier = "VIP 1"
+        next_vip = "VIP 2"
+        tier_target = 50000
+        tier_name = "Advanced"
+    else:
+        vip_tier = "VIP 0"
+        next_vip = "VIP 1"
+        tier_target = 10000
+        tier_name = "Basic"
+        
+    volume_progress = min(100.0, round((total_volume / max(tier_target, 1)) * 100, 1))
+    saved_fees = round(total_volume * 0.0002, 2)
+    
+    # 2. Calculate User Tasks & Rewards
+    user_doc = db.users.find_one({"_id": ObjectId(target_user_id)}) or {}
+    email_done = bool(user_doc.get("is_email_verified") or user_doc.get("status") == "active")
+    kyc_done = bool(user_doc.get("kyc_status") == "approved")
+    deposit_done = db.deposits.count_documents({"user_id": target_user_id, "status": "completed"}) > 0
+    trade_done = (len(trades) > 0) or (db.trades.count_documents({"user_id": target_user_id}) > 0) or (db.trading_positions.count_documents({"user_id": target_user_id}) > 0)
+    security_done = bool(user_doc.get("two_factor_enabled") or user_doc.get("phone"))
+    
+    tasks = [
+        {"id": "email", "label": "Account Registration", "completed": email_done, "reward": 5.0},
+        {"id": "kyc", "label": "Identity Verification", "completed": kyc_done, "reward": 10.0},
+        {"id": "deposit", "label": "First Deposit", "completed": deposit_done, "reward": 15.0},
+        {"id": "trade", "label": "First Trade", "completed": trade_done, "reward": 20.0},
+        {"id": "security", "label": "Security Setup", "completed": security_done, "reward": 10.0},
+    ]
+    completed_tasks_count = sum(1 for t in tasks if t["completed"])
+    total_rewards_earned = sum(t["reward"] for t in tasks if t["completed"])
+    rewards_progress = round((completed_tasks_count / 5) * 100, 1)
+    
+    # 3. Calculate Referral Stats
+    from services.referral_service import ensure_referral_profile
+    ref_profile = ensure_referral_profile(g.current_user)
+    users_invited = int(ref_profile.get("total_invites", 0)) if ref_profile else 0
+    referral_earnings = float(ref_profile.get("total_rewards", 0.0)) if ref_profile else 0.0
+    referral_code = str(ref_profile.get("referral_code") or user_doc.get("referral_code") or "")
+    referral_progress = min(100.0, round((users_invited / 10.0) * 100, 1))
+
+    return success_response(
+        message="Overview stats fetched successfully.",
+        data={
+            "volume_30d": {
+                "amount": round(total_volume, 2),
+                "saved_fees": saved_fees,
+                "current_tier": vip_tier,
+                "next_tier": next_vip,
+                "tier_name": tier_name,
+                "progress_pct": volume_progress,
+            },
+            "rewards": {
+                "total_rewards": round(total_rewards_earned, 2),
+                "completed_tasks": completed_tasks_count,
+                "total_tasks": 5,
+                "progress_pct": rewards_progress,
+                "max_bonus": 500.0,
+            },
+            "referrals": {
+                "total_invited": users_invited,
+                "earnings": round(referral_earnings, 2),
+                "rebate_pct": 20,
+                "referral_code": referral_code,
+                "progress_pct": referral_progress,
+            }
+        },
+        status_code=200
     )
 
 

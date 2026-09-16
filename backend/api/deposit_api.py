@@ -28,12 +28,15 @@ def _resolve_target_user_id(current_user_id, data_or_args=None):
         or request.headers.get("X-Sub-Account-Id")
         or request.headers.get("X-Sub-User-Id")
     )
-    if sub_account_id and str(sub_account_id) != "main" and str(sub_account_id) != str(current_user_id):
+    parent_id = getattr(g, "token_user_id", None) or str(current_user_id)
+    if sub_account_id == "main":
+        return parent_id
+    if sub_account_id and str(sub_account_id) != "main" and ObjectId.is_valid(str(sub_account_id)):
         db = get_database()
         try:
             sub = db.users.find_one({
                 "_id": ObjectId(str(sub_account_id)),
-                "parent_user_id": str(current_user_id)
+                "parent_user_id": parent_id
             })
             if sub:
                 return str(sub["_id"])

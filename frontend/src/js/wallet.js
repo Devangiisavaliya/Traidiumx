@@ -209,6 +209,7 @@ const WALLET_STATE = {
     withdrawals: [],
     pnlSummary: null,
     positionSummary: null,
+    overviewStats: null,
     selectedSubAccountId: null,
     cryptoDeposit: {
         networks: [],
@@ -239,44 +240,60 @@ const WALLET_STATE = {
 };
 
 const walletElements = {
-    alert: document.getElementById("walletAlert"),
-    loginRequired: document.getElementById("walletLoginRequired"),
-    restrictedNotice: document.getElementById("walletRestrictedNotice"),
-    ledgerAccountFilter: document.getElementById("ledgerAccountFilter"),
-    balanceCards: document.getElementById("walletBalanceCards"),
-    statsGrid: document.getElementById("walletStatsGrid"),
-    depositPanel: document.getElementById("walletDepositPanel"),
-    ledgerPanel: document.getElementById("walletLedgerPanel"),
-    depositHistoryPanel: document.getElementById("walletDepositHistoryPanel"),
-    statusText: document.getElementById("walletStatusText"),
-    environmentText: document.getElementById("walletEnvironmentText"),
-    availableBalance: document.getElementById("walletAvailableBalance"),
-    lockedBalance: document.getElementById("walletLockedBalance"),
-    totalBalance: document.getElementById("walletTotalBalance"),
-    openMargin: document.getElementById("walletOpenMargin"),
-    unrealizedPnl: document.getElementById("walletUnrealizedPnl"),
-    ledgerCount: document.getElementById("walletLedgerCount"),
-    badgeText: document.getElementById("walletBadgeText"),
-    mainTitle: document.getElementById("walletMainTitle"),
-    mainSubtitle: document.getElementById("walletMainSubtitle"),
-    lockedBalanceLabel: document.getElementById("walletLockedBalanceLabel"),
-    lockedBalanceNote: document.getElementById("walletLockedBalanceNote"),
-    openMarginLabel: document.getElementById("walletOpenMarginLabel"),
-    openMarginNote: document.getElementById("walletOpenMarginNote"),
-    ledgerBody: document.getElementById("ledgerTableBody"),
-    depositBody: document.getElementById("depositTableBody"),
-    withdrawalBody: document.getElementById("withdrawalTableBody"),
-    ledgerEmpty: document.getElementById("ledgerEmptyState"),
-    depositEmpty: document.getElementById("depositEmptyState"),
-    withdrawalEmpty: document.getElementById("withdrawalEmptyState"),
-    refreshBtn: document.getElementById("refreshWalletBtn"),
-    depositForm: document.getElementById("depositForm"),
-    cryptoNetwork: document.getElementById("cryptoNetwork"),
-    cryptoAsset: document.getElementById("cryptoAsset"),
-    cryptoDepositAddress: document.getElementById("cryptoDepositAddress"),
-    cryptoAddressStatus: document.getElementById("cryptoAddressStatus"),
-    copyCryptoAddressBtn: document.getElementById("copyCryptoAddressBtn"),
-    createDepositBtn: document.getElementById("createDepositBtn"),
+    get alert() { return document.getElementById("walletAlert"); },
+    get loginRequired() { return document.getElementById("walletLoginRequired"); },
+    get restrictedNotice() { return document.getElementById("walletRestrictedNotice"); },
+    get ledgerAccountFilter() { return document.getElementById("ledgerAccountFilter"); },
+    get balanceCards() { return document.getElementById("walletBalanceCards"); },
+    get statsGrid() { return document.getElementById("walletStatsGrid"); },
+    get depositPanel() { return document.getElementById("walletDepositPanel"); },
+    get ledgerPanel() { return document.getElementById("walletLedgerPanel"); },
+    get depositHistoryPanel() { return document.getElementById("walletDepositHistoryPanel"); },
+    get statusText() { return document.getElementById("walletStatusText"); },
+    get environmentText() { return document.getElementById("walletEnvironmentText"); },
+    get availableBalance() { return document.getElementById("walletAvailableBalance"); },
+    get lockedBalance() { return document.getElementById("walletLockedBalance"); },
+    get totalBalance() { return document.getElementById("walletTotalBalance"); },
+    get openMargin() { return document.getElementById("walletOpenMargin"); },
+    get unrealizedPnl() { return document.getElementById("walletUnrealizedPnl"); },
+    get ledgerCount() { return document.getElementById("walletLedgerCount"); },
+    get badgeText() { return document.getElementById("walletBadgeText"); },
+    get mainTitle() { return document.getElementById("walletMainTitle"); },
+    get mainSubtitle() { return document.getElementById("walletMainSubtitle"); },
+    get lockedBalanceLabel() { return document.getElementById("walletLockedBalanceLabel"); },
+    get lockedBalanceNote() { return document.getElementById("walletLockedBalanceNote"); },
+    get openMarginLabel() { return document.getElementById("walletOpenMarginLabel"); },
+    get openMarginNote() { return document.getElementById("walletOpenMarginNote"); },
+    get ledgerBody() { return document.getElementById("ledgerTableBody"); },
+    get depositBody() { return document.getElementById("depositTableBody"); },
+    get withdrawalBody() { return document.getElementById("withdrawalTableBody"); },
+    get ledgerEmpty() { return document.getElementById("ledgerEmptyState"); },
+    get depositEmpty() { return document.getElementById("depositEmptyState"); },
+    get withdrawalEmpty() { return document.getElementById("withdrawalEmptyState"); },
+    get refreshBtn() { return document.getElementById("refreshWalletBtn"); },
+    get depositForm() { return document.getElementById("depositForm"); },
+    get cryptoNetwork() { return document.getElementById("cryptoNetwork"); },
+    get cryptoAsset() { return document.getElementById("cryptoAsset"); },
+    get cryptoDepositAddress() { return document.getElementById("cryptoDepositAddress"); },
+    get cryptoAddressStatus() { return document.getElementById("cryptoAddressStatus"); },
+    get copyCryptoAddressBtn() { return document.getElementById("copyCryptoAddressBtn"); },
+    get createDepositBtn() { return document.getElementById("createDepositBtn"); },
+    get payWithMetaMaskBtn() { return document.getElementById("payWithMetaMaskBtn"); },
+    get ledgerSearchInput() { return document.getElementById("ledgerSearchInput"); },
+    get ledgerCurrencyFilter() { return document.getElementById("ledgerCurrencyFilter"); },
+    get ledgerTypeFilter() { return document.getElementById("ledgerTypeFilter"); },
+    get ledgerPageSize() { return document.getElementById("ledgerPageSize"); },
+    get ledgerPagination() { return document.getElementById("ledgerPagination"); },
+    get depositSearchInput() { return document.getElementById("depositSearchInput"); },
+    get depositCurrencyFilter() { return document.getElementById("depositCurrencyFilter"); },
+    get depositStatusFilter() { return document.getElementById("depositStatusFilter"); },
+    get depositPageSize() { return document.getElementById("depositPageSize"); },
+    get depositPagination() { return document.getElementById("depositPagination"); },
+    get withdrawalSearchInput() { return document.getElementById("withdrawalSearchInput"); },
+    get withdrawalCurrencyFilter() { return document.getElementById("withdrawalCurrencyFilter"); },
+    get withdrawalStatusFilter() { return document.getElementById("withdrawalStatusFilter"); },
+    get withdrawalPageSize() { return document.getElementById("withdrawalPageSize"); },
+    get withdrawalPagination() { return document.getElementById("withdrawalPagination"); },
     payWithMetaMaskBtn: document.getElementById("payWithMetaMaskBtn"),
     get withdrawalForm() { return document.getElementById(isWalletActionModalOpen() ? "modalWithdrawalForm" : "mainWithdrawalForm"); },
     get withdrawNetwork() { return document.getElementById(isWalletActionModalOpen() ? "modalWithdrawNetwork" : "mainWithdrawNetwork"); },
@@ -2749,11 +2766,12 @@ async function copyCryptoDepositAddress() {
 
 async function loadWalletData(options = {}) {
     const silent = Boolean(options?.silent);
-    const requestSeq = ++WALLET_STATE.walletLoadRequestSeq;
 
     if (WALLET_STATE.loading) {
         return;
     }
+
+    const requestSeq = ++WALLET_STATE.walletLoadRequestSeq;
 
     if (typeof apiRequest !== "function" || typeof isLoggedIn !== "function") {
         setWalletStatus("API Error", "error");
@@ -2824,7 +2842,7 @@ async function loadWalletData(options = {}) {
             });
         }
 
-        if (balanceRes && requestSeq === WALLET_STATE.walletLoadRequestSeq) {
+        if (balanceRes) {
             WALLET_STATE.wallet = balanceRes.data.wallet || balanceRes.data || null;
             if (WALLET_STATE.wallet) {
                 saveCachedWalletData(WALLET_STATE.wallet);
@@ -2841,11 +2859,12 @@ async function loadWalletData(options = {}) {
         // 2. Fetch other history and optional APIs in the background
         const targetSubId = (WALLET_STATE.selectedSubAccountId !== undefined && WALLET_STATE.selectedSubAccountId !== null)
             ? WALLET_STATE.selectedSubAccountId
-            : ((activeSubId && activeSubId !== "main") ? activeSubId : null);
+            : ((activeSubId && activeSubId !== "main") ? activeSubId : "main");
 
-        let ledgerUrl = targetSubId ? `/wallet/ledger?sub_account_id=${encodeURIComponent(targetSubId)}` : "/wallet/ledger";
-        let depositUrl = targetSubId ? `/deposit/history?sub_account_id=${encodeURIComponent(targetSubId)}` : "/deposit/history";
-        let withdrawalUrl = targetSubId ? `/withdrawal/history?sub_account_id=${encodeURIComponent(targetSubId)}` : "/withdrawal/history";
+        let ledgerUrl = `/wallet/ledger?sub_account_id=${encodeURIComponent(targetSubId)}`;
+        let depositUrl = `/deposit/history?sub_account_id=${encodeURIComponent(targetSubId)}`;
+        let withdrawalUrl = `/withdrawal/history?sub_account_id=${encodeURIComponent(targetSubId)}`;
+        let statsUrl = `/wallet/overview-stats?sub_account_id=${encodeURIComponent(targetSubId)}`;
 
         // Throttle transaction history requests to every 30 seconds during background updates
         const nowTime = Date.now();
@@ -2857,26 +2876,29 @@ async function loadWalletData(options = {}) {
             shouldFetchHistory ? apiRequest(withdrawalUrl) : Promise.resolve(null),
             getOptionalApi("/trading/pnl-summary", {}),
             getOptionalApi("/trading/positions", {}),
-            getOptionalApi("/onboarding/mt5/status", {})
+            getOptionalApi("/onboarding/mt5/status", {}),
+            getOptionalApi(statsUrl, {})
         ];
 
         Promise.allSettled(historyPromises).then((results) => {
-            if (requestSeq !== WALLET_STATE.walletLoadRequestSeq) {
-                return;
-            }
-
-            const [ledgerResult, depositResult, withdrawalResult, pnlResult, positionsResult, mt5Result] = results;
+            const [ledgerResult, depositResult, withdrawalResult, pnlResult, positionsResult, mt5Result, statsResult] = results;
 
             if (shouldFetchHistory) {
                 WALLET_STATE.lastHistoryFetchAt = nowTime;
                 if (ledgerResult.status === "fulfilled" && ledgerResult.value) {
-                    WALLET_STATE.ledger = ledgerResult.value.data.ledger || [];
+                    const lVal = ledgerResult.value;
+                    const lData = lVal.data;
+                    WALLET_STATE.ledger = Array.isArray(lData?.ledger) ? lData.ledger : (Array.isArray(lData) ? lData : (Array.isArray(lVal.ledger) ? lVal.ledger : []));
                 }
                 if (depositResult.status === "fulfilled" && depositResult.value) {
-                    WALLET_STATE.deposits = depositResult.value.data.deposits || [];
+                    const dVal = depositResult.value;
+                    const dData = dVal.data;
+                    WALLET_STATE.deposits = Array.isArray(dData?.deposits) ? dData.deposits : (Array.isArray(dData) ? dData : (Array.isArray(dVal.deposits) ? dVal.deposits : []));
                 }
                 if (withdrawalResult.status === "fulfilled" && withdrawalResult.value) {
-                    WALLET_STATE.withdrawals = withdrawalResult.value.data.withdrawals || [];
+                    const wVal = withdrawalResult.value;
+                    const wData = wVal.data;
+                    WALLET_STATE.withdrawals = Array.isArray(wData?.withdrawals) ? wData.withdrawals : (Array.isArray(wData) ? wData : (Array.isArray(wVal.withdrawals) ? wVal.withdrawals : []));
                     notifyWithdrawalStatusChanges(WALLET_STATE.withdrawals);
                 }
                 syncHistoryFromLedgerFallbacks();
@@ -2890,6 +2912,9 @@ async function loadWalletData(options = {}) {
             }
             if (mt5Result.status === "fulfilled") {
                 WALLET_STATE.mt5 = mt5Result.value.data || null;
+            }
+            if (statsResult?.status === "fulfilled" && statsResult.value?.data) {
+                WALLET_STATE.overviewStats = statsResult.value.data;
             }
 
             // Re-render to populate history tables
@@ -2905,9 +2930,7 @@ async function loadWalletData(options = {}) {
             showWalletAlert(getErrorMessage(error, "Unable to load wallet data."), "error");
         }
     } finally {
-        if (requestSeq === WALLET_STATE.walletLoadRequestSeq) {
-            WALLET_STATE.loading = false;
-        }
+        WALLET_STATE.loading = false;
     }
 }
 
@@ -3007,6 +3030,9 @@ function renderWalletPage() {
     }
     if (typeof txRenderTradingAccounts === "function") {
         txRenderTradingAccounts();
+    }
+    if (typeof txRenderOverviewStats === "function") {
+        txRenderOverviewStats(WALLET_STATE.overviewStats);
     }
     updateMainWithdrawalPageBalanceDisplay();
     updateWalletActionModalBalances();
@@ -6494,8 +6520,9 @@ async function txInitLedgerSubAccountDropdown() {
             dropdown.dataset.bound = "1";
             dropdown.addEventListener("change", () => {
                 const val = dropdown.value;
-                WALLET_STATE.selectedSubAccountId = val === "main" ? null : val;
-                loadWalletData({ silent: true });
+                WALLET_STATE.selectedSubAccountId = val === "main" ? "main" : val;
+                WALLET_STATE.lastHistoryFetchAt = 0;
+                loadWalletData();
             });
         }
     } catch (err) {
@@ -7266,19 +7293,19 @@ function txRenderAssetLists() {
     const activeSub = isSubActive ? (txSubAccountsLocalCache || []).find(s => s.id === activeSubId) : null;
     const isDemo = activeSub ? Boolean(activeSub.is_demo || activeSub.account_mode === "demo" || activeSub.plan === "demo" || activeSub.plan_name?.toLowerCase().includes("demo")) : false;
 
-    // Active Account specific balance vs Total Portfolio balance:
-    let displayTotalUsd = totalBalUsd;
-    let displayAvailUsd = isMt5 ? mt5Bal : (usdtBalance + (inrBalance / rate) + tradingUsdtAvail + (tradingInrAvail / rate) + cryptoSumUsd);
-    let displayLockedUsd = isMt5 ? 0 : (usdtLocked + (inrLocked / rate) + tradingUsdtLocked + (tradingInrLocked / rate) + cryptoLockedUsd + tradingMargin);
+    // Active Account specific balance:
+    let displayTotalUsd = isMt5 ? mt5Bal : usdtBalance;
+    let displayAvailUsd = isMt5 ? mt5Bal : usdtBalance;
+    let displayLockedUsd = isMt5 ? 0 : usdtLocked;
 
     if (isSubActive) {
         // When a Sub Account or Demo Account is actively selected, show its isolated funds
-        displayTotalUsd = tradingTotalUsd;
-        displayAvailUsd = tradingUsdtAvail + (tradingInrAvail / rate);
-        displayLockedUsd = tradingUsdtLocked + (tradingInrLocked / rate) + tradingMargin;
+        displayTotalUsd = tradingUsdtAvail;
+        displayAvailUsd = tradingUsdtAvail;
+        displayLockedUsd = tradingUsdtLocked + tradingMargin;
     }
 
-    const displayTotalInr = displayTotalUsd * rate;
+    const displayTotalInr = inrBalance > 0 && !isSubActive ? inrBalance : (displayTotalUsd * rate);
 
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const totalEl = document.getElementById("portfolioTotalBalance");
@@ -7313,13 +7340,13 @@ function txRenderAssetLists() {
                 primeAccountBadge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
             }
             if (primeTotalFundsLabel) {
-                primeTotalFundsLabel.textContent = isDemo ? "Demo Trading Funds" : "Account Funds";
+                primeTotalFundsLabel.textContent = isDemo ? "Demo Balance" : "Trading Balance";
             }
         } else {
             primeAccountBadge.textContent = "Main Account (Real)";
             primeAccountBadge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
             if (primeTotalFundsLabel) {
-                primeTotalFundsLabel.textContent = "Total Funds";
+                primeTotalFundsLabel.textContent = "Main Balance";
             }
         }
     }
@@ -7358,6 +7385,71 @@ function txRenderAssetLists() {
     if (typeof txRenderPrimePopularMarkets === "function") {
         txRenderPrimePopularMarkets();
     }
+
+    if (typeof txRenderOverviewStats === "function" && WALLET_STATE.overviewStats) {
+        txRenderOverviewStats(WALLET_STATE.overviewStats);
+    }
+
+function txRenderOverviewStats(stats) {
+    if (!stats) return;
+    const vol = stats.volume_30d || {};
+    const rew = stats.rewards || {};
+    const ref = stats.referrals || {};
+
+    const volValEl = document.getElementById("txPrimeVolumeVal");
+    const volTierEl = document.getElementById("txPrimeVolumeTier");
+    const volBarEl = document.getElementById("txPrimeVolumeBar");
+    const savedFeesEl = document.getElementById("txPrimeSavedFees");
+    const tierNameEl = document.getElementById("txPrimeTierName");
+
+    if (volValEl) volValEl.textContent = `$ ${(vol.amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (volTierEl) volTierEl.textContent = `${vol.current_tier || 'VIP 0'} → ${vol.next_tier || 'VIP 1'}`;
+    if (volBarEl) volBarEl.style.width = `${Math.min(100, Math.max(0, vol.progress_pct || 0))}%`;
+    if (savedFeesEl) savedFeesEl.textContent = `Saved fees: $${(vol.saved_fees || 0).toFixed(2)}`;
+    if (tierNameEl) tierNameEl.textContent = `Tier: ${vol.tier_name || 'Basic'}`;
+
+    const rewValEl = document.getElementById("txPrimeRewardsVal");
+    const rewRatioEl = document.getElementById("txPrimeTasksRatio");
+    const rewBarEl = document.getElementById("txPrimeRewardsBar");
+    const activeBonusEl = document.getElementById("txPrimeActiveBonus");
+
+    if (rewValEl) rewValEl.textContent = `$ ${(rew.total_rewards || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (rewRatioEl) rewRatioEl.textContent = `${rew.completed_tasks || 0} / ${rew.total_tasks || 5} Tasks`;
+    if (rewBarEl) rewBarEl.style.width = `${Math.min(100, Math.max(0, rew.progress_pct || 0))}%`;
+    if (activeBonusEl) activeBonusEl.textContent = `Active bonus: Up to $${rew.max_bonus || 500}`;
+
+    const refValEl = document.getElementById("txPrimeReferralVal");
+    const rebateEl = document.getElementById("txPrimeRebateBadge");
+    const refBarEl = document.getElementById("txPrimeReferralBar");
+    const invitedCountEl = document.getElementById("txPrimeInvitedCount");
+
+    if (refValEl) refValEl.textContent = `$ ${(ref.earnings || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (rebateEl) rebateEl.textContent = `${ref.rebate_pct || 20}% Rebate`;
+    if (refBarEl) refBarEl.style.width = `${Math.min(100, Math.max(0, ref.progress_pct || 0))}%`;
+    if (invitedCountEl) invitedCountEl.textContent = `${ref.total_invited || 0} Users Invited`;
+
+    const copyRefBtn = document.getElementById("txPrimeCopyReferralBtn");
+    if (copyRefBtn && copyRefBtn.dataset.bound !== "1") {
+        copyRefBtn.dataset.bound = "1";
+        copyRefBtn.addEventListener("click", () => {
+            const code = ref.referral_code || "";
+            const link = code ? `${window.location.origin}/src/pages/register.html?ref=${encodeURIComponent(code)}` : `${window.location.origin}/src/pages/register.html`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link).then(() => {
+                    if (typeof showWalletAlert === "function") {
+                        showWalletAlert(`Referral link copied! (Code: ${code})`, "success");
+                    }
+                }).catch(() => {
+                    if (typeof showWalletAlert === "function") {
+                        showWalletAlert(`Referral code: ${code}`, "info");
+                    }
+                });
+            } else if (typeof showWalletAlert === "function") {
+                showWalletAlert(`Referral code: ${code}`, "info");
+            }
+        });
+    }
+}
 
     // Dynamic Balance Breakdown Tooltip Population
     const availEl = document.getElementById("txBreakdownAvail");
@@ -7506,6 +7598,11 @@ window.txToggleWalletHistoryView = function(showHistory = true) {
     if (showHistory) {
         assetsView.classList.add("hidden");
         historyView.classList.remove("hidden");
+        WALLET_STATE.lastHistoryFetchAt = 0;
+        renderLedgerTable();
+        renderDepositTable();
+        renderWithdrawalTable();
+        loadWalletData();
     } else {
         historyView.classList.add("hidden");
         assetsView.classList.remove("hidden");
@@ -7629,7 +7726,9 @@ function txRenderTradingAccounts() {
     // 1. Calculate Main Account Balance & PnL
     const mainTradingBal = walletNumber(parentEntry?.wallet?.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet?.available_balance, 0)
         + (walletNumber(parentEntry?.wallet?.trading_wallet_inr?.available_balance ?? wallet.trading_wallet_inr?.available_balance, 0) / rate);
-    const mainPnl = walletNumber(WALLET_STATE.pnlSummary?.total_unrealized_pnl, 0);
+    const mainPnl = isMainActive 
+        ? walletNumber(WALLET_STATE.pnlSummary?.total_unrealized_pnl, 0) 
+        : walletNumber(parentEntry?.unrealized_pnl ?? parentEntry?.wallet?.unrealized_pnl, 0);
 
     // Build unified accounts list
     const allAccounts = [];
@@ -7653,7 +7752,9 @@ function txRenderTradingAccounts() {
         const isDemo = Boolean(sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || sub.plan_name?.toLowerCase().includes("demo"));
         const balUsd = walletNumber(sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance, 0)
             + (walletNumber(sub.wallet?.trading_wallet_inr?.available_balance, 0) / rate);
-        const pnl = 0.00;
+        const pnl = (activeSubId === sub.id)
+            ? walletNumber(WALLET_STATE.pnlSummary?.total_unrealized_pnl, 0)
+            : walletNumber(sub.unrealized_pnl ?? sub.wallet?.unrealized_pnl ?? sub.pnl, 0);
         allAccounts.push({
             id: sub.id,
             name: sub.name,
@@ -7714,7 +7815,8 @@ function txRenderTradingAccounts() {
         listContainer.innerHTML = filteredAccounts.map(acc => {
             const isSelected = acc.isActive;
             const balStr = hidden ? "********" : `${acc.balanceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
-            const pnlStr = hidden ? "*****" : `${acc.pnlUsd >= 0 ? "" : ""}${acc.pnlUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            const pnlPrefix = acc.pnlUsd > 0 ? "+" : "";
+            const pnlStr = hidden ? "*****" : `${pnlPrefix}${acc.pnlUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
             const pnlClass = acc.pnlUsd > 0 ? "text-emerald-400" : (acc.pnlUsd < 0 ? "text-red-400" : "text-white");
             const badgeClass = acc.isDemo 
                 ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
@@ -7752,13 +7854,11 @@ function txRenderTradingAccounts() {
                         <div>
                             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Your funds</span>
                             <strong class="text-xl sm:text-2xl font-black text-white font-mono block mt-1">${balStr}</strong>
-                            <span class="text-[11px] text-slate-500 font-semibold block mt-0.5">› 0 USD</span>
                         </div>
 
                         <div>
                             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">P/L</span>
                             <strong class="text-xl sm:text-2xl font-black ${pnlClass} font-mono block mt-1">${pnlStr}</strong>
-                            <span class="text-[11px] text-slate-500 font-semibold block mt-0.5">› 0 USD</span>
                         </div>
 
                         <div class="sm:col-span-2 lg:col-span-1 flex items-end justify-end">
@@ -8799,8 +8899,14 @@ function stopCameraScanner() {
 let TX_DEPOSIT_STATE = {
     mode: "crypto", // "crypto" or "money"
     currentStep: 1,
-    selectedCoin: "USDT",
-    selectedNetwork: "TRC20",
+    moneyStep: 1,
+    moneyMethod: null,
+    moneyAccount: null,
+    moneyAccountName: "Account / Wallet",
+    selectedCoin: null,
+    selectedAccount: null,
+    selectedAccountName: "Select destination account",
+    selectedNetwork: null,
     cryptoAddresses: {},
     inrDetails: null,
     initialized: false,
@@ -8813,12 +8919,17 @@ let TX_DEPOSIT_STATE = {
         { symbol: "USDC", name: "USD Coin", icon: "$", color: "blue", networks: ["ERC20", "BEP20", "TRC20", "SOLANA"], min: "5 USDC" },
         { symbol: "TRX", name: "TRON", icon: "⯛", color: "red", networks: ["TRC20"], min: "20 TRX" },
         { symbol: "XRP", name: "Ripple", icon: "✕", color: "sky", networks: ["RIPPLE"], min: "10 XRP" },
-        { symbol: "DOGE", name: "Dogecoin", icon: "Ð", color: "orange", networks: ["DOGECOIN", "BEP20"], min: "15 DOGE" },
-        { symbol: "INR", name: "Indian Rupee (₹)", icon: "₹", color: "emerald", networks: ["UPI", "IMPS", "BANK_TRANSFER"], min: "₹100 INR" }
+        { symbol: "DOGE", name: "Dogecoin", icon: "Ð", color: "orange", networks: ["DOGECOIN", "BEP20"], min: "15 DOGE" }
     ]
 };
 
 function txSetDepositStep(step) {
+    if (step > 1 && !TX_DEPOSIT_STATE.selectedCoin) {
+        return; // Guard: Cannot open Step 2 or 3 if currency is not selected!
+    }
+    if (step > 2 && !TX_DEPOSIT_STATE.selectedAccount) {
+        return; // Guard: Cannot open Step 3 if account is not selected!
+    }
     TX_DEPOSIT_STATE.currentStep = step;
 
     const dot1 = document.getElementById("txDepositStep1Dot");
@@ -8834,31 +8945,27 @@ function txSetDepositStep(step) {
     const title3 = document.getElementById("txDepositStep3Title");
 
     if (step === 1) {
-        // Step 1: Active (White circle 1)
         if (dot1) {
-            dot1.className = "tx-nexus-step-dot active";
-            dot1.textContent = "1";
+            dot1.className = TX_DEPOSIT_STATE.selectedCoin ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot1.textContent = TX_DEPOSIT_STATE.selectedCoin ? "✓" : "1";
         }
         if (body1) body1.classList.remove("hidden");
         if (title1) title1.className = "block text-sm font-bold text-white cursor-pointer";
 
-        // Step 2: Inactive (Grey circle 2)
         if (dot2) {
             dot2.className = "tx-nexus-step-dot inactive";
             dot2.textContent = "2";
         }
         if (body2) body2.classList.add("hidden");
-        if (title2) title2.className = "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer";
+        if (title2) title2.className = TX_DEPOSIT_STATE.selectedCoin ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
 
-        // Step 3: Inactive (Grey circle 3)
         if (dot3) {
             dot3.className = "tx-nexus-step-dot inactive";
             dot3.textContent = "3";
         }
         if (body3) body3.classList.add("hidden");
-        if (title3) title3.className = "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer";
+        if (title3) title3.className = "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
     } else if (step === 2) {
-        // Step 1: Completed (Cyan checkmark ✓)
         if (dot1) {
             dot1.className = "tx-nexus-step-dot completed";
             dot1.textContent = "✓";
@@ -8866,23 +8973,20 @@ function txSetDepositStep(step) {
         if (body1) body1.classList.remove("hidden");
         if (title1) title1.className = "block text-sm font-bold text-white cursor-pointer";
 
-        // Step 2: Active (White circle 2)
         if (dot2) {
-            dot2.className = "tx-nexus-step-dot active";
-            dot2.textContent = "2";
+            dot2.className = TX_DEPOSIT_STATE.selectedAccount ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot2.textContent = TX_DEPOSIT_STATE.selectedAccount ? "✓" : "2";
         }
         if (body2) body2.classList.remove("hidden");
         if (title2) title2.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
 
-        // Step 3: Inactive (Grey circle 3)
         if (dot3) {
             dot3.className = "tx-nexus-step-dot inactive";
             dot3.textContent = "3";
         }
         if (body3) body3.classList.add("hidden");
-        if (title3) title3.className = "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer";
+        if (title3) title3.className = TX_DEPOSIT_STATE.selectedAccount ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
     } else if (step >= 3) {
-        // Step 1: Completed (Cyan checkmark ✓)
         if (dot1) {
             dot1.className = "tx-nexus-step-dot completed";
             dot1.textContent = "✓";
@@ -8890,7 +8994,6 @@ function txSetDepositStep(step) {
         if (body1) body1.classList.remove("hidden");
         if (title1) title1.className = "block text-sm font-bold text-white cursor-pointer";
 
-        // Step 2: Completed (Cyan checkmark ✓)
         if (dot2) {
             dot2.className = "tx-nexus-step-dot completed";
             dot2.textContent = "✓";
@@ -8898,13 +9001,113 @@ function txSetDepositStep(step) {
         if (body2) body2.classList.remove("hidden");
         if (title2) title2.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
 
-        // Step 3: Active (White circle 3)
         if (dot3) {
             dot3.className = "tx-nexus-step-dot active";
             dot3.textContent = "3";
         }
         if (body3) body3.classList.remove("hidden");
-        if (title3) title3.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (title3) {
+            title3.textContent = `Deposit to ${TX_DEPOSIT_STATE.selectedCoin || "USDT"}`;
+            title3.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        }
+
+        const activeContent = document.getElementById("txDepositActiveContent");
+        if (activeContent) activeContent.classList.remove("hidden");
+        const kycNotice = document.getElementById("txDepositKycNoticeCard");
+        if (kycNotice) kycNotice.classList.add("hidden");
+
+        txUpdateDepositAddressDisplay();
+    }
+}
+
+function txSetMoneyDepositStep(step) {
+    if (step > 1 && !TX_DEPOSIT_STATE.moneyAccount) {
+        return; // Guard: Cannot jump to Step 2/3 without selecting account!
+    }
+    if (step > 2 && !TX_DEPOSIT_STATE.moneyMethod) {
+        return; // Guard: Cannot jump to Step 3 without selecting payment method!
+    }
+    TX_DEPOSIT_STATE.moneyStep = step;
+
+    const dot1 = document.getElementById("txMoneyStep1Dot");
+    const dot2 = document.getElementById("txMoneyStep2Dot");
+    const dot3 = document.getElementById("txMoneyStep3Dot");
+
+    const label1 = document.getElementById("txMoneyStep1Label");
+    const label2 = document.getElementById("txMoneyStep2Label");
+    const label3 = document.getElementById("txMoneyStep3Label");
+
+    const body1 = document.getElementById("txMoneyStep1Body");
+    const body2 = document.getElementById("txMoneyStep2Body");
+    const body3 = document.getElementById("txMoneyStep3Body");
+
+    if (step === 1) {
+        if (dot1) {
+            dot1.className = TX_DEPOSIT_STATE.moneyAccount ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot1.textContent = TX_DEPOSIT_STATE.moneyAccount ? "✓" : "1";
+        }
+        if (dot2) {
+            dot2.className = "tx-nexus-step-dot inactive";
+            dot2.textContent = "2";
+        }
+        if (dot3) {
+            dot3.className = "tx-nexus-step-dot inactive";
+            dot3.textContent = "3";
+        }
+        if (label1) label1.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (label2) label2.className = TX_DEPOSIT_STATE.moneyAccount ? "text-sm font-bold text-slate-400 block cursor-pointer" : "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+        if (label3) label3.className = "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+
+        if (body1) body1.classList.remove("hidden");
+        if (body2) body2.classList.add("hidden");
+        if (body3) body3.classList.add("hidden");
+    } else if (step === 2) {
+        if (dot1) {
+            dot1.className = "tx-nexus-step-dot completed";
+            dot1.textContent = "✓";
+        }
+        if (dot2) {
+            dot2.className = TX_DEPOSIT_STATE.moneyMethod ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot2.textContent = TX_DEPOSIT_STATE.moneyMethod ? "✓" : "2";
+        }
+        if (dot3) {
+            dot3.className = "tx-nexus-step-dot inactive";
+            dot3.textContent = "3";
+        }
+        if (label1) label1.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = TX_DEPOSIT_STATE.moneyMethod ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+
+        if (body1) body1.classList.remove("hidden");
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.add("hidden");
+    } else if (step >= 3) {
+        if (dot1) {
+            dot1.className = "tx-nexus-step-dot completed";
+            dot1.textContent = "✓";
+        }
+        if (dot2) {
+            dot2.className = "tx-nexus-step-dot completed";
+            dot2.textContent = "✓";
+        }
+        if (dot3) {
+            dot3.className = "tx-nexus-step-dot active";
+            dot3.textContent = "3";
+        }
+        if (label1) label1.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+
+        if (body1) body1.classList.remove("hidden");
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.remove("hidden");
+
+        const amountInput = document.getElementById("txMoneyDepositAmountInput");
+        if (amountInput) {
+            setTimeout(() => {
+                amountInput.focus();
+            }, 100);
+        }
     }
 }
 
@@ -8926,7 +9129,7 @@ function txInitDepositView() {
         toggleMoney.onclick = () => txSwitchDepositMode("money");
     }
 
-    // Currency Dropdown
+    // Crypto Currency Dropdown
     const dropdownBtn = document.getElementById("txDepositCurrencyDropdownBtn");
     const dropdownMenu = document.getElementById("txDepositCurrencyDropdownMenu");
     const searchInput = document.getElementById("txDepositCurrencySearchInput");
@@ -8957,7 +9160,7 @@ function txInitDepositView() {
         };
     }
 
-    // STEP 2 Account Selector Dropdown (PrimeXBT Style)
+    // Crypto Step 2 Account Selector Dropdown
     const accBtn = document.getElementById("txDepositAccountSelectBtn");
     const accMenu = document.getElementById("txDepositAccountDropdownMenu");
     const accChevron = document.getElementById("txDepositAccountChevron");
@@ -8974,6 +9177,48 @@ function txInitDepositView() {
             if (!accMenu.contains(e.target) && !accBtn.contains(e.target)) {
                 accMenu.classList.add("hidden");
                 if (accChevron) accChevron.style.transform = "rotate(0deg)";
+            }
+        });
+    }
+
+    // Money Step 1 Account Selector Dropdown
+    const moneyAccBtn = document.getElementById("txMoneyAccountSelectBtn");
+    const moneyAccMenu = document.getElementById("txMoneyAccountDropdownMenu");
+    const moneyAccChevron = document.getElementById("txMoneyAccountChevron");
+
+    if (moneyAccBtn && moneyAccMenu) {
+        moneyAccBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = moneyAccMenu.classList.contains("hidden");
+            moneyAccMenu.classList.toggle("hidden", !isHidden);
+            if (moneyAccChevron) moneyAccChevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!moneyAccMenu.contains(e.target) && !moneyAccBtn.contains(e.target)) {
+                moneyAccMenu.classList.add("hidden");
+                if (moneyAccChevron) moneyAccChevron.style.transform = "rotate(0deg)";
+            }
+        });
+    }
+
+    // Money Step 2 Payment Method Selector Dropdown
+    const moneyMethodBtn = document.getElementById("txMoneyMethodSelectBtn");
+    const moneyMethodMenu = document.getElementById("txMoneyMethodDropdownMenu");
+    const moneyMethodChevron = document.getElementById("txMoneyMethodChevron");
+
+    if (moneyMethodBtn && moneyMethodMenu) {
+        moneyMethodBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = moneyMethodMenu.classList.contains("hidden");
+            moneyMethodMenu.classList.toggle("hidden", !isHidden);
+            if (moneyMethodChevron) moneyMethodChevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!moneyMethodMenu.contains(e.target) && !moneyMethodBtn.contains(e.target)) {
+                moneyMethodMenu.classList.add("hidden");
+                if (moneyMethodChevron) moneyMethodChevron.style.transform = "rotate(0deg)";
             }
         });
     }
@@ -8997,40 +9242,29 @@ function txInitDepositView() {
         };
     }
 
-    // Copy UPI Button
-    const copyUpiBtn = document.getElementById("txDepositCopyUpiBtn");
-    if (copyUpiBtn) {
-        copyUpiBtn.onclick = () => {
-            const upiId = document.getElementById("txDepositUpiIdText")?.textContent || "";
-            if (upiId) {
-                navigator.clipboard.writeText(upiId).then(() => {
-                    copyUpiBtn.textContent = "Copied! ✓";
-                    setTimeout(() => {
-                        copyUpiBtn.textContent = "Copy";
-                    }, 2000);
-                });
-            }
-        };
-    }
-
-    // FAQ Accordion
-    txInitDepositFaqAccordion();
-
-    // Deposit Form Submit
+    // Crypto Deposit Form Submit
     const depositForm = document.getElementById("txDepositForm");
     if (depositForm) {
         depositForm.onsubmit = txHandleDepositFormSubmit;
     }
 
+    // Money Deposit Form Submit
+    const moneyDepositForm = document.getElementById("txMoneyDepositForm");
+    if (moneyDepositForm) {
+        moneyDepositForm.onsubmit = txHandleMoneyDepositFormSubmit;
+    }
+
     // Initial load
     txRenderDepositCurrencyList();
     txRenderDepositAccountOptions();
+    txRenderMoneyAccountOptions();
     txFetchSubAccountsForDeposit();
     txFetchCryptoAddresses();
     txFetchInrDetails();
     txCheckUserKycForDeposit();
     txSelectDepositCoin(TX_DEPOSIT_STATE.selectedCoin, false);
-    txSetDepositStep(1); // Start at Step 1 as requested
+    txSetDepositStep(1);
+    txSetMoneyDepositStep(2); // Step 1 checkmarked, Step 2 active
 }
 
 function txSwitchDepositMode(mode = "crypto") {
@@ -9039,47 +9273,35 @@ function txSwitchDepositMode(mode = "crypto") {
     const titleEl = document.getElementById("txDepositCardTitle");
     const toggleCrypto = document.getElementById("txDepositToggleCrypto");
     const toggleMoney = document.getElementById("txDepositToggleMoney");
-    const cryptoStep2 = document.getElementById("txDepositCryptoStep2");
-    const moneyStep2 = document.getElementById("txDepositMoneyStep2");
-    const currencyLabel = document.getElementById("txDepositAmountCurrencyLabel");
-    const txHashLabel = document.getElementById("txDepositTxHashLabel");
-    const txHashInput = document.getElementById("txDepositTxHashInput");
+    const cryptoStepper = document.getElementById("txDepositCryptoStepper");
+    const moneyStepper = document.getElementById("txDepositMoneyStepper");
 
     if (mode === "money") {
         if (titleEl) titleEl.textContent = "Deposit money";
         if (toggleMoney) {
-            toggleMoney.className = "px-5 py-1.5 rounded-full text-xs font-black transition cursor-pointer bg-white text-black shadow-md";
+            toggleMoney.className = "active";
         }
         if (toggleCrypto) {
-            toggleCrypto.className = "px-5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer text-slate-400 hover:text-white";
+            toggleCrypto.className = "";
         }
-        if (cryptoStep2) cryptoStep2.classList.add("hidden");
-        if (moneyStep2) moneyStep2.classList.remove("hidden");
-        if (currencyLabel) currencyLabel.textContent = "INR (₹)";
-        if (txHashLabel) txHashLabel.textContent = "UPI Reference ID / Bank UTR (12 digits)";
-        if (txHashInput) txHashInput.placeholder = "Enter 12-digit UTR or Reference ID";
+        if (cryptoStepper) cryptoStepper.classList.add("hidden");
+        if (moneyStepper) moneyStepper.classList.remove("hidden");
 
-        // Select INR
-        txSelectDepositCoin("INR", false);
+        txRenderMoneyAccountOptions();
+        txCheckUserKycForDeposit();
+        txSetMoneyDepositStep(2);
     } else {
         if (titleEl) titleEl.textContent = "Deposit crypto";
         if (toggleCrypto) {
-            toggleCrypto.className = "px-5 py-1.5 rounded-full text-xs font-black transition cursor-pointer bg-white text-black shadow-md";
+            toggleCrypto.className = "active";
         }
         if (toggleMoney) {
-            toggleMoney.className = "px-5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer text-slate-400 hover:text-white";
+            toggleMoney.className = "";
         }
-        if (cryptoStep2) cryptoStep2.classList.remove("hidden");
-        if (moneyStep2) moneyStep2.classList.add("hidden");
-        if (currencyLabel) currencyLabel.textContent = TX_DEPOSIT_STATE.selectedCoin;
-        if (txHashLabel) txHashLabel.textContent = "Transaction Hash (TXID)";
-        if (txHashInput) txHashInput.placeholder = "Paste 64-character TXID";
+        if (cryptoStepper) cryptoStepper.classList.remove("hidden");
+        if (moneyStepper) moneyStepper.classList.add("hidden");
 
-        if (TX_DEPOSIT_STATE.selectedCoin === "INR") {
-            txSelectDepositCoin("USDT", false);
-        } else {
-            txRefreshDepositUI();
-        }
+        txRefreshDepositUI();
     }
 }
 
@@ -9089,8 +9311,6 @@ function txRenderDepositCurrencyList(filterText = "") {
 
     const query = filterText.toLowerCase();
     const filtered = TX_DEPOSIT_STATE.coins.filter(c => {
-        if (TX_DEPOSIT_STATE.mode === "crypto" && c.symbol === "INR") return false;
-        if (TX_DEPOSIT_STATE.mode === "money" && c.symbol !== "INR") return false;
         return c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query);
     });
 
@@ -9114,17 +9334,35 @@ function txRenderDepositCurrencyList(filterText = "") {
 }
 
 function txSelectDepositCoin(symbol, advanceStep = true) {
+    if (!symbol) {
+        TX_DEPOSIT_STATE.selectedCoin = null;
+        TX_DEPOSIT_STATE.selectedNetwork = null;
+        const logoEl = document.getElementById("txDepositSelectedCoinLogo");
+        const nameEl = document.getElementById("txDepositSelectedCoinName");
+        const menuEl = document.getElementById("txDepositCurrencyDropdownMenu");
+        const chevronEl = document.getElementById("txDepositCurrencyChevron");
+
+        if (logoEl) logoEl.classList.add("hidden");
+        if (nameEl) nameEl.innerHTML = `<span class="text-sm text-slate-400 font-normal">Select currency</span>`;
+        if (menuEl) menuEl.classList.add("hidden");
+        if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+        txSetDepositStep(1);
+        txRenderDepositCurrencyList();
+        return;
+    }
+
     const coin = TX_DEPOSIT_STATE.coins.find(c => c.symbol === symbol) || TX_DEPOSIT_STATE.coins[0];
     TX_DEPOSIT_STATE.selectedCoin = coin.symbol;
     TX_DEPOSIT_STATE.selectedNetwork = coin.networks[0] || "TRC20";
 
-    // Update Display Box
     const logoEl = document.getElementById("txDepositSelectedCoinLogo");
     const nameEl = document.getElementById("txDepositSelectedCoinName");
     const menuEl = document.getElementById("txDepositCurrencyDropdownMenu");
     const chevronEl = document.getElementById("txDepositCurrencyChevron");
 
     if (logoEl) {
+        logoEl.classList.remove("hidden");
         logoEl.textContent = coin.icon;
         logoEl.className = `w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shrink-0`;
         logoEl.style.background = "rgba(34, 211, 238, 0.15)";
@@ -9132,7 +9370,7 @@ function txSelectDepositCoin(symbol, advanceStep = true) {
         logoEl.style.border = "1px solid rgba(34, 211, 238, 0.3)";
     }
     if (nameEl) {
-        nameEl.innerHTML = `${coin.symbol} <span class="text-slate-400 font-normal text-xs ml-1">${coin.name}</span>`;
+        nameEl.innerHTML = `<span class="text-sm font-bold text-white">${coin.symbol}</span> <span class="text-slate-400 font-normal text-xs ml-1">${coin.name}</span>`;
     }
     if (menuEl) menuEl.classList.add("hidden");
     if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
@@ -9143,10 +9381,7 @@ function txSelectDepositCoin(symbol, advanceStep = true) {
     const minLimitEl = document.getElementById("txDepositMinLimit");
     if (minLimitEl) minLimitEl.textContent = coin.min || "5 " + coin.symbol;
 
-    // Check KYC Status & Update Step 3
     txCheckUserKycForDeposit();
-
-    // Render Networks & Account Balances
     txRenderNetworkPills(coin.networks);
     txRenderDepositAccountOptions();
     txUpdateDepositAddressDisplay();
@@ -9162,18 +9397,15 @@ function txCheckUserKycForDeposit() {
     const activeContent = document.getElementById("txDepositActiveContent");
     const step3Title = document.getElementById("txDepositStep3Title");
 
-    const user = typeof getAuthUser === "function" ? getAuthUser() : null;
-    const isVerified = user && (user.is_verified === true || user.kyc_status === "verified" || user.kyc_status === "approved");
+    const moneyVerifyCard = document.getElementById("txMoneyVerifyCard");
+    const moneyVerifiedContent = document.getElementById("txMoneyVerifiedContent");
 
-    if (!isVerified) {
-        if (kycNotice) kycNotice.classList.remove("hidden");
-        if (activeContent) activeContent.classList.add("hidden");
-        if (step3Title) step3Title.textContent = "Verify account";
-    } else {
-        if (kycNotice) kycNotice.classList.add("hidden");
-        if (activeContent) activeContent.classList.remove("hidden");
-        if (step3Title) step3Title.textContent = `Deposit to ${TX_DEPOSIT_STATE.selectedCoin || "USDT"}`;
-    }
+    if (kycNotice) kycNotice.classList.add("hidden");
+    if (activeContent) activeContent.classList.remove("hidden");
+    if (step3Title) step3Title.textContent = `Deposit to ${TX_DEPOSIT_STATE.selectedCoin || "USDT"}`;
+
+    if (moneyVerifyCard) moneyVerifyCard.classList.add("hidden");
+    if (moneyVerifiedContent) moneyVerifiedContent.classList.remove("hidden");
 }
 
 async function txFetchSubAccountsForDeposit() {
@@ -9187,6 +9419,7 @@ async function txFetchSubAccountsForDeposit() {
                 WALLET_STATE.sub_accounts = list;
             }
             txRenderDepositAccountOptions();
+            txRenderMoneyAccountOptions();
         }
     } catch (e) {
         console.warn("Could not fetch sub accounts for deposit:", e);
@@ -9208,12 +9441,8 @@ function txRenderDepositAccountOptions() {
 
     let formattedBal = "0 " + currentCoin;
 
-    // Get live wallet balance if available
     if (WALLET_STATE && WALLET_STATE.wallet) {
-        if (currentCoin === "INR") {
-            const inrVal = parseBal(WALLET_STATE.wallet.main_wallet_inr || WALLET_STATE.wallet.available_balance_inr);
-            formattedBal = `₹${inrVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        } else if (currentCoin === "USDT") {
+        if (currentCoin === "USDT") {
             const usdtVal = parseBal(WALLET_STATE.wallet.main_wallet_usdt || WALLET_STATE.wallet.available_balance);
             formattedBal = `${usdtVal.toFixed(2)} USDT`;
         } else {
@@ -9226,17 +9455,14 @@ function txRenderDepositAccountOptions() {
             }
         }
     } else {
-        formattedBal = currentCoin === "INR" ? "₹0.00" : `0.00 ${currentCoin}`;
+        formattedBal = `0.00 ${currentCoin}`;
     }
 
-    // Check if a sub-account is currently selected
-    let activeAccountName = "Wallet";
-    let activeAccountBal = formattedBal;
-
+    let activeAccountName = "Select destination account";
+    let isSelected = false;
     const subList = TX_DEPOSIT_STATE.subAccounts || WALLET_STATE?.sub_accounts || [];
     const authUser = typeof getAuthUser === "function" ? getAuthUser() : null;
 
-    // Filter out demo accounts and duplicate main profile names
     const filteredSubs = subList.filter(sub => {
         const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || 
                        String(sub.name || "").toLowerCase().includes("demo") || 
@@ -9253,28 +9479,47 @@ function txRenderDepositAccountOptions() {
         return true;
     });
 
-    if (filteredSubs.length > 0) {
-        if (!TX_DEPOSIT_STATE.selectedAccount || TX_DEPOSIT_STATE.selectedAccount === "main") {
-            const firstSub = filteredSubs[0];
-            TX_DEPOSIT_STATE.selectedAccount = firstSub.id || firstSub.user_id || firstSub._id;
-            TX_DEPOSIT_STATE.selectedAccountName = firstSub.name || firstSub.account_name || "Trading Account";
-            activeAccountName = TX_DEPOSIT_STATE.selectedAccountName;
+    if (!TX_DEPOSIT_STATE.selectedAccount) {
+        activeAccountName = "Select destination account";
+        isSelected = false;
+    } else if (TX_DEPOSIT_STATE.selectedAccount === "main") {
+        activeAccountName = "Wallet";
+        isSelected = true;
+    } else {
+        const foundSub = filteredSubs.find(s => (s.id || s.user_id || s._id) === TX_DEPOSIT_STATE.selectedAccount);
+        if (foundSub) {
+            activeAccountName = foundSub.name || foundSub.account_name || "Trading Account";
+            isSelected = true;
         } else {
-            const foundSub = filteredSubs.find(s => (s.id || s.user_id || s._id) === TX_DEPOSIT_STATE.selectedAccount);
-            if (foundSub) {
-                activeAccountName = foundSub.name || foundSub.account_name || "Trading Account";
-            }
+            activeAccountName = "Wallet";
+            TX_DEPOSIT_STATE.selectedAccount = "main";
+            TX_DEPOSIT_STATE.selectedAccountName = "Wallet";
+            isSelected = true;
         }
     }
 
     if (destBalEl) destBalEl.textContent = "";
-    if (selectedAccNameEl) selectedAccNameEl.textContent = activeAccountName;
+    if (selectedAccNameEl) {
+        selectedAccNameEl.textContent = activeAccountName;
+        selectedAccNameEl.className = isSelected ? "text-sm font-bold text-white" : "text-sm text-slate-400 font-normal";
+    }
 
     if (!listContainer) return;
 
     let html = "";
+    const isMainSel = TX_DEPOSIT_STATE.selectedAccount === "main";
+    html += `
+        <button type="button" onclick="txSelectDepositDestination('main', 'Wallet')" class="tx-nexus-coin-row ${isMainSel ? 'selected' : ''}">
+            <div class="space-y-0.5 text-left">
+                <span class="text-xs font-bold text-white block">Wallet</span>
+                <span class="text-[11px] text-slate-400 block">Main funding wallet (${formattedBal})</span>
+            </div>
+            <div class="shrink-0">
+                ${isMainSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
+            </div>
+        </button>
+    `;
 
-    // Render Clean User Trading Accounts (Scalping, ACC7, etc.)
     if (filteredSubs.length > 0) {
         filteredSubs.forEach((sub, idx) => {
             const subId = sub.id || sub.user_id || sub._id;
@@ -9283,7 +9528,7 @@ function txRenderDepositAccountOptions() {
 
             html += `
                 <button type="button" onclick="txSelectDepositDestination('${subId}', '${subName}')" class="tx-nexus-coin-row ${isSel ? 'selected' : ''}">
-                    <div class="space-y-0.5">
+                    <div class="space-y-0.5 text-left">
                         <span class="text-xs font-bold text-white block">${subName}</span>
                         <span class="text-[11px] text-slate-400 block">Futures margin account</span>
                     </div>
@@ -9293,8 +9538,6 @@ function txRenderDepositAccountOptions() {
                 </button>
             `;
         });
-    } else {
-        html = `<div class="p-3 text-center text-xs text-slate-500 font-medium">No trading accounts found. Please create one.</div>`;
     }
 
     listContainer.innerHTML = html;
@@ -9305,7 +9548,10 @@ function txSelectDepositDestination(accountId, accountName) {
     TX_DEPOSIT_STATE.selectedAccountName = accountName;
 
     const nameEl = document.getElementById("txDepositSelectedAccountName");
-    if (nameEl) nameEl.textContent = accountName;
+    if (nameEl) {
+        nameEl.textContent = accountName;
+        nameEl.className = "text-sm font-bold text-white";
+    }
 
     const menuEl = document.getElementById("txDepositAccountDropdownMenu");
     const chevronEl = document.getElementById("txDepositAccountChevron");
@@ -9313,9 +9559,175 @@ function txSelectDepositDestination(accountId, accountName) {
     if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
 
     txRenderDepositAccountOptions();
+    txSetDepositStep(3); // CRITICAL: Advance directly to Step 3!
+}
 
-    // Advance to Step 3
-    txSetDepositStep(3);
+function txRenderMoneyAccountOptions() {
+    const listContainer = document.getElementById("txMoneyAccountOptionsList");
+    const destBalEl = document.getElementById("txMoneyDestBalance");
+    const selectedAccNameEl = document.getElementById("txMoneySelectedAccountName");
+
+    const subList = TX_DEPOSIT_STATE.subAccounts || WALLET_STATE?.sub_accounts || [];
+    const authUser = typeof getAuthUser === "function" ? getAuthUser() : null;
+
+    const filteredSubs = subList.filter(sub => {
+        const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || 
+                       String(sub.name || "").toLowerCase().includes("demo") || 
+                       String(sub.account_name || "").toLowerCase().includes("demo");
+        if (isDemo) return false;
+
+        if (authUser) {
+            const userName = (authUser.full_name || authUser.name || "").trim().toLowerCase();
+            const sName = (sub.name || sub.account_name || "").trim().toLowerCase();
+            if (userName && sName === userName && (sub.role === "parent" || sub.role === "user" || sub.is_parent)) {
+                return false;
+            }
+        }
+        return true;
+    });
+
+    let displayAccountName = "Wallet";
+
+    if (TX_DEPOSIT_STATE.moneyAccount === "main" || !TX_DEPOSIT_STATE.moneyAccount) {
+        displayAccountName = "Wallet";
+    } else {
+        const foundSub = filteredSubs.find(s => (s.id || s.user_id || s._id) === TX_DEPOSIT_STATE.moneyAccount);
+        if (foundSub) {
+            displayAccountName = foundSub.name || foundSub.account_name || "Trading Account";
+        } else {
+            displayAccountName = "Wallet";
+            TX_DEPOSIT_STATE.moneyAccount = "main";
+            TX_DEPOSIT_STATE.moneyAccountName = "Wallet";
+        }
+    }
+
+    if (selectedAccNameEl) selectedAccNameEl.textContent = displayAccountName;
+    if (destBalEl) destBalEl.textContent = "";
+
+    if (!listContainer) return;
+
+    const isMainSel = !TX_DEPOSIT_STATE.moneyAccount || TX_DEPOSIT_STATE.moneyAccount === "main";
+    let html = `
+        <button type="button" onclick="txSelectMoneyAccount('main', 'Wallet')" class="tx-nexus-coin-row ${isMainSel ? 'selected' : ''}">
+            <div class="space-y-0.5 text-left">
+                <span class="text-xs font-bold text-white block">Wallet</span>
+                <span class="text-[11px] text-slate-400 block">Main funding wallet</span>
+            </div>
+            <div class="shrink-0">
+                ${isMainSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
+            </div>
+        </button>
+    `;
+
+    filteredSubs.forEach((sub) => {
+        const subId = sub.id || sub.user_id || sub._id;
+        const subName = sub.name || sub.account_name || "Trading Account";
+        const isSel = TX_DEPOSIT_STATE.moneyAccount === subId;
+
+        html += `
+            <button type="button" onclick="txSelectMoneyAccount('${subId}', '${subName}')" class="tx-nexus-coin-row ${isSel ? 'selected' : ''}">
+                <div class="space-y-0.5 text-left">
+                    <span class="text-xs font-bold text-white block">${subName}</span>
+                    <span class="text-[11px] text-slate-400 block">Futures margin account</span>
+                </div>
+                <div class="shrink-0">
+                    ${isSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
+                </div>
+            </button>
+        `;
+    });
+
+    listContainer.innerHTML = html;
+}
+
+function txSelectMoneyAccount(accountId, accountName) {
+    TX_DEPOSIT_STATE.moneyAccount = accountId;
+    TX_DEPOSIT_STATE.moneyAccountName = accountName;
+
+    const menuEl = document.getElementById("txMoneyAccountDropdownMenu");
+    const chevronEl = document.getElementById("txMoneyAccountChevron");
+    if (menuEl) menuEl.classList.add("hidden");
+    if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+    txRenderMoneyAccountOptions();
+    txSetMoneyDepositStep(2);
+}
+
+function txSelectMoneyPaymentMethod(key = "razorpay", name = "Razorpay (Instant UPI, Cards & Netbanking)") {
+    TX_DEPOSIT_STATE.moneyMethod = key;
+
+    const displayContainer = document.getElementById("txMoneySelectedMethodDisplay");
+    const titleEl = document.getElementById("txMoneySelectedMethodTitle");
+    const menuEl = document.getElementById("txMoneyMethodDropdownMenu");
+    const chevronEl = document.getElementById("txMoneyMethodChevron");
+    const rzpNotice = document.getElementById("txMoneyRazorpayNotice");
+    const manualBox = document.getElementById("txMoneyManualDetailsBox");
+    const utrContainer = document.getElementById("txMoneyUtrContainer");
+    const utrInput = document.getElementById("txMoneyDepositUtrInput");
+    const submitBtnText = document.getElementById("txMoneySubmitBtnText");
+
+    let iconHtml = `<div class="w-6 h-6 rounded-full bg-[#0c2340] border border-blue-400/30 flex items-center justify-center font-bold text-xs text-blue-400 shrink-0 shadow-sm">⚡</div>`;
+    if (key === "phonepe") {
+        iconHtml = `<div class="w-6 h-6 rounded-full bg-[#5f259f] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm">પે</div>`;
+    } else if (key === "gpay") {
+        iconHtml = `<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center font-bold text-xs text-slate-900 shrink-0 shadow-sm">G</div>`;
+    } else if (key === "upi") {
+        iconHtml = `<div class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-400/30 flex items-center justify-center font-bold text-xs shrink-0">UPI</div>`;
+    } else if (key === "bank") {
+        iconHtml = `<div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center font-bold text-xs shrink-0">🏦</div>`;
+    }
+
+    if (displayContainer) {
+        displayContainer.innerHTML = `
+            ${iconHtml}
+            <span id="txMoneySelectedMethodName" class="text-sm font-bold text-white">${name}</span>
+        `;
+    }
+    if (titleEl) {
+        titleEl.textContent = `${name} Payment Details`;
+    }
+
+    // Toggle Razorpay automated vs Manual UTR input
+    if (key === "razorpay") {
+        if (rzpNotice) rzpNotice.classList.remove("hidden");
+        if (manualBox) manualBox.classList.add("hidden");
+        if (utrContainer) utrContainer.classList.add("hidden");
+        if (utrInput) utrInput.removeAttribute("required");
+        if (submitBtnText) submitBtnText.textContent = "Proceed to Pay with Razorpay ⚡";
+    } else {
+        if (rzpNotice) rzpNotice.classList.add("hidden");
+        if (manualBox) manualBox.classList.remove("hidden");
+        if (utrContainer) utrContainer.classList.remove("hidden");
+        if (utrInput) utrInput.setAttribute("required", "required");
+        if (submitBtnText) submitBtnText.textContent = "Submit Deposit Verification";
+    }
+
+    if (menuEl) {
+        menuEl.classList.add("hidden");
+        // Update selected state in menu items
+        menuEl.querySelectorAll(".tx-nexus-coin-row").forEach(row => {
+            row.classList.remove("selected");
+            const check = row.querySelector(".text-cyan-400");
+            if (check) check.remove();
+        });
+        const activeBtn = menuEl.querySelector(`button[onclick*="'${key}'"]`);
+        if (activeBtn) {
+            activeBtn.classList.add("selected");
+            const checkSpan = document.createElement("span");
+            checkSpan.className = "text-cyan-400 text-xs font-black";
+            checkSpan.textContent = "✓";
+            activeBtn.appendChild(checkSpan);
+        }
+    }
+    if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+    txSetMoneyDepositStep(3);
+}
+
+function txCopyMoneyUpi() {
+    const upiId = document.getElementById("txMoneyUpiIdDisplay")?.textContent || "traidiumx@upi";
+    navigator.clipboard.writeText(upiId).then(() => {
+        if (typeof showToast === "function") showToast("UPI ID Copied to clipboard!", "success");
+    });
 }
 
 function txRenderNetworkPills(networks = []) {
@@ -9359,23 +9771,13 @@ async function txFetchInrDetails() {
             if (resp && resp.data) {
                 TX_DEPOSIT_STATE.inrDetails = resp.data;
                 const d = resp.data;
-                if (d.upi_id && document.getElementById("txDepositUpiIdText")) {
-                    document.getElementById("txDepositUpiIdText").textContent = d.upi_id;
+                if (d.upi_id) {
+                    const upiDisplay = document.getElementById("txMoneyUpiIdDisplay");
+                    if (upiDisplay) upiDisplay.textContent = d.upi_id;
                 }
-                if (d.bank_name && document.getElementById("txDepositBankName")) {
-                    document.getElementById("txDepositBankName").textContent = d.bank_name;
-                }
-                if (d.account_name && document.getElementById("txDepositAccountName")) {
-                    document.getElementById("txDepositAccountName").textContent = d.account_name;
-                }
-                if (d.account_number && document.getElementById("txDepositAccountNumber")) {
-                    document.getElementById("txDepositAccountNumber").textContent = d.account_number;
-                }
-                if (d.ifsc && document.getElementById("txDepositIfsc")) {
-                    document.getElementById("txDepositIfsc").textContent = d.ifsc;
-                }
-                if (d.upi_qr_url && document.getElementById("txDepositUpiQrImg")) {
-                    document.getElementById("txDepositUpiQrImg").src = d.upi_qr_url;
+                if (d.upi_qr_url) {
+                    const qrImg = document.getElementById("txMoneyUpiQrImg");
+                    if (qrImg) qrImg.src = d.upi_qr_url;
                 }
             }
         }
@@ -9443,7 +9845,7 @@ async function txHandleDepositFormSubmit(e) {
     }
 
     if (!txHash || txHash.length < 6) {
-        alertBox.textContent = TX_DEPOSIT_STATE.mode === "money" ? "Please enter a valid 12-digit UTR/Reference ID." : "Please paste a valid transaction hash (TXID).";
+        alertBox.textContent = "Please paste a valid transaction hash (TXID).";
         alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
         alertBox.classList.remove("hidden");
         return;
@@ -9454,11 +9856,12 @@ async function txHandleDepositFormSubmit(e) {
 
     try {
         const payload = {
-            currency: TX_DEPOSIT_STATE.mode === "money" ? "INR" : TX_DEPOSIT_STATE.selectedCoin,
+            currency: TX_DEPOSIT_STATE.selectedCoin,
             amount: amount,
             tx_hash: txHash,
             network: TX_DEPOSIT_STATE.selectedNetwork,
-            payment_method: TX_DEPOSIT_STATE.mode === "money" ? "upi_inr" : "crypto_deposit"
+            payment_method: "crypto_deposit",
+            sub_account_id: TX_DEPOSIT_STATE.selectedAccount !== "main" ? TX_DEPOSIT_STATE.selectedAccount : null
         };
 
         const resp = await apiRequest("/deposit/create", {
@@ -9467,19 +9870,15 @@ async function txHandleDepositFormSubmit(e) {
         });
 
         if (resp && (resp.success || resp.status === "success" || resp.data)) {
-            alertBox.textContent = "✓ Deposit request submitted successfully! Your balance will be credited once confirmed.";
+            alertBox.textContent = "✓ Deposit request submitted successfully! Your balance will be credited once confirmed on the blockchain.";
             alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
             alertBox.classList.remove("hidden");
 
             amountInput.value = "";
             txHashInput.value = "";
 
-            if (typeof loadWalletData === "function") {
-                loadWalletData();
-            }
-            if (typeof loadNavbarWalletBalance === "function") {
-                loadNavbarWalletBalance();
-            }
+            if (typeof loadWalletData === "function") loadWalletData();
+            if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
         } else {
             alertBox.textContent = resp?.message || "Deposit request failed. Please check your details and try again.";
             alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
@@ -9495,17 +9894,217 @@ async function txHandleDepositFormSubmit(e) {
     }
 }
 
-function txInitDepositFaqAccordion() {
-    document.querySelectorAll(".tx-faq-btn").forEach(btn => {
-        btn.onclick = () => {
-            const answer = btn.parentElement.querySelector(".tx-faq-answer");
-            const chevron = btn.querySelector(".tx-faq-chevron");
-            if (answer) {
-                const isHidden = answer.classList.contains("hidden");
-                answer.classList.toggle("hidden", !isHidden);
-                if (chevron) chevron.style.transform = isHidden ? "rotate(90deg)" : "rotate(0deg)";
+async function txHandleMoneyDepositFormSubmit(e) {
+    e.preventDefault();
+
+    const amountInput = document.getElementById("txMoneyDepositAmountInput");
+    const utrInput = document.getElementById("txMoneyDepositUtrInput");
+    const alertBox = document.getElementById("txMoneyAlertMessage");
+    const submitBtn = document.getElementById("txMoneySubmitBtn");
+    const submitBtnText = document.getElementById("txMoneySubmitBtnText");
+
+    if (!amountInput || !alertBox || !submitBtn) return;
+
+    const amount = parseFloat(amountInput.value);
+    if (isNaN(amount) || amount < 100) {
+        alertBox.textContent = "Minimum deposit amount is ₹100 INR.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    // 1. RAZORPAY INSTANT GATEWAY FLOW
+    if (TX_DEPOSIT_STATE.moneyMethod === "razorpay") {
+        submitBtn.disabled = true;
+        if (submitBtnText) submitBtnText.innerHTML = `<span class="animate-spin inline-block mr-2">◌</span> Launching Razorpay...`;
+
+        try {
+            const subAccId = TX_DEPOSIT_STATE.moneyAccount !== "main" ? TX_DEPOSIT_STATE.moneyAccount : null;
+            const orderResponse = await apiRequest("/deposit/razorpay/create-order", {
+                method: "POST",
+                body: JSON.stringify({
+                    amount: amount,
+                    sub_account_id: subAccId
+                })
+            });
+
+            if (!orderResponse || !orderResponse.success || !orderResponse.data) {
+                throw new Error(orderResponse?.message || "Failed to initiate Razorpay order.");
             }
+
+            const orderData = orderResponse.data;
+
+            // Sandbox Fallback Simulation Mode
+            if (orderData.is_sandbox_fallback) {
+                const confirmed = confirm(`[Razorpay Sandbox Simulation]\n\nRazorpay keys are currently in Test mode. Would you like to simulate successful instant payment of ₹${amount}?`);
+                if (confirmed) {
+                    const verifyResponse = await apiRequest("/deposit/razorpay/verify-payment", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            razorpay_order_id: orderData.razorpay_order_id,
+                            razorpay_payment_id: "pay_simulated_" + Math.random().toString(36).substring(7),
+                            sub_account_id: subAccId
+                        })
+                    });
+
+                    alertBox.textContent = "✓ Razorpay payment simulated & verified successfully! Your account balance is updated.";
+                    alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+                    alertBox.classList.remove("hidden");
+                    amountInput.value = "";
+
+                    if (typeof loadWalletData === "function") loadWalletData();
+                    if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                }
+                return;
+            }
+
+            // Launch Razorpay Checkout Popup
+            if (typeof Razorpay === "undefined") {
+                alertBox.textContent = "Razorpay Checkout SDK is loading. Please refresh the page.";
+                alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+                alertBox.classList.remove("hidden");
+                return;
+            }
+
+            const user = (typeof getAuthUser === "function" ? getAuthUser() : null) || {};
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount_paise,
+                currency: "INR",
+                name: "TraidiumX",
+                description: `Deposit ${amount} INR to ${TX_DEPOSIT_STATE.moneyAccountName || 'Wallet'}`,
+                order_id: orderData.razorpay_order_id,
+                handler: async function(response) {
+                    try {
+                        alertBox.textContent = "Verifying payment with bank...";
+                        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30";
+                        alertBox.classList.remove("hidden");
+
+                        const verifyResponse = await apiRequest("/deposit/razorpay/verify-payment", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                sub_account_id: subAccId
+                            })
+                        });
+
+                        alertBox.textContent = "✓ Razorpay payment verified! Funds have been credited to your account.";
+                        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+                        alertBox.classList.remove("hidden");
+                        amountInput.value = "";
+
+                        if (typeof loadWalletData === "function") loadWalletData();
+                        if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                    } catch (vErr) {
+                        alertBox.textContent = vErr?.message || "Payment verification failed. Please contact support.";
+                        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+                        alertBox.classList.remove("hidden");
+                    }
+                },
+                prefill: {
+                    name: user.name || user.full_name || "",
+                    email: user.email || "",
+                    contact: user.phone || ""
+                },
+                theme: {
+                    color: "#22d3ee"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (err) {
+            alertBox.textContent = err?.message || "Unable to initiate Razorpay checkout.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+        } finally {
+            submitBtn.disabled = false;
+            if (submitBtnText) submitBtnText.textContent = "Proceed to Pay with Razorpay ⚡";
+        }
+        return;
+    }
+
+    // 2. MANUAL UPI / BANK TRANSFER FLOW
+    const utr = utrInput ? utrInput.value.trim() : "";
+    if (!utr || utr.length < 6) {
+        alertBox.textContent = "Please enter a valid 12-digit UTR or Reference ID.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    submitBtn.disabled = true;
+    if (submitBtnText) submitBtnText.innerHTML = `<span class="animate-spin inline-block mr-2">◌</span> Submitting...`;
+
+    try {
+        const payload = {
+            currency: "INR",
+            amount: amount,
+            tx_hash: utr,
+            network: "UPI",
+            payment_method: TX_DEPOSIT_STATE.moneyMethod || "phonepe",
+            sub_account_id: TX_DEPOSIT_STATE.moneyAccount !== "main" ? TX_DEPOSIT_STATE.moneyAccount : null
         };
+
+        const resp = await apiRequest("/deposit/create", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        if (resp && (resp.success || resp.status === "success" || resp.data)) {
+            alertBox.textContent = "✓ Deposit request submitted successfully! Your funds will be credited once verified.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+            alertBox.classList.remove("hidden");
+
+            amountInput.value = "";
+            if (utrInput) utrInput.value = "";
+
+            if (typeof loadWalletData === "function") loadWalletData();
+            if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+        } else {
+            alertBox.textContent = resp?.message || "Deposit request failed. Please check your UTR number and try again.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+        }
+    } catch (err) {
+        alertBox.textContent = err?.message || "An error occurred while submitting your deposit request.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+    } finally {
+        submitBtn.disabled = false;
+        if (submitBtnText) submitBtnText.textContent = "Submit Deposit Verification";
+    }
+}
+
+function txToggleNexusFaq(idx) {
+    const answer = document.getElementById(`txFaqA${idx}`);
+    const icon = document.getElementById(`txFaqIcon${idx}`);
+    if (!answer) return;
+
+    const isCurrentlyOpen = !answer.classList.contains("hidden");
+
+    // Close all FAQs first
+    for (let i = 1; i <= 4; i++) {
+        const a = document.getElementById(`txFaqA${i}`);
+        const ic = document.getElementById(`txFaqIcon${i}`);
+        if (a) a.classList.add("hidden");
+        if (ic) ic.style.transform = "rotate(0deg)";
+    }
+
+    // Toggle clicked FAQ
+    if (!isCurrentlyOpen) {
+        answer.classList.remove("hidden");
+        if (icon) icon.style.transform = "rotate(90deg)";
+    }
+}
+window.txToggleNexusFaq = txToggleNexusFaq;
+
+function txInitDepositFaqAccordion() {
+    // Setup fallback event listeners for any .tx-faq-btn
+    document.querySelectorAll(".tx-faq-btn").forEach((btn, index) => {
+        btn.onclick = () => txToggleNexusFaq(index + 1);
     });
 }
 
@@ -9513,9 +10112,1399 @@ window.txActivateDepositTab = function(mode = "crypto") {
     const tabDeposit = document.getElementById("mainTabDeposit");
     if (tabDeposit) {
         tabDeposit.click();
+        txSwitchNexusSubTab("deposit");
         txSwitchDepositMode(mode);
     }
 };
+window.txActivateWithdrawTab = function(mode = "money") {
+    const tabDeposit = document.getElementById("mainTabDeposit");
+    if (tabDeposit) {
+        tabDeposit.click();
+        txSwitchNexusSubTab("withdraw");
+        txSwitchWithdrawMode(mode);
+    }
+};
+
+/* ==========================================================================
+   PRIMEXBT / NEXUS SUB-TAB SWITCHER (Deposit / Withdraw / Transfer History)
+   ========================================================================== */
+function txSwitchNexusSubTab(tab = "deposit") {
+    const btnDeposit = document.getElementById("nexusSubTabDeposit");
+    const btnWithdraw = document.getElementById("nexusSubTabWithdraw");
+    const btnHistory = document.getElementById("nexusSubTabHistory");
+
+    const grid = document.getElementById("txNexusGrid");
+    const panelDeposit = document.getElementById("txDepositMainPanel");
+    const panelWithdraw = document.getElementById("txWithdrawMainPanel");
+    const panelHistory = document.getElementById("txNexusHistoryMainPanel");
+
+    if (tab === "history") {
+        if (btnHistory) btnHistory.className = "tx-nexus-subtab-btn active";
+        if (btnDeposit) btnDeposit.className = "tx-nexus-subtab-btn";
+        if (btnWithdraw) btnWithdraw.className = "tx-nexus-subtab-btn";
+
+        if (grid) {
+            grid.classList.add("hidden");
+            grid.style.setProperty("display", "none", "important");
+        }
+        if (panelHistory) {
+            panelHistory.classList.remove("hidden");
+            panelHistory.style.setProperty("display", "block", "important");
+        }
+
+        txInitNexusHistoryView();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+    }
+
+    if (grid) {
+        grid.classList.remove("hidden");
+        grid.style.removeProperty("display");
+    }
+    if (panelHistory) {
+        panelHistory.classList.add("hidden");
+        panelHistory.style.setProperty("display", "none", "important");
+    }
+
+    if (tab === "withdraw") {
+        if (btnWithdraw) btnWithdraw.className = "tx-nexus-subtab-btn active";
+        if (btnDeposit) btnDeposit.className = "tx-nexus-subtab-btn";
+        if (btnHistory) btnHistory.className = "tx-nexus-subtab-btn";
+
+        if (panelDeposit) panelDeposit.classList.add("hidden");
+        if (panelWithdraw) panelWithdraw.classList.remove("hidden");
+
+        txInitWithdrawView();
+        txUpdateNexusFaq("withdraw");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+        if (btnDeposit) btnDeposit.className = "tx-nexus-subtab-btn active";
+        if (btnWithdraw) btnWithdraw.className = "tx-nexus-subtab-btn";
+        if (btnHistory) btnHistory.className = "tx-nexus-subtab-btn";
+
+        if (panelDeposit) panelDeposit.classList.remove("hidden");
+        if (panelWithdraw) panelWithdraw.classList.add("hidden");
+
+        txInitDepositView();
+        txUpdateNexusFaq("deposit");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+}
+
+/* ==========================================================================
+   NEXUS INLINE TRANSFER & ACTIVITY HISTORY LOGIC
+   ========================================================================== */
+const NEXUS_TX_HISTORY_STATE = {
+    loading: false,
+    rawLedger: [],
+    rawDeposits: [],
+    rawWithdrawals: [],
+    subAccountsList: [],
+    selectedAccount: "main",
+    activeCategory: "all",
+    search: "",
+    currency: "all",
+    direction: "all",
+    page: 1,
+    pageSize: 10,
+    initialized: false
+};
+
+function txNexusFormatMoney(value, currency = "USDT") {
+    const num = Number(value || 0);
+    const curr = String(currency || "USDT").toUpperCase();
+    if (curr === "INR") {
+        return `₹${num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+}
+
+function txNexusFormatDate(value) {
+    if (!value) return "--";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "--";
+    return d.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function txNexusCategorizeItem(item) {
+    const type = String(item.transaction_type || item.type || "").toLowerCase();
+    const desc = String(item.description || "").toLowerCase();
+
+    if (type.includes("referral") || type.includes("reward") || type.includes("commission") || desc.includes("referral") || desc.includes("refer and earn")) {
+        return "referral";
+    }
+    if (type.includes("transfer") || desc.includes("transfer") || desc.includes("main wallet ->") || desc.includes("trading wallet ->")) {
+        return "transfers";
+    }
+    if (type.includes("deposit") || desc.includes("deposit")) {
+        return "deposits";
+    }
+    if (type.includes("withdrawal") || desc.includes("withdrawal") || desc.includes("payout")) {
+        return "withdrawals";
+    }
+    if (type.includes("fee") || type.includes("margin") || type.includes("settlement") || type.includes("order") || type.includes("position") || desc.includes("trading fee") || desc.includes("margin locked")) {
+        return "trading";
+    }
+    return "other";
+}
+
+function txNexusGetCategoryBadge(category) {
+    const map = {
+        transfers: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">Transfer</span>',
+        deposits: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Deposit</span>',
+        withdrawals: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-400/10 text-rose-400 border border-rose-400/20">Withdrawal</span>',
+        referral: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">Referral Reward</span>',
+        trading: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-400/10 text-indigo-300 border border-indigo-400/20">Trading</span>',
+        other: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-400/10 text-slate-300 border border-slate-400/20">System</span>'
+    };
+    return map[category] || map.other;
+}
+
+function txNexusGetDirectionBadge(direction) {
+    const dir = String(direction || "").toLowerCase();
+    if (dir === "credit" || dir === "in") {
+        return '<span class="text-xs font-black text-emerald-400 uppercase">Credit (+)</span>';
+    }
+    if (dir === "debit" || dir === "out") {
+        return '<span class="text-xs font-black text-rose-400 uppercase">Debit (-)</span>';
+    }
+    if (dir === "finalized") {
+        return '<span class="text-xs font-black text-cyan-400 uppercase">Payout (✓)</span>';
+    }
+    return '<span class="text-xs font-black text-cyan-300 uppercase">Transfer (↔)</span>';
+}
+
+function txNexusGetFilteredRows() {
+    const all = NEXUS_TX_HISTORY_STATE.rawLedger || [];
+    const search = String(NEXUS_TX_HISTORY_STATE.search || "").trim().toLowerCase();
+    const curr = String(NEXUS_TX_HISTORY_STATE.currency || "all").toUpperCase();
+    const dir = String(NEXUS_TX_HISTORY_STATE.direction || "all").toLowerCase();
+    const cat = String(NEXUS_TX_HISTORY_STATE.activeCategory || "all").toLowerCase();
+
+    return all.filter((item) => {
+        const itemCat = txNexusCategorizeItem(item);
+        if (cat !== "all" && itemCat !== cat) {
+            return false;
+        }
+
+        const itemCurr = String(item.currency || "USDT").toUpperCase();
+        if (curr !== "ALL" && itemCurr !== curr) {
+            return false;
+        }
+
+        const itemDir = String(item.direction || "").toLowerCase();
+        if (dir !== "all" && itemDir !== dir) {
+            return false;
+        }
+
+        if (search) {
+            const type = String(item.transaction_type || "").toLowerCase();
+            const desc = String(item.description || "").toLowerCase();
+            const ref = String(item.reference_id || item.id || "").toLowerCase();
+            const amt = String(item.amount || "");
+            const acc = String(item._accountLabel || "").toLowerCase();
+            if (!type.includes(search) && !desc.includes(search) && !ref.includes(search) && !amt.includes(search) && !acc.includes(search)) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+}
+
+function txNexusRenderHistoryTable() {
+    const tbody = document.getElementById("nexusHistoryTableBody");
+    const emptyState = document.getElementById("nexusHistoryEmptyState");
+    const paginationInfo = document.getElementById("nexusPaginationInfo");
+    const paginationControls = document.getElementById("nexusPaginationControls");
+
+    if (!tbody) return;
+
+    const filtered = txNexusGetFilteredRows();
+    const total = filtered.length;
+    const pageSize = Math.max(1, Number(NEXUS_TX_HISTORY_STATE.pageSize || 10));
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(Math.max(1, Number(NEXUS_TX_HISTORY_STATE.page || 1)), totalPages);
+    NEXUS_TX_HISTORY_STATE.page = page;
+
+    const start = (page - 1) * pageSize;
+    const end = Math.min(start + pageSize, total);
+    const rows = filtered.slice(start, end);
+
+    if (total === 0) {
+        tbody.innerHTML = "";
+        emptyState?.classList.remove("hidden");
+        if (paginationInfo) paginationInfo.textContent = "Showing 0 of 0 entries";
+        if (paginationControls) paginationControls.innerHTML = "";
+        return;
+    }
+
+    emptyState?.classList.add("hidden");
+
+    tbody.innerHTML = rows.map((item) => {
+        const cat = txNexusCategorizeItem(item);
+        const catBadge = txNexusGetCategoryBadge(cat);
+        const dirBadge = txNexusGetDirectionBadge(item.direction);
+        const curr = item.currency || "USDT";
+        const sign = String(item.direction || "").toLowerCase() === "credit" ? "+" : (String(item.direction || "").toLowerCase() === "debit" ? "-" : "");
+        const colorClass = String(item.direction || "").toLowerCase() === "credit" ? "text-emerald-400" : (String(item.direction || "").toLowerCase() === "debit" ? "text-rose-400" : "text-cyan-300");
+
+        const prettyTitle = String(item.transaction_type || "Transaction")
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+
+        const desc = item.description || "";
+        const ref = item.reference_id ? `<span class="font-mono text-[10px] text-slate-500 block mt-0.5">Ref: ${item.reference_id}</span>` : "";
+        const accBadge = item._accountLabel ? `<span class="inline-block px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 text-[10px] font-bold border border-indigo-500/25 mt-0.5">🏷️ ${item._accountLabel}</span>` : "";
+
+        return `
+            <tr class="hover:bg-slate-900/60 transition duration-150">
+                <td class="tx-table-cell text-slate-300 font-mono text-[12px] whitespace-nowrap">
+                    ${txNexusFormatDate(item.created_at)}
+                </td>
+                <td class="tx-table-cell max-w-sm">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-white">${prettyTitle}</span>
+                        ${accBadge}
+                    </div>
+                    ${desc ? `<p class="text-[11px] text-slate-400 mt-0.5 line-clamp-2" title="${desc}">${desc}</p>` : ""}
+                    ${ref}
+                </td>
+                <td class="tx-table-cell whitespace-nowrap">
+                    ${catBadge}
+                </td>
+                <td class="tx-table-cell whitespace-nowrap">
+                    ${dirBadge}
+                </td>
+                <td class="tx-table-cell font-mono font-bold ${colorClass} whitespace-nowrap text-sm">
+                    ${sign}${txNexusFormatMoney(item.amount, curr)}
+                </td>
+                <td class="tx-table-cell font-mono text-slate-300 whitespace-nowrap text-sm">
+                    ${item.balance_after !== undefined && item.balance_after !== null ? txNexusFormatMoney(item.balance_after, curr) : "--"}
+                </td>
+                <td class="tx-table-cell whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        ✓ Completed
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    if (paginationInfo) {
+        paginationInfo.textContent = `Showing ${start + 1}–${end} of ${total} entries`;
+    }
+
+    if (paginationControls) {
+        const buttons = [];
+        buttons.push(`
+            <button type="button" data-action="prev" ${page <= 1 ? "disabled" : ""} class="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">‹ Prev</button>
+        `);
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || Math.abs(i - page) <= 1) {
+                buttons.push(`
+                    <button type="button" data-page="${i}" class="px-2.5 py-1 rounded-lg border ${i === page ? 'border-cyan-400 bg-cyan-400/20 text-cyan-300 font-black' : 'border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${i}</button>
+                `);
+            } else if (buttons[buttons.length - 1] !== '<span class="px-1 text-slate-600">...</span>') {
+                buttons.push('<span class="px-1 text-slate-600">...</span>');
+            }
+        }
+        buttons.push(`
+            <button type="button" data-action="next" ${page >= totalPages ? "disabled" : ""} class="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">Next ›</button>
+        `);
+        paginationControls.innerHTML = buttons.join("");
+    }
+}
+
+function txNexusUpdateSummaryMetrics() {
+    const all = NEXUS_TX_HISTORY_STATE.rawLedger || [];
+    const totalCountEl = document.getElementById("nexusStatTotalCount");
+    const depCountEl = document.getElementById("nexusStatDepositCount");
+    const withCountEl = document.getElementById("nexusStatWithdrawCount");
+    const trfCountEl = document.getElementById("nexusStatTransferCount");
+
+    if (totalCountEl) totalCountEl.textContent = all.length.toLocaleString();
+
+    const deposits = all.filter(item => txNexusCategorizeItem(item) === "deposits");
+    if (depCountEl) depCountEl.textContent = deposits.length.toLocaleString();
+
+    const withdrawals = all.filter(item => txNexusCategorizeItem(item) === "withdrawals");
+    if (withCountEl) withCountEl.textContent = withdrawals.length.toLocaleString();
+
+    const transfers = all.filter(item => txNexusCategorizeItem(item) === "transfers");
+    if (trfCountEl) trfCountEl.textContent = transfers.length.toLocaleString();
+}
+
+async function txLoadNexusSubAccountsList() {
+    try {
+        if (typeof apiRequest !== "function" || !isLoggedIn()) return;
+        const res = await apiRequest("/user/sub-accounts").catch(() => null);
+        const subList = res?.data || [];
+        NEXUS_TX_HISTORY_STATE.subAccountsList = Array.isArray(subList) ? subList : [];
+
+        const select = document.getElementById("nexusAccountFilter");
+        if (select) {
+            const activeId = localStorage.getItem("traidiumx_active_user_id") || "main";
+            let html = `
+                <option value="main" ${activeId === "main" ? "selected" : ""}>💼 Main Trading Account</option>
+            `;
+
+            NEXUS_TX_HISTORY_STATE.subAccountsList.forEach(sub => {
+                const subId = String(sub.id || sub._id);
+                const isSelected = activeId === subId;
+                const modeIcon = (sub.is_demo || sub.account_mode === "demo") ? "🟡" : "📈";
+                html += `<option value="${subId}" ${isSelected ? "selected" : ""}>${modeIcon} ${sub.name || "Sub Account"}</option>`;
+            });
+
+            html += `<option value="all">🌟 All Accounts (Combined)</option>`;
+            select.innerHTML = html;
+
+            // Set state to matched selection
+            NEXUS_TX_HISTORY_STATE.selectedAccount = select.value || "main";
+        }
+    } catch (e) {
+        console.warn("Failed to load sub accounts for history filter:", e);
+    }
+}
+
+async function txReloadNexusHistoryData() {
+    if (NEXUS_TX_HISTORY_STATE.loading) return;
+    NEXUS_TX_HISTORY_STATE.loading = true;
+
+    const spinner = document.getElementById("nexusRefreshSpinner");
+    if (spinner) spinner.classList.add("animate-spin");
+
+    try {
+        if (typeof apiRequest !== "function" || !isLoggedIn()) {
+            return;
+        }
+
+        const selectedAcc = NEXUS_TX_HISTORY_STATE.selectedAccount || "main";
+        const subAccounts = NEXUS_TX_HISTORY_STATE.subAccountsList || [];
+
+        if (selectedAcc === "all") {
+            const targets = ["main", ...subAccounts.map(s => String(s.id || s._id)).filter(Boolean)];
+            
+            const promises = targets.map(tId => 
+                Promise.all([
+                    apiRequest(`/wallet/ledger?sub_account_id=${tId}`).catch(() => null),
+                    apiRequest(`/deposit/history?sub_account_id=${tId}`).catch(() => null),
+                    apiRequest(`/withdrawal/history?sub_account_id=${tId}`).catch(() => null)
+                ])
+            );
+
+            const allResults = await Promise.all(promises);
+            let combinedLedger = [];
+            let combinedDeposits = [];
+            let combinedWithdrawals = [];
+
+            allResults.forEach(([ledgerRes, depositRes, withdrawRes], idx) => {
+                const targetId = targets[idx];
+                const accObj = subAccounts.find(s => String(s.id || s._id) === targetId);
+                const accLabel = targetId === "main" ? "Main Account" : (accObj?.name || "Sub Account");
+
+                if (ledgerRes && ledgerRes.data) {
+                    const raw = ledgerRes.data.ledger || ledgerRes.data || [];
+                    if (Array.isArray(raw)) {
+                        raw.forEach(item => {
+                            item._accountLabel = accLabel;
+                            item._accountId = targetId;
+                        });
+                        combinedLedger.push(...raw);
+                    }
+                }
+                if (depositRes && depositRes.data) {
+                    const deps = depositRes.data.deposits || [];
+                    if (Array.isArray(deps)) combinedDeposits.push(...deps);
+                }
+                if (withdrawRes && withdrawRes.data) {
+                    const wds = withdrawRes.data.withdrawals || [];
+                    if (Array.isArray(wds)) combinedWithdrawals.push(...wds);
+                }
+            });
+
+            // Deduplicate and sort by created_at descending
+            const seen = new Set();
+            combinedLedger = combinedLedger.filter(item => {
+                const id = String(item.id || item._id || `${item.created_at}_${item.reference_id}_${item._accountId}`);
+                if (seen.has(id)) return false;
+                seen.add(id);
+                return true;
+            });
+            combinedLedger.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            NEXUS_TX_HISTORY_STATE.rawLedger = combinedLedger;
+            NEXUS_TX_HISTORY_STATE.rawDeposits = combinedDeposits;
+            NEXUS_TX_HISTORY_STATE.rawWithdrawals = combinedWithdrawals;
+        } else {
+            const [ledgerRes, depositRes, withdrawRes] = await Promise.all([
+                apiRequest(`/wallet/ledger?sub_account_id=${selectedAcc}`).catch(() => null),
+                apiRequest(`/deposit/history?sub_account_id=${selectedAcc}`).catch(() => null),
+                apiRequest(`/withdrawal/history?sub_account_id=${selectedAcc}`).catch(() => null)
+            ]);
+
+            const accObj = subAccounts.find(s => String(s.id || s._id) === selectedAcc);
+            const accLabel = selectedAcc === "main" ? "Main Account" : (accObj?.name || "Sub Account");
+
+            if (ledgerRes && ledgerRes.data) {
+                const raw = ledgerRes.data.ledger || ledgerRes.data || [];
+                const arr = Array.isArray(raw) ? raw : [];
+                arr.forEach(item => {
+                    item._accountLabel = accLabel;
+                    item._accountId = selectedAcc;
+                });
+                NEXUS_TX_HISTORY_STATE.rawLedger = arr;
+            } else {
+                NEXUS_TX_HISTORY_STATE.rawLedger = [];
+            }
+
+            if (depositRes && depositRes.data) {
+                NEXUS_TX_HISTORY_STATE.rawDeposits = depositRes.data.deposits || [];
+            } else {
+                NEXUS_TX_HISTORY_STATE.rawDeposits = [];
+            }
+
+            if (withdrawRes && withdrawRes.data) {
+                NEXUS_TX_HISTORY_STATE.rawWithdrawals = withdrawRes.data.withdrawals || [];
+            } else {
+                NEXUS_TX_HISTORY_STATE.rawWithdrawals = [];
+            }
+        }
+
+        txNexusUpdateSummaryMetrics();
+        txNexusRenderHistoryTable();
+    } catch (err) {
+        console.error("Failed to load nexus transfer history:", err);
+    } finally {
+        NEXUS_TX_HISTORY_STATE.loading = false;
+        if (spinner) spinner.classList.remove("animate-spin");
+    }
+}
+
+window.txReloadNexusHistoryData = txReloadNexusHistoryData;
+
+function txExportNexusHistoryCsv() {
+    const filtered = txNexusGetFilteredRows();
+    if (!filtered || filtered.length === 0) {
+        alert("No records to export.");
+        return;
+    }
+
+    const headers = ["Date", "Account", "Type", "Category", "Direction", "Amount", "Currency", "Balance After", "Description", "Reference ID"];
+    const rows = filtered.map(item => [
+        `"${txNexusFormatDate(item.created_at)}"`,
+        `"${item._accountLabel || 'Main Account'}"`,
+        `"${item.transaction_type || ''}"`,
+        `"${txNexusCategorizeItem(item)}"`,
+        `"${item.direction || ''}"`,
+        item.amount || 0,
+        `"${item.currency || 'USDT'}"`,
+        item.balance_after || 0,
+        `"${(item.description || '').replace(/"/g, '""')}"`,
+        `"${item.reference_id || ''}"`
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `TraidiumX_Activity_History_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+window.txExportNexusHistoryCsv = txExportNexusHistoryCsv;
+
+function txInitNexusHistoryView() {
+    if (!NEXUS_TX_HISTORY_STATE.initialized) {
+        NEXUS_TX_HISTORY_STATE.initialized = true;
+
+        document.querySelectorAll("[data-nexus-category]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll("[data-nexus-category]").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                NEXUS_TX_HISTORY_STATE.activeCategory = btn.getAttribute("data-nexus-category") || "all";
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txNexusRenderHistoryTable();
+            });
+        });
+
+        document.getElementById("nexusHistorySearchInput")?.addEventListener("input", (e) => {
+            NEXUS_TX_HISTORY_STATE.search = e.target.value || "";
+            NEXUS_TX_HISTORY_STATE.page = 1;
+            txNexusRenderHistoryTable();
+        });
+
+        document.getElementById("nexusAccountFilter")?.addEventListener("change", (e) => {
+            NEXUS_TX_HISTORY_STATE.selectedAccount = e.target.value || "main";
+            NEXUS_TX_HISTORY_STATE.page = 1;
+            txReloadNexusHistoryData();
+        });
+
+        document.getElementById("nexusCurrencyFilter")?.addEventListener("change", (e) => {
+            NEXUS_TX_HISTORY_STATE.currency = e.target.value || "all";
+            NEXUS_TX_HISTORY_STATE.page = 1;
+            txNexusRenderHistoryTable();
+        });
+
+        document.getElementById("nexusDirectionFilter")?.addEventListener("change", (e) => {
+            NEXUS_TX_HISTORY_STATE.direction = e.target.value || "all";
+            NEXUS_TX_HISTORY_STATE.page = 1;
+            txNexusRenderHistoryTable();
+        });
+
+        document.getElementById("nexusPageSizeSelect")?.addEventListener("change", (e) => {
+            NEXUS_TX_HISTORY_STATE.pageSize = Number(e.target.value || 10);
+            NEXUS_TX_HISTORY_STATE.page = 1;
+            txNexusRenderHistoryTable();
+        });
+
+        document.getElementById("nexusPaginationControls")?.addEventListener("click", (e) => {
+            const btn = e.target.closest("button");
+            if (!btn || btn.disabled) return;
+            const action = btn.getAttribute("data-action");
+            const pageNum = Number(btn.getAttribute("data-page"));
+
+            if (action === "prev") {
+                NEXUS_TX_HISTORY_STATE.page = Math.max(1, NEXUS_TX_HISTORY_STATE.page - 1);
+            } else if (action === "next") {
+                NEXUS_TX_HISTORY_STATE.page += 1;
+            } else if (pageNum) {
+                NEXUS_TX_HISTORY_STATE.page = pageNum;
+            }
+            txNexusRenderHistoryTable();
+        });
+
+        // Listen to navbar sub-account switch
+        window.addEventListener("storage", (e) => {
+            if (e.key === "traidiumx_active_user_id") {
+                const newSubId = e.newValue || "main";
+                const select = document.getElementById("nexusAccountFilter");
+                if (select) select.value = newSubId;
+                NEXUS_TX_HISTORY_STATE.selectedAccount = newSubId;
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txReloadNexusHistoryData();
+            }
+        });
+    }
+
+    txLoadNexusSubAccountsList().then(() => {
+        txReloadNexusHistoryData();
+    });
+}
+
+window.txInitNexusHistoryView = txInitNexusHistoryView;
+window.txSwitchNexusSubTab = txSwitchNexusSubTab;
+
+function txUpdateNexusFaq(type = "deposit") {
+    const q1 = document.getElementById("txFaqQ1");
+    const q2 = document.getElementById("txFaqQ2");
+    const q3 = document.getElementById("txFaqQ3");
+    const q4 = document.getElementById("txFaqQ4");
+    const a1 = document.getElementById("txFaqA1");
+    const a2 = document.getElementById("txFaqA2");
+    const a3 = document.getElementById("txFaqA3");
+    const a4 = document.getElementById("txFaqA4");
+
+    // Close all open FAQs on switch
+    for (let i = 1; i <= 4; i++) {
+        const a = document.getElementById(`txFaqA${i}`);
+        const ic = document.getElementById(`txFaqIcon${i}`);
+        if (a) a.classList.add("hidden");
+        if (ic) ic.style.transform = "rotate(0deg)";
+    }
+
+    if (type === "withdraw") {
+        if (q1) q1.textContent = "How to withdraw money / crypto?";
+        if (a1) a1.textContent = "Select your payout method (Bank Account, UPI, or Crypto wallet), specify the amount, enter the destination account or wallet address, and click request withdrawal.";
+        if (q2) q2.textContent = "How long does it take to withdraw?";
+        if (a2) a2.textContent = "92% of withdrawal requests are processed automatically within minutes. Bank IMPS and UPI payouts are credited within 5-15 minutes after approval.";
+        if (q3) q3.textContent = "What are withdrawal limits?";
+        if (a3) a3.textContent = "Minimum crypto withdrawal is 10 USDT. Minimum bank/UPI withdrawal is ₹500 INR. High volume limits are automatically unlocked upon KYC verification.";
+        if (q4) q4.textContent = "What are withdrawal fees?";
+        if (a4) a4.textContent = "TraidiumX charges 0% platform fee on all standard withdrawals. Only nominal blockchain gas network fees (e.g. 1 USDT on TRC20) or zero bank fees apply.";
+    } else {
+        if (q1) q1.textContent = "How to deposit crypto or money?";
+        if (a1) a1.textContent = "Choose Crypto to deposit USDT, BTC, ETH directly to your deposit address, or choose Money to deposit INR via Instant Bank Transfer (IMPS) or UPI.";
+        if (q2) q2.textContent = "How long does it take for a deposit to arrive?";
+        if (a2) a2.textContent = "Crypto deposits are credited automatically after standard blockchain network confirmations (usually 1-3 minutes). Money deposits via UPI/IMPS are verified and credited within 5-15 minutes.";
+        if (q3) q3.textContent = "What is the minimum deposit?";
+        if (a3) a3.textContent = "Minimum crypto deposit is 5 USDT (or crypto equivalent). Minimum money deposit is ₹500 INR. There is no maximum limit for verified accounts.";
+        if (q4) q4.textContent = "Are there any deposit fees?";
+        if (a4) a4.textContent = "TraidiumX charges 0% fees on all deposits. You only pay standard blockchain gas fees or your bank's transfer fees.";
+    }
+}
+
+/* ==========================================================================
+   PRIMEXBT / NEXUS WITHDRAW VIEW STATE & LOGIC
+   ========================================================================== */
+const TX_WITHDRAW_STATE = {
+    initialized: false,
+    mode: "money", // "crypto" or "money"
+    moneyStep: 2,
+    cryptoStep: 2,
+    selectedCoin: null,
+    selectedNetwork: null,
+    selectedMoneyCurrency: null,
+    selectedMoneyMethod: null,
+    coins: [
+        { symbol: "USDT", name: "Tether USD", icon: "₮", min: "10 USDT", networks: ["TRC20", "ERC20", "BEP20", "SOLANA"], networkFees: { "TRC20": 1, "ERC20": 4, "BEP20": 0.5, "SOLANA": 0.8 } },
+        { symbol: "BTC", name: "Bitcoin", icon: "₿", min: "0.001 BTC", networks: ["BITCOIN", "BEP20"], networkFees: { "BITCOIN": 0.0002, "BEP20": 0.00005 } },
+        { symbol: "ETH", name: "Ethereum", icon: "Ξ", min: "0.01 ETH", networks: ["ERC20", "BEP20", "ARBITRUM"], networkFees: { "ERC20": 0.002, "BEP20": 0.0005, "ARBITRUM": 0.0003 } },
+        { symbol: "SOL", name: "Solana", icon: "◎", min: "0.1 SOL", networks: ["SOLANA"], networkFees: { "SOLANA": 0.01 } },
+        { symbol: "BNB", name: "BNB Smart Chain", icon: "❖", min: "0.02 BNB", networks: ["BEP20"], networkFees: { "BEP20": 0.001 } },
+        { symbol: "TRX", name: "TRON", icon: "⚡", min: "50 TRX", networks: ["TRC20"], networkFees: { "TRC20": 5 } },
+        { symbol: "XRP", name: "Ripple", icon: "✕", min: "20 XRP", networks: ["RIPPLE"], networkFees: { "RIPPLE": 0.25 } },
+        { symbol: "USDC", name: "USD Coin", icon: "$", min: "10 USDC", networks: ["ERC20", "BEP20", "SOLANA", "TRC20"], networkFees: { "ERC20": 4, "BEP20": 0.5, "SOLANA": 0.8, "TRC20": 1 } }
+    ]
+};
+
+function txInitWithdrawView() {
+    if (TX_WITHDRAW_STATE.initialized) {
+        txRefreshWithdrawUI();
+        return;
+    }
+    TX_WITHDRAW_STATE.initialized = true;
+
+    // Crypto Currency dropdown toggle
+    const cryptoCurBtn = document.getElementById("txWithCryptoCurrencyDropdownBtn");
+    const cryptoCurMenu = document.getElementById("txWithCryptoCurrencyDropdownMenu");
+    const cryptoCurChevron = document.getElementById("txWithCryptoCurrencyChevron");
+    const cryptoCurSearch = document.getElementById("txWithCryptoCurrencySearchInput");
+
+    if (cryptoCurBtn && cryptoCurMenu) {
+        cryptoCurBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = cryptoCurMenu.classList.contains("hidden");
+            cryptoCurMenu.classList.toggle("hidden", !isHidden);
+            if (cryptoCurChevron) cryptoCurChevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+            if (isHidden && cryptoCurSearch) {
+                setTimeout(() => cryptoCurSearch.focus(), 50);
+            }
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!cryptoCurMenu.contains(e.target) && !cryptoCurBtn.contains(e.target)) {
+                cryptoCurMenu.classList.add("hidden");
+                if (cryptoCurChevron) cryptoCurChevron.style.transform = "rotate(0deg)";
+            }
+        });
+    }
+
+    if (cryptoCurSearch) {
+        cryptoCurSearch.oninput = () => {
+            txRenderWithdrawCryptoCurrencyList(cryptoCurSearch.value.trim());
+        };
+    }
+
+    // Money Currency dropdown toggle
+    const moneyCurBtn = document.getElementById("txWithMoneyCurrencyBtn");
+    const moneyCurMenu = document.getElementById("txWithMoneyCurrencyDropdownMenu");
+    const moneyCurChevron = document.getElementById("txWithMoneyCurrencyChevron");
+
+    if (moneyCurBtn && moneyCurMenu) {
+        moneyCurBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = moneyCurMenu.classList.contains("hidden");
+            moneyCurMenu.classList.toggle("hidden", !isHidden);
+            if (moneyCurChevron) moneyCurChevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!moneyCurMenu.contains(e.target) && !moneyCurBtn.contains(e.target)) {
+                moneyCurMenu.classList.add("hidden");
+                if (moneyCurChevron) moneyCurChevron.style.transform = "rotate(0deg)";
+            }
+        });
+    }
+
+    // Money Method dropdown toggle
+    const moneyMethodBtn = document.getElementById("txWithMoneyMethodBtn");
+    const moneyMethodMenu = document.getElementById("txWithMoneyMethodDropdownMenu");
+    const moneyMethodChevron = document.getElementById("txWithMoneyMethodChevron");
+
+    if (moneyMethodBtn && moneyMethodMenu) {
+        moneyMethodBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = moneyMethodMenu.classList.contains("hidden");
+            moneyMethodMenu.classList.toggle("hidden", !isHidden);
+            if (moneyMethodChevron) moneyMethodChevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!moneyMethodMenu.contains(e.target) && !moneyMethodBtn.contains(e.target)) {
+                moneyMethodMenu.classList.add("hidden");
+                if (moneyMethodChevron) moneyMethodChevron.style.transform = "rotate(0deg)";
+            }
+        });
+    }
+
+    // Amount input live fee calculate listener
+    const cryptoAmountInput = document.getElementById("txWithCryptoAmountInput");
+    if (cryptoAmountInput) {
+        cryptoAmountInput.oninput = txCalculateCryptoWithdrawalFee;
+    }
+
+    txRefreshWithdrawUI();
+}
+
+function txRefreshWithdrawUI() {
+    txCheckUserKycForWithdraw();
+    txRenderWithdrawCryptoCurrencyList();
+    txSelectWithdrawCoin(TX_WITHDRAW_STATE.selectedCoin, false);
+    txUpdateWithdrawAvailableBalances();
+
+    if (TX_WITHDRAW_STATE.mode === "crypto") {
+        txSwitchWithdrawMode("crypto");
+    } else {
+        txSwitchWithdrawMode("money");
+    }
+}
+
+function txSwitchWithdrawMode(mode = "money") {
+    TX_WITHDRAW_STATE.mode = mode;
+
+    const titleEl = document.getElementById("txWithdrawCardTitle");
+    const toggleCrypto = document.getElementById("txWithdrawToggleCrypto");
+    const toggleMoney = document.getElementById("txWithdrawToggleMoney");
+    const cryptoStepper = document.getElementById("txWithdrawCryptoStepper");
+    const moneyStepper = document.getElementById("txWithdrawMoneyStepper");
+
+    if (mode === "crypto") {
+        if (titleEl) titleEl.textContent = "Withdraw crypto";
+        if (toggleCrypto) toggleCrypto.className = "active";
+        if (toggleMoney) toggleMoney.className = "";
+        if (cryptoStepper) cryptoStepper.classList.remove("hidden");
+        if (moneyStepper) moneyStepper.classList.add("hidden");
+        txSetWithdrawCryptoStep(TX_WITHDRAW_STATE.selectedCoin ? (TX_WITHDRAW_STATE.selectedNetwork ? 4 : 3) : 2);
+    } else {
+        if (titleEl) titleEl.textContent = "Withdraw money";
+        if (toggleMoney) toggleMoney.className = "active";
+        if (toggleCrypto) toggleCrypto.className = "";
+        if (cryptoStepper) cryptoStepper.classList.add("hidden");
+        if (moneyStepper) moneyStepper.classList.remove("hidden");
+        txSetWithdrawMoneyStep(TX_WITHDRAW_STATE.selectedMoneyCurrency ? (TX_WITHDRAW_STATE.selectedMoneyMethod ? 4 : 3) : 2);
+    }
+    txUpdateWithdrawAvailableBalances();
+}
+
+function txCheckUserKycForWithdraw() {
+    const moneyVerifyCard = document.getElementById("txWithMoneyVerifyCard");
+    const moneyVerifiedInputs = document.getElementById("txWithMoneyVerifiedInputs");
+    const cryptoVerifyCard = document.getElementById("txWithCryptoVerifyCard");
+    const cryptoVerifiedContent = document.getElementById("txWithCryptoVerifiedContent");
+
+    if (moneyVerifyCard) moneyVerifyCard.classList.add("hidden");
+    if (moneyVerifiedInputs) moneyVerifiedInputs.classList.remove("hidden");
+    if (cryptoVerifyCard) cryptoVerifyCard.classList.add("hidden");
+    if (cryptoVerifiedContent) cryptoVerifiedContent.classList.remove("hidden");
+}
+
+function txUpdateWithdrawAvailableBalances() {
+    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
+    const mainBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance || (parseFloat(mainBalUSDT) * 90) || 0;
+
+    const moneyBalEl = document.getElementById("txWithMoneyAvailableBal");
+    if (moneyBalEl) {
+        const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
+        if (curr === "INR") {
+            moneyBalEl.textContent = `₹${parseFloat(mainBalINR).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        } else {
+            moneyBalEl.textContent = `$${parseFloat(mainBalUSDT).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+    }
+
+    const cryptoBalEl = document.getElementById("txWithCryptoAvailableBal");
+    if (cryptoBalEl) {
+        const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
+        if (coin === "USDT") {
+            cryptoBalEl.textContent = `${parseFloat(mainBalUSDT).toFixed(2)} USDT`;
+        } else {
+            const row = WALLET_STATE?.crypto_balances?.find(c => c.currency === coin || c.symbol === coin);
+            const cBal = row ? parseFloat(row.balance || 0) : 0;
+            cryptoBalEl.textContent = `${cBal.toFixed(4)} ${coin}`;
+        }
+    }
+}
+
+/* ==========================================================================
+   WITHDRAW CRYPTO STEPPER CONTROLS
+   ========================================================================== */
+function txSetWithdrawCryptoStep(step) {
+    if (step > 2 && !TX_WITHDRAW_STATE.selectedCoin) {
+        return; // Guard: Cannot jump to step 3/4 without selecting currency
+    }
+    TX_WITHDRAW_STATE.cryptoStep = step;
+
+    const dot2 = document.getElementById("txWithCryptoStep2Dot");
+    const dot3 = document.getElementById("txWithCryptoStep3Dot");
+    const dot4 = document.getElementById("txWithCryptoStep4Dot");
+
+    const label2 = document.getElementById("txWithCryptoStep2Label");
+    const label3 = document.getElementById("txWithCryptoStep3Label");
+    const label4 = document.getElementById("txWithCryptoStep4Label");
+
+    const body2 = document.getElementById("txWithCryptoStep2Body");
+    const body3 = document.getElementById("txWithCryptoStep3Body");
+    const body4 = document.getElementById("txWithCryptoStep4Body");
+
+    if (step === 2) {
+        if (dot2) {
+            dot2.className = TX_WITHDRAW_STATE.selectedCoin ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot2.textContent = TX_WITHDRAW_STATE.selectedCoin ? "✓" : "2";
+        }
+        if (dot3) { dot3.className = "tx-nexus-step-dot inactive"; dot3.textContent = "3"; }
+        if (dot4) { dot4.className = "tx-nexus-step-dot inactive"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = TX_WITHDRAW_STATE.selectedCoin ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+        if (label4) label4.className = "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.add("hidden");
+        if (body4) body4.classList.add("hidden");
+    } else if (step === 3) {
+        if (dot2) { dot2.className = "tx-nexus-step-dot completed"; dot2.textContent = "✓"; }
+        if (dot3) {
+            dot3.className = TX_WITHDRAW_STATE.selectedNetwork ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot3.textContent = TX_WITHDRAW_STATE.selectedNetwork ? "✓" : "3";
+        }
+        if (dot4) { dot4.className = "tx-nexus-step-dot inactive"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (label4) label4.className = TX_WITHDRAW_STATE.selectedNetwork ? "text-sm font-bold text-slate-400 block cursor-pointer" : "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.remove("hidden");
+        if (body4) body4.classList.add("hidden");
+    } else if (step >= 4) {
+        if (dot2) { dot2.className = "tx-nexus-step-dot completed"; dot2.textContent = "✓"; }
+        if (dot3) { dot3.className = "tx-nexus-step-dot completed"; dot3.textContent = "✓"; }
+        if (dot4) { dot4.className = "tx-nexus-step-dot active"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = "text-sm font-bold text-white flex items-center gap-1.5 cursor-pointer";
+        if (label4) label4.className = "text-sm font-bold text-white block cursor-pointer";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.remove("hidden");
+        if (body4) body4.classList.remove("hidden");
+
+        const verifyCard = document.getElementById("txWithCryptoVerifyCard");
+        const verifiedContent = document.getElementById("txWithCryptoVerifiedContent");
+        if (verifyCard) verifyCard.classList.add("hidden");
+        if (verifiedContent) verifiedContent.classList.remove("hidden");
+
+        const amountInput = document.getElementById("txWithCryptoAmountInput");
+        if (amountInput) {
+            setTimeout(() => {
+                amountInput.focus();
+            }, 100);
+        }
+    }
+}
+
+function txRenderWithdrawCryptoCurrencyList(filterText = "") {
+    const listContainer = document.getElementById("txWithCryptoCurrencyList");
+    if (!listContainer) return;
+
+    const query = filterText.toLowerCase();
+    const filtered = TX_WITHDRAW_STATE.coins.filter(c => {
+        return c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query);
+    });
+
+    if (filtered.length === 0) {
+        listContainer.innerHTML = `<div class="p-3 text-center text-xs text-slate-500 font-medium">No currencies found</div>`;
+        return;
+    }
+
+    listContainer.innerHTML = filtered.map(c => `
+        <button type="button" onclick="txSelectWithdrawCoin('${c.symbol}', true)" class="tx-nexus-coin-row ${c.symbol === TX_WITHDRAW_STATE.selectedCoin ? 'selected' : ''}">
+            <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0" style="background: rgba(34, 211, 238, 0.15); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3);">${c.icon}</span>
+                <div>
+                    <span class="text-xs font-bold text-white block leading-tight">${c.symbol}</span>
+                    <span class="text-[11px] text-slate-400 block leading-tight mt-0.5">${c.name}</span>
+                </div>
+            </div>
+            ${c.symbol === TX_WITHDRAW_STATE.selectedCoin ? '<span class="text-cyan-400 text-xs font-black">✓</span>' : ''}
+        </button>
+    `).join("");
+}
+
+function txSelectWithdrawCoin(symbol, advanceStep = true) {
+    if (!symbol) {
+        TX_WITHDRAW_STATE.selectedCoin = null;
+        TX_WITHDRAW_STATE.selectedNetwork = null;
+        const logoEl = document.getElementById("txWithCryptoSelectedCoinLogo");
+        const nameEl = document.getElementById("txWithCryptoSelectedCoinName");
+        const menuEl = document.getElementById("txWithCryptoCurrencyDropdownMenu");
+        const chevronEl = document.getElementById("txWithCryptoCurrencyChevron");
+
+        if (logoEl) logoEl.classList.add("hidden");
+        if (nameEl) nameEl.innerHTML = `<span class="text-sm text-slate-400 font-normal">Select currency</span>`;
+        if (menuEl) menuEl.classList.add("hidden");
+        if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+        txSetWithdrawCryptoStep(2);
+        txRenderWithdrawCryptoCurrencyList();
+        return;
+    }
+
+    const coin = TX_WITHDRAW_STATE.coins.find(c => c.symbol === symbol) || TX_WITHDRAW_STATE.coins[0];
+    TX_WITHDRAW_STATE.selectedCoin = coin.symbol;
+    TX_WITHDRAW_STATE.selectedNetwork = coin.networks[0] || "TRC20";
+
+    const logoEl = document.getElementById("txWithCryptoSelectedCoinLogo");
+    const nameEl = document.getElementById("txWithCryptoSelectedCoinName");
+    const menuEl = document.getElementById("txWithCryptoCurrencyDropdownMenu");
+    const chevronEl = document.getElementById("txWithCryptoCurrencyChevron");
+    const amountSymEl = document.getElementById("txWithCryptoAmountSymbol");
+
+    if (logoEl) {
+        logoEl.classList.remove("hidden");
+        logoEl.textContent = coin.icon;
+    }
+    if (nameEl) {
+        nameEl.innerHTML = `<span class="text-sm font-bold text-white">${coin.symbol}</span> <span class="text-slate-400 font-normal text-xs ml-1">${coin.name}</span>`;
+    }
+    if (amountSymEl) amountSymEl.textContent = coin.symbol;
+
+    if (menuEl) menuEl.classList.add("hidden");
+    if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+    txRenderWithdrawCryptoNetworks(coin.networks);
+    txUpdateWithdrawAvailableBalances();
+    txCalculateCryptoWithdrawalFee();
+    txRenderWithdrawCryptoCurrencyList();
+
+    if (advanceStep) {
+        txSetWithdrawCryptoStep(3);
+    }
+}
+
+function txRenderWithdrawCryptoNetworks(networks = []) {
+    const pillsContainer = document.getElementById("txWithCryptoNetworkPills");
+    const netLabel = document.getElementById("txWithCryptoSelectedNetworkLabel");
+    if (!pillsContainer) return;
+
+    if (netLabel) netLabel.textContent = TX_WITHDRAW_STATE.selectedNetwork;
+
+    pillsContainer.innerHTML = networks.map(net => `
+        <button type="button" data-network="${net}" onclick="txSelectWithdrawNetwork('${net}')" class="tx-with-net-pill ${net === TX_WITHDRAW_STATE.selectedNetwork ? 'active px-3.5 py-1.5 rounded-xl text-xs font-bold border border-cyan-400 bg-cyan-400/10 text-cyan-300' : 'px-3.5 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-[#181e2b] text-slate-300 hover:border-white/20 hover:text-white transition cursor-pointer'}">
+            ${net}
+        </button>
+    `).join("");
+}
+
+function txSelectWithdrawNetwork(network) {
+    TX_WITHDRAW_STATE.selectedNetwork = network;
+    const coin = TX_WITHDRAW_STATE.coins.find(c => c.symbol === TX_WITHDRAW_STATE.selectedCoin);
+    if (coin) {
+        txRenderWithdrawCryptoNetworks(coin.networks);
+    }
+    const netLabel = document.getElementById("txWithCryptoSelectedNetworkLabel");
+    if (netLabel) netLabel.textContent = network;
+    txCalculateCryptoWithdrawalFee();
+    txSetWithdrawCryptoStep(4);
+}
+
+function txCalculateCryptoWithdrawalFee() {
+    const coin = TX_WITHDRAW_STATE.coins.find(c => c.symbol === TX_WITHDRAW_STATE.selectedCoin) || TX_WITHDRAW_STATE.coins[0];
+    const net = TX_WITHDRAW_STATE.selectedNetwork || "TRC20";
+    const feeVal = coin.networkFees ? (coin.networkFees[net] || 1) : 1;
+
+    const amountInput = document.getElementById("txWithCryptoAmountInput");
+    const sumAmountEl = document.getElementById("txWithCryptoSumAmount");
+    const sumFeeEl = document.getElementById("txWithCryptoSumFee");
+    const sumReceiveEl = document.getElementById("txWithCryptoSumReceive");
+
+    const entered = parseFloat(amountInput?.value || 0);
+    const fee = parseFloat(feeVal);
+    const netReceive = Math.max(0, entered - fee);
+
+    if (sumAmountEl) sumAmountEl.textContent = `${entered > 0 ? entered.toFixed(4) : "0.00"} ${coin.symbol}`;
+    if (sumFeeEl) sumFeeEl.textContent = `${fee} ${coin.symbol}`;
+    if (sumReceiveEl) sumReceiveEl.textContent = `${entered > fee ? netReceive.toFixed(4) : "0.00"} ${coin.symbol}`;
+}
+
+function txWithCryptoSetMaxAmount() {
+    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
+    const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
+    let max = 0;
+    if (coin === "USDT") {
+        max = parseFloat(mainBalUSDT);
+    } else {
+        const row = WALLET_STATE?.crypto_balances?.find(c => c.currency === coin || c.symbol === coin);
+        max = row ? parseFloat(row.balance || 0) : 0;
+    }
+    const amountInput = document.getElementById("txWithCryptoAmountInput");
+    if (amountInput) {
+        amountInput.value = max > 0 ? max : "";
+        txCalculateCryptoWithdrawalFee();
+    }
+}
+
+async function txSubmitCryptoWithdrawal() {
+    const addressInput = document.getElementById("txWithCryptoAddressInput");
+    const amountInput = document.getElementById("txWithCryptoAmountInput");
+    const alertBox = document.getElementById("txWithCryptoAlertMessage");
+    const submitBtn = document.getElementById("txWithCryptoSubmitBtn");
+
+    if (!addressInput || !amountInput || !alertBox || !submitBtn) return;
+
+    const address = addressInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
+    const net = TX_WITHDRAW_STATE.selectedNetwork || "TRC20";
+
+    if (!address || address.length < 10) {
+        alertBox.textContent = "Please enter a valid destination wallet address.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        alertBox.textContent = `Please enter a valid withdrawal amount for ${coin}.`;
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">◌</span> Processing Withdrawal...`;
+
+    try {
+        const payload = {
+            currency: coin,
+            network: net,
+            amount: amount,
+            withdrawal_address: address,
+            address: address,
+            type: "crypto"
+        };
+
+        const resp = await apiRequest("/withdrawal/request", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        if (resp && (resp.success || resp.status === "success" || resp.data)) {
+            alertBox.textContent = "✓ Crypto withdrawal request submitted! It is now queued for verification and automated blockchain transfer.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+            alertBox.classList.remove("hidden");
+
+            addressInput.value = "";
+            amountInput.value = "";
+            txCalculateCryptoWithdrawalFee();
+
+            if (typeof loadWalletData === "function") loadWalletData();
+            if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+        } else {
+            alertBox.textContent = resp?.message || "Withdrawal request failed. Please check your balance and try again.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+        }
+    } catch (err) {
+        alertBox.textContent = err?.message || "An error occurred while submitting your withdrawal request.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Request Crypto Withdrawal</span>`;
+    }
+}
+
+/* ==========================================================================
+   WITHDRAW MONEY STEPPER CONTROLS (Fiat / INR / USD)
+   ========================================================================== */
+function txSetWithdrawMoneyStep(step) {
+    if (step > 2 && !TX_WITHDRAW_STATE.selectedMoneyCurrency) {
+        return; // Guard: Cannot jump to step 3/4 without selecting currency
+    }
+    TX_WITHDRAW_STATE.moneyStep = step;
+
+    const dot2 = document.getElementById("txWithMoneyStep2Dot");
+    const dot3 = document.getElementById("txWithMoneyStep3Dot");
+    const dot4 = document.getElementById("txWithMoneyStep4Dot");
+
+    const label2 = document.getElementById("txWithMoneyStep2Label");
+    const label3 = document.getElementById("txWithMoneyStep3Label");
+    const label4 = document.getElementById("txWithMoneyStep4Label");
+
+    const body2 = document.getElementById("txWithMoneyStep2Body");
+    const body3 = document.getElementById("txWithMoneyStep3Body");
+    const body4 = document.getElementById("txWithMoneyStep4Body");
+
+    if (step === 2) {
+        if (dot2) {
+            dot2.className = TX_WITHDRAW_STATE.selectedMoneyCurrency ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot2.textContent = TX_WITHDRAW_STATE.selectedMoneyCurrency ? "✓" : "2";
+        }
+        if (dot3) { dot3.className = "tx-nexus-step-dot inactive"; dot3.textContent = "3"; }
+        if (dot4) { dot4.className = "tx-nexus-step-dot inactive"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = TX_WITHDRAW_STATE.selectedMoneyCurrency ? "text-sm font-bold text-slate-400 block cursor-pointer" : "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+        if (label4) label4.className = "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.add("hidden");
+        if (body4) body4.classList.add("hidden");
+    } else if (step === 3) {
+        if (dot2) { dot2.className = "tx-nexus-step-dot completed"; dot2.textContent = "✓"; }
+        if (dot3) {
+            dot3.className = TX_WITHDRAW_STATE.selectedMoneyMethod ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot active";
+            dot3.textContent = TX_WITHDRAW_STATE.selectedMoneyMethod ? "✓" : "3";
+        }
+        if (dot4) { dot4.className = "tx-nexus-step-dot inactive"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label4) label4.className = TX_WITHDRAW_STATE.selectedMoneyMethod ? "text-sm font-bold text-slate-400 block cursor-pointer" : "text-sm font-bold text-slate-500 block cursor-not-allowed opacity-60";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.remove("hidden");
+        if (body4) body4.classList.add("hidden");
+
+        const verifyCard = document.getElementById("txWithMoneyVerifyCard");
+        const verifiedInputs = document.getElementById("txWithMoneyVerifiedInputs");
+        if (verifyCard) verifyCard.classList.add("hidden");
+        if (verifiedInputs) verifiedInputs.classList.remove("hidden");
+    } else if (step >= 4) {
+        if (dot2) { dot2.className = "tx-nexus-step-dot completed"; dot2.textContent = "✓"; }
+        if (dot3) { dot3.className = "tx-nexus-step-dot completed"; dot3.textContent = "✓"; }
+        if (dot4) { dot4.className = "tx-nexus-step-dot active"; dot4.textContent = "4"; }
+
+        if (label2) label2.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label3) label3.className = "text-sm font-bold text-white block cursor-pointer";
+        if (label4) label4.className = "text-sm font-bold text-white block cursor-pointer";
+
+        if (body2) body2.classList.remove("hidden");
+        if (body3) body3.classList.remove("hidden");
+        if (body4) body4.classList.remove("hidden");
+
+        const verifyCard = document.getElementById("txWithMoneyVerifyCard");
+        const verifiedInputs = document.getElementById("txWithMoneyVerifiedInputs");
+        if (verifyCard) verifyCard.classList.add("hidden");
+        if (verifiedInputs) verifiedInputs.classList.remove("hidden");
+
+        const amountInput = document.getElementById("txWithMoneyAmountInput");
+        if (amountInput) {
+            setTimeout(() => {
+                amountInput.focus();
+            }, 100);
+        }
+    }
+}
+
+function txSelectWithdrawMoneyCurrency(currency = "INR", name = "INR (Indian Rupee)", advanceStep = true) {
+    if (!currency) {
+        TX_WITHDRAW_STATE.selectedMoneyCurrency = null;
+        const nameEl = document.getElementById("txWithMoneySelectedCurrencyName");
+        const menuEl = document.getElementById("txWithMoneyCurrencyDropdownMenu");
+        const chevronEl = document.getElementById("txWithMoneyCurrencyChevron");
+
+        if (nameEl) nameEl.innerHTML = `<span class="text-sm text-slate-400 font-normal">Select currency</span>`;
+        if (menuEl) menuEl.classList.add("hidden");
+        if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+        txSetWithdrawMoneyStep(2);
+        return;
+    }
+
+    TX_WITHDRAW_STATE.selectedMoneyCurrency = currency;
+
+    const nameEl = document.getElementById("txWithMoneySelectedCurrencyName");
+    const menuEl = document.getElementById("txWithMoneyCurrencyDropdownMenu");
+    const chevronEl = document.getElementById("txWithMoneyCurrencyChevron");
+
+    if (nameEl) nameEl.innerHTML = `<span class="text-sm font-bold text-white">${name}</span>`;
+    if (menuEl) menuEl.classList.add("hidden");
+    if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+    txUpdateWithdrawAvailableBalances();
+
+    if (advanceStep) {
+        txSetWithdrawMoneyStep(3);
+    }
+}
+
+function txSelectWithdrawMoneyMethod(method = "imps", name = "IMPS (Instant Bank Transfer)") {
+    TX_WITHDRAW_STATE.selectedMoneyMethod = method;
+
+    const displayContainer = document.getElementById("txWithMoneySelectedMethodDisplay");
+    const menuEl = document.getElementById("txWithMoneyMethodDropdownMenu");
+    const chevronEl = document.getElementById("txWithMoneyMethodChevron");
+
+    const bankFields = document.getElementById("txWithMoneyBankFields");
+    const upiField = document.getElementById("txWithMoneyUpiField");
+
+    let iconHtml = `<div class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-400/30 flex items-center justify-center font-bold text-xs shrink-0">IMPS</div>`;
+    if (method === "upi") {
+        iconHtml = `<div class="w-6 h-6 rounded-full bg-[#5f259f] flex items-center justify-center font-black text-xs text-white shrink-0">UPI</div>`;
+        if (bankFields) bankFields.classList.add("hidden");
+        if (upiField) upiField.classList.remove("hidden");
+    } else {
+        if (method === "neft") {
+            iconHtml = `<div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center font-bold text-xs shrink-0">🏦</div>`;
+        }
+        if (bankFields) bankFields.classList.remove("hidden");
+        if (upiField) upiField.classList.add("hidden");
+    }
+
+    if (displayContainer) {
+        displayContainer.innerHTML = `
+            ${iconHtml}
+            <span id="txWithMoneySelectedMethodName" class="text-sm font-bold text-white">${name}</span>
+        `;
+    }
+
+    if (menuEl) menuEl.classList.add("hidden");
+    if (chevronEl) chevronEl.style.transform = "rotate(0deg)";
+
+    txSetWithdrawMoneyStep(4);
+}
+
+function txWithMoneySetMaxAmount() {
+    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
+    const mainBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance || (parseFloat(mainBalUSDT) * 90) || 0;
+
+    const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
+    const max = curr === "INR" ? parseFloat(mainBalINR) : parseFloat(mainBalUSDT);
+
+    const amountInput = document.getElementById("txWithMoneyAmountInput");
+    if (amountInput) {
+        amountInput.value = max > 0 ? max : "";
+    }
+}
+
+async function txSubmitMoneyWithdrawal() {
+    const holderNameInput = document.getElementById("txWithMoneyHolderName");
+    const accountNoInput = document.getElementById("txWithMoneyAccountNo");
+    const ifscInput = document.getElementById("txWithMoneyIfsc");
+    const upiIdInput = document.getElementById("txWithMoneyUpiId");
+    const amountInput = document.getElementById("txWithMoneyAmountInput");
+    const alertBox = document.getElementById("txWithMoneyAlertMessage");
+    const submitBtn = document.getElementById("txWithMoneySubmitBtn");
+
+    if (!amountInput || !alertBox || !submitBtn) return;
+
+    const amount = parseFloat(amountInput.value);
+    const method = TX_WITHDRAW_STATE.selectedMoneyMethod || "imps";
+    const currency = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
+
+    if (isNaN(amount) || amount < 500) {
+        alertBox.textContent = "Minimum withdrawal amount is ₹500 INR.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    const holderName = holderNameInput ? holderNameInput.value.trim() : "";
+    const accountNo = accountNoInput ? accountNoInput.value.trim() : "";
+    const ifsc = ifscInput ? ifscInput.value.trim().toUpperCase() : "";
+    const upiId = upiIdInput ? upiIdInput.value.trim() : "";
+
+    if (method === "upi") {
+        if (!upiId || !upiId.includes("@")) {
+            alertBox.textContent = "Please enter a valid UPI ID (e.g., yourname@okhdfcbank).";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+            return;
+        }
+    } else {
+        if (!accountNo || accountNo.length < 8) {
+            alertBox.textContent = "Please enter a valid bank account number.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+            return;
+        }
+        if (!ifsc || ifsc.length < 8) {
+            alertBox.textContent = "Please enter a valid 11-character IFSC code.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+            return;
+        }
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="animate-spin inline-block mr-2">◌</span> Processing Withdrawal...`;
+
+    try {
+        const payload = {
+            currency: currency,
+            amount: amount,
+            payment_method: method,
+            account_holder_name: holderName,
+            account_number: accountNo,
+            ifsc_code: ifsc,
+            upi_id: upiId,
+            withdrawal_address: method === "upi" ? upiId : `${accountNo} (${ifsc})`,
+            type: "fiat"
+        };
+
+        const resp = await apiRequest("/withdrawal/request", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        if (resp && (resp.success || resp.status === "success" || resp.data)) {
+            alertBox.textContent = "✓ Bank withdrawal request submitted successfully! Funds will be transferred via IMPS/UPI upon approval.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+            alertBox.classList.remove("hidden");
+
+            amountInput.value = "";
+            if (holderNameInput) holderNameInput.value = "";
+            if (accountNoInput) accountNoInput.value = "";
+            if (ifscInput) ifscInput.value = "";
+            if (upiIdInput) upiIdInput.value = "";
+
+            if (typeof loadWalletData === "function") loadWalletData();
+            if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+        } else {
+            alertBox.textContent = resp?.message || "Withdrawal request failed. Please check your balance and try again.";
+            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertBox.classList.remove("hidden");
+        }
+    } catch (err) {
+        alertBox.textContent = err?.message || "An error occurred while submitting your withdrawal request.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Request Money Withdrawal</span>`;
+    }
+}
+
+// Global Exports
+window.txSwitchNexusSubTab = txSwitchNexusSubTab;
+window.txInitWithdrawView = txInitWithdrawView;
+window.txSwitchWithdrawMode = txSwitchWithdrawMode;
+window.txSetWithdrawCryptoStep = txSetWithdrawCryptoStep;
+window.txSetWithdrawMoneyStep = txSetWithdrawMoneyStep;
+window.txSelectWithdrawCoin = txSelectWithdrawCoin;
+window.txSelectWithdrawNetwork = txSelectWithdrawNetwork;
+window.txSelectWithdrawMoneyCurrency = txSelectWithdrawMoneyCurrency;
+window.txSelectWithdrawMoneyMethod = txSelectWithdrawMoneyMethod;
+window.txWithCryptoSetMaxAmount = txWithCryptoSetMaxAmount;
+window.txWithMoneySetMaxAmount = txWithMoneySetMaxAmount;
+window.txCalculateCryptoWithdrawalFee = txCalculateCryptoWithdrawalFee;
+window.txSubmitCryptoWithdrawal = txSubmitCryptoWithdrawal;
+window.txSubmitMoneyWithdrawal = txSubmitMoneyWithdrawal;
+window.txCheckUserKycForWithdraw = txCheckUserKycForWithdraw;
+
+// Deposit exports
 window.txInitDepositView = txInitDepositView;
 window.txSwitchDepositMode = txSwitchDepositMode;
 window.txSelectDepositCoin = txSelectDepositCoin;
@@ -9524,6 +11513,9 @@ window.txSelectDepositDestination = txSelectDepositDestination;
 window.txRenderDepositAccountOptions = txRenderDepositAccountOptions;
 window.txCheckUserKycForDeposit = txCheckUserKycForDeposit;
 window.txSetDepositStep = txSetDepositStep;
-
-
-
+window.txSetMoneyDepositStep = txSetMoneyDepositStep;
+window.txSelectMoneyAccount = txSelectMoneyAccount;
+window.txSelectMoneyPaymentMethod = txSelectMoneyPaymentMethod;
+window.txCopyMoneyUpi = txCopyMoneyUpi;
+window.txToggleNexusFaq = txToggleNexusFaq;
+window.txUpdateNexusFaq = txUpdateNexusFaq;
