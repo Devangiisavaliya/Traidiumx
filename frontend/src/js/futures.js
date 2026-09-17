@@ -2414,6 +2414,12 @@ async function txFetchFuturesUsdtRate() {
 }
 
 function txOpenFuturesWalletModal(action = "transfer") {
+    if (action === "deposit") {
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+            return;
+        }
+    }
     const nodes = txGetFuturesWalletModalNodes();
 
     // Update active sub-account labels in the modal
@@ -7481,6 +7487,19 @@ function goToFuturesWalletAction(action = "deposit") {
         }
     }
 
+    if (action === "deposit") {
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+            return;
+        }
+        const depositModal = document.getElementById("txDepositChoiceModal");
+        if (depositModal) {
+            depositModal.classList.remove("hidden");
+            depositModal.classList.add("flex");
+            return;
+        }
+    }
+
     // Backend mode override: keep user on Futures page and open quick wallet modal.
     txOpenFuturesWalletModal(action);
 }
@@ -9599,6 +9618,22 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     placeOrder = function txPlaceOrderInstantNoReload() {
         if (!isLoggedIn()) {
             showOrderMessage("Please login first.", "error");
+            window.location.href = "/src/pages/login.html?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+            return;
+        }
+
+        // Require KYC verification for real trading accounts
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        const subAccounts = TX_BACKEND_FUTURES.subAccounts || [];
+        const currentAcc = subAccounts.find(a => String(a.id) === String(activeSubId));
+        const isDemo = currentAcc ? (currentAcc.is_demo || currentAcc.account_mode === "demo" || currentAcc.plan === "demo") : false;
+
+        const user = (typeof getAuthUser === "function" ? getAuthUser() : null) || JSON.parse(localStorage.getItem("traidiumx_auth_user") || "{}");
+        const kycStatus = String(user?.kyc_status || "").toLowerCase();
+        const isKycApproved = (kycStatus === "approved" || Boolean(user?.is_verified) || Boolean(user?.is_kyc_approved));
+
+        if (!isDemo && !isKycApproved) {
+            txOpenKycRequiredModal();
             return;
         }
 
@@ -9902,19 +9937,35 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
     let txSubAccountsLocalCache = [];
     let txCustomAccountDropdownInitialized = false;
+    let txCustomAccountCloseTimer = null;
 
     function txOpenCustomAccountDropdown() {
+        if (txCustomAccountCloseTimer) {
+            clearTimeout(txCustomAccountCloseTimer);
+            txCustomAccountCloseTimer = null;
+        }
         const trigger = document.getElementById("txCustomAccountTrigger");
         const menu = document.getElementById("txCustomAccountMenu");
         if (trigger) trigger.classList.add("open");
         if (menu) menu.classList.add("open");
     }
 
-    function txCloseCustomAccountDropdown() {
-        const trigger = document.getElementById("txCustomAccountTrigger");
-        const menu = document.getElementById("txCustomAccountMenu");
-        if (trigger) trigger.classList.remove("open");
-        if (menu) menu.classList.remove("open");
+    function txCloseCustomAccountDropdown(immediate = false) {
+        if (txCustomAccountCloseTimer) {
+            clearTimeout(txCustomAccountCloseTimer);
+            txCustomAccountCloseTimer = null;
+        }
+        const doClose = () => {
+            const trigger = document.getElementById("txCustomAccountTrigger");
+            const menu = document.getElementById("txCustomAccountMenu");
+            if (trigger) trigger.classList.remove("open");
+            if (menu) menu.classList.remove("open");
+        };
+        if (immediate) {
+            doClose();
+        } else {
+            txCustomAccountCloseTimer = setTimeout(doClose, 200);
+        }
     }
 
     function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
@@ -10022,7 +10073,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const accId = btn.getAttribute("data-acc-id");
-                txCloseCustomAccountDropdown();
+                txCloseCustomAccountDropdown(true);
 
                 const selector = document.getElementById("tradingAccountSelector");
                 if (selector) {
@@ -10040,14 +10091,25 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const trigger = document.getElementById("txCustomAccountTrigger");
         const menu = document.getElementById("txCustomAccountMenu");
         const createBtn = document.getElementById("txCustomAccountCreateBtn");
+        const dropdownRoot = document.getElementById("txCustomAccountDropdown");
 
         if (!trigger || !menu) return;
+
+        if (dropdownRoot && !dropdownRoot.__txHoverBound) {
+            dropdownRoot.__txHoverBound = true;
+            dropdownRoot.addEventListener("mouseenter", () => {
+                txOpenCustomAccountDropdown();
+            });
+            dropdownRoot.addEventListener("mouseleave", () => {
+                txCloseCustomAccountDropdown(false);
+            });
+        }
 
         trigger.addEventListener("click", (e) => {
             e.stopPropagation();
             const isOpen = menu.classList.contains("open");
             if (isOpen) {
-                txCloseCustomAccountDropdown();
+                txCloseCustomAccountDropdown(true);
             } else {
                 txOpenCustomAccountDropdown();
             }
@@ -10056,7 +10118,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         if (createBtn) {
             createBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
-                txCloseCustomAccountDropdown();
+                txCloseCustomAccountDropdown(true);
                 if (typeof window.txOpenSubAccountModal === "function") {
                     window.txOpenSubAccountModal("real");
                 } else {
@@ -10073,14 +10135,14 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         }
 
         document.addEventListener("click", (e) => {
-            if (!menu.contains(e.target) && !trigger.contains(e.target)) {
-                txCloseCustomAccountDropdown();
+            if (!menu.contains(e.target) && !trigger.contains(e.target) && !e.target.closest("#txCustomAccountDropdown")) {
+                txCloseCustomAccountDropdown(true);
             }
         });
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape" && menu.classList.contains("open")) {
-                txCloseCustomAccountDropdown();
+                txCloseCustomAccountDropdown(true);
             }
         });
     }
@@ -10344,12 +10406,68 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             }
         };
 
+        window.txLoadDynamicPlanSettings = async function() {
+            try {
+                const resp = await apiRequest("/onboarding/config");
+                const settings = resp?.data?.settings;
+                const plans = settings?.plans;
+                if (!plans) return;
+
+                // Basic
+                if (plans.basic) {
+                    const basicMin = Number(plans.basic.minimum_balance || 0);
+                    const basicMinEl = document.getElementById("subPlanBasicMinPill");
+                    if (basicMinEl) {
+                        basicMinEl.textContent = basicMin === 0 ? "MIN $0.00" : `MIN $${basicMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                    const basicSpreadEl = document.getElementById("subPlanBasicSpread");
+                    if (basicSpreadEl) {
+                        const spreadVal = plans.basic.spread_value !== undefined ? plans.basic.spread_value : 18;
+                        basicSpreadEl.textContent = plans.basic.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                    }
+                }
+
+                // Standard
+                if (plans.standard) {
+                    const standardMin = Number(plans.standard.minimum_balance || 2000);
+                    const standardMinEl = document.getElementById("subPlanStandardMinPill");
+                    if (standardMinEl) {
+                        standardMinEl.textContent = `MIN $${standardMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                    const standardSpreadEl = document.getElementById("subPlanStandardSpread");
+                    if (standardSpreadEl) {
+                        const spreadVal = plans.standard.spread_value !== undefined ? plans.standard.spread_value : 12;
+                        standardSpreadEl.textContent = plans.standard.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                    }
+                }
+
+                // Advanced
+                if (plans.advanced) {
+                    const advMin = Number(plans.advanced.minimum_balance || 5000);
+                    const advMinEl = document.getElementById("subPlanAdvancedMinPill");
+                    if (advMinEl) {
+                        advMinEl.textContent = `MIN $${advMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                    const advSpreadEl = document.getElementById("subPlanAdvancedSpread");
+                    if (advSpreadEl) {
+                        const spreadVal = plans.advanced.spread_value !== undefined ? plans.advanced.spread_value : 5;
+                        advSpreadEl.textContent = plans.advanced.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                    }
+                }
+            } catch (err) {
+                // Graceful fallback
+            }
+        };
+
         const txOpenSubModal = (mode = "real") => {
             if (subModal) {
                 subModal.classList.remove("hidden");
                 subModal.classList.add("flex");
                 setModalMode(mode);
                 txRenderSubAccountsList();
+                if (typeof window.txLoadDynamicPlanSettings === "function") {
+                    window.txLoadDynamicPlanSettings();
+                }
                 const scrollBody = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
                 if (scrollBody) {
                     scrollBody.scrollTop = 0;
@@ -10394,14 +10512,33 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         // Platform Cards Interaction
         const platPx = document.getElementById("subPlatformPxTrader");
         const platMt5 = document.getElementById("subPlatformMT5");
+        const platPxRadio = document.getElementById("subPlatformPxRadio");
+        const platMt5Radio = document.getElementById("subPlatformMt5Radio");
+
         const updatePlatformCards = (plat) => {
             selectedPlatform = plat;
             if (plat === "pxtrader") {
-                platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-                platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+                platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+                platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+                if (platPxRadio) {
+                    platPxRadio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                    platPxRadio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+                }
+                if (platMt5Radio) {
+                    platMt5Radio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                    platMt5Radio.innerHTML = '';
+                }
             } else {
-                platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-                platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+                platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+                platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+                if (platMt5Radio) {
+                    platMt5Radio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                    platMt5Radio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+                }
+                if (platPxRadio) {
+                    platPxRadio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                    platPxRadio.innerHTML = '';
+                }
             }
         };
         platPx?.addEventListener("click", () => updatePlatformCards("pxtrader"));
@@ -10417,13 +10554,16 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
             planCards.forEach(card => {
                 const cardPlan = card.getAttribute("data-plan");
+                const radioContainer = card.querySelector(".tx-plan-radio");
                 const radio = card.querySelector(".tx-plan-radio div");
                 if (cardPlan === plan) {
-                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/90 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30";
-                    if (radio) radio.className = "w-2 h-2 rounded-full bg-cyan-400";
+                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]";
+                    if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0";
+                    if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-slate-950";
                 } else {
-                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 transition cursor-pointer hover:border-slate-700";
-                    if (radio) radio.className = "w-2 h-2 rounded-full bg-transparent";
+                    card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700";
+                    if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0";
+                    if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-transparent";
                 }
             });
         };
@@ -10699,7 +10839,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                     }
                 } finally {
                     setBalBtn.disabled = false;
-                    setBalBtn.textContent = "Set balance";
+                    setBalBtn.textContent = "Set Balance";
                 }
             });
         }
@@ -10752,20 +10892,52 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         }
     }
 
-    window.txRenderSubAccountsList = txRenderSubAccountsList;
-    window.txUpdateSubTransferPreview = txUpdateSubTransferPreview;
+    function txOpenKycRequiredModal() {
+        const modal = document.getElementById("txKycRequiredModal");
+        if (!modal) return;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function txCloseKycRequiredModal() {
+        const modal = document.getElementById("txKycRequiredModal");
+        if (!modal) return;
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    function txInitKycRequiredModal() {
+        const modal = document.getElementById("txKycRequiredModal");
+        const closeBtn = document.getElementById("txKycRequiredModalClose");
+        const cancelBtn = document.getElementById("txKycRequiredModalCancelBtn");
+
+        if (closeBtn) closeBtn.onclick = () => txCloseKycRequiredModal();
+        if (cancelBtn) cancelBtn.onclick = () => txCloseKycRequiredModal();
+
+        if (modal) {
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    txCloseKycRequiredModal();
+                }
+            };
+        }
+    }
+
+    window.txOpenKycRequiredModal = txOpenKycRequiredModal;
+    window.txCloseKycRequiredModal = txCloseKycRequiredModal;
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
             txInitSubAccountsAndSelector();
             txBindSubAccountEvents();
+            txInitKycRequiredModal();
         });
     } else {
         txInitSubAccountsAndSelector();
         txBindSubAccountEvents();
+        txInitKycRequiredModal();
     }
 
-    
     document.addEventListener("DOMContentLoaded", txBindTpSlCheckbox, { once: true });
 
     window.addEventListener("traidiumx:currency-change", (event) => {

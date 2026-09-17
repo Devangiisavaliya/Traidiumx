@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        window.location.replace("./wallet.html#history");
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Transfer & Activity History | TraidiumX</title>
 
     <link rel="stylesheet" href="../../dist/output.css" />
-    <link rel="stylesheet" href="../css/custom.css?v=38" />
+    <link rel="stylesheet" href="../css/custom.css?v=58" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
@@ -122,119 +125,249 @@
 <body data-page="transfer-history">
     <div data-component="navbar"></div>
 
-    <main class="tx-history-container">
+    <main class="tx-history-container max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <!-- Top Action Bar -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div class="flex items-center gap-3">
-                <a href="./wallet.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/60 hover:border-cyan-400 text-xs font-bold text-slate-300 hover:text-white transition shadow-sm cursor-pointer">
-                    <span>‹</span>
-                    <span>Back to Wallet</span>
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0c1220]/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 backdrop-blur-md relative z-30">
+            <div class="flex items-center gap-3.5 min-w-0">
+                <a href="./wallet.html" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-400/60 text-slate-400 hover:text-cyan-300 flex items-center justify-center transition cursor-pointer shrink-0 shadow-sm" title="Back to Wallet">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 </a>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Transfer & Activity History</h1>
-                    <p class="text-xs text-slate-400 mt-0.5">Audit-ready unified record of all deposits, withdrawals, transfers, rewards & fees.</p>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">Account Reports &amp; History</h1>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">Unified Ledger</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5 truncate">Audit-ready record of all deposits, withdrawals, transfers, rewards and trading fees.</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <button type="button" id="refreshHistoryBtn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400/10 border border-cyan-400/30 hover:bg-cyan-400/20 text-xs font-bold text-cyan-300 transition cursor-pointer">
-                    <span id="refreshSpinner" class="inline-block">↻</span>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <!-- Date Preset Filter Dropdown -->
+                <div class="tx-pill-dropdown-wrap" id="datePresetDropdown">
+                    <button type="button" class="tx-pill-dropdown-btn" id="datePresetTrigger" aria-haspopup="listbox" aria-expanded="false">
+                        <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span class="tx-dropdown-label text-slate-200">All Time</span>
+                        <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="tx-pill-dropdown-menu" id="datePresetMenu" role="listbox">
+                        <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                            <span>All Time</span>
+                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="tx-pill-dropdown-item" data-value="today">
+                            <span>Today</span>
+                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="tx-pill-dropdown-item" data-value="7d">
+                            <span>Last 7 Days</span>
+                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="tx-pill-dropdown-item" data-value="30d">
+                            <span>Last 30 Days</span>
+                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="tx-pill-dropdown-item" data-value="90d">
+                            <span>Last 90 Days</span>
+                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="refreshHistoryBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-400/10 border border-cyan-400/30 hover:bg-cyan-400/20 text-xs font-bold text-cyan-300 transition cursor-pointer">
+                    <span id="refreshSpinner" class="inline-block text-sm">↻</span>
                     <span>Refresh</span>
                 </button>
-                <button type="button" id="exportCsvBtn" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-white/20 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">
-                    <span>↓</span>
+                <button type="button" id="exportCsvBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-slate-600 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     <span>Export CSV</span>
                 </button>
             </div>
         </div>
 
-        <!-- Summary Metric Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-6">
-            <div class="tx-card-glass p-4">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Activity Entries</p>
-                <h3 id="statTotalCount" class="text-xl sm:text-2xl font-black text-white mt-1">--</h3>
-                <p class="text-[10px] text-slate-500 mt-0.5">Recorded in ledger</p>
+        <!-- Summary Metric Ribbon (Clean & Compact) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-4 rounded-2xl border border-slate-800/80 bg-[#0c1220]/70 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Ledger Records</p>
+                    <h3 id="statTotalCount" class="text-xl sm:text-2xl font-black text-white mt-1">--</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Unified activity log</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-slate-800/60 border border-slate-700/50 flex items-center justify-center text-slate-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
             </div>
-            <div class="tx-card-glass p-4">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Total Deposits</p>
-                <h3 id="statDepositCount" class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">--</h3>
-                <p class="text-[10px] text-slate-500 mt-0.5">Credits into wallet</p>
+            <div class="p-4 rounded-2xl border border-emerald-500/20 bg-[#0c1220]/70 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Total Deposits</p>
+                    <h3 id="statDepositCount" class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">--</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Inflow wallet credits</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                </div>
             </div>
-            <div class="tx-card-glass p-4">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-rose-400">Total Withdrawals</p>
-                <h3 id="statWithdrawCount" class="text-xl sm:text-2xl font-black text-rose-400 mt-1">--</h3>
-                <p class="text-[10px] text-slate-500 mt-0.5">Payout requests</p>
+            <div class="p-4 rounded-2xl border border-rose-500/20 bg-[#0c1220]/70 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Total Withdrawals</p>
+                    <h3 id="statWithdrawCount" class="text-xl sm:text-2xl font-black text-rose-400 mt-1">--</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Outflow payout requests</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-rose-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                </div>
             </div>
-            <div class="tx-card-glass p-4">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Internal Transfers</p>
-                <h3 id="statTransferCount" class="text-xl sm:text-2xl font-black text-cyan-400 mt-1">--</h3>
-                <p class="text-[10px] text-slate-500 mt-0.5">Main ↔ Trading wallet</p>
+            <div class="p-4 rounded-2xl border border-cyan-500/20 bg-[#0c1220]/70 flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Internal Transfers</p>
+                    <h3 id="statTransferCount" class="text-xl sm:text-2xl font-black text-cyan-400 mt-1">--</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Main ↔ Sub Accounts</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                </div>
             </div>
         </div>
 
-        <!-- Main History Card -->
-        <div class="tx-card-glass p-4 sm:p-6">
-            <!-- Category Tabs / Filter Bar -->
-            <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 custom-scrollbar border-b border-white/5">
-                <button type="button" data-category="all" class="tx-category-pill active">🌟 All Activity</button>
-                <button type="button" data-category="transfers" class="tx-category-pill">🔄 Transfers</button>
-                <button type="button" data-category="deposits" class="tx-category-pill">📥 Deposits</button>
-                <button type="button" data-category="withdrawals" class="tx-category-pill">📤 Withdrawals</button>
-                <button type="button" data-category="referral" class="tx-category-pill">🎁 Refer & Earn</button>
-                <button type="button" data-category="trading" class="tx-category-pill">📊 Trading Fees & PnL</button>
+        <!-- Main Reports Container Card -->
+        <div class="rounded-3xl border border-slate-800/80 bg-[#0c1220] p-4 sm:p-6 shadow-2xl space-y-5">
+            <!-- Category Segment Tabs (PrimeXBT Reports Tab Bar) -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-white/10" id="categoryPillsContainer" style="scrollbar-width: none; -ms-overflow-style: none;">
+                <button type="button" data-category="all" class="tx-prime-tab active px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap bg-cyan-400 text-slate-950 shadow-sm">All Activity</button>
+                <button type="button" data-category="transfers" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Transfers</button>
+                <button type="button" data-category="deposits" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Deposits</button>
+                <button type="button" data-category="withdrawals" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Withdrawals</button>
+                <button type="button" data-category="trading" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Trading &amp; Fees</button>
+                <button type="button" data-category="referral" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Referral Rewards</button>
             </div>
 
-            <!-- Controls Row: Search & Filters -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-                <div class="flex-1 flex items-center gap-2">
-                    <input type="search" id="searchInput" placeholder="Search reference, description, tx hash, type..." class="custom-input-dark w-full md:max-w-md" />
+            <!-- Advanced Filters Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <!-- Search Input with Embedded Icon -->
+                <div class="relative flex-1 max-w-lg flex items-center px-3.5 py-2.5 rounded-xl bg-[#070c18] border border-slate-800 focus-within:border-cyan-400 transition gap-2.5">
+                    <svg class="w-4 h-4 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" id="searchInput" placeholder="Search reference ID, TX hash, type or description..." class="w-full bg-transparent border-0 outline-none text-xs sm:text-sm font-medium text-white placeholder-slate-500 p-0" />
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <select id="accountFilter" class="custom-select-dark font-bold text-cyan-300 border-cyan-500/30">
-                        <option value="main">💼 Main Trading Account</option>
-                        <option value="all">🌟 All Accounts (Combined)</option>
-                    </select>
+                <!-- Filter Dropdowns -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <!-- Account Filter Dropdown -->
+                    <div class="tx-pill-dropdown-wrap" id="accountFilterDropdown">
+                        <button type="button" class="tx-pill-dropdown-btn text-white" id="accountFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="tx-dropdown-label text-white font-bold">Main Trading Account</span>
+                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="tx-pill-dropdown-menu min-w-[210px]" id="accountFilterMenu" role="listbox">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
 
-                    <select id="currencyFilter" class="custom-select-dark">
-                        <option value="all">All Currencies</option>
-                        <option value="USDT">USDT ($)</option>
-                        <option value="INR">INR (₹)</option>
-                    </select>
+                    <!-- Direction Filter Dropdown -->
+                    <div class="tx-pill-dropdown-wrap" id="directionFilterDropdown">
+                        <button type="button" class="tx-pill-dropdown-btn text-white" id="directionFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="tx-dropdown-label text-white font-bold">All Directions</span>
+                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="tx-pill-dropdown-menu min-w-[180px]" id="directionFilterMenu" role="listbox">
+                            <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                                <span>All Directions</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="credit">
+                                <span>Credits (+)</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="debit">
+                                <span>Debits (-)</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="transfer">
+                                <span>Transfers (↔)</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
 
-                    <select id="directionFilter" class="custom-select-dark">
-                        <option value="all">All Directions</option>
-                        <option value="credit">Credits (+)</option>
-                        <option value="debit">Debits (-)</option>
-                        <option value="transfer">Transfers</option>
-                    </select>
+                    <!-- Currency / Asset Filter Dropdown -->
+                    <div class="tx-pill-dropdown-wrap" id="currencyFilterDropdown">
+                        <button type="button" class="tx-pill-dropdown-btn text-white" id="currencyFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="tx-dropdown-label text-white font-bold">All Assets</span>
+                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="tx-pill-dropdown-menu min-w-[160px]" id="currencyFilterMenu" role="listbox">
+                            <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                                <span>All Assets</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="USDT">
+                                <span>USDT ($)</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="INR">
+                                <span>INR (₹)</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="BTC">
+                                <span>BTC</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="ETH">
+                                <span>ETH</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
 
-                    <select id="pageSizeSelect" class="custom-select-dark">
-                        <option value="10">10 / page</option>
-                        <option value="25">25 / page</option>
-                        <option value="50">50 / page</option>
-                    </select>
+                    <!-- Page Size Dropdown -->
+                    <div class="tx-pill-dropdown-wrap" id="pageSizeDropdown">
+                        <button type="button" class="tx-pill-dropdown-btn text-white" id="pageSizeTrigger" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="tx-dropdown-label text-white font-bold">10 / page</span>
+                            <svg class="tx-dropdown-chevron-icon w-2.5 h-2.5 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div class="tx-pill-dropdown-menu align-right min-w-[130px]" id="pageSizeMenu" role="listbox">
+                            <div class="tx-pill-dropdown-item is-selected" data-value="10">
+                                <span>10 / page</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="25">
+                                <span>25 / page</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="tx-pill-dropdown-item" data-value="50">
+                                <span>50 / page</span>
+                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- History Table -->
-            <div class="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
-                <table class="w-full text-left border-collapse">
+            <!-- History Table Card -->
+            <div class="tx-history-table-wrap overflow-x-auto rounded-2xl border border-slate-800/80 bg-[#080d1a]">
+                <table class="min-w-[1040px] w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr>
-                            <th class="tx-table-header">Date & Time</th>
-                            <th class="tx-table-header">Transaction / Activity</th>
-                            <th class="tx-table-header">Category</th>
-                            <th class="tx-table-header">Direction</th>
-                            <th class="tx-table-header">Amount</th>
-                            <th class="tx-table-header">Balance After</th>
-                            <th class="tx-table-header">Status</th>
+                        <tr class="border-b border-white/10 bg-[#060a14]/90 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                            <th class="py-3.5 px-4 w-[135px]">Date &amp; Time</th>
+                            <th class="py-3.5 px-4 min-w-[260px]">Activity &amp; Account</th>
+                            <th class="py-3.5 px-4 w-[120px]">Category</th>
+                            <th class="py-3.5 px-4 w-[130px]">Direction</th>
+                            <th class="py-3.5 px-4 text-right w-[130px]">Amount</th>
+                            <th class="py-3.5 px-4 text-right w-[130px]">Balance After</th>
+                            <th class="py-3.5 px-4 text-center w-[120px]">Status</th>
+                            <th class="py-3.5 px-4 text-center w-[145px]">Reference / Copy</th>
                         </tr>
                     </thead>
-                    <tbody id="historyTableBody">
+                    <tbody id="historyTableBody" class="divide-y divide-white/5">
                         <tr>
-                            <td colspan="7" class="tx-table-cell text-center text-slate-500 py-12">
-                                <span class="animate-spin inline-block mr-2">◌</span> Loading complete history...
+                            <td colspan="8" class="text-center text-slate-400 py-16">
+                                <div class="inline-flex items-center gap-2">
+                                    <span class="animate-spin text-cyan-400 text-base">◌</span>
+                                    <span class="font-bold text-sm">Loading complete activity records...</span>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -242,26 +375,118 @@
             </div>
 
             <!-- Empty State -->
-            <div id="historyEmptyState" class="hidden text-center py-16">
-                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-500 text-lg">📄</div>
-                <h4 class="text-sm font-bold text-slate-300">No activity records found</h4>
-                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">No transaction matches your selected category or filter.</p>
+            <div id="historyEmptyState" class="hidden text-center py-16 px-4">
+                <div class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <h4 class="text-base font-bold text-white">No activity records found</h4>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">There are no transactions matching your selected filters or date range.</p>
+                <button type="button" onclick="txResetHistoryFilters()" class="mt-4 px-4 py-2 rounded-xl bg-cyan-400/10 hover:bg-cyan-400/20 text-cyan-300 font-bold text-xs border border-cyan-400/30 transition cursor-pointer">
+                    Reset Filters
+                </button>
             </div>
 
             <!-- Pagination Bar -->
-            <div id="paginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t border-white/5 text-xs text-slate-400">
-                <span id="paginationInfo">Showing 0 of 0 entries</span>
+            <div id="paginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/5 text-xs text-slate-400">
+                <span id="paginationInfo" class="font-medium">Showing 0 of 0 entries</span>
                 <div id="paginationControls" class="flex items-center gap-1.5"></div>
             </div>
         </div>
     </main>
+
+    <!-- Transaction Detail Modal (Top-Level Body Placement, High Stacking Context) -->
+    <div id="txDetailModal" onclick="if(event.target === this) txCloseTxDetailModal()" class="tx-detail-modal-overlay fixed inset-0 z-[9999999] hidden items-center justify-center p-4" style="background-color: rgba(2, 6, 23, 0.90) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;">
+        <div data-lenis-prevent="true" class="tx-detail-modal-card relative w-full max-w-lg rounded-3xl p-6 sm:p-7 overflow-hidden text-white animate-in fade-in zoom-in-95 duration-200" style="background-color: #0c1220 !important; background: #0c1220 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 30px 90px rgba(0,0,0,0.95), 0 0 40px rgba(6,182,212,0.15) !important;">
+            <!-- Background Accent Glow -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/10 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div id="txDetailModalIcon" class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 text-lg font-black shrink-0">
+                        ⇄
+                    </div>
+                    <div>
+                        <h3 id="txDetailModalTitle" class="text-base sm:text-lg font-black text-white tracking-tight">Transaction Details</h3>
+                        <p id="txDetailModalSubtitle" class="text-[11px] text-slate-400">Unified Ledger Record</p>
+                    </div>
+                </div>
+                <button type="button" onclick="txCloseTxDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold" title="Close (Esc)">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Main Amount Card -->
+            <div class="tx-detail-modal-amount-box my-4 text-center py-4 px-3 rounded-2xl relative z-10" style="background-color: #070c18 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Transaction Amount</span>
+                <div id="txDetailModalAmount" class="text-2xl sm:text-3xl font-black font-mono text-cyan-300 tracking-tight">
+                    $0.00
+                </div>
+                <div id="txDetailModalStatusBadge" class="mt-2.5 inline-block">
+                    <!-- Status Badge -->
+                </div>
+            </div>
+
+            <!-- Detail List Grid -->
+            <div class="space-y-2.5 text-xs relative z-10 max-h-[42vh] overflow-y-auto pr-1 tx-history-table-wrap">
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Activity Type</span>
+                    <span id="txDetailModalType" class="font-bold text-slate-100 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Account</span>
+                    <span id="txDetailModalAccount" class="font-bold text-slate-100 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Category</span>
+                    <span id="txDetailModalCategory">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Direction</span>
+                    <span id="txDetailModalDirection">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Date &amp; Time</span>
+                    <span id="txDetailModalTimestamp" class="font-mono font-semibold text-slate-200 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Balance After</span>
+                    <span id="txDetailModalBalanceAfter" class="font-mono font-bold text-slate-200 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Reference ID</span>
+                    <div class="flex items-center gap-1.5 max-w-[65%]">
+                        <span id="txDetailModalRefId" class="font-mono font-bold text-cyan-300 truncate text-right">--</span>
+                        <button type="button" id="txDetailModalCopyBtn" onclick="txCopyModalRefId()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] text-slate-300 hover:text-cyan-300 font-mono transition cursor-pointer shrink-0" title="Copy Reference ID">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="py-2">
+                    <span class="text-slate-400 font-medium block mb-1">Description / Notes</span>
+                    <p id="txDetailModalDescription" class="tx-detail-modal-desc-box text-xs text-slate-300 rounded-xl p-3 leading-relaxed font-sans break-words select-text" style="background-color: #070c18 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                        --
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-4 mt-2 border-t border-white/10 flex items-center justify-between gap-2 relative z-10">
+                <span class="text-[11px] text-slate-500 italic">Tip: Double-click any row to view details</span>
+                <button type="button" onclick="txCloseTxDetailModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div data-component="mobile-menu"></div>
     <div data-component="footer"></div>
 
     <script src="../js/api-config.js?v=21"></script>
     <script src="../js/components-loader.js"></script>
-    <script src="../js/auth-state.js"></script>
-    <script src="../js/transfer-history.js?v=4"></script>
+    <script src="../js/auth-state.js?v=79"></script>
+    <script src="../js/transfer-history.js?v=12"></script>
 </body>
 </html>

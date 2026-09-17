@@ -1418,16 +1418,40 @@ function txPopulateAssetDropdown() {
     });
 }
 
+async function txRefreshTransferSubAccounts() {
+    if (typeof isLoggedIn === "function" && !isLoggedIn()) return;
+    try {
+        const response = await apiRequest("/user/sub-accounts");
+        if (response && response.data) {
+            txSubAccountsLocalCache = response.data;
+            if (typeof window !== "undefined") {
+                window.txSubAccountsLocalCache = response.data;
+            }
+            txPopulateTradingAccountSelect();
+            txUpdateTransferModalUI();
+        }
+    } catch (e) {
+        console.warn("Failed to refresh transfer sub-accounts:", e);
+    }
+}
+
 function txPopulateTradingAccountSelect() {
     const select = document.getElementById("txTransferTradingAccountSelect");
-    const cache = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
+    const cache = (typeof txSubAccountsLocalCache !== "undefined" && txSubAccountsLocalCache && txSubAccountsLocalCache.length > 0)
+        ? txSubAccountsLocalCache
+        : ((typeof window !== "undefined" && window.txSubAccountsLocalCache && window.txSubAccountsLocalCache.length > 0) ? window.txSubAccountsLocalCache : []);
     const activeSubId = localStorage.getItem("traidiumx_active_user_id");
 
     let options = [{ id: "main", name: "Main Trading Account" }];
     if (Array.isArray(cache) && cache.length > 0) {
         cache.forEach(sub => {
             if (!sub.is_parent) {
-                options.push({ id: String(sub.id), name: sub.name });
+                const subId = String(sub.id || sub._id || "");
+                if (subId && !options.some(o => o.id === subId)) {
+                    const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                    const planText = isDemo ? " (Demo)" : (sub.plan_name ? ` (${sub.plan_name})` : " (Real)");
+                    options.push({ id: subId, name: `${sub.name || 'Trading Account'}${planText}`, rawName: sub.name || 'Trading Account' });
+                }
             }
         });
     }
@@ -1456,9 +1480,9 @@ function txPopulateTradingAccountSelect() {
 
     if (dir === "main_to_trading") {
         if (fSub) fSub.innerHTML = `<span class="text-xs text-slate-400 font-medium">Main Balance</span>`;
-        if (tSub) tSub.innerHTML = `<span class="text-xs text-cyan-300 font-semibold">${activeName}</span>`;
+        if (tSub) tSub.innerHTML = `<span class="text-xs text-cyan-300 font-semibold truncate max-w-[170px] inline-block align-bottom">${activeName}</span>`;
     } else {
-        if (fSub) fSub.innerHTML = `<span class="text-xs text-cyan-300 font-semibold">${activeName}</span>`;
+        if (fSub) fSub.innerHTML = `<span class="text-xs text-cyan-300 font-semibold truncate max-w-[170px] inline-block align-bottom">${activeName}</span>`;
         if (tSub) tSub.innerHTML = `<span class="text-xs text-slate-400 font-medium">Main Balance</span>`;
     }
 
@@ -1475,11 +1499,11 @@ function txPopulateTradingAccountSelect() {
             const isSel = opt.id === String(selectedVal);
             menuHTML += `
                 <div class="tx-custom-dropdown-item ${isSel ? "is-selected" : ""}" data-account-id="${opt.id}">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 ${isSel ? "text-cyan-400" : "text-slate-400"}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                        <span>${opt.name}</span>
+                    <div class="flex items-center gap-2 min-w-0">
+                        <svg class="w-4 h-4 shrink-0 ${isSel ? "text-cyan-400" : "text-slate-400"}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="truncate">${opt.name}</span>
                     </div>
-                    <svg class="tx-custom-dropdown-item-check w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <svg class="tx-custom-dropdown-item-check w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 </div>
             `;
         });
@@ -1500,7 +1524,11 @@ function txPopulateTradingAccountSelect() {
                 const mainSelector = document.getElementById("tradingAccountSelector");
                 if (mainSelector) mainSelector.value = accId;
 
+                const overviewSelector = document.getElementById("txWalletAccountSelector");
+                if (overviewSelector) overviewSelector.value = accId;
+
                 txCloseAllTransferDropdowns();
+                txPopulateTradingAccountSelect();
                 txUpdateTransferModalUI();
             };
         });
@@ -1769,6 +1797,26 @@ function txInitTransferModalListeners() {
 }
 
 function openWalletActionModal(action = "deposit", selectedAsset = null) {
+    if (String(action).toLowerCase() === "deposit") {
+        if (typeof txOpenDepositChoiceModal === "function") {
+            txOpenDepositChoiceModal();
+            return;
+        }
+        const depositModal = document.getElementById("txDepositChoiceModal");
+        if (depositModal) {
+            depositModal.classList.remove("hidden");
+            depositModal.classList.add("flex");
+            return;
+        }
+    }
+
+    if (String(action).toLowerCase() === "withdraw") {
+        if (typeof txActivateWithdrawTab === "function") {
+            txActivateWithdrawTab("crypto");
+            return;
+        }
+    }
+
     if (!walletElements.actionModal) return;
 
     resetWalletActionModalDOM();
@@ -1831,8 +1879,12 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
         const statsGrid = document.getElementById("walletModalStatsGrid");
         if (statsGrid) statsGrid.classList.add("hidden");
 
+        txPopulateTradingAccountSelect();
         txUpdateTransferModalUI();
         txInitTransferModalListeners();
+        if (typeof txRefreshTransferSubAccounts === "function") {
+            txRefreshTransferSubAccounts();
+        }
     }
 
     if (target === "deposit") {
@@ -4578,8 +4630,13 @@ async function handleUnifiedWalletTransferSubmit(event) {
 
     try {
         walletSetButtonLoading(walletElements.unifiedTransferBtn, true);
-        const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
-        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        const assetSelect = document.getElementById("walletTransferAsset");
+        const currency = (assetSelect ? assetSelect.value : (localStorage.getItem("tx_navbar_currency") || "USDT")).toUpperCase();
+        const tradingSelect = document.getElementById("txTransferTradingAccountSelect");
+        const targetSubId = (tradingSelect && tradingSelect.value && tradingSelect.value !== "main") 
+            ? tradingSelect.value 
+            : localStorage.getItem("traidiumx_active_user_id");
+        const activeSubId = (targetSubId && targetSubId !== "main") ? targetSubId : null;
         let response;
         if (activeSubId) {
             const mappedDirection = direction === "main_to_trading" ? "main_to_sub" : "sub_to_main";
@@ -6321,7 +6378,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         openWalletActionModal("transfer");
     });
     document.getElementById("quickExchangeBtn")?.addEventListener("click", () => {
-        openWalletActionModal("transfer");
+        window.location.href = "./exchange.html";
     });
     document.getElementById("quickInternalTransferBtn")?.addEventListener("click", () => {
         openWalletActionModal("internal_transfer");
@@ -6611,6 +6668,9 @@ async function txInitSubAccountsAndSelector() {
         }
 
         txUpdateWalletActiveAccountBanner();
+        if (typeof txPopulateTradingAccountSelect === "function") {
+            txPopulateTradingAccountSelect();
+        }
 
         // 2. Navigation Header Selector if present
         const selector = document.getElementById("tradingAccountSelector");
@@ -6930,15 +6990,20 @@ function txInitPrimeOverview() {
     }
 
     // 2. Action buttons
-    document.getElementById("txPrimeDepositBtn")?.addEventListener("click", () => {
-        openWalletActionModal("deposit");
+    document.getElementById("txPrimeDepositBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof txOpenDepositChoiceModal === "function") {
+            txOpenDepositChoiceModal();
+        } else {
+            openWalletActionModal("deposit");
+        }
     });
-    document.getElementById("txPrimeWithdrawBtn")?.addEventListener("click", () => {
-        const tabWallet = document.getElementById("mainTabWallet");
-        if (tabWallet) {
-            tabWallet.click();
-            const tabWithdraw = document.getElementById("subTabWithdraw");
-            if (tabWithdraw) tabWithdraw.click();
+    document.getElementById("txPrimeWithdrawBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof txActivateWithdrawTab === "function") {
+            txActivateWithdrawTab("crypto");
         }
     });
     document.getElementById("txPrimeTransferBtn")?.addEventListener("click", () => {
@@ -6959,7 +7024,7 @@ function txInitPrimeOverview() {
     }
     document.getElementById("txPrimeMenuExchange")?.addEventListener("click", () => {
         moreDropdown?.classList.add("hidden");
-        openWalletActionModal("transfer");
+        window.location.href = "./exchange.html";
     });
     document.getElementById("txPrimeMenuInternal")?.addEventListener("click", () => {
         moreDropdown?.classList.add("hidden");
@@ -7062,8 +7127,15 @@ function txInitTabs() {
             }
         }
 
-        // Save active main tab in localStorage
+        // Save active main tab in localStorage and clear subtab session
         localStorage.setItem("tx_active_main_tab", activeTab.id);
+        if (activeTab !== tabDeposit) {
+            sessionStorage.removeItem("tx_wallet_sub_tab");
+            if (window.history && window.history.replaceState) {
+                const h = activeTab === tabOverview ? "" : (activeTab === tabTrading ? "#trading" : "#wallet");
+                window.history.replaceState(null, "", window.location.pathname + window.location.search + h);
+            }
+        }
     }
 
     tabOverview.addEventListener("click", () => {
@@ -7101,42 +7173,90 @@ function txInitTabs() {
         txInitWalletTabInteractions();
     }
 
-    // Check URL parameters and hash for direct Deposit / Transfer / Wallet routing
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get("tab");
-    const typeParam = urlParams.get("type");
-    const hashParam = window.location.hash || "";
+    // Check URL parameters, session storage and hash for direct tab routing (Overview / Trading / Wallet / Deposit / Withdraw / Transfer / History)
+    function txHandleRouteTab() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = (urlParams.get("tab") || "").toLowerCase();
+        const typeParam = (urlParams.get("type") || "").toLowerCase();
+        const hashParam = (window.location.hash || "").toLowerCase();
+        const sessionSub = sessionStorage.getItem("tx_wallet_sub_tab");
 
-    if (tabParam === "deposit" || hashParam.includes("deposit")) {
-        if (tabDeposit) {
-            tabDeposit.click();
-            if (typeParam === "money" || hashParam.includes("money")) {
-                setTimeout(() => { if (typeof txSwitchDepositMode === "function") txSwitchDepositMode("money"); }, 80);
-            } else {
-                setTimeout(() => { if (typeof txSwitchDepositMode === "function") txSwitchDepositMode("crypto"); }, 80);
+        if (tabParam === "sub-accounts" || tabParam === "new-account" || hashParam.includes("sub-account") || hashParam.includes("new-account")) {
+            if (tabTrading) tabTrading.click();
+            setTimeout(() => {
+                if (typeof window.txOpenSubAccountCreationModal === "function") {
+                    window.txOpenSubAccountCreationModal(typeParam === "demo" ? "demo" : "real");
+                }
+            }, 80);
+            return true;
+        } else if (tabParam === "trading" || tabParam === "trading-accounts" || tabParam === "trading_accounts" || hashParam.includes("trading")) {
+            if (tabTrading) {
+                tabTrading.click();
+                return true;
             }
-            return;
+        } else if (tabParam === "wallet" || hashParam.includes("wallet") || hashParam.includes("wallets")) {
+            if (tabWallet) {
+                tabWallet.click();
+                return true;
+            }
+        } else if (tabParam === "deposit" || hashParam.includes("deposit") || (!hashParam && sessionSub === "deposit")) {
+            if (typeof window.txActivateDepositTab === "function") {
+                window.txActivateDepositTab(typeParam === "money" || hashParam.includes("money") ? "money" : "crypto");
+                return true;
+            }
+        } else if (tabParam === "withdraw" || hashParam.includes("withdraw") || (!hashParam && sessionSub === "withdraw")) {
+            if (typeof window.txActivateWithdrawTab === "function") {
+                window.txActivateWithdrawTab(typeParam === "money" || hashParam.includes("money") ? "money" : "crypto");
+                return true;
+            }
+        } else if (tabParam === "history" || hashParam.includes("history") || hashParam.includes("transfer-history") || (!hashParam && sessionSub === "history")) {
+            if (typeof window.txActivateHistoryTab === "function") {
+                window.txActivateHistoryTab();
+                return true;
+            }
+        } else if (tabParam === "transfer" || hashParam.includes("transfer")) {
+            if (tabOverview) tabOverview.click();
+            if (typeof openWalletActionModal === "function") {
+                openWalletActionModal("transfer");
+            }
+            return true;
+        } else if (tabParam === "overview" || hashParam.includes("overview")) {
+            if (tabOverview) {
+                tabOverview.click();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    window.txHandleRouteTab = txHandleRouteTab;
+
+    const routed = txHandleRouteTab();
+    if (!routed) {
+        // Restore active tab on load ONLY if we reloaded or came from the wallet page itself
+        const isFromWallet = document.referrer && document.referrer.includes("wallet.html");
+        const isReload = window.performance && window.performance.navigation && window.performance.navigation.type === 1;
+
+        if (isFromWallet || isReload) {
+            const savedTabId = localStorage.getItem("tx_active_main_tab");
+            if (savedTabId) {
+                const savedTab = document.getElementById(savedTabId);
+                if (savedTab) {
+                    savedTab.click();
+                }
+            }
+        } else {
+            localStorage.removeItem("tx_active_main_tab");
+            if (tabOverview) {
+                tabOverview.click();
+            }
         }
     }
 
-    // Restore active tab on load ONLY if we reloaded or came from the wallet page itself
-    const isFromWallet = document.referrer && document.referrer.includes("wallet.html");
-    const isReload = window.performance && window.performance.navigation && window.performance.navigation.type === 1;
-
-    if (isFromWallet || isReload) {
-        const savedTabId = localStorage.getItem("tx_active_main_tab");
-        if (savedTabId) {
-            const savedTab = document.getElementById(savedTabId);
-            if (savedTab) {
-                savedTab.click();
-            }
-        }
-    } else {
-        localStorage.removeItem("tx_active_main_tab");
-        if (tabOverview) {
-            tabOverview.click();
-        }
-    }
+    // React immediately to hash changes while user stays on the wallet page
+    window.addEventListener("hashchange", () => {
+        txHandleRouteTab();
+    });
 }
 
 function txRenderAssetLists() {
@@ -7293,19 +7413,25 @@ function txRenderAssetLists() {
     const activeSub = isSubActive ? (txSubAccountsLocalCache || []).find(s => s.id === activeSubId) : null;
     const isDemo = activeSub ? Boolean(activeSub.is_demo || activeSub.account_mode === "demo" || activeSub.plan === "demo" || activeSub.plan_name?.toLowerCase().includes("demo")) : false;
 
-    // Active Account specific balance:
-    let displayTotalUsd = isMt5 ? mt5Bal : usdtBalance;
-    let displayAvailUsd = isMt5 ? mt5Bal : usdtBalance;
-    let displayLockedUsd = isMt5 ? 0 : usdtLocked;
+    // Active Account specific balance (Show Main Balance of selected account):
+    const activeSubMainUsdtAvail = isMt5 ? mt5Bal : (isSubActive 
+        ? walletNumber(activeWallet?.main_wallet_usdt?.available_balance ?? activeWallet?.main_wallet?.available_balance, 0)
+        : usdtBalance);
+    const activeSubMainUsdtLocked = isMt5 ? 0 : (isSubActive
+        ? walletNumber(activeWallet?.main_wallet_usdt?.locked_balance ?? activeWallet?.main_wallet?.locked_balance, 0)
+        : usdtLocked);
+    const activeSubMainInrAvail = isMt5 ? 0 : (isSubActive
+        ? walletNumber(activeWallet?.main_wallet_inr?.available_balance, 0)
+        : inrBalance);
+    const activeSubMainInrLocked = isMt5 ? 0 : (isSubActive
+        ? walletNumber(activeWallet?.main_wallet_inr?.locked_balance, 0)
+        : inrLocked);
 
-    if (isSubActive) {
-        // When a Sub Account or Demo Account is actively selected, show its isolated funds
-        displayTotalUsd = tradingUsdtAvail;
-        displayAvailUsd = tradingUsdtAvail;
-        displayLockedUsd = tradingUsdtLocked + tradingMargin;
-    }
+    let displayTotalUsd = isMt5 ? mt5Bal : activeSubMainUsdtAvail;
+    let displayAvailUsd = isMt5 ? mt5Bal : activeSubMainUsdtAvail;
+    let displayLockedUsd = isMt5 ? 0 : activeSubMainUsdtLocked;
 
-    const displayTotalInr = inrBalance > 0 && !isSubActive ? inrBalance : (displayTotalUsd * rate);
+    const displayTotalInr = activeSubMainInrAvail > 0 ? activeSubMainInrAvail : (displayTotalUsd * rate);
 
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const totalEl = document.getElementById("portfolioTotalBalance");
@@ -7340,7 +7466,7 @@ function txRenderAssetLists() {
                 primeAccountBadge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
             }
             if (primeTotalFundsLabel) {
-                primeTotalFundsLabel.textContent = isDemo ? "Demo Balance" : "Trading Balance";
+                primeTotalFundsLabel.textContent = isDemo ? "Demo Balance" : "Main Balance";
             }
         } else {
             primeAccountBadge.textContent = "Main Account (Real)";
@@ -7592,21 +7718,12 @@ function txRenderOverviewStats(stats) {
 }
 
 window.txToggleWalletHistoryView = function(showHistory = true) {
-    const assetsView = document.getElementById("txWalletAssetsView");
-    const historyView = document.getElementById("txWalletHistoryView");
-    if (!assetsView || !historyView) return;
-    if (showHistory) {
-        assetsView.classList.add("hidden");
-        historyView.classList.remove("hidden");
-        WALLET_STATE.lastHistoryFetchAt = 0;
-        renderLedgerTable();
-        renderDepositTable();
-        renderWithdrawalTable();
-        loadWalletData();
-    } else {
-        historyView.classList.add("hidden");
-        assetsView.classList.remove("hidden");
+    if (showHistory && typeof window.txActivateHistoryTab === "function") {
+        window.txActivateHistoryTab();
+        return;
     }
+    const assetsView = document.getElementById("txWalletAssetsView");
+    if (assetsView) assetsView.classList.remove("hidden");
 };
 
 function txInitWalletTabInteractions() {
@@ -7634,6 +7751,19 @@ function txInitWalletTabInteractions() {
     document.getElementById("hideEmptyBalancesCheck")?.addEventListener("change", () => {
         txRenderAssetLists();
     });
+
+    // 4. Currency Change Event Listener
+    window.addEventListener("traidiumx:currency-change", () => {
+        txRenderAssetLists();
+    });
+
+    // 5. Transfer History Link
+    document.getElementById("txWalletTransferHistoryLink")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (typeof window.txActivateHistoryTab === "function") {
+            window.txActivateHistoryTab();
+        }
+    });
 }
 
 window.txTriggerRowAction = function(asset, action) {
@@ -7655,7 +7785,7 @@ window.txTriggerRowAction = function(asset, action) {
         }
         openWalletActionModal("withdraw", asset);
     } else if (action === "exchange") {
-        openWalletActionModal("exchange", asset);
+        window.location.href = `./exchange.html?from=${encodeURIComponent(asset)}`;
     } else if (action === "transfer") {
         openWalletActionModal("transfer");
     } else if (action === "internal_transfer") {
@@ -7776,19 +7906,17 @@ function txRenderTradingAccounts() {
         return matchType && matchEmpty;
     });
 
-    // Calculate total funds in trading accounts matching active type
-    let totalGroupFundsUsd = 0;
-    allAccounts.filter(a => (txTaFilterMode === "demo" ? a.isDemo : !a.isDemo)).forEach(a => {
-        totalGroupFundsUsd += a.balanceUsd;
-    });
+    // Calculate active account Balance
+    const activeAccount = allAccounts.find(a => a.isActive) || allAccounts[0];
+    const activeAccountBalUsd = activeAccount ? activeAccount.balanceUsd : 0;
 
-    // Update Top Hero Card in Trading Accounts Tab
+    // Update Top Hero Card in Trading Accounts Tab with Active Account's Balance
     const taTotalEl = document.getElementById("txTaTotalFundsVal");
     if (taTotalEl) {
         if (hidden) {
             taTotalEl.textContent = "≈ ******** USD";
         } else {
-            taTotalEl.textContent = `≈ ${totalGroupFundsUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            taTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         }
     }
 
@@ -7797,7 +7925,7 @@ function txRenderTradingAccounts() {
         if (hidden) {
             groupTotalEl.textContent = "≈ ******** USD";
         } else {
-            groupTotalEl.textContent = `≈ ${totalGroupFundsUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            groupTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         }
     }
 
@@ -7976,6 +8104,59 @@ window.txToggleTaCardDetails = function(accId) {
     }
 };
 
+window.txLoadDynamicPlanSettings = async function() {
+    try {
+        const resp = await apiRequest("/onboarding/config");
+        const settings = resp?.data?.settings;
+        const plans = settings?.plans;
+        if (!plans) return;
+
+        // Basic
+        if (plans.basic) {
+            const basicMin = Number(plans.basic.minimum_balance || 0);
+            const basicMinEl = document.getElementById("subPlanBasicMinPill");
+            if (basicMinEl) {
+                basicMinEl.textContent = basicMin === 0 ? "MIN $0.00" : `MIN $${basicMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            const basicSpreadEl = document.getElementById("subPlanBasicSpread");
+            if (basicSpreadEl) {
+                const spreadVal = plans.basic.spread_value !== undefined ? plans.basic.spread_value : 18;
+                basicSpreadEl.textContent = plans.basic.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+            }
+        }
+
+        // Standard
+        if (plans.standard) {
+            const standardMin = Number(plans.standard.minimum_balance || 2000);
+            const standardMinEl = document.getElementById("subPlanStandardMinPill");
+            if (standardMinEl) {
+                standardMinEl.textContent = `MIN $${standardMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            const standardSpreadEl = document.getElementById("subPlanStandardSpread");
+            if (standardSpreadEl) {
+                const spreadVal = plans.standard.spread_value !== undefined ? plans.standard.spread_value : 12;
+                standardSpreadEl.textContent = plans.standard.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+            }
+        }
+
+        // Advanced
+        if (plans.advanced) {
+            const advMin = Number(plans.advanced.minimum_balance || 5000);
+            const advMinEl = document.getElementById("subPlanAdvancedMinPill");
+            if (advMinEl) {
+                advMinEl.textContent = `MIN $${advMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            const advSpreadEl = document.getElementById("subPlanAdvancedSpread");
+            if (advSpreadEl) {
+                const spreadVal = plans.advanced.spread_value !== undefined ? plans.advanced.spread_value : 5;
+                advSpreadEl.textContent = plans.advanced.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+            }
+        }
+    } catch (err) {
+        // Fallback gracefully to default template values
+    }
+};
+
 window.txOpenSubAccountCreationModal = function(defaultMode = "real") {
     const modal = document.getElementById("subAccountModal");
     if (!modal) return;
@@ -7983,6 +8164,9 @@ window.txOpenSubAccountCreationModal = function(defaultMode = "real") {
     modal.classList.add("flex");
     txSetSubModalMode(defaultMode);
     txRenderSubAccountsList();
+    if (typeof window.txLoadDynamicPlanSettings === "function") {
+        window.txLoadDynamicPlanSettings();
+    }
     const scrollBody = document.getElementById("subAccountModalScrollBody") || modal.querySelector(".overflow-y-auto");
     if (scrollBody) scrollBody.scrollTop = 0;
 };
@@ -8088,6 +8272,10 @@ async function txRenderSubAccountsList() {
 }
 
 function txInitTradingAccountsInteractions() {
+    if (typeof window.txLoadDynamicPlanSettings === "function") {
+        window.txLoadDynamicPlanSettings();
+    }
+
     // 1. Header Hero Actions
     document.getElementById("txTaNewAccountBtn")?.addEventListener("click", () => {
         txOpenSubAccountCreationModal(txTaFilterMode);
@@ -8152,13 +8340,11 @@ function txInitTradingAccountsInteractions() {
         });
     }
 
-    // 4. Trading History Link
-    document.getElementById("txTaHistoryLinkBtn")?.addEventListener("click", () => {
-        const tabWallet = document.getElementById("mainTabWallet");
-        if (tabWallet) {
-            tabWallet.click();
-            const tabHistory = document.getElementById("subTabHistory");
-            if (tabHistory) tabHistory.click();
+    // 4. Transfer History Link
+    document.getElementById("txTaHistoryLinkBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (typeof window.txActivateHistoryTab === "function") {
+            window.txActivateHistoryTab();
         }
     });
 
@@ -8204,14 +8390,33 @@ function txInitTradingAccountsInteractions() {
     // Platform selection
     const platPx = document.getElementById("subPlatformPxTrader");
     const platMt5 = document.getElementById("subPlatformMT5");
+    const platPxRadio = document.getElementById("subPlatformPxRadio");
+    const platMt5Radio = document.getElementById("subPlatformMt5Radio");
+
     const updatePlatformCards = (plat) => {
         txTaSelectedPlatform = plat;
         if (plat === "pxtrader") {
-            platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-            platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+            platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+            if (platPxRadio) {
+                platPxRadio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                platPxRadio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            }
+            if (platMt5Radio) {
+                platMt5Radio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                platMt5Radio.innerHTML = '';
+            }
         } else {
-            platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-            platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+            platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+            if (platMt5Radio) {
+                platMt5Radio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                platMt5Radio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            }
+            if (platPxRadio) {
+                platPxRadio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                platPxRadio.innerHTML = '';
+            }
         }
     };
     platPx?.addEventListener("click", () => updatePlatformCards("pxtrader"));
@@ -8227,13 +8432,16 @@ function txInitTradingAccountsInteractions() {
 
         planCards.forEach(card => {
             const cardPlan = card.getAttribute("data-plan");
+            const radioContainer = card.querySelector(".tx-plan-radio");
             const radio = card.querySelector(".tx-plan-radio div");
             if (cardPlan === plan) {
-                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/90 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30";
-                if (radio) radio.className = "w-2 h-2 rounded-full bg-cyan-400";
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]";
+                if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0";
+                if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-slate-950";
             } else {
-                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 transition cursor-pointer hover:border-slate-700";
-                if (radio) radio.className = "w-2 h-2 rounded-full bg-transparent";
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700";
+                if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0";
+                if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-transparent";
             }
         });
     };
@@ -8297,6 +8505,9 @@ function txInitTradingAccountsInteractions() {
                 await txRenderSubAccountsList();
                 if (typeof txInitSubAccountsAndSelector === "function") {
                     await txInitSubAccountsAndSelector();
+                }
+                if (typeof txPopulateTradingAccountSelect === "function") {
+                    txPopulateTradingAccountSelect();
                 }
                 txRenderTradingAccounts();
 
@@ -10109,19 +10320,74 @@ function txInitDepositFaqAccordion() {
 }
 
 window.txActivateDepositTab = function(mode = "crypto") {
-    const tabDeposit = document.getElementById("mainTabDeposit");
-    if (tabDeposit) {
-        tabDeposit.click();
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    if (contentDeposit) {
+        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
+        contentDeposit.classList.remove("hidden");
+    }
+    if (topTabsBar) topTabsBar.classList.add("hidden");
+    if (typeof txSwitchNexusSubTab === "function") {
         txSwitchNexusSubTab("deposit");
+    }
+    if (typeof txSwitchDepositMode === "function") {
         txSwitchDepositMode(mode);
     }
+    window.scrollTo({ top: 0, behavior: "smooth" });
 };
-window.txActivateWithdrawTab = function(mode = "money") {
-    const tabDeposit = document.getElementById("mainTabDeposit");
-    if (tabDeposit) {
-        tabDeposit.click();
+
+window.txActivateWithdrawTab = function(mode = "crypto") {
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    if (contentDeposit) {
+        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
+        contentDeposit.classList.remove("hidden");
+    }
+    if (topTabsBar) topTabsBar.classList.add("hidden");
+    if (typeof txSwitchNexusSubTab === "function") {
         txSwitchNexusSubTab("withdraw");
+    }
+    if (typeof txSwitchWithdrawMode === "function") {
         txSwitchWithdrawMode(mode);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+window.txActivateHistoryTab = function() {
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    if (contentDeposit) {
+        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
+        contentDeposit.classList.remove("hidden");
+    }
+    if (topTabsBar) topTabsBar.classList.add("hidden");
+    if (typeof txSwitchNexusSubTab === "function") {
+        txSwitchNexusSubTab("history");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+window.txBackToWalletOverview = function() {
+    sessionStorage.removeItem("tx_wallet_sub_tab");
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    const tabOverview = document.getElementById("mainTabOverview");
+    if (tabOverview) {
+        tabOverview.click();
+        window.scrollTo({ top: 0, behavior: "smooth" });
     }
 };
 
@@ -10138,7 +10404,16 @@ function txSwitchNexusSubTab(tab = "deposit") {
     const panelWithdraw = document.getElementById("txWithdrawMainPanel");
     const panelHistory = document.getElementById("txNexusHistoryMainPanel");
 
+    // Save subtab in session storage and update URL hash without reloading page
+    sessionStorage.setItem("tx_wallet_sub_tab", tab);
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search + `#${tab}`);
+    }
+
+    const wrap = document.querySelector(".tx-nexus-deposit-wrap");
+
     if (tab === "history") {
+        if (wrap) wrap.classList.add("is-history-view");
         if (btnHistory) btnHistory.className = "tx-nexus-subtab-btn active";
         if (btnDeposit) btnDeposit.className = "tx-nexus-subtab-btn";
         if (btnWithdraw) btnWithdraw.className = "tx-nexus-subtab-btn";
@@ -10156,6 +10431,8 @@ function txSwitchNexusSubTab(tab = "deposit") {
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
     }
+
+    if (wrap) wrap.classList.remove("is-history-view");
 
     if (grid) {
         grid.classList.remove("hidden");
@@ -10194,6 +10471,9 @@ function txSwitchNexusSubTab(tab = "deposit") {
 /* ==========================================================================
    NEXUS INLINE TRANSFER & ACTIVITY HISTORY LOGIC
    ========================================================================== */
+/* ==========================================================================
+   NEXUS INLINE TRANSFER & ACTIVITY HISTORY LOGIC (PrimeXBT Reports Style)
+   ========================================================================== */
 const NEXUS_TX_HISTORY_STATE = {
     loading: false,
     rawLedger: [],
@@ -10202,6 +10482,7 @@ const NEXUS_TX_HISTORY_STATE = {
     subAccountsList: [],
     selectedAccount: "main",
     activeCategory: "all",
+    datePreset: "all",
     search: "",
     currency: "all",
     direction: "all",
@@ -10220,16 +10501,21 @@ function txNexusFormatMoney(value, currency = "USDT") {
 }
 
 function txNexusFormatDate(value) {
-    if (!value) return "--";
+    if (!value) return { date: "--", time: "--" };
     const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return "--";
-    return d.toLocaleString("en-IN", {
+    if (Number.isNaN(d.getTime())) return { date: "--", time: "--" };
+    const dateStr = d.toLocaleDateString("en-US", {
         day: "2-digit",
         month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
+        year: "numeric"
     });
+    const timeStr = d.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+    });
+    return { date: dateStr, time: timeStr };
 }
 
 function txNexusCategorizeItem(item) {
@@ -10256,12 +10542,12 @@ function txNexusCategorizeItem(item) {
 
 function txNexusGetCategoryBadge(category) {
     const map = {
-        transfers: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">Transfer</span>',
-        deposits: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-400/10 text-emerald-400 border border-emerald-400/20">Deposit</span>',
-        withdrawals: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-400/10 text-rose-400 border border-rose-400/20">Withdrawal</span>',
-        referral: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">Referral Reward</span>',
-        trading: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-400/10 text-indigo-300 border border-indigo-400/20">Trading</span>',
-        other: '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-400/10 text-slate-300 border border-slate-400/20">System</span>'
+        transfers: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-cyan-400/10 text-cyan-300 border border-cyan-400/25 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0"></span>Transfer</span>',
+        deposits: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-emerald-400/10 text-emerald-400 border border-emerald-400/25 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>Deposit</span>',
+        withdrawals: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-rose-400/10 text-rose-400 border border-rose-400/25 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>Withdrawal</span>',
+        referral: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-amber-400/10 text-amber-300 border border-amber-400/25 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>Reward</span>',
+        trading: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-indigo-400/10 text-indigo-300 border border-indigo-400/25 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>Trading</span>',
+        other: '<span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-slate-800 text-slate-300 border border-slate-700 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>System</span>'
     };
     return map[category] || map.other;
 }
@@ -10269,15 +10555,26 @@ function txNexusGetCategoryBadge(category) {
 function txNexusGetDirectionBadge(direction) {
     const dir = String(direction || "").toLowerCase();
     if (dir === "credit" || dir === "in") {
-        return '<span class="text-xs font-black text-emerald-400 uppercase">Credit (+)</span>';
+        return '<span class="text-[12px] font-bold text-emerald-400 inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg> Credit (+)</span>';
     }
     if (dir === "debit" || dir === "out") {
-        return '<span class="text-xs font-black text-rose-400 uppercase">Debit (-)</span>';
+        return '<span class="text-[12px] font-bold text-rose-400 inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg> Debit (-)</span>';
     }
-    if (dir === "finalized") {
-        return '<span class="text-xs font-black text-cyan-400 uppercase">Payout (✓)</span>';
+    return '<span class="text-[12px] font-bold text-cyan-300 inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> Transfer (↔)</span>';
+}
+
+function txNexusGetStatusBadge(item) {
+    const desc = String(item.description || "").toLowerCase();
+    const type = String(item.transaction_type || "").toLowerCase();
+    const status = String(item.status || "").toLowerCase();
+
+    if (status.includes("reject") || status.includes("fail") || desc.includes("reject") || desc.includes("failed") || type.includes("reject")) {
+        return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>Rejected</span>';
     }
-    return '<span class="text-xs font-black text-cyan-300 uppercase">Transfer (↔)</span>';
+    if (status.includes("pending") || status.includes("process") || desc.includes("pending") || desc.includes("processing")) {
+        return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>Pending</span>';
+    }
+    return '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Completed</span>';
 }
 
 function txNexusGetFilteredRows() {
@@ -10286,8 +10583,23 @@ function txNexusGetFilteredRows() {
     const curr = String(NEXUS_TX_HISTORY_STATE.currency || "all").toUpperCase();
     const dir = String(NEXUS_TX_HISTORY_STATE.direction || "all").toLowerCase();
     const cat = String(NEXUS_TX_HISTORY_STATE.activeCategory || "all").toLowerCase();
+    const datePreset = String(NEXUS_TX_HISTORY_STATE.datePreset || "all").toLowerCase();
+
+    const now = new Date();
 
     return all.filter((item) => {
+        // Date preset filter
+        if (datePreset !== "all" && item.created_at) {
+            const itemDate = new Date(item.created_at);
+            if (!Number.isNaN(itemDate.getTime())) {
+                const diffHours = (now.getTime() - itemDate.getTime()) / (1000 * 60 * 60);
+                if (datePreset === "today" && diffHours > 24) return false;
+                if (datePreset === "7d" && diffHours > 24 * 7) return false;
+                if (datePreset === "30d" && diffHours > 24 * 30) return false;
+                if (datePreset === "90d" && diffHours > 24 * 90) return false;
+            }
+        }
+
         const itemCat = txNexusCategorizeItem(item);
         if (cat !== "all" && itemCat !== cat) {
             return false;
@@ -10317,6 +10629,50 @@ function txNexusGetFilteredRows() {
         return true;
     });
 }
+
+function txCopyReferenceId(text, btn) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<span class="text-emerald-400 font-bold">Copied!</span>';
+            setTimeout(() => {
+                btn.innerHTML = original;
+            }, 1200);
+        }
+    }).catch(() => {});
+}
+window.txCopyReferenceId = txCopyReferenceId;
+
+function txResetNexusHistoryFilters() {
+    NEXUS_TX_HISTORY_STATE.activeCategory = "all";
+    NEXUS_TX_HISTORY_STATE.search = "";
+    NEXUS_TX_HISTORY_STATE.currency = "all";
+    NEXUS_TX_HISTORY_STATE.direction = "all";
+    NEXUS_TX_HISTORY_STATE.datePreset = "all";
+    NEXUS_TX_HISTORY_STATE.page = 1;
+
+    // Reset UI inputs
+    const sInput = document.getElementById("nexusHistorySearchInput");
+    if (sInput) sInput.value = "";
+    const cSelect = document.getElementById("nexusCurrencyFilter");
+    if (cSelect) cSelect.value = "all";
+    const dSelect = document.getElementById("nexusDirectionFilter");
+    if (dSelect) dSelect.value = "all";
+    const dpSelect = document.getElementById("nexusDatePresetFilter");
+    if (dpSelect) dpSelect.value = "all";
+
+    document.querySelectorAll("[data-nexus-category]").forEach(btn => {
+        if (btn.getAttribute("data-nexus-category") === "all") {
+            btn.className = "tx-prime-tab active px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap bg-cyan-400 text-slate-950 shadow-sm";
+        } else {
+            btn.className = "tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60";
+        }
+    });
+
+    txNexusRenderHistoryTable();
+}
+window.txResetNexusHistoryFilters = txResetNexusHistoryFilters;
 
 function txNexusRenderHistoryTable() {
     const tbody = document.getElementById("nexusHistoryTableBody");
@@ -10351,6 +10707,7 @@ function txNexusRenderHistoryTable() {
         const cat = txNexusCategorizeItem(item);
         const catBadge = txNexusGetCategoryBadge(cat);
         const dirBadge = txNexusGetDirectionBadge(item.direction);
+        const statusBadge = txNexusGetStatusBadge(item);
         const curr = item.currency || "USDT";
         const sign = String(item.direction || "").toLowerCase() === "credit" ? "+" : (String(item.direction || "").toLowerCase() === "debit" ? "-" : "");
         const colorClass = String(item.direction || "").toLowerCase() === "credit" ? "text-emerald-400" : (String(item.direction || "").toLowerCase() === "debit" ? "text-rose-400" : "text-cyan-300");
@@ -10360,38 +10717,53 @@ function txNexusRenderHistoryTable() {
             .replace(/\b\w/g, c => c.toUpperCase());
 
         const desc = item.description || "";
-        const ref = item.reference_id ? `<span class="font-mono text-[10px] text-slate-500 block mt-0.5">Ref: ${item.reference_id}</span>` : "";
-        const accBadge = item._accountLabel ? `<span class="inline-block px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-300 text-[10px] font-bold border border-indigo-500/25 mt-0.5">🏷️ ${item._accountLabel}</span>` : "";
+        const refId = item.reference_id || item.id || "";
+        const shortRef = refId.length > 14 ? `${refId.slice(0, 6)}...${refId.slice(-4)}` : refId;
+        const formattedDate = txNexusFormatDate(item.created_at);
+        const accLabel = item._accountLabel || "Main Account";
+        const isDemoAcc = accLabel.toLowerCase().includes("demo");
+
+        const itemKey = refId || item.id || "";
 
         return `
-            <tr class="hover:bg-slate-900/60 transition duration-150">
-                <td class="tx-table-cell text-slate-300 font-mono text-[12px] whitespace-nowrap">
-                    ${txNexusFormatDate(item.created_at)}
+            <tr ondblclick="txOpenTxDetailModal('${encodeURIComponent(itemKey)}')"
+                title="Double-click to view complete transaction details"
+                class="hover:bg-slate-900/80 transition duration-150 border-b border-white/[0.04] cursor-pointer select-none group">
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                    <div class="font-bold text-slate-100 text-[13px] tracking-tight group-hover:text-cyan-300 transition">${formattedDate.date}</div>
+                    <div class="text-[11px] text-slate-400 font-mono mt-0.5">${formattedDate.time}</div>
                 </td>
-                <td class="tx-table-cell max-w-sm">
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-bold text-white">${prettyTitle}</span>
-                        ${accBadge}
+                <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-white text-[13px] tracking-tight group-hover:text-cyan-200 transition">${prettyTitle}</span>
+                        <span class="inline-block px-2 py-0.5 rounded-md ${isDemoAcc ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' : 'bg-slate-800/90 text-cyan-300 border-slate-700'} text-[10.5px] font-bold border">
+                            ${accLabel}
+                        </span>
                     </div>
-                    ${desc ? `<p class="text-[11px] text-slate-400 mt-0.5 line-clamp-2" title="${desc}">${desc}</p>` : ""}
-                    ${ref}
+                    ${desc ? `<p class="text-[12px] text-slate-400 mt-1 max-w-[280px] truncate leading-relaxed" title="${desc}">${desc}</p>` : ""}
                 </td>
-                <td class="tx-table-cell whitespace-nowrap">
+                <td class="py-3.5 px-4 whitespace-nowrap">
                     ${catBadge}
                 </td>
-                <td class="tx-table-cell whitespace-nowrap">
+                <td class="py-3.5 px-4 whitespace-nowrap">
                     ${dirBadge}
                 </td>
-                <td class="tx-table-cell font-mono font-bold ${colorClass} whitespace-nowrap text-sm">
+                <td class="py-3.5 px-4 text-right font-mono font-bold ${colorClass} whitespace-nowrap text-[13.5px]">
                     ${sign}${txNexusFormatMoney(item.amount, curr)}
                 </td>
-                <td class="tx-table-cell font-mono text-slate-300 whitespace-nowrap text-sm">
+                <td class="py-3.5 px-4 text-right font-mono text-slate-300 font-semibold whitespace-nowrap text-[13px]">
                     ${item.balance_after !== undefined && item.balance_after !== null ? txNexusFormatMoney(item.balance_after, curr) : "--"}
                 </td>
-                <td class="tx-table-cell whitespace-nowrap">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        ✓ Completed
-                    </span>
+                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    ${statusBadge}
+                </td>
+                <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    ${refId ? `
+                        <button type="button" onclick="event.stopPropagation(); txCopyReferenceId('${refId}', this)" class="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 hover:border-cyan-400/60 text-slate-300 hover:text-cyan-300 transition text-[11.5px] font-mono cursor-pointer shadow-sm" title="Click to copy ID: ${refId}">
+                            <span>${shortRef}</span>
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                    ` : '<span class="text-slate-600">--</span>'}
                 </td>
             </tr>
         `;
@@ -10404,23 +10776,123 @@ function txNexusRenderHistoryTable() {
     if (paginationControls) {
         const buttons = [];
         buttons.push(`
-            <button type="button" data-action="prev" ${page <= 1 ? "disabled" : ""} class="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">‹ Prev</button>
+            <button type="button" data-action="prev" ${page <= 1 ? "disabled" : ""} class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer">‹ Prev</button>
         `);
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || Math.abs(i - page) <= 1) {
                 buttons.push(`
-                    <button type="button" data-page="${i}" class="px-2.5 py-1 rounded-lg border ${i === page ? 'border-cyan-400 bg-cyan-400/20 text-cyan-300 font-black' : 'border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${i}</button>
+                    <button type="button" data-page="${i}" class="px-3 py-1.5 rounded-xl border text-xs font-bold transition cursor-pointer ${i === page ? 'border-cyan-400 bg-cyan-400 text-slate-950 font-black shadow-sm' : 'border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800'}">${i}</button>
                 `);
             } else if (buttons[buttons.length - 1] !== '<span class="px-1 text-slate-600">...</span>') {
                 buttons.push('<span class="px-1 text-slate-600">...</span>');
             }
         }
         buttons.push(`
-            <button type="button" data-action="next" ${page >= totalPages ? "disabled" : ""} class="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed">Next ›</button>
+            <button type="button" data-action="next" ${page >= totalPages ? "disabled" : ""} class="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800 text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer">Next ›</button>
         `);
         paginationControls.innerHTML = buttons.join("");
     }
 }
+
+let CURRENT_NEXUS_DETAIL_MODAL_ITEM = null;
+
+function txOpenTxDetailModal(refIdOrId) {
+    if (!refIdOrId) return;
+    const decodedId = decodeURIComponent(refIdOrId);
+    const all = NEXUS_TX_HISTORY_STATE.rawLedger || [];
+    const item = all.find(x => String(x.reference_id || "") === decodedId) ||
+                 all.find(x => String(x.id || "") === decodedId) ||
+                 all.find(x => String(x.reference_id || x.id || "").toLowerCase() === decodedId.toLowerCase());
+
+    if (!item) return;
+    CURRENT_NEXUS_DETAIL_MODAL_ITEM = item;
+
+    const modal = document.getElementById("txNexusDetailModal");
+    if (!modal) return;
+
+    const cat = txNexusCategorizeItem(item);
+    const curr = item.currency || "USDT";
+    const dir = String(item.direction || "").toLowerCase();
+    const sign = dir === "credit" ? "+" : (dir === "debit" ? "-" : "");
+    const colorClass = dir === "credit" ? "text-emerald-400" : (dir === "debit" ? "text-rose-400" : "text-cyan-300");
+
+    const prettyTitle = String(item.transaction_type || "Transaction")
+        .replaceAll("_", " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+
+    const dt = txNexusFormatDate(item.created_at);
+    const refId = item.reference_id || item.id || "--";
+    const accLabel = item._accountLabel || "Main Account";
+
+    const titleEl = document.getElementById("txDetailModalTitle");
+    if (titleEl) titleEl.textContent = prettyTitle;
+
+    const amountEl = document.getElementById("txDetailModalAmount");
+    if (amountEl) {
+        amountEl.textContent = `${sign}${txNexusFormatMoney(item.amount, curr)}`;
+        amountEl.className = `text-2xl sm:text-3xl font-black font-mono tracking-tight ${colorClass}`;
+    }
+
+    const statusBadgeEl = document.getElementById("txDetailModalStatusBadge");
+    if (statusBadgeEl) statusBadgeEl.innerHTML = txNexusGetStatusBadge(item);
+
+    const typeEl = document.getElementById("txDetailModalType");
+    if (typeEl) typeEl.textContent = prettyTitle;
+
+    const accEl = document.getElementById("txDetailModalAccount");
+    if (accEl) accEl.textContent = accLabel;
+
+    const catEl = document.getElementById("txDetailModalCategory");
+    if (catEl) catEl.innerHTML = txNexusGetCategoryBadge(cat);
+
+    const dirEl = document.getElementById("txDetailModalDirection");
+    if (dirEl) dirEl.innerHTML = txNexusGetDirectionBadge(item.direction);
+
+    const timeEl = document.getElementById("txDetailModalTimestamp");
+    if (timeEl) timeEl.textContent = `${dt.date} • ${dt.time}`;
+
+    const balEl = document.getElementById("txDetailModalBalanceAfter");
+    if (balEl) {
+        balEl.textContent = (item.balance_after !== undefined && item.balance_after !== null) ? txNexusFormatMoney(item.balance_after, curr) : "--";
+    }
+
+    const refEl = document.getElementById("txDetailModalRefId");
+    if (refEl) refEl.textContent = refId;
+
+    const descEl = document.getElementById("txDetailModalDescription");
+    if (descEl) descEl.textContent = item.description || "No additional description provided for this transaction.";
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+}
+window.txOpenTxDetailModal = txOpenTxDetailModal;
+
+function txCloseTxDetailModal() {
+    const modal = document.getElementById("txNexusDetailModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+    document.body.style.overflow = "";
+    CURRENT_NEXUS_DETAIL_MODAL_ITEM = null;
+}
+window.txCloseTxDetailModal = txCloseTxDetailModal;
+
+function txCopyModalRefId() {
+    if (!CURRENT_NEXUS_DETAIL_MODAL_ITEM) return;
+    const refId = CURRENT_NEXUS_DETAIL_MODAL_ITEM.reference_id || CURRENT_NEXUS_DETAIL_MODAL_ITEM.id || "";
+    if (!refId) return;
+    const btn = document.getElementById("txDetailModalCopyBtn");
+    txCopyReferenceId(refId, btn);
+}
+window.txCopyModalRefId = txCopyModalRefId;
+
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+        txCloseTxDetailModal();
+    }
+});
 
 function txNexusUpdateSummaryMetrics() {
     const all = NEXUS_TX_HISTORY_STATE.rawLedger || [];
@@ -10441,33 +10913,108 @@ function txNexusUpdateSummaryMetrics() {
     if (trfCountEl) trfCountEl.textContent = transfers.length.toLocaleString();
 }
 
+function txSetupCustomNexusPillDropdown({ wrapId, triggerId, menuId, onChange }) {
+    const wrap = document.getElementById(wrapId);
+    const trigger = document.getElementById(triggerId);
+    const menu = document.getElementById(menuId);
+    if (!wrap || !trigger || !menu) return;
+
+    trigger.onclick = (e) => {
+        e.stopPropagation();
+        const isOpen = wrap.classList.contains("is-open");
+        document.querySelectorAll(".tx-pill-dropdown-wrap.is-open").forEach(w => {
+            if (w !== wrap) {
+                w.classList.remove("is-open");
+                const tr = w.querySelector(".tx-pill-dropdown-btn");
+                if (tr) tr.setAttribute("aria-expanded", "false");
+            }
+        });
+        if (isOpen) {
+            wrap.classList.remove("is-open");
+            trigger.setAttribute("aria-expanded", "false");
+        } else {
+            wrap.classList.add("is-open");
+            trigger.setAttribute("aria-expanded", "true");
+        }
+    };
+
+    menu.onclick = (e) => {
+        const item = e.target.closest(".tx-pill-dropdown-item");
+        if (!item) return;
+        e.stopPropagation();
+
+        const value = item.getAttribute("data-value");
+        const labelText = item.querySelector("span")?.textContent || item.textContent.trim();
+
+        menu.querySelectorAll(".tx-pill-dropdown-item").forEach(it => it.classList.remove("is-selected"));
+        item.classList.add("is-selected");
+
+        const triggerLabel = trigger.querySelector(".tx-dropdown-label");
+        if (triggerLabel) triggerLabel.textContent = labelText;
+
+        wrap.classList.remove("is-open");
+        trigger.setAttribute("aria-expanded", "false");
+
+        if (typeof onChange === "function") {
+            onChange(value, item);
+        }
+    };
+}
+
+function txRenderNexusAccountFilterOptions() {
+    const menu = document.getElementById("nexusAccountFilterMenu");
+    const trigger = document.getElementById("nexusAccountFilterTrigger");
+    if (!menu) return;
+
+    const activeId = localStorage.getItem("traidiumx_active_user_id") || "main";
+    let html = `
+        <div class="tx-pill-dropdown-item ${activeId === "main" ? "is-selected" : ""}" data-value="main">
+            <span>Main Trading Account</span>
+            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+    `;
+
+    let activeLabel = "Main Trading Account";
+
+    (NEXUS_TX_HISTORY_STATE.subAccountsList || []).forEach(sub => {
+        if (sub.is_parent) return;
+        const subId = String(sub.id || sub._id);
+        const isSelected = activeId === subId;
+        const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+        const name = `${sub.name || "Sub Account"} (${isDemo ? 'Demo' : 'Real'})`;
+        if (isSelected) activeLabel = name;
+        html += `
+            <div class="tx-pill-dropdown-item ${isSelected ? "is-selected" : ""}" data-value="${subId}">
+                <span>${name}</span>
+                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+        `;
+    });
+
+    html += `
+        <div class="tx-pill-dropdown-item ${activeId === "all" ? "is-selected" : ""}" data-value="all">
+            <span>All Accounts (Combined)</span>
+            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+    `;
+
+    menu.innerHTML = html;
+
+    if (trigger) {
+        const triggerLabel = trigger.querySelector(".tx-dropdown-label");
+        if (triggerLabel) triggerLabel.textContent = activeLabel;
+    }
+
+    NEXUS_TX_HISTORY_STATE.selectedAccount = activeId;
+}
+
 async function txLoadNexusSubAccountsList() {
     try {
         if (typeof apiRequest !== "function" || !isLoggedIn()) return;
         const res = await apiRequest("/user/sub-accounts").catch(() => null);
         const subList = res?.data || [];
         NEXUS_TX_HISTORY_STATE.subAccountsList = Array.isArray(subList) ? subList : [];
-
-        const select = document.getElementById("nexusAccountFilter");
-        if (select) {
-            const activeId = localStorage.getItem("traidiumx_active_user_id") || "main";
-            let html = `
-                <option value="main" ${activeId === "main" ? "selected" : ""}>💼 Main Trading Account</option>
-            `;
-
-            NEXUS_TX_HISTORY_STATE.subAccountsList.forEach(sub => {
-                const subId = String(sub.id || sub._id);
-                const isSelected = activeId === subId;
-                const modeIcon = (sub.is_demo || sub.account_mode === "demo") ? "🟡" : "📈";
-                html += `<option value="${subId}" ${isSelected ? "selected" : ""}>${modeIcon} ${sub.name || "Sub Account"}</option>`;
-            });
-
-            html += `<option value="all">🌟 All Accounts (Combined)</option>`;
-            select.innerHTML = html;
-
-            // Set state to matched selection
-            NEXUS_TX_HISTORY_STATE.selectedAccount = select.value || "main";
-        }
+        txRenderNexusAccountFilterOptions();
     } catch (e) {
         console.warn("Failed to load sub accounts for history filter:", e);
     }
@@ -10598,7 +11145,7 @@ function txExportNexusHistoryCsv() {
 
     const headers = ["Date", "Account", "Type", "Category", "Direction", "Amount", "Currency", "Balance After", "Description", "Reference ID"];
     const rows = filtered.map(item => [
-        `"${txNexusFormatDate(item.created_at)}"`,
+        `"${txNexusFormatDate(item.created_at).date} ${txNexusFormatDate(item.created_at).time}"`,
         `"${item._accountLabel || 'Main Account'}"`,
         `"${item.transaction_type || ''}"`,
         `"${txNexusCategorizeItem(item)}"`,
@@ -10623,14 +11170,67 @@ function txExportNexusHistoryCsv() {
 
 window.txExportNexusHistoryCsv = txExportNexusHistoryCsv;
 
+function txResetNexusHistoryFilters() {
+    NEXUS_TX_HISTORY_STATE.search = "";
+    NEXUS_TX_HISTORY_STATE.datePreset = "all";
+    NEXUS_TX_HISTORY_STATE.selectedAccount = "main";
+    NEXUS_TX_HISTORY_STATE.direction = "all";
+    NEXUS_TX_HISTORY_STATE.currency = "all";
+    NEXUS_TX_HISTORY_STATE.pageSize = 10;
+    NEXUS_TX_HISTORY_STATE.page = 1;
+    NEXUS_TX_HISTORY_STATE.activeCategory = "all";
+
+    const searchInput = document.getElementById("nexusHistorySearchInput");
+    if (searchInput) searchInput.value = "";
+
+    document.querySelectorAll("[data-nexus-category]").forEach(b => {
+        const cat = b.getAttribute("data-nexus-category");
+        if (cat === "all") {
+            b.className = "tx-prime-tab active px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap bg-cyan-400 text-slate-950 shadow-sm";
+        } else {
+            b.className = "tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60";
+        }
+    });
+
+    const resetDropdown = (triggerId, menuId, defaultVal, defaultLabel) => {
+        const trigger = document.getElementById(triggerId);
+        const menu = document.getElementById(menuId);
+        if (trigger) {
+            const lbl = trigger.querySelector(".tx-dropdown-label");
+            if (lbl) lbl.textContent = defaultLabel;
+        }
+        if (menu) {
+            menu.querySelectorAll(".tx-pill-dropdown-item").forEach(it => {
+                if (it.getAttribute("data-value") === String(defaultVal)) {
+                    it.classList.add("is-selected");
+                } else {
+                    it.classList.remove("is-selected");
+                }
+            });
+        }
+    };
+
+    resetDropdown("nexusDatePresetTrigger", "nexusDatePresetMenu", "all", "All Time");
+    resetDropdown("nexusAccountFilterTrigger", "nexusAccountFilterMenu", "main", "Main Trading Account");
+    resetDropdown("nexusDirectionFilterTrigger", "nexusDirectionFilterMenu", "all", "All Directions");
+    resetDropdown("nexusCurrencyFilterTrigger", "nexusCurrencyFilterMenu", "all", "All Assets");
+    resetDropdown("nexusPageSizeTrigger", "nexusPageSizeMenu", "10", "10 / page");
+
+    txReloadNexusHistoryData();
+}
+
+window.txResetNexusHistoryFilters = txResetNexusHistoryFilters;
+
 function txInitNexusHistoryView() {
     if (!NEXUS_TX_HISTORY_STATE.initialized) {
         NEXUS_TX_HISTORY_STATE.initialized = true;
 
         document.querySelectorAll("[data-nexus-category]").forEach(btn => {
             btn.addEventListener("click", () => {
-                document.querySelectorAll("[data-nexus-category]").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
+                document.querySelectorAll("[data-nexus-category]").forEach(b => {
+                    b.className = "tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60";
+                });
+                btn.className = "tx-prime-tab active px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap bg-cyan-400 text-slate-950 shadow-sm";
                 NEXUS_TX_HISTORY_STATE.activeCategory = btn.getAttribute("data-nexus-category") || "all";
                 NEXUS_TX_HISTORY_STATE.page = 1;
                 txNexusRenderHistoryTable();
@@ -10643,28 +11243,81 @@ function txInitNexusHistoryView() {
             txNexusRenderHistoryTable();
         });
 
-        document.getElementById("nexusAccountFilter")?.addEventListener("change", (e) => {
-            NEXUS_TX_HISTORY_STATE.selectedAccount = e.target.value || "main";
-            NEXUS_TX_HISTORY_STATE.page = 1;
-            txReloadNexusHistoryData();
+        // Setup Custom Animated Dropdowns
+        txSetupCustomNexusPillDropdown({
+            wrapId: "nexusDatePresetDropdown",
+            triggerId: "nexusDatePresetTrigger",
+            menuId: "nexusDatePresetMenu",
+            onChange: (val) => {
+                NEXUS_TX_HISTORY_STATE.datePreset = val || "all";
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txNexusRenderHistoryTable();
+            }
         });
 
-        document.getElementById("nexusCurrencyFilter")?.addEventListener("change", (e) => {
-            NEXUS_TX_HISTORY_STATE.currency = e.target.value || "all";
-            NEXUS_TX_HISTORY_STATE.page = 1;
-            txNexusRenderHistoryTable();
+        txSetupCustomNexusPillDropdown({
+            wrapId: "nexusAccountFilterDropdown",
+            triggerId: "nexusAccountFilterTrigger",
+            menuId: "nexusAccountFilterMenu",
+            onChange: (val) => {
+                NEXUS_TX_HISTORY_STATE.selectedAccount = val || "main";
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txReloadNexusHistoryData();
+            }
         });
 
-        document.getElementById("nexusDirectionFilter")?.addEventListener("change", (e) => {
-            NEXUS_TX_HISTORY_STATE.direction = e.target.value || "all";
-            NEXUS_TX_HISTORY_STATE.page = 1;
-            txNexusRenderHistoryTable();
+        txSetupCustomNexusPillDropdown({
+            wrapId: "nexusDirectionFilterDropdown",
+            triggerId: "nexusDirectionFilterTrigger",
+            menuId: "nexusDirectionFilterMenu",
+            onChange: (val) => {
+                NEXUS_TX_HISTORY_STATE.direction = val || "all";
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txNexusRenderHistoryTable();
+            }
         });
 
-        document.getElementById("nexusPageSizeSelect")?.addEventListener("change", (e) => {
-            NEXUS_TX_HISTORY_STATE.pageSize = Number(e.target.value || 10);
-            NEXUS_TX_HISTORY_STATE.page = 1;
-            txNexusRenderHistoryTable();
+        txSetupCustomNexusPillDropdown({
+            wrapId: "nexusCurrencyFilterDropdown",
+            triggerId: "nexusCurrencyFilterTrigger",
+            menuId: "nexusCurrencyFilterMenu",
+            onChange: (val) => {
+                NEXUS_TX_HISTORY_STATE.currency = val || "all";
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txNexusRenderHistoryTable();
+            }
+        });
+
+        txSetupCustomNexusPillDropdown({
+            wrapId: "nexusPageSizeDropdown",
+            triggerId: "nexusPageSizeTrigger",
+            menuId: "nexusPageSizeMenu",
+            onChange: (val) => {
+                NEXUS_TX_HISTORY_STATE.pageSize = Number(val || 10);
+                NEXUS_TX_HISTORY_STATE.page = 1;
+                txNexusRenderHistoryTable();
+            }
+        });
+
+        // Global click-outside & Escape to close dropdowns
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".tx-pill-dropdown-wrap")) {
+                document.querySelectorAll(".tx-pill-dropdown-wrap.is-open").forEach(w => {
+                    w.classList.remove("is-open");
+                    const tr = w.querySelector(".tx-pill-dropdown-btn");
+                    if (tr) tr.setAttribute("aria-expanded", "false");
+                });
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                document.querySelectorAll(".tx-pill-dropdown-wrap.is-open").forEach(w => {
+                    w.classList.remove("is-open");
+                    const tr = w.querySelector(".tx-pill-dropdown-btn");
+                    if (tr) tr.setAttribute("aria-expanded", "false");
+                });
+            }
         });
 
         document.getElementById("nexusPaginationControls")?.addEventListener("click", (e) => {
@@ -10687,9 +11340,8 @@ function txInitNexusHistoryView() {
         window.addEventListener("storage", (e) => {
             if (e.key === "traidiumx_active_user_id") {
                 const newSubId = e.newValue || "main";
-                const select = document.getElementById("nexusAccountFilter");
-                if (select) select.value = newSubId;
                 NEXUS_TX_HISTORY_STATE.selectedAccount = newSubId;
+                txRenderNexusAccountFilterOptions();
                 NEXUS_TX_HISTORY_STATE.page = 1;
                 txReloadNexusHistoryData();
             }
@@ -10909,16 +11561,18 @@ function txCheckUserKycForWithdraw() {
 }
 
 function txUpdateWithdrawAvailableBalances() {
-    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
-    const mainBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance || (parseFloat(mainBalUSDT) * 90) || 0;
+    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
+    const rawBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance ?? (mainBalUSDT * 90);
+    const mainBalINR = typeof rawBalINR === "number" ? rawBalINR : (parseFloat(String(rawBalINR).replace(/[^0-9.-]/g, "")) || 0);
 
     const moneyBalEl = document.getElementById("txWithMoneyAvailableBal");
     if (moneyBalEl) {
         const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
         if (curr === "INR") {
-            moneyBalEl.textContent = `₹${parseFloat(mainBalINR).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            moneyBalEl.textContent = `₹${mainBalINR.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         } else {
-            moneyBalEl.textContent = `$${parseFloat(mainBalUSDT).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            moneyBalEl.textContent = `$${mainBalUSDT.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
     }
 
@@ -10926,10 +11580,10 @@ function txUpdateWithdrawAvailableBalances() {
     if (cryptoBalEl) {
         const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
         if (coin === "USDT") {
-            cryptoBalEl.textContent = `${parseFloat(mainBalUSDT).toFixed(2)} USDT`;
+            cryptoBalEl.textContent = `${mainBalUSDT.toFixed(2)} USDT`;
         } else {
             const row = WALLET_STATE?.crypto_balances?.find(c => c.currency === coin || c.symbol === coin);
-            const cBal = row ? parseFloat(row.balance || 0) : 0;
+            const cBal = row ? (typeof row.balance === "number" ? row.balance : (parseFloat(String(row.balance || 0).replace(/[^0-9.-]/g, "")) || 0)) : 0;
             cryptoBalEl.textContent = `${cBal.toFixed(4)} ${coin}`;
         }
     }
@@ -11138,14 +11792,15 @@ function txCalculateCryptoWithdrawalFee() {
 }
 
 function txWithCryptoSetMaxAmount() {
-    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
+    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
     const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
     let max = 0;
     if (coin === "USDT") {
-        max = parseFloat(mainBalUSDT);
+        max = mainBalUSDT;
     } else {
         const row = WALLET_STATE?.crypto_balances?.find(c => c.currency === coin || c.symbol === coin);
-        max = row ? parseFloat(row.balance || 0) : 0;
+        max = row ? (typeof row.balance === "number" ? row.balance : (parseFloat(String(row.balance || 0).replace(/[^0-9.-]/g, "")) || 0)) : 0;
     }
     const amountInput = document.getElementById("txWithCryptoAmountInput");
     if (amountInput) {
@@ -11377,11 +12032,13 @@ function txSelectWithdrawMoneyMethod(method = "imps", name = "IMPS (Instant Bank
 }
 
 function txWithMoneySetMaxAmount() {
-    const mainBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.available_balance || 0;
-    const mainBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance || (parseFloat(mainBalUSDT) * 90) || 0;
+    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
+    const rawBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance ?? (mainBalUSDT * 90);
+    const mainBalINR = typeof rawBalINR === "number" ? rawBalINR : (parseFloat(String(rawBalINR).replace(/[^0-9.-]/g, "")) || 0);
 
     const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
-    const max = curr === "INR" ? parseFloat(mainBalINR) : parseFloat(mainBalUSDT);
+    const max = curr === "INR" ? mainBalINR : mainBalUSDT;
 
     const amountInput = document.getElementById("txWithMoneyAmountInput");
     if (amountInput) {

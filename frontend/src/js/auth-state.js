@@ -8,7 +8,9 @@
         "/dashboard.html",
         "/orders.html",
         "/portfolio.html",
-        "/portfolio"
+        "/portfolio",
+        "/exchange.html",
+        "/exchange"
     ];
     const currentPath = window.location.pathname.toLowerCase();
     const isProtected = protectedPages.some(page => currentPath.endsWith(page));
@@ -32,7 +34,7 @@ function loadTradingOnboardingModule() {
     if (typeof isLoggedIn !== "function" || !isLoggedIn()) return;
     if (document.querySelector('script[data-tx-trading-onboarding]')) return;
     const script = document.createElement("script");
-    script.src = "/src/js/trading-onboarding.js?v=1";
+    script.src = "/src/js/trading-onboarding.js?v=" + new Date().getTime();
     script.defer = true;
     script.dataset.txTradingOnboarding = "true";
     document.head.appendChild(script);
@@ -256,7 +258,7 @@ function renderLoggedInDesktop(container, user) {
     const userInitial = getUserInitial(user);
 
     const currentPath = window.location.pathname.toLowerCase();
-    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/") || currentPath.includes("futures");
+    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/") || currentPath.includes("futures") || currentPath.includes("wallet") || currentPath.includes("options");
 
     const resolveRoute = (route) => {
         if (typeof resolveAppPath === "function") {
@@ -281,52 +283,52 @@ function renderLoggedInDesktop(container, user) {
                     <svg id="txNavbarWalletChevron" class="w-3 h-3 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
 
-                <!-- PrimeXBT Style Wallet Dropdown Menu (Image 3) -->
-                <div id="txNavbarWalletMenu" class="hidden absolute right-0 top-full mt-2 w-64 bg-[#0c101d] border border-slate-800/90 rounded-2xl p-3.5 shadow-2xl z-[99999] text-slate-200">
+                <!-- PrimeXBT Style Wallet Dropdown Menu -->
+                <div id="txNavbarWalletMenu" class="hidden absolute right-0 top-full mt-2 w-64 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-2.5 shadow-2xl z-[99999] text-slate-200">
                     <!-- Accounts Section -->
-                    <div class="text-[11px] font-bold text-slate-400 mb-1.5 px-2.5 uppercase tracking-wider">Accounts</div>
+                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-1.5">Accounts</div>
                     <div class="space-y-0.5">
-                        <a href="${resolveRoute('src/pages/wallet.html#overview')}" data-route="src/pages/wallet.html#overview" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#overview')}" data-route="src/pages/wallet.html#overview" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
                             <span>Overview</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/trading-account.html')}" data-route="src/pages/trading-account.html" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#trading')}" data-route="src/pages/wallet.html#trading" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                             <span>Trading accounts</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/wallet.html')}" data-route="src/pages/wallet.html" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><circle cx="16" cy="14" r="1"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#wallet')}" data-route="src/pages/wallet.html#wallet" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3"/></svg>
                             <span>Wallet</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/profile.html#sub-accounts')}" id="txNavbarSubAccCreateLink" data-route="src/pages/profile.html#sub-accounts" class="flex items-center gap-2 px-2.5 py-2 rounded-xl text-cyan-400 hover:bg-cyan-500/10 transition text-xs font-bold cursor-pointer">
-                            <span class="text-sm font-black leading-none">+</span>
+                        <a href="${resolveRoute('src/pages/wallet.html#sub-accounts')}" id="txNavbarSubAccCreateLink" data-route="src/pages/wallet.html#sub-accounts" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                             <span>Create new account</span>
                         </a>
                     </div>
 
-                    <div class="my-2 border-t border-slate-800/80"></div>
+                    <div class="my-1.5 border-t border-white/[0.08]"></div>
 
                     <!-- Transactions Section -->
-                    <div class="text-[11px] font-bold text-slate-400 mb-1.5 px-2.5 uppercase tracking-wider">Transactions</div>
+                    <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-1.5">Transactions</div>
                     <div class="space-y-0.5">
-                        <a href="javascript:void(0)" id="txWalletMenuDepositBtn" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+                        <a href="javascript:void(0)" id="txWalletMenuDepositBtn" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/></svg>
                             <span>Deposit</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/wallet.html#withdraw')}" data-route="src/pages/wallet.html#withdraw" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#withdraw')}" data-route="src/pages/wallet.html#withdraw" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/></svg>
                             <span>Withdraw</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/wallet.html#transfer')}" data-route="src/pages/wallet.html#transfer" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#transfer')}" data-route="src/pages/wallet.html#transfer" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
                             <span>Transfer</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/wallet.html#exchange')}" data-route="src/pages/wallet.html#exchange" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/></svg>
+                        <a href="${resolveRoute('src/pages/exchange.html')}" data-route="src/pages/exchange.html" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
                             <span>Exchange</span>
                         </a>
-                        <a href="${resolveRoute('src/pages/wallet.html#history')}" data-route="src/pages/wallet.html#history" class="flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-slate-800/60 text-slate-200 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                        <a href="${resolveRoute('src/pages/wallet.html#history')}" data-route="src/pages/wallet.html#history" onclick="if(window.location.pathname.includes('wallet.html') && typeof window.txActivateHistoryTab === 'function'){ window.txActivateHistoryTab(); const d=document.getElementById('txProfileDropdown'); if(d) d.classList.add('hidden'); return false; }" class="group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-cyan-400 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>Transfer history</span>
                         </a>
                     </div>
@@ -390,7 +392,7 @@ function renderProfileDropdown(container, user) {
     const darkClass = (curThemeMode === "dark" || (!curThemeMode && curTheme !== "light")) ? "bg-white text-slate-950 font-black shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60";
 
     container.innerHTML = `
-        <div id="txProfileDropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-80 max-w-[calc(100vw-32px)] bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[9999] text-slate-200">
+        <div id="txProfileDropdown" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-80 max-w-[calc(100vw-32px)] bg-[#0c101d] border border-slate-800/80 rounded-3xl p-5 shadow-2xl z-[99999] text-slate-200">
                     <!-- Header -->
                     <div class="flex items-center gap-3.5 pb-4 border-b border-slate-800/60">
                         <div class="tx-profile-avatar w-12 h-12 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-lg select-none shadow-sm shadow-cyan-900/30">
@@ -444,7 +446,7 @@ function renderProfileDropdown(container, user) {
 
                     <!-- Create Account Link -->
                     <div class="mb-4">
-                        <a href="${resolveRoute('src/pages/profile.html#sub-accounts')}" id="txNavbarCreateSubAccountLink" data-route="src/pages/profile.html#sub-accounts" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition cursor-pointer">
+                        <a href="${resolveRoute('src/pages/wallet.html#sub-accounts')}" id="txNavbarCreateSubAccountLink" data-route="src/pages/wallet.html#sub-accounts" onclick="if(window.location.pathname.includes('wallet.html') && typeof window.txOpenSubAccountCreationModal === 'function'){ window.txOpenSubAccountCreationModal('real'); const d=document.getElementById('txProfileDropdown'); if(d) d.classList.add('hidden'); return false; }" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#10b981] hover:text-[#059669] transition cursor-pointer">
                             <span class="text-sm font-black">+</span>
                             <span>Create an Account</span>
                         </a>
@@ -462,12 +464,6 @@ function renderProfileDropdown(container, user) {
                         <a href="${resolveRoute('src/pages/contact.html')}" data-route="src/pages/contact.html" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
                             <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
                             <span class="whitespace-nowrap">Support 24/7</span>
-                        </a>
-
-                        <!-- Feedback -->
-                        <a href="${resolveRoute('src/pages/contact.html#feedback')}" data-route="src/pages/contact.html#feedback" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-900/60 text-slate-300 hover:text-white transition text-xs font-bold cursor-pointer">
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15 2a6 6 0 0 0-6 6c0 2.2 1.4 3.7 2 5h4c.6-1.3 2-2.8 2-5a6 6 0 0 0-6-6z"/></svg>
-                            <span class="whitespace-nowrap">Feedback</span>
                         </a>
 
                         <!-- Divider -->
@@ -545,7 +541,7 @@ function renderLoggedInMobile(container, user) {
     const userName = escapeHtml(displayName);
 
     const currentPath = window.location.pathname.toLowerCase();
-    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/") || currentPath.includes("futures");
+    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/") || currentPath.includes("futures") || currentPath.includes("wallet") || currentPath.includes("options");
 
     const resolveRoute = (r) => typeof resolveAppPath === "function" ? resolveAppPath(r) : "./" + r;
     const curTheme = localStorage.getItem("traidiumx_theme") || "dark";
@@ -697,7 +693,7 @@ function initPrimeXbtNavbarControls() {
                 <!-- Section: Want to buy crypto? -->
                 <div class="mt-5">
                     <p class="text-xs font-bold text-slate-400 mb-2.5 px-0.5">Want to buy crypto?</p>
-                    <a href="${resolveRoute('src/pages/wallet.html?tab=deposit&type=crypto')}" data-deposit-type="buy" class="tx-deposit-choice-item flex items-center justify-between p-4 rounded-2xl bg-[#1a1f2c] hover:bg-[#222838] border border-slate-800/80 hover:border-slate-700 transition cursor-pointer group">
+                    <a href="${resolveRoute('src/pages/exchange.html')}" data-deposit-type="buy" class="tx-deposit-choice-item flex items-center justify-between p-4 rounded-2xl bg-[#1a1f2c] hover:bg-[#222838] border border-slate-800/80 hover:border-slate-700 transition cursor-pointer group">
                         <div class="flex items-center gap-3.5 min-w-0 pr-2">
                             <div class="w-8 h-8 flex items-center justify-center text-white shrink-0">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -745,17 +741,18 @@ function initPrimeXbtNavbarControls() {
             depositModal.classList.add("hidden");
             depositModal.classList.remove("flex");
 
-            if (window.location.pathname.includes("futures") && typeof txOpenFuturesWalletModal === "function") {
+            if (depositType === "buy") {
                 e.preventDefault();
-                if (depositType === "money") {
-                    localStorage.setItem("tx_navbar_currency", "INR");
-                    window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "INR" } }));
-                } else {
-                    localStorage.setItem("tx_navbar_currency", "USDT");
-                    window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "USDT" } }));
-                }
-                txOpenFuturesWalletModal("deposit");
+                window.location.href = resolveRoute("src/pages/exchange.html");
                 return;
+            }
+
+            if (depositType === "money") {
+                localStorage.setItem("tx_navbar_currency", "INR");
+                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "INR" } }));
+            } else {
+                localStorage.setItem("tx_navbar_currency", "USDT");
+                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "USDT" } }));
             }
 
             if (window.location.pathname.includes("wallet")) {
@@ -767,6 +764,9 @@ function initPrimeXbtNavbarControls() {
                 }
                 return;
             }
+
+            e.preventDefault();
+            window.location.href = resolveRoute(`src/pages/wallet.html?tab=deposit&type=${depositType === 'money' ? 'money' : 'crypto'}`);
         });
     });
 
@@ -775,6 +775,9 @@ function initPrimeXbtNavbarControls() {
 
     // Bind mouse hover for wallet balance dropdown
     bindNavbarWalletHover();
+
+    // Bind mouse hover for profile avatar dropdown
+    bindNavbarProfileHover();
 }
 
 let txNavbarWalletCloseTimer = null;
@@ -833,9 +836,78 @@ function bindNavbarWalletHover() {
     });
 }
 
+let txNavbarProfileCloseTimer = null;
+
+function openNavbarProfileMenu() {
+    if (txNavbarProfileCloseTimer) {
+        clearTimeout(txNavbarProfileCloseTimer);
+        txNavbarProfileCloseTimer = null;
+    }
+    const dropdown = document.getElementById("txProfileDropdown");
+    const walletMenu = document.getElementById("txNavbarWalletMenu");
+    const walletChevron = document.getElementById("txNavbarWalletChevron");
+    if (walletMenu) walletMenu.classList.add("hidden");
+    if (walletChevron) walletChevron.style.transform = "rotate(0deg)";
+
+    if (dropdown) {
+        const desktopWrapper = document.getElementById("txDesktopProfileWrapper");
+        if (desktopWrapper && dropdown.parentElement !== desktopWrapper && dropdown.parentElement !== document.body) {
+            desktopWrapper.appendChild(dropdown);
+        }
+        dropdown.classList.remove("hidden");
+    }
+}
+
+function closeNavbarProfileMenu(immediate = false) {
+    if (txNavbarProfileCloseTimer) {
+        clearTimeout(txNavbarProfileCloseTimer);
+        txNavbarProfileCloseTimer = null;
+    }
+    const doClose = () => {
+        const dropdown = document.getElementById("txProfileDropdown");
+        if (dropdown) {
+            dropdown.classList.add("hidden");
+        }
+    };
+    if (immediate) {
+        doClose();
+    } else {
+        txNavbarProfileCloseTimer = setTimeout(doClose, 200);
+    }
+}
+
+function bindNavbarProfileHover() {
+    const profileWrapper = document.getElementById("txDesktopProfileWrapper");
+    const profileBtn = document.getElementById("txNavbarProfileBtn");
+    const dropdown = document.getElementById("txProfileDropdown");
+
+    const attachHover = (el) => {
+        if (!el || el.__txHoverBound) return;
+        el.__txHoverBound = true;
+        el.addEventListener("mouseenter", function () {
+            openNavbarProfileMenu();
+        });
+        el.addEventListener("mouseleave", function () {
+            closeNavbarProfileMenu(false);
+        });
+    };
+
+    attachHover(profileWrapper);
+    attachHover(profileBtn);
+    attachHover(dropdown);
+}
+
+window.txOpenDepositChoiceModal = function() {
+    const depositModal = document.getElementById("txDepositChoiceModal");
+    if (depositModal) {
+        depositModal.classList.remove("hidden");
+        depositModal.classList.add("flex");
+    }
+};
+
 // Global click delegation for PrimeXBT navbar deposit and wallet dropdown
 document.addEventListener("click", function(e) {
-    const depositBtn = e.target.closest("#txNavbarDepositBtn, #txWalletMenuDepositBtn");
+    const depositBtn = e.target.closest("#txNavbarDepositBtn, #txWalletMenuDepositBtn, #txPrimeDepositBtn, button[onclick*=\"openWalletActionModal('deposit')\"], [data-action='deposit']");
     const walletTrigger = e.target.closest("#txNavbarWalletTrigger");
     const walletMenu = document.getElementById("txNavbarWalletMenu");
     const walletChevron = document.getElementById("txNavbarWalletChevron");
@@ -873,6 +945,16 @@ document.addEventListener("click", function(e) {
     const walletMenuLink = e.target.closest("#txNavbarWalletMenu a, #txNavbarWalletMenu button");
     if (walletMenuLink) {
         closeNavbarWalletMenu(true);
+        const href = walletMenuLink.getAttribute("href") || "";
+        if (window.location.pathname.includes("wallet.html") && href.includes("#")) {
+            const hash = href.split("#")[1];
+            if (hash) {
+                window.location.hash = hash;
+                if (typeof window.txHandleRouteTab === "function") {
+                    window.txHandleRouteTab();
+                }
+            }
+        }
         return;
     }
 
@@ -1661,6 +1743,9 @@ function updateNavbarToggleUI(currency) {
 }
 
 function bindNavbarDropdown(user) {
+    if (typeof bindNavbarProfileHover === "function") {
+        bindNavbarProfileHover();
+    }
     const profileBtn = document.getElementById("txNavbarProfileBtn");
     const dropdown = document.getElementById("txProfileDropdown");
     const themeBtn = document.getElementById("txThemeToggleBtn");
@@ -1788,6 +1873,15 @@ function navigateToProfileRoute(route) {
 
     const currentPath = window.location.pathname.replace(/\\/g, "/");
     const isPages = currentPath.includes("/src/pages/");
+    const isWallet = currentPath.includes("wallet");
+
+    if (isWallet && hash) {
+        window.location.hash = hash.substring(1);
+        if (typeof window.txHandleRouteTab === "function") {
+            window.txHandleRouteTab();
+        }
+        return;
+    }
     
     let targetUrl = "";
     if (path.startsWith("http://") || path.startsWith("https://")) {
@@ -1827,183 +1921,27 @@ function navigateToProfileRoute(route) {
             e.preventDefault();
             e.stopPropagation();
             if (dropdown) dropdown.classList.add("hidden");
-            openNavbarCreateSubModal();
+            if (window.location.pathname.includes("wallet.html") && typeof window.txOpenSubAccountCreationModal === "function") {
+                window.txOpenSubAccountCreationModal("real");
+            } else if (typeof window.txOpenSubAccountCreationModal === "function") {
+                window.txOpenSubAccountCreationModal("real");
+            } else {
+                navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
+            }
         });
     }
 }
 
 function openNavbarCreateSubModal() {
-    let container = document.getElementById("txNavbarModalContainer");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "txNavbarModalContainer";
-        document.body.appendChild(container);
+    if (window.location.pathname.includes("wallet.html") && typeof window.txOpenSubAccountCreationModal === "function") {
+        window.txOpenSubAccountCreationModal("real");
+        return;
     }
-
-    container.innerHTML = `
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md" id="txCreateSubBackdrop" style="animation: txModalFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
-            <div class="bg-[#0f172a] border border-slate-800/80 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
-                <!-- Header -->
-                <div class="flex items-center justify-between border-b border-slate-800/60 p-4">
-                    <h3 class="font-extrabold text-sm text-white">Create a Sub Account</h3>
-                    <button type="button" class="text-slate-400 hover:text-white font-bold text-lg cursor-pointer focus:outline-none" id="txCreateSubCloseBtn">✕</button>
-                </div>
-                <!-- Body -->
-                <form id="txCreateSubForm" class="space-y-4 p-5">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">1. Select a real or demo account:</label>
-                        <div class="grid grid-cols-2 gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-700/80">
-                            <button type="button" id="txSubModeRealBtn" class="py-2 px-3 rounded-lg text-xs font-extrabold bg-cyan-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
-                                <span>🟢 Real</span>
-                            </button>
-                            <button type="button" id="txSubModeDemoBtn" class="py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5">
-                                <span>🟡 Demo</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">Account Name</label>
-                        <input type="text" id="txNewSubNameInput" placeholder="e.g. Trading Sub 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-400" required />
-                    </div>
-                    <div id="txSubPlanSection">
-                        <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase">2. Select Account Plan</label>
-                        <select id="txNewSubPlanSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-cyan-300 text-sm font-bold focus:outline-none focus:border-cyan-400 cursor-pointer">
-                            <option value="basic">🟢 Basic (Fixed 18 USDT Spread · Min 0 USDT)</option>
-                            <option value="standard">🔵 Standard (Fixed 12 USDT Spread · Min 2,000 USDT)</option>
-                            <option value="advanced">🟣 Advanced (Fixed 5 USDT Spread · Min 5,000 USDT)</option>
-                        </select>
-                    </div>
-                    <div id="txSubDemoInfoSection" class="hidden p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs">
-                        <div class="flex items-center justify-between text-amber-300 font-bold mb-1">
-                            <span>🟡 Demo Trading Sub-Account</span>
-                            <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px]">10,000 USDT</span>
-                        </div>
-                        <p class="text-slate-300 text-[11px] leading-relaxed">
-                            Pre-credited with <strong>$10,000 USDT virtual funds</strong> with instant 1-click top-up & reset.
-                        </p>
-                    </div>
-                    <p id="txCreateSubMessage" class="text-[11px] font-bold mt-2 text-slate-400 hidden"></p>
-                    <div class="flex gap-3 pt-2">
-                        <button type="button" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer" id="txCreateSubCancelBtn">Cancel</button>
-                        <button type="submit" id="txCreateSubSubmitBtn" class="flex-1 bg-[#10b981] hover:bg-[#059669] text-slate-950 font-black py-2.5 rounded-xl text-xs transition cursor-pointer">Create Account</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <style>
-            @keyframes txModalFade {
-                from { opacity: 0; transform: scale(0.96); }
-                to { opacity: 1; transform: scale(1); }
-            }
-        </style>
-    `;
-
-    const closeBtn = document.getElementById("txCreateSubCloseBtn");
-    const cancelBtn = document.getElementById("txCreateSubCancelBtn");
-    const backdrop = document.getElementById("txCreateSubBackdrop");
-    const form = document.getElementById("txCreateSubForm");
-    const realBtn = document.getElementById("txSubModeRealBtn");
-    const demoBtn = document.getElementById("txSubModeDemoBtn");
-    const planSection = document.getElementById("txSubPlanSection");
-    const demoSection = document.getElementById("txSubDemoInfoSection");
-    const nameInput = document.getElementById("txNewSubNameInput");
-
-    let currentMode = "real";
-
-    const setMode = (mode) => {
-        currentMode = mode;
-        if (mode === "demo") {
-            demoBtn.className = "py-2 px-3 rounded-lg text-xs font-extrabold bg-amber-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5";
-            realBtn.className = "py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5";
-            planSection?.classList.add("hidden");
-            demoSection?.classList.remove("hidden");
-            if (nameInput && (!nameInput.value || nameInput.value.startsWith("Trading Sub"))) {
-                nameInput.value = "Demo Account";
-            }
-        } else {
-            realBtn.className = "py-2 px-3 rounded-lg text-xs font-extrabold bg-cyan-400 text-slate-950 shadow-md transition cursor-pointer flex items-center justify-center gap-1.5";
-            demoBtn.className = "py-2 px-3 rounded-lg text-xs font-extrabold bg-transparent text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5";
-            planSection?.classList.remove("hidden");
-            demoSection?.classList.add("hidden");
-            if (nameInput && nameInput.value === "Demo Account") {
-                nameInput.value = "";
-            }
-        }
-    };
-
-    realBtn?.addEventListener("click", () => setMode("real"));
-    demoBtn?.addEventListener("click", () => {
-        if (!demoBtn.disabled) setMode("demo");
-    });
-
-    if (typeof apiRequest === "function") {
-        apiRequest("/user/sub-accounts").then(res => {
-            const list = res?.data || [];
-            const hasDemo = list.some(s => s.is_demo || s.account_mode === "demo" || s.plan === "demo");
-            if (hasDemo && demoBtn) {
-                demoBtn.disabled = true;
-                demoBtn.className = "py-2 px-3 rounded-lg text-xs font-semibold bg-slate-800/60 text-slate-500 cursor-not-allowed flex items-center justify-center gap-1.5 opacity-60";
-                demoBtn.title = "You can only create 1 Demo account (Already created)";
-                demoBtn.innerHTML = `<span>🟡 Demo (Limit 1)</span>`;
-                if (currentMode === "demo") {
-                    setMode("real");
-                }
-            }
-        }).catch(() => {});
+    if (typeof window.txOpenSubAccountCreationModal === "function") {
+        window.txOpenSubAccountCreationModal("real");
+        return;
     }
-
-    const close = () => {
-        container.innerHTML = "";
-    };
-
-    closeBtn?.addEventListener("click", close);
-    cancelBtn?.addEventListener("click", close);
-    backdrop?.addEventListener("click", close);
-
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const input = document.getElementById("txNewSubNameInput");
-        const planSelect = document.getElementById("txNewSubPlanSelect");
-        const msg = document.getElementById("txCreateSubMessage");
-        if (!input || !msg) return;
-
-        msg.classList.remove("hidden", "text-red-400", "text-emerald-400");
-        msg.className = "text-[11px] font-bold mt-2 text-slate-400";
-        msg.textContent = "Creating sub account...";
-
-        const isDemo = currentMode === "demo";
-
-        try {
-            if (typeof apiRequest !== "function") {
-                throw new Error("API module not loaded.");
-            }
-            const res = await apiRequest("/user/sub-accounts", {
-                method: "POST",
-                body: JSON.stringify({
-                    name: input.value.trim(),
-                    account_mode: isDemo ? "demo" : "real",
-                    plan: isDemo ? "demo" : (planSelect ? planSelect.value : "basic"),
-                    is_demo: isDemo
-                })
-            });
-
-            if (isDemo && res.data && res.data.id) {
-                localStorage.setItem("traidiumx_active_user_id", res.data.id);
-                localStorage.setItem("traidiumx_active_user_name", res.data.name || "Demo Account");
-            }
-
-            msg.className = "text-[11px] font-bold mt-2 text-emerald-400";
-            msg.textContent = "Sub account created successfully!";
-            
-            setTimeout(() => {
-                close();
-                window.location.reload();
-            }, 1000);
-        } catch (err) {
-            msg.className = "text-[11px] font-bold mt-2 text-red-400";
-            msg.textContent = err.message || "Failed to create sub account.";
-        }
-    });
+    navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
 }
 
 window.toggleSiteTheme = function() {

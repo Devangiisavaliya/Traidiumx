@@ -18,7 +18,7 @@
     <title>Options Trading | TraidiumX</title>
 
     <link rel="stylesheet" href="../../dist/output.css" />
-    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/custom.css?v=66" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
@@ -518,9 +518,10 @@
 
         /* Trading Wallet Card styling matching Futures page */
         .rt-pair-funds-card {
-            position: relative;
-            overflow: hidden;
+            position: relative !important;
+            overflow: visible !important;
             min-width: 320px;
+            z-index: 60 !important;
             border: 1px solid rgba(34, 211, 238, 0.22);
             border-radius: 16px;
             background: linear-gradient(135deg, rgba(8, 20, 35, 0.98), rgba(17, 24, 39, 0.94));
@@ -541,6 +542,8 @@
         }
 
         .rt-pair-funds-head {
+            overflow: visible !important;
+            z-index: 70 !important;
             position: relative;
             display: flex;
             align-items: center;
@@ -728,6 +731,22 @@
             color: #fca5a5;
         }
 
+    
+        /* Force hide global navbar currency toggle on Options page */
+        body[data-page="options"] nav .tx-currency-toggle-wrapper,
+        body[data-page="options"] .tx-pill-navbar .tx-currency-toggle-wrapper,
+        body[data-page="options"] #txDesktopAuth .tx-currency-toggle-wrapper,
+        body[data-page="options"] #mobileAuthArea .tx-currency-toggle-wrapper,
+        body[data-page="options"] .tx-currency-toggle-wrapper {
+            display: none !important;
+        }
+        body[data-page="options"] #optionsHeaderCurrencyToggle {
+            display: inline-flex !important;
+        }
+        body[data-page="options"] #optionsMobileCurrencyToggle {
+            display: inline-flex !important;
+        }
+
     </style>
 </head>
 
@@ -868,8 +887,46 @@
                 <!-- FUNDS QUICK ACTIONS - Synchronized with Options Wallet -->
                 <div class="rt-pair-funds-card">
                     <div class="rt-pair-funds-head flex items-center justify-between">
-                        <h3>Trading Wallet</h3>
-                        <select id="tradingAccountSelector" class="rt-select text-xs py-1.5 px-3 border border-slate-700/80 bg-slate-900 text-white rounded-xl cursor-pointer font-bold outline-none focus:border-cyan-400">
+                        <div class="flex items-center gap-2.5">
+                            <h3>Trading Wallet</h3>
+                            <!-- INR / USD Currency Toggle Pill inside Options Header -->
+                            <div id="optionsHeaderCurrencyToggle" class="inline-flex items-center p-0.5 rounded-full bg-slate-950/90 border border-white/15 select-none shadow-inner">
+                                <button type="button" data-currency-switch="INR" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold transition cursor-pointer text-slate-400 hover:text-white">
+                                    ₹ INR
+                                </button>
+                                <button type="button" data-currency-switch="USDT" class="px-2.5 py-0.5 rounded-full text-[11px] font-black transition cursor-pointer bg-cyan-400 text-slate-950 shadow-sm">
+                                    $ USD
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Account Dropdown Trigger Pill -->
+                        <div class="relative inline-block" id="txCustomAccountDropdown">
+                            <button type="button" id="txCustomAccountTrigger" class="outline-none select-none">
+                                <span class="w-5 h-5 rounded-md bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-400 text-xs shrink-0 shadow-inner">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                </span>
+                                <span id="txCustomAccountDot" class="hidden"></span>
+                                <span id="txCustomAccountLabel" class="inline-flex items-center gap-1.5 whitespace-nowrap text-white font-bold">Main Trading Account</span>
+                                <svg id="txCustomAccountChevron" class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <div id="txCustomAccountMenu">
+                                <div id="txCustomAccountList" class="max-h-52 overflow-y-auto space-y-0.5">
+                                    <!-- Dynamically populated -->
+                                </div>
+                                <div class="border-t border-slate-800/80 pt-1 mt-1">
+                                    <button type="button" id="txCustomAccountCreateBtn" class="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-cyan-400 hover:bg-cyan-500/10 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        <span>Create Sub Account</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <select id="tradingAccountSelector" class="hidden">
                             <option value="main">Main Trading Account</option>
                         </select>
                     </div>
@@ -891,17 +948,7 @@
                         </div>
                     </div>
 
-                    <div class="rt-pair-funds-actions">
-                        <button id="optionsHeaderTransferBtn" type="button" class="rt-pair-funds-btn transfer">
-                            Transfer
-                        </button>
-                        <button id="optionsHeaderDepositBtn" type="button" class="rt-pair-funds-btn deposit">
-                            Deposit
-                        </button>
-                        <button id="optionsHeaderWithdrawBtn" type="button" class="rt-pair-funds-btn withdraw">
-                            Withdraw
-                        </button>
-                    </div>
+
                 </div>
             </div>
 
@@ -1385,35 +1432,40 @@
     </div>
 
 
-    <!-- Sub-Account Creation & Management Modal (PrimeXBT Style) -->
-    <div id="subAccountModal" data-lenis-prevent style="z-index: 99998; display: none;" class="fixed inset-0 hidden items-center justify-center bg-slate-950/80 px-2 sm:px-4 py-3 backdrop-blur-md">
-        <div data-lenis-prevent class="w-full max-w-5xl max-h-[95vh] flex flex-col rounded-[22px] sm:rounded-[26px] border border-cyan-400/25 bg-[#0b1320] text-slate-100 shadow-2xl shadow-cyan-950/50 overflow-hidden" onclick="event.stopPropagation();">
+    <!-- Sub-Account Creation & Management Modal (Modern Compact Refined Design from Image 2) -->
+    <div id="subAccountModal" data-lenis-prevent class="fixed inset-0 z-[9998] hidden items-center justify-center bg-black/85 px-3 sm:px-4 py-4 backdrop-blur-md">
+        <div data-lenis-prevent class="tx-sub-modal-box w-full max-w-[860px] max-h-[90vh] flex flex-col rounded-3xl border border-slate-700/80 bg-[#0c1220] text-slate-100 shadow-2xl shadow-black/90 overflow-hidden" onclick="event.stopPropagation();">
             
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 shrink-0">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <div class="tx-sub-modal-header flex items-center justify-between border-b border-white/10 px-6 py-4 bg-[#080d1a] shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                     </div>
-                    <h3 class="text-sm sm:text-base font-bold text-white tracking-wide">Create new account</h3>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Create new account</h3>
+                        <p class="text-xs text-slate-400">Set up your trading account in just a few steps.</p>
+                    </div>
                 </div>
-                <button id="subAccountModalClose" type="button" class="w-7 h-7 rounded-full border border-slate-700/80 hover:border-red-400/60 bg-slate-900/60 text-slate-400 hover:text-red-300 flex items-center justify-center text-xs font-bold transition cursor-pointer">✕</button>
+                <button id="subAccountModalClose" type="button" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-700/60" title="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
 
             <!-- Modal Scrollable Body -->
-            <div id="subAccountModalScrollBody" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+            <div id="subAccountModalScrollBody" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="tx-sub-modal-body flex-1 overflow-y-auto p-5 sm:p-7 space-y-5 custom-scrollbar bg-[#0c1220]">
                 
                 <!-- 1. Real / Demo Selector -->
                 <div>
-                    <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 mb-1.5">
-                        <span>1. Select a real or demo account</span>
-                        <span class="text-slate-500 hover:text-slate-300 cursor-help text-[11px]" title="Real accounts trade with actual funds. Demo accounts provide $10,000 USD virtual balance.">ⓘ</span>
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 mb-2">
+                        <span>1. Select a trading platform</span>
+                        <span class="text-slate-500 hover:text-slate-300 cursor-help text-xs" title="Real accounts trade with actual funds. Demo accounts provide $10,000 USD virtual balance.">ⓘ</span>
                     </div>
-                    <div class="inline-flex p-0.5 rounded-lg bg-slate-900 border border-slate-800">
-                        <button type="button" id="subModalModeRealBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-black transition cursor-pointer bg-white/10 text-white border border-white/20 shadow-sm">
+                    <div class="inline-flex p-1 rounded-xl bg-[#060a14] border border-slate-800">
+                        <button type="button" id="subModalModeRealBtn" class="px-7 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20">
                             Real
                         </button>
-                        <button type="button" id="subModalModeDemoBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-semibold transition cursor-pointer text-slate-400 hover:text-white">
+                        <button type="button" id="subModalModeDemoBtn" class="px-7 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-white">
                             Demo
                         </button>
                     </div>
@@ -1421,212 +1473,207 @@
 
                 <!-- 2. Platform Selector -->
                 <div id="subModalPlatformSection">
-                    <div class="text-[11px] font-bold text-slate-300 mb-1.5">
+                    <div class="text-xs font-bold text-slate-300 mb-2">
                         2. Select platform
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- TraidiumX 2.0 Card -->
-                        <div id="subPlatformPxTrader" class="relative rounded-xl border-2 border-cyan-400/80 bg-slate-900/90 p-3 transition cursor-pointer ring-1 ring-cyan-400/30">
-                            <div class="flex items-start justify-between">
-                                <div>
+                        <div id="subPlatformPxTrader" class="relative rounded-2xl border-2 border-cyan-400 bg-[#081526] p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between">
+                            <div class="flex items-center gap-3.5 min-w-0 pr-2">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                </div>
+                                <div class="min-w-0">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-bold text-white text-xs sm:text-sm">TraidiumX 2.0</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Active</span>
+                                        <span class="font-black text-white text-sm">TraidiumX 2.0</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Active</span>
                                     </div>
-                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade crypto futures and CFDs</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Trade crypto futures and options with advanced tools, low fees and high performance.</p>
                                 </div>
-                                <div class="w-8 h-7 rounded-md bg-cyan-950/40 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1h18v1z"></path><path d="M8 12l3-3 2 2 3-3"></path></svg>
-                                </div>
+                            </div>
+                            <div id="subPlatformPxRadio" class="w-5 h-5 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center text-slate-950 shrink-0">
+                                <svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </div>
                         </div>
 
                         <!-- MetaTrader 5 Card -->
-                        <div id="subPlatformMT5" class="relative rounded-xl border border-slate-800 bg-slate-900/40 p-3 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-slate-300 text-xs sm:text-sm">MetaTrader 5</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-slate-800 text-slate-400">MT5</span>
-                                    </div>
-                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade CFDs and Forex on MetaTrader 5</p>
+                        <div id="subPlatformMT5" class="relative rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100">
+                            <div class="flex items-center gap-3.5 min-w-0 pr-2">
+                                <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 shrink-0">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"></circle><circle cx="6" cy="17" r="3"></circle><circle cx="18" cy="17" r="3"></circle><path d="M10 9l-2.5 5.5M14 9l2.5 5.5M9 17h6"></path></svg>
                                 </div>
-                                <div class="w-8 h-7 rounded-md bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"></circle><circle cx="6" cy="17" r="3"></circle><circle cx="18" cy="17" r="3"></circle><path d="M10 9l-2.5 5.5M14 9l2.5 5.5M9 17h6"></path></svg>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-300 text-sm">MetaTrader 5</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">MT5</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Trade CFDs and Forex on MetaTrader 5</p>
                                 </div>
                             </div>
+                            <div id="subPlatformMt5Radio" class="w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. Real Mode: Account Name + 3 Plan Cards -->
-                <div id="subModalRealPlanSection" class="space-y-3">
+                <div id="subModalRealPlanSection" class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
-                        <input id="newSubNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-cyan-400 placeholder:text-slate-500 transition" />
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
+                        <input id="newSubNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="w-full rounded-xl border border-slate-800 bg-[#070c18] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white outline-none focus:border-cyan-400 placeholder:text-slate-500 transition" />
                     </div>
 
                     <div>
-                        <div class="text-[11px] font-bold text-slate-300 mb-2">
+                        <div class="text-xs font-bold text-slate-300 mb-2.5">
                             3. Select account type
                         </div>
 
                         <!-- 3 Plan Cards Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                             
                             <!-- Basic Plan Card -->
-                            <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border-2 border-cyan-400/90 bg-slate-900/90 p-3.5 transition cursor-pointer ring-1 ring-cyan-400/30">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="text-xs sm:text-sm font-black text-white">Basic</h4>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border-2 border-cyan-400 flex items-center justify-center p-0.5">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                            <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526] p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="text-sm font-black text-white">Basic</h4>
+                                            </div>
+                                        </div>
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For traders trading perpetual crypto futures and CFD markets with standard leverage.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Standard trading conditions ideal for beginners and casual traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanBasicSpread" class="font-bold text-emerald-400">Fixed 18 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-slate-500 font-normal">| Fixed 18 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 1.0 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Customisable leverage</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Netting & Hedge modes</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Order Book & TV charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> 10% Cashback & VIP tiers</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Customizable leverage</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> 24/7 Market access</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Standard support</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">No min deposit</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanBasicMinPill" class="w-full py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-black text-center tracking-wide">
+                                        MIN $0.00
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Standard Plan Card -->
-                            <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-1.5">
-                                            <h4 class="text-xs sm:text-sm font-black text-white">Standard</h4>
-                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">Popular</span>
+                            <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9l4-6z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <h4 class="text-sm font-black text-white">Standard</h4>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">Popular</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For intermediate traders wanting tighter spreads (12 USDT) and enhanced execution speed.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Optimized tighter spreads and enhanced execution for active traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanStandardSpread" class="font-bold text-blue-400">Fixed 12 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-blue-400 font-normal">| Fixed 12 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.8 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Customisable leverage</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Faster order routing</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> TradingView charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> 15% Cashback & Priority Support</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Tighter spreads for lower cost</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Advanced TradingView charts</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Priority order execution</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-300 border border-blue-500/30">Min $2,000</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanStandardMinPill" class="w-full py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/40 text-xs font-black text-center tracking-wide">
+                                        MIN $2,000.00
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Advanced Plan Card -->
-                            <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-1.5">
-                                            <h4 class="text-xs sm:text-sm font-black text-white">Advanced</h4>
-                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">VIP Pro</span>
+                            <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18h18M4 14l3-8 5 5 5-5 3 8H4z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <h4 class="text-sm font-black text-white">Advanced</h4>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Pro</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For high-volume traders seeking lowest spreads (5 USDT) and dedicated VIP conditions.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Institutional VIP conditions with lowest spreads for high-volume traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanAdvancedSpread" class="font-bold text-purple-400">Fixed 5 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-purple-400 font-normal">| Fixed 5 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Institutional Raw Spreads</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> TradingView charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> 25% Cashback & VIP Manager</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Zero fee internal transfers</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Lowest VIP institutional spreads</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Dedicated VIP account manager</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> 24/7 Priority VIP support</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/30">Min $5,000</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanAdvancedMinPill" class="w-full py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-black text-center tracking-wide">
+                                        MIN $5,000.00
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1641,14 +1688,14 @@
                 </div>
 
                 <!-- 4. Demo Mode Views -->
-                <!-- Demo Mode: Already Exists Notice (matching PrimeXBT screenshot) -->
-                <div id="subModalDemoExistingNotice" class="hidden rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2.5">
+                <!-- Demo Mode: Already Exists Notice -->
+                <div id="subModalDemoExistingNotice" class="hidden rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-2.5">
                     <div class="flex items-start gap-3">
                         <div class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-black shrink-0 text-xs">ⓘ</div>
                         <div>
-                            <h4 class="text-xs sm:text-sm font-bold text-amber-300">All available accounts have been created.</h4>
-                            <p class="text-[11px] text-slate-400 mt-0.5">(1 Demo account per profile)</p>
-                            <p class="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                            <h4 class="text-sm font-bold text-amber-300">All available accounts have been created.</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">(1 Demo account per profile)</p>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
                                 You already have an active Demo account with virtual funds. You can continue trading or top up its balance from your existing sub-accounts list below.
                             </p>
                         </div>
@@ -1658,38 +1705,38 @@
                 <!-- Demo Mode: Create Demo Form (if none exists) -->
                 <div id="subModalDemoNewSection" class="hidden space-y-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
-                        <input id="newSubDemoNameInput" type="text" value="Demo Account" placeholder="Demo Account Name" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-500 transition" />
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
+                        <input id="newSubDemoNameInput" type="text" value="Demo Account" placeholder="Demo Account Name" class="w-full rounded-xl border border-slate-800 bg-[#070c18] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white outline-none focus:border-amber-400 placeholder:text-slate-500 transition" />
                     </div>
-                    <div class="rounded-xl border border-amber-500/30 bg-slate-900/80 p-4 space-y-2">
+                    <div class="rounded-2xl border border-amber-500/30 bg-[#090e1a] p-5 space-y-2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                <h4 class="text-xs sm:text-sm font-bold text-white">TraidiumX 2.0 Demo</h4>
+                                <h4 class="text-sm font-bold text-white">TraidiumX 2.0 Demo</h4>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">$10,000 USD</span>
+                            <span class="px-2.5 py-0.5 rounded text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">$10,000 USD</span>
                         </div>
-                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                        <p class="text-xs text-slate-300 leading-relaxed">
                             Practice risk-free with <strong>$10,000 USDT virtual funds</strong>. Access real-time price feeds, order books, and full charting features with zero financial risk.
                         </p>
                     </div>
                 </div>
 
                 <!-- Feedback / Status Message -->
-                <p id="createSubMessage" class="hidden text-xs font-bold p-2.5 rounded-lg border"></p>
+                <p id="createSubMessage" class="hidden text-xs font-bold p-3 rounded-xl border"></p>
 
                 <!-- 5. Collapsible Existing Sub-Accounts Section -->
-                <div class="border-t border-slate-800/80 pt-3">
-                    <button type="button" id="subExistingToggleBtn" class="flex items-center justify-between w-full text-[11px] font-bold text-slate-400 hover:text-white transition cursor-pointer">
+                <div class="border-t border-white/10 pt-3">
+                    <button type="button" id="subExistingToggleBtn" class="flex items-center justify-between w-full text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
                         <span class="flex items-center gap-2">
                             <span>Your Existing Accounts</span>
-                            <span id="subExistingCountBadge" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[9.5px] text-cyan-300 font-black">0</span>
+                            <span id="subExistingCountBadge" class="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-cyan-300 font-black">0</span>
                         </span>
-                        <span id="subExistingArrow" class="text-[10px] transition-transform duration-200">▼</span>
+                        <span id="subExistingArrow" class="text-xs transition-transform duration-200">▼</span>
                     </button>
-                    <div id="subExistingDrawer" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="hidden mt-2.5 max-h-[260px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
-                        <div id="subAccountsContainer" class="space-y-1.5">
-                            <p class="text-[11px] text-slate-500 font-semibold py-1">Loading sub accounts...</p>
+                    <div id="subExistingDrawer" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="hidden mt-3 max-h-[220px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        <div id="subAccountsContainer" class="space-y-2">
+                            <p class="text-xs text-slate-500 font-semibold py-1">Loading sub accounts...</p>
                         </div>
                     </div>
                 </div>
@@ -1697,13 +1744,17 @@
             </div>
 
             <!-- Modal Footer Action Bar -->
-            <div class="border-t border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
-                <p class="text-[10.5px] text-slate-400 text-center sm:text-left">
-                    For detailed trading fees and conditions, please review our <a href="./fee-structure.html" class="text-cyan-400 hover:underline">Fee Schedule</a>.
-                </p>
-                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                    <button id="subAccountModalBottomClose" type="button" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">Close</button>
-                    <button id="subAccountSubmitBtn" type="button" class="flex-1 sm:flex-initial px-5 py-2 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed">Create account</button>
+            <div class="tx-sub-modal-footer border-t border-white/10 px-6 py-4 bg-[#080d1a] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2 text-xs text-slate-400 text-center sm:text-left">
+                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>For detailed trading fees and conditions, please refer to our <a href="./fee-structure.html" class="text-cyan-400 hover:underline">Fee Schedule</a>.</span>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button id="subAccountModalBottomClose" type="button" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">Close</button>
+                    <button id="subAccountSubmitBtn" type="button" class="flex-1 sm:flex-initial px-7 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-xs sm:text-sm font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/25 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5">
+                        <span>Create account</span>
+                        <span>›</span>
+                    </button>
                 </div>
             </div>
 
@@ -1890,8 +1941,8 @@
 
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
-    <script src="../js/auth-state.js"></script>
-    <script src="../js/options.js?v=72"></script>
+    <script src="../js/auth-state.js?v=79"></script>
+    <script src="../js/options.js?v=77"></script>
     <script src="../js/responsive.js"></script>
 </body>
 </html>

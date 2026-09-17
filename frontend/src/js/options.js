@@ -17,7 +17,7 @@ const TX_OPTIONS_WS_BASE = "wss://stream.binance.com:9443/stream?streams=";
 const TX_OPTIONS_INDEX_WS_BASE = "wss://fstream.binance.com/stream?streams=";
 const TX_OPTIONS_BINANCE_REST_BASE = "https://api.binance.com";
 const TX_OPTIONS_UI_THROTTLE_MS = 100;
-const TX_OPTIONS_TICKER_RENDER_MS = 100;
+const TX_OPTIONS_TICKER_RENDER_MS = 250;
 
 function getCoinLogoSvg(pair, sizeClass = "w-8 h-8") {
     const rawPair = String(pair || "").replace(" Options", "").trim();
@@ -164,13 +164,23 @@ const underlyings = {
 const tickerItems = [
     { symbol: "BTCUSDT", label: "BTC-USDT", icon: "₿" },
     { symbol: "ETHUSDT", label: "ETH-USDT", icon: "Ξ" },
-    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S" }
+    { symbol: "SOLUSDT", label: "SOL-USDT", icon: "S" },
+    { symbol: "BNBUSDT", label: "BNB-USDT", icon: "B" },
+    { symbol: "DOGEUSDT", label: "DOGE-USDT", icon: "Ð" },
+    { symbol: "XRPUSDT", label: "XRP-USDT", icon: "✕" },
+    { symbol: "ADAUSDT", label: "ADA-USDT", icon: "₳" },
+    { symbol: "AVAXUSDT", label: "AVAX-USDT", icon: "A" }
 ];
 
 const tickerFallback = {
     BTCUSDT: 64200,
     ETHUSDT: 3550,
-    SOLUSDT: 145
+    SOLUSDT: 145,
+    BNBUSDT: 580,
+    DOGEUSDT: 0.12,
+    XRPUSDT: 0.58,
+    ADAUSDT: 0.45,
+    AVAXUSDT: 28
 };
 
 const state = {
@@ -1049,6 +1059,18 @@ async function loadUnderlyingPrice(forceRender = false) {
 }
 
 
+function getTickerDecimals(symbol, price) {
+    const s = String(symbol || "").toUpperCase();
+    if (s.includes("BTC") || s.includes("ETH") || s.includes("BNB") || s.includes("SOL") || s.includes("LTC") || s.includes("AVAX")) return 2;
+    if (s.includes("XRP") || s.includes("ADA") || s.includes("DOGE") || s.includes("TRX") || s.includes("MATIC") || s.includes("NEAR")) return 4;
+    if (s.includes("PEPE") || s.includes("SHIB") || s.includes("BONK") || s.includes("FLOKI")) return 6;
+    if (price >= 50) return 2;
+    if (price >= 1) return 3;
+    return 4;
+}
+
+let cachedTickerNodes = null;
+
 function renderTickerStrip() {
     if (!el.tickerStrip) {
         return;
@@ -1059,12 +1081,13 @@ function renderTickerStrip() {
     let track = el.tickerStrip.querySelector(".os-ticker-track");
 
     if (!track) {
+        cachedTickerNodes = null;
         const rows = tickerItems.map((item) => {
             const cached = getTickerCache(item.symbol) || {};
             const price = number(cached.price, tickerFallback[item.symbol] || 0);
             const change = number(cached.change, 0);
             const positive = change >= 0;
-            const decimals = decimalsForPrice(price);
+            const decimals = getTickerDecimals(item.symbol, price);
             const logo = (typeof getCoinLogoSvg === "function") ? getCoinLogoSvg(item.symbol, "w-4 h-4") : (window.getCoinLogoSvg ? window.getCoinLogoSvg(item.symbol, "w-4 h-4") : `<span class="os-ticker-icon">${item.icon}</span>`);
 
             return `
@@ -1082,8 +1105,6 @@ function renderTickerStrip() {
         el.tickerStrip.innerHTML = `
             <div class="os-ticker-marquee">
                 <div class="os-ticker-track">
-                    ${tickerHtml}
-                    ${tickerHtml}
                     ${tickerHtml}
                     ${tickerHtml}
                 </div>
@@ -1106,28 +1127,40 @@ function renderTickerStrip() {
         return;
     }
 
+    if (!cachedTickerNodes) {
+        cachedTickerNodes = {};
+        tickerItems.forEach((item) => {
+            cachedTickerNodes[item.symbol] = {
+                prices: Array.from(track.querySelectorAll(`.os-ticker-price[data-symbol="${item.symbol}"]`)),
+                changes: Array.from(track.querySelectorAll(`.os-ticker-change[data-symbol="${item.symbol}"]`))
+            };
+        });
+    }
+
     tickerItems.forEach((item) => {
         const cached = getTickerCache(item.symbol) || {};
         const price = number(cached.price, tickerFallback[item.symbol] || 0);
         const change = number(cached.change, 0);
         const positive = change >= 0;
-        const decimals = decimalsForPrice(price);
+        const decimals = getTickerDecimals(item.symbol, price);
 
         const formattedPrice = `$${formatNumber(price, decimals)}`;
         const formattedChange = `${positive ? "+" : ""}${formatNumber(change, 2)}%`;
+        const nodes = cachedTickerNodes[item.symbol];
 
-        track.querySelectorAll(`.os-ticker-price[data-symbol="${item.symbol}"]`).forEach((node) => {
-            if (node.textContent !== formattedPrice) {
-                node.textContent = formattedPrice;
-            }
-        });
-
-        track.querySelectorAll(`.os-ticker-change[data-symbol="${item.symbol}"]`).forEach((node) => {
-            if (node.textContent !== formattedChange) {
-                node.textContent = formattedChange;
-                node.className = `os-ticker-change ${positive ? "up" : "down"}`;
-            }
-        });
+        if (nodes) {
+            nodes.prices.forEach((node) => {
+                if (node.textContent !== formattedPrice) {
+                    node.textContent = formattedPrice;
+                }
+            });
+            nodes.changes.forEach((node) => {
+                if (node.textContent !== formattedChange) {
+                    node.textContent = formattedChange;
+                    node.className = `os-ticker-change ${positive ? "up" : "down"}`;
+                }
+            });
+        }
     });
 }
 
@@ -2898,6 +2931,50 @@ function initMobileOptionsSubNav() {
     });
 }
 
+
+function initOptionsCurrencyToggles() {
+    const syncActiveCurrencyUI = () => {
+        const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+        document.querySelectorAll("#optionsHeaderCurrencyToggle [data-currency-switch]").forEach((btn) => {
+            const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
+            const isActive = btnCurr === activeCurr;
+            if (isActive) {
+                btn.className = "px-2.5 py-0.5 rounded-full text-[11px] font-black transition cursor-pointer bg-cyan-400 text-slate-950 shadow-sm";
+            } else {
+                btn.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold transition cursor-pointer text-slate-400 hover:text-white";
+            }
+        });
+        document.querySelectorAll("#optionsMobileCurrencyToggle [data-currency-switch]").forEach((btn) => {
+            const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
+            const isActive = btnCurr === activeCurr;
+            btn.classList.toggle("text-cyan-300", isActive);
+            btn.classList.toggle("bg-cyan-500/20", isActive);
+            btn.classList.toggle("border", isActive);
+            btn.classList.toggle("border-cyan-400/40", isActive);
+            btn.classList.toggle("text-slate-400", !isActive);
+        });
+    };
+
+    document.querySelectorAll("[data-currency-switch]").forEach((btn) => {
+        if (btn.__txCurrencyBound) return;
+        btn.__txCurrencyBound = true;
+        btn.addEventListener("click", () => {
+            const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
+            localStorage.setItem("tx_navbar_currency", targetCurr);
+            syncActiveCurrencyUI();
+            window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: targetCurr } }));
+            if (state.wallet.rawWallet) {
+                applyWallet(state.wallet.rawWallet);
+            } else if (typeof loadOptionsWalletState === "function") {
+                loadOptionsWalletState();
+            }
+        });
+    });
+
+    syncActiveCurrencyUI();
+    window.addEventListener("traidiumx:currency-change", syncActiveCurrencyUI);
+}
+
 function initOptionsMobileWalletBar() {
     const mobTrans = document.getElementById("mobileOptionsTransferBtn");
     const mobDep = document.getElementById("mobileOptionsDepositBtn");
@@ -4326,19 +4403,193 @@ function initOptionsWalletQuickActions() {
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
         initOptionsTerminal();
+        initOptionsCurrencyToggles();
         txInitSubAccountsAndSelector();
         txBindSubAccountEvents();
     });
 } else {
     initOptionsTerminal();
+        initOptionsCurrencyToggles();
     txInitSubAccountsAndSelector();
     txBindSubAccountEvents();
 }
 
 let txSubAccountsLocalCache = [];
 
+
+let txCustomAccountDropdownInitialized = false;
+let txCustomAccountCloseTimer = null;
+
+function txOpenCustomAccountDropdown() {
+    if (txCustomAccountCloseTimer) {
+        clearTimeout(txCustomAccountCloseTimer);
+        txCustomAccountCloseTimer = null;
+    }
+    const trigger = document.getElementById("txCustomAccountTrigger");
+    const menu = document.getElementById("txCustomAccountMenu");
+    if (trigger) trigger.classList.add("open");
+    if (menu) menu.classList.add("open");
+}
+
+function txCloseCustomAccountDropdown(immediate = false) {
+    if (txCustomAccountCloseTimer) {
+        clearTimeout(txCustomAccountCloseTimer);
+        txCustomAccountCloseTimer = null;
+    }
+    const doClose = () => {
+        const trigger = document.getElementById("txCustomAccountTrigger");
+        const menu = document.getElementById("txCustomAccountMenu");
+        if (trigger) trigger.classList.remove("open");
+        if (menu) menu.classList.remove("open");
+    };
+    if (immediate) {
+        doClose();
+    } else {
+        txCustomAccountCloseTimer = setTimeout(doClose, 200);
+    }
+}
+
+function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
+    const labelEl = document.getElementById("txCustomAccountLabel");
+    const listEl = document.getElementById("txCustomAccountList");
+    if (!labelEl || !listEl) return;
+
+    activeSubId = activeSubId || "main";
+    const allAccounts = [
+        { id: "main", name: "Main Trading Account", is_demo: false, plan_name: "Real", plan_color: "emerald" },
+        ...subAccounts.map(s => ({
+            id: s.id,
+            name: s.name,
+            is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo",
+            account_mode: s.account_mode || (s.plan === "demo" ? "demo" : "real"),
+            plan_name: s.plan_name || (s.is_demo || s.plan === "demo" ? "Demo" : "Basic"),
+            plan_color: s.plan_color || (s.is_demo || s.plan === "demo" ? "amber" : "cyan")
+        }))
+    ];
+
+    const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
+    const isCurrentDemo = !!currentAcc.is_demo;
+
+    const dotEl = document.getElementById("txCustomAccountDot");
+    const triggerEl = document.getElementById("txCustomAccountTrigger");
+    const chevronEl = document.getElementById("txCustomAccountChevron");
+
+    if (dotEl) {
+        dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]'}`;
+    }
+    if (triggerEl) {
+        if (isCurrentDemo) {
+            triggerEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+        } else {
+            triggerEl.style.borderColor = "rgba(148, 163, 184, 0.25)";
+        }
+    }
+    if (chevronEl) {
+        chevronEl.style.color = isCurrentDemo ? "#f59e0b" : "#94a3b8";
+    }
+
+    labelEl.innerHTML = `
+        <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : 'text-cyan-300'}">${escapeHtml(currentAcc.name)}</span>
+        ${isCurrentDemo ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30">DEMO</span>' : ''}
+    `;
+
+    listEl.innerHTML = allAccounts.map(acc => {
+        const isSelected = String(acc.id) === String(activeSubId);
+        const isDemo = !!acc.is_demo;
+        return `
+            <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''} flex items-center justify-between w-full p-2 rounded-lg text-left transition hover:bg-slate-800/60">
+                <div class="flex items-center gap-2 truncate min-w-0">
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500')}"></span>
+                    <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'} text-xs">${escapeHtml(acc.name)}</span>
+                    ${isDemo ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-amber-500/20 text-amber-300 border-amber-500/30">DEMO</span>' : ''}
+                </div>
+                ${isSelected ? '<svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' : ''}
+            </button>
+        `;
+    }).join("");
+
+    listEl.querySelectorAll(".tx-custom-acc-item").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const accId = btn.getAttribute("data-acc-id");
+            txCloseCustomAccountDropdown(true);
+
+            const selector = document.getElementById("tradingAccountSelector");
+            if (selector) {
+                selector.value = accId;
+                selector.dispatchEvent(new Event("change"));
+            }
+        });
+    });
+}
+
+function txInitCustomAccountDropdown() {
+    if (txCustomAccountDropdownInitialized) return;
+    txCustomAccountDropdownInitialized = true;
+
+    const trigger = document.getElementById("txCustomAccountTrigger");
+    const menu = document.getElementById("txCustomAccountMenu");
+    const createBtn = document.getElementById("txCustomAccountCreateBtn");
+    const dropdownRoot = document.getElementById("txCustomAccountDropdown");
+
+    if (!trigger || !menu) return;
+
+    if (dropdownRoot && !dropdownRoot.__txHoverBound) {
+        dropdownRoot.__txHoverBound = true;
+        dropdownRoot.addEventListener("mouseenter", () => {
+            txOpenCustomAccountDropdown();
+        });
+        dropdownRoot.addEventListener("mouseleave", () => {
+            txCloseCustomAccountDropdown(false);
+        });
+    }
+
+    trigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = menu.classList.contains("open");
+        if (isOpen) {
+            txCloseCustomAccountDropdown(true);
+        } else {
+            txOpenCustomAccountDropdown();
+        }
+    });
+
+    if (createBtn) {
+        createBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            txCloseCustomAccountDropdown(true);
+            if (typeof window.txOpenSubAccountModal === "function") {
+                window.txOpenSubAccountModal("real");
+            } else {
+                const subModal = document.getElementById("subAccountModal");
+                if (subModal) {
+                    subModal.style.display = "flex";
+                    subModal.classList.remove("hidden");
+                    subModal.classList.add("flex");
+                    txRenderSubAccountsList();
+                    const sb = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
+                    if (sb) sb.scrollTop = 0;
+                }
+            }
+        });
+    }
+
+    document.addEventListener("click", (e) => {
+        if (!menu.contains(e.target) && !trigger.contains(e.target) && !e.target.closest("#txCustomAccountDropdown")) {
+            txCloseCustomAccountDropdown(true);
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && menu.classList.contains("open")) {
+            txCloseCustomAccountDropdown(true);
+        }
+    });
+}
+
 async function txInitSubAccountsAndSelector() {
     if (!isLoggedIn()) return;
+    txInitCustomAccountDropdown();
     // Fetch live USDT rate on init
     fetchOptionsUsdtRate();
     try {
@@ -4349,12 +4600,11 @@ async function txInitSubAccountsAndSelector() {
         const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
         txSubAccountsLocalCache = subAccounts;
         
-        selector.innerHTML = `<option value="main">Main Trading Account (Real)</option>`;
+        selector.innerHTML = `<option value="main">Main Trading Account</option>`;
         subAccounts.forEach(sub => {
             const opt = document.createElement("option");
-            const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
             opt.value = sub.id;
-            opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
+            opt.textContent = sub.name;
             selector.appendChild(opt);
         });
 
@@ -4363,7 +4613,7 @@ async function txInitSubAccountsAndSelector() {
         createOpt.textContent = "+ Create Sub Account";
         selector.appendChild(createOpt);
         
-        let activeSubId = localStorage.getItem("traidiumx_active_user_id");
+        let activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
         let isCurrentDemo = false;
         if (activeSubId && subAccounts.some(s => s.id === activeSubId)) {
             selector.value = activeSubId;
@@ -4373,7 +4623,10 @@ async function txInitSubAccountsAndSelector() {
             }
         } else {
             selector.value = "main";
+            activeSubId = "main";
         }
+        
+        txRenderCustomAccountDropdown(subAccounts, activeSubId);
 
         const fundsGrid = document.querySelector(".rt-pair-funds-grid");
         const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
@@ -4585,6 +4838,62 @@ function txBindSubAccountEvents() {
         }
     };
 
+    window.txLoadDynamicPlanSettings = async function() {
+        try {
+            const resp = await apiRequest("/onboarding/config");
+            const settings = resp?.data?.settings;
+            const plans = settings?.plans;
+            if (!plans) return;
+
+            // Basic
+            if (plans.basic) {
+                const basicMin = Number(plans.basic.minimum_balance || 0);
+                const basicMinEl = document.getElementById("subPlanBasicMinPill");
+                if (basicMinEl) {
+                    basicMinEl.textContent = basicMin === 0 ? "MIN $0.00" : `MIN $${basicMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+                const basicSpreadEl = document.getElementById("subPlanBasicSpread");
+                if (basicSpreadEl) {
+                    const spreadVal = plans.basic.spread_value !== undefined ? plans.basic.spread_value : 18;
+                    basicSpreadEl.textContent = plans.basic.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                }
+            }
+
+            // Standard
+            if (plans.standard) {
+                const standardMin = Number(plans.standard.minimum_balance || 2000);
+                const standardMinEl = document.getElementById("subPlanStandardMinPill");
+                if (standardMinEl) {
+                    standardMinEl.textContent = `MIN $${standardMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+                const standardSpreadEl = document.getElementById("subPlanStandardSpread");
+                if (standardSpreadEl) {
+                    const spreadVal = plans.standard.spread_value !== undefined ? plans.standard.spread_value : 12;
+                    standardSpreadEl.textContent = plans.standard.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                }
+            }
+
+            // Advanced
+            if (plans.advanced) {
+                const advMin = Number(plans.advanced.minimum_balance || 5000);
+                const advMinEl = document.getElementById("subPlanAdvancedMinPill");
+                if (advMinEl) {
+                    advMinEl.textContent = `MIN $${advMin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+                const advSpreadEl = document.getElementById("subPlanAdvancedSpread");
+                if (advSpreadEl) {
+                    const spreadVal = plans.advanced.spread_value !== undefined ? plans.advanced.spread_value : 5;
+                    advSpreadEl.textContent = plans.advanced.spread_type === "percentage" ? `${spreadVal}% Spread` : `Fixed ${spreadVal} USDT`;
+                }
+            }
+        } catch (err) {
+            // Graceful fallback
+        }
+    };
+
+    window.txOpenSubAccountModal = function(mode = "real") {
+        openSubModal(mode);
+    };
     const openSubModal = (mode = "real") => {
         if (subModal) {
             subModal.style.display = "flex";
@@ -4592,6 +4901,9 @@ function txBindSubAccountEvents() {
             subModal.classList.add("flex");
             setModalMode(mode);
             txRenderSubAccountsList();
+            if (typeof window.txLoadDynamicPlanSettings === "function") {
+                window.txLoadDynamicPlanSettings();
+            }
             const scrollBody = document.getElementById("subAccountModalScrollBody") || subModal.querySelector(".overflow-y-auto");
             if (scrollBody) scrollBody.scrollTop = 0;
         }
@@ -4632,14 +4944,33 @@ function txBindSubAccountEvents() {
     // Platform selection
     const platPx = document.getElementById("subPlatformPxTrader");
     const platMt5 = document.getElementById("subPlatformMT5");
+    const platPxRadio = document.getElementById("subPlatformPxRadio");
+    const platMt5Radio = document.getElementById("subPlatformMt5Radio");
+
     const updatePlatformCards = (plat) => {
         selectedPlatform = plat;
         if (plat === "pxtrader") {
-            platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-            platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            platPx?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+            platMt5?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+            if (platPxRadio) {
+                platPxRadio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                platPxRadio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            }
+            if (platMt5Radio) {
+                platMt5Radio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                platMt5Radio.innerHTML = '';
+            }
         } else {
-            platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400/80 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30");
-            platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800/80 bg-slate-900/40 p-4 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100");
+            platMt5?.setAttribute("class", "relative rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between");
+            platPx?.setAttribute("class", "relative rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100");
+            if (platMt5Radio) {
+                platMt5Radio.className = "w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shrink-0";
+                platMt5Radio.innerHTML = '<svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+            }
+            if (platPxRadio) {
+                platPxRadio.className = "w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0";
+                platPxRadio.innerHTML = '';
+            }
         }
     };
     platPx?.addEventListener("click", () => updatePlatformCards("pxtrader"));
@@ -4655,13 +4986,16 @@ function txBindSubAccountEvents() {
 
         planCards.forEach(card => {
             const cardPlan = card.getAttribute("data-plan");
+            const radioContainer = card.querySelector(".tx-plan-radio");
             const radio = card.querySelector(".tx-plan-radio div");
             if (cardPlan === plan) {
-                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400/90 bg-slate-900/90 p-4 transition cursor-pointer ring-1 ring-cyan-400/30";
-                if (radio) radio.className = "w-2 h-2 rounded-full bg-cyan-400";
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526]/90 p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]";
+                if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0";
+                if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-slate-950";
             } else {
-                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4 transition cursor-pointer hover:border-slate-700";
-                if (radio) radio.className = "w-2 h-2 rounded-full bg-transparent";
+                card.className = "tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a]/60 p-4 transition cursor-pointer hover:border-slate-700";
+                if (radioContainer) radioContainer.className = "tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0";
+                if (radio) radio.className = "w-1.5 h-1.5 rounded-full bg-transparent";
             }
         });
     };

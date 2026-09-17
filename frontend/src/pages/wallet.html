@@ -19,7 +19,7 @@
     <title>Crypto Wallet | TraidiumX</title>
 
     <link rel="stylesheet" href="../../dist/output.css" />
-    <link rel="stylesheet" href="../css/custom.css?v=40" />
+    <link rel="stylesheet" href="../css/custom.css?v=59" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
@@ -831,79 +831,12 @@
                 <button id="mainTabOverview" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-cyan-400 text-cyan-300 transition flex-shrink-0 cursor-pointer">Overview</button>
                 <button id="mainTabTradingAccounts" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition flex-shrink-0 cursor-pointer">Trading accounts</button>
                 <button id="mainTabWallet" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition flex-shrink-0 cursor-pointer">Wallet</button>
-                <button id="mainTabDeposit" class="px-2 py-1 text-xs sm:text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-white transition flex-shrink-0 cursor-pointer">Deposit</button>
             </div>
 
             <!-- Tab Content: Overview (Active by Default) -->
             <div id="contentOverview" class="block space-y-8 sm:space-y-10">
 
-                <!-- 2. Spotlight Row (3 Cards with Hide Spotlight ✕) -->
-                <div id="txPrimeSpotlightSection" class="space-y-4 pt-1 pb-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-black uppercase tracking-wider text-slate-400">Spotlight</span>
-                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                        </div>
-                        <button id="txPrimeHideSpotlightBtn" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
-                            <span id="txPrimeSpotlightToggleText">Hide Spotlight</span> <span id="txPrimeSpotlightToggleIcon" class="text-slate-500 font-bold">✕</span>
-                        </button>
-                    </div>
-
-                    <div id="txPrimeSpotlightCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                        <!-- Card 1: Maintenance / Engine Update -->
-                        <div class="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#07111f]/80 p-5 backdrop-blur-xl hover:border-cyan-500/40 transition">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 text-xl shrink-0 group-hover:scale-110 transition">
-                                    ⚡
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">Update</span>
-                                        <span class="text-xs text-slate-400 font-semibold">Ultra-low latency</span>
-                                    </div>
-                                    <h4 class="text-base font-black text-white mt-1 group-hover:text-cyan-300 transition">High-Speed Execution Engine</h4>
-                                    <p class="text-xs sm:text-sm text-slate-300 mt-1 line-clamp-2 leading-relaxed">Sub-millisecond trade execution active across all crypto and CFD markets.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 2: Learn Center -->
-                        <div class="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#07111f]/80 p-5 backdrop-blur-xl hover:border-purple-500/40 transition">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 text-xl shrink-0 group-hover:scale-110 transition">
-                                    🎓
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Academy</span>
-                                        <span class="text-xs text-slate-400 font-semibold">New to trading?</span>
-                                    </div>
-                                    <h4 class="text-base font-black text-white mt-1 group-hover:text-purple-300 transition">Trading Guides & Tutorials</h4>
-                                    <p class="text-xs sm:text-sm text-slate-300 mt-1 line-clamp-2 leading-relaxed">Master margin trading, leverage, stop loss and risk management strategies.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 3: Deposit Guide -->
-                        <div class="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#07111f]/80 p-5 backdrop-blur-xl hover:border-emerald-500/40 transition">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-300 text-xl shrink-0 group-hover:scale-110 transition">
-                                    💳
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">Instant</span>
-                                        <span class="text-xs text-slate-400 font-semibold">0% Fees</span>
-                                    </div>
-                                    <h4 class="text-base font-black text-white mt-1 group-hover:text-emerald-300 transition">How to Deposit Funds</h4>
-                                    <p class="text-xs sm:text-sm text-slate-300 mt-1 line-clamp-2 leading-relaxed">Deposit instantly via USDT (TRC20/BEP20) or fast UPI with instant balance credit.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Top Row: Total funds Card -->
+                <!-- Top Row: Total funds Card -->
                 <div class="relative rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-xl flex flex-col justify-between z-10">
                     <div>
                         <div class="flex items-center justify-between">
@@ -941,16 +874,45 @@
                         </button>
                         
                         <!-- More Dropdown -->
-                        <div class="relative inline-block text-left">
-                            <button id="txPrimeMoreMenuBtn" class="w-11 h-11 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-black text-base border border-white/10 flex items-center justify-center transition cursor-pointer">
-                                ⋮
+                        <div class="relative inline-block text-left z-40">
+                            <button id="txPrimeMoreMenuBtn" type="button" class="w-11 h-11 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-black text-base border border-white/10 flex items-center justify-center transition cursor-pointer hover:border-white/20 active:scale-95" title="More options">
+                                <svg class="w-5 h-5 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                </svg>
                             </button>
-                            <div id="txPrimeMoreMenuDropdown" class="hidden absolute right-0 bottom-full mb-2 w-48 rounded-2xl bg-[#0b1626] border border-cyan-500/25 shadow-2xl shadow-cyan-950/50 p-2 z-50 text-xs sm:text-sm font-bold backdrop-blur-2xl">
-                                <button id="txPrimeMenuExchange" class="w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2 cursor-pointer">
-                                    <span>💱</span> Exchange
+                            <div id="txPrimeMoreMenuDropdown" class="hidden absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[#0d1522] border border-white/10 shadow-2xl shadow-black/95 p-1.5 z-50 text-xs sm:text-sm font-bold space-y-1">
+                                <button id="txPrimeMenuExchange" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                    <span class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/25 group-hover:scale-105 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition">Exchange</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">Swap &amp; convert assets</div>
+                                    </div>
                                 </button>
-                                <button id="txPrimeMenuInternal" class="w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2 cursor-pointer">
-                                    <span>⚡</span> Internal Transfer
+                                <button id="txPrimeMenuInternal" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                    <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-500/25 group-hover:scale-105 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-amber-300 transition">Internal Transfer</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">Move funds between accounts</div>
+                                    </div>
+                                </button>
+                                <button type="button" onclick="txActivateHistoryTab()" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                    <span class="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/25 group-hover:scale-105 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-indigo-300 transition">Reports &amp; History</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">View ledger, deposits &amp; transfers</div>
+                                    </div>
                                 </button>
                             </div>
                         </div>
@@ -1121,8 +1083,8 @@
                             <input type="checkbox" id="txTaHideEmptyCheck" class="rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0 cursor-pointer" />
                             <span>Hide empty accounts</span>
                         </label>
-                        <button type="button" id="txTaHistoryLinkBtn" class="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
-                            <span>Trading history</span>
+                        <button type="button" id="txTaHistoryLinkBtn" onclick="txActivateHistoryTab()" class="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
+                            <span>Transfer history</span>
                             <span class="text-sm leading-none">›</span>
                         </button>
                     </div>
@@ -1170,7 +1132,18 @@
                     
                     <!-- 1. Header Hero Card (PrimeXBT Layout) -->
                     <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-5">
-                        <h3 class="text-2xl font-black text-white">Wallet</h3>
+                        <div class="flex items-center justify-between gap-4">
+                            <h3 class="text-2xl font-black text-white">Wallet</h3>
+                            <!-- INR / USD Currency Toggle in Top-Right of Wallet Card -->
+                            <div class="tx-currency-toggle-wrapper flex items-center justify-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl select-none shadow-inner shadow-black/40">
+                                <button type="button" class="flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[62px] cursor-pointer" data-currency="INR">
+                                    ₹ INR
+                                </button>
+                                <button type="button" class="flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 min-w-[62px] cursor-pointer" data-currency="USDT">
+                                    $ USD
+                                </button>
+                            </div>
+                        </div>
 
                         <div>
                             <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
@@ -1191,13 +1164,13 @@
                             <button onclick="openWalletActionModal('deposit')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-cyan-400/20 transition hover:scale-105 active:scale-95 cursor-pointer">
                                 Deposit
                             </button>
-                            <button onclick="openWalletActionModal('withdraw')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">
+                            <button onclick="txActivateWithdrawTab('crypto')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">
                                 Withdraw
                             </button>
                             <button onclick="openWalletActionModal('transfer')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">
                                 Transfer
                             </button>
-                            <button onclick="openWalletActionModal('exchange')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">
+                            <button onclick="window.location.href='./exchange.html'" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">
                                 Exchange
                             </button>
                         </div>
@@ -1217,7 +1190,7 @@
                                 <input type="checkbox" id="hideEmptyBalancesCheck" class="rounded border-slate-700 bg-slate-900 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0 cursor-pointer" />
                                 <span>Hide empty balances</span>
                             </label>
-                            <button type="button" id="txWalletTransferHistoryLink" onclick="txToggleWalletHistoryView(true)" class="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
+                            <button type="button" id="txWalletTransferHistoryLink" onclick="txActivateHistoryTab()" class="inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
                                 <span>Transfer history</span>
                                 <span>›</span>
                             </button>
@@ -1277,185 +1250,30 @@
                     </div>
 
                 </div>
-
-                <!-- Secondary Transfer History View (Toggleable) -->
-                <div id="txWalletHistoryView" class="hidden space-y-6">
-                    <div class="flex items-center justify-between">
-                        <button type="button" onclick="txToggleWalletHistoryView(false)" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-cyan-400 text-xs font-black text-slate-300 hover:text-white transition cursor-pointer">
-                            <span>‹</span>
-                            <span>Back to Wallets</span>
-                        </button>
-                        <h3 class="text-xl font-black text-white">Transfer & Activity History</h3>
-                    </div>
-
-                    <div class="grid gap-6">
-                        <!-- Wallet Ledger Panel -->
-                        <div id="walletLedgerPanel" class="tx-history-card">
-                            <div class="tx-history-head">
-                                <div>
-                                    <h3>Wallet ledger</h3>
-                                    <p>Every backend wallet movement.</p>
-                                </div>
-                                <div class="tx-history-controls">
-                                    <select id="ledgerAccountFilter" class="hidden font-bold text-cyan-300" style="background-color:#020617; border-color: rgba(34, 211, 238, 0.2);">
-                                        <option value="main">Main Account</option>
-                                    </select>
-                                    <select id="ledgerPageSize">
-                                        <option value="5">5 / page</option>
-                                        <option value="10">10 / page</option>
-                                        <option value="20">20 / page</option>
-                                    </select>
-                                    <input id="ledgerSearchInput" type="search" placeholder="Search ledger" />
-                                    <select id="ledgerCurrencyFilter">
-                                        <option value="all">All currencies</option>
-                                        <option value="INR">INR (₹)</option>
-                                        <option value="USDT">USD ($)</option>
-                                    </select>
-                                    <select id="ledgerTypeFilter">
-                                        <option value="all">All types</option>
-                                        <option value="credit">Credit</option>
-                                        <option value="debit">Debit</option>
-                                        <option value="deposit">Deposit</option>
-                                        <option value="withdrawal">Withdrawal</option>
-                                        <option value="transfer">Transfer</option>
-                                        <option value="fee">Fee</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="tx-history-table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th class="tx-desktop-only">Date</th>
-                                            <th class="tx-desktop-only">Type</th>
-                                            <th class="tx-desktop-only">Direction</th>
-                                            <th class="tx-desktop-only">Amount</th>
-                                            <th class="tx-desktop-only">After</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="ledgerTableBody"></tbody>
-                                </table>
-                            </div>
-                            <div id="ledgerEmptyState" class="tx-history-empty hidden">No ledger entries found.</div>
-                            <div id="ledgerPagination" class="tx-pagination"></div>
-                        </div>
-
-                        <!-- Deposit History Panel -->
-                        <div id="walletDepositHistoryPanel" class="tx-history-card">
-                            <div class="tx-history-head">
-                                <div>
-                                    <h3>Deposit history</h3>
-                                    <p>Company-address deposit records and verification status.</p>
-                                </div>
-                                <div class="tx-history-controls">
-                                    <input id="depositSearchInput" type="search" placeholder="Search deposits" />
-                                    <select id="depositCurrencyFilter">
-                                        <option value="all">All currencies</option>
-                                        <option value="INR">INR (₹)</option>
-                                        <option value="USDT">USD ($)</option>
-                                    </select>
-                                    <select id="depositStatusFilter">
-                                        <option value="all">All status</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="rejected">Rejected</option>
-                                        <option value="failed">Failed</option>
-                                    </select>
-                                    <select id="depositPageSize">
-                                        <option value="5">5 / page</option>
-                                        <option value="10">10 / page</option>
-                                        <option value="20">20 / page</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="tx-history-table-wrap">
-                                <table>
-                                     <thead>
-                                         <tr>
-                                             <th class="tx-desktop-only">Date</th>
-                                             <th class="tx-desktop-only">Reference</th>
-                                             <th class="tx-desktop-only">Network</th>
-                                             <th class="tx-desktop-only">Amount</th>
-                                             <th class="tx-desktop-only">Status</th>
-                                             <th class="tx-desktop-only">Verification</th>
-                                             <th class="tx-desktop-only text-right">Action</th>
-                                         </tr>
-                                     </thead>
-                                    <tbody id="depositTableBody"></tbody>
-                                </table>
-                            </div>
-                            <div id="depositEmptyState" class="tx-history-empty hidden">No deposit requests found.</div>
-                            <div id="depositPagination" class="tx-pagination"></div>
-                        </div>
-
-                        <!-- Withdrawal History Panel -->
-                        <div class="tx-history-card">
-                            <div class="tx-history-head">
-                                <div>
-                                    <h3>Withdrawal history</h3>
-                                    <p>Pending requests lock balance. Admin approval finalizes payout.</p>
-                                </div>
-                                <div class="tx-history-controls">
-                                    <input id="withdrawalSearchInput" type="search" placeholder="Search withdrawals" />
-                                    <select id="withdrawalCurrencyFilter">
-                                        <option value="all">All currencies</option>
-                                        <option value="INR">INR (₹)</option>
-                                        <option value="USDT">USD ($)</option>
-                                    </select>
-                                    <select id="withdrawalStatusFilter">
-                                        <option value="all">All status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="rejected">Rejected</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                    <select id="withdrawalPageSize">
-                                        <option value="5">5 / page</option>
-                                        <option value="10">10 / page</option>
-                                        <option value="20">20 / page</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="tx-history-table-wrap">
-                                <table>
-                                     <thead>
-                                         <tr>
-                                             <th class="tx-desktop-only">Date</th>
-                                             <th class="tx-desktop-only">Reference</th>
-                                             <th class="tx-desktop-only">Network</th>
-                                             <th class="tx-desktop-only">Address</th>
-                                             <th class="tx-desktop-only">Amount</th>
-                                             <th class="tx-desktop-only">Status</th>
-                                             <th class="tx-desktop-only">Remark</th>
-                                             <th class="tx-desktop-only text-right">Action</th>
-                                         </tr>
-                                     </thead>
-                                    <tbody id="withdrawalTableBody"></tbody>
-                                </table>
-                            </div>
-                            <div id="withdrawalEmptyState" class="tx-history-empty hidden">No withdrawal requests found.</div>
-                            <div id="withdrawalPagination" class="tx-pagination"></div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             <!-- Tab Content: Deposit (PrimeXBT / Nexus Style Layout from Reference Image) -->
             <div id="contentDeposit" class="hidden">
                 <div class="tx-nexus-deposit-wrap">
-                    <!-- Sub Navigation Bar: Deposit / Withdraw / Transfer history -->
-                    <div class="tx-nexus-subtabs">
-                        <button type="button" id="nexusSubTabDeposit" onclick="txSwitchNexusSubTab('deposit')" class="tx-nexus-subtab-btn active">
-                            Deposit
+                    <!-- Sub Navigation Bar: Back to Wallet + Deposit / Withdraw / Transfer history -->
+                    <div class="tx-nexus-subtabs-bar">
+                        <button type="button" onclick="txBackToWalletOverview()" class="tx-nexus-back-btn" title="Back to Wallet Overview">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            <span class="hidden sm:inline">Back to Wallet</span>
+                            <span class="sm:hidden">Back</span>
                         </button>
-                        <button type="button" id="nexusSubTabWithdraw" onclick="txSwitchNexusSubTab('withdraw')" class="tx-nexus-subtab-btn">
-                            Withdraw
-                        </button>
-                        <button type="button" id="nexusSubTabHistory" onclick="txSwitchNexusSubTab('history')" class="tx-nexus-subtab-btn">
-                            Transfer history
-                        </button>
+
+                        <div class="tx-nexus-subtabs">
+                            <button type="button" id="nexusSubTabDeposit" onclick="txSwitchNexusSubTab('deposit')" class="tx-nexus-subtab-btn active">
+                                Deposit
+                            </button>
+                            <button type="button" id="nexusSubTabWithdraw" onclick="txSwitchNexusSubTab('withdraw')" class="tx-nexus-subtab-btn">
+                                Withdraw
+                            </button>
+                            <button type="button" id="nexusSubTabHistory" onclick="txSwitchNexusSubTab('history')" class="tx-nexus-subtab-btn">
+                                Transfer history
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 2-Column Nexus Grid (Matching PrimeXBT Exact Layout) -->
@@ -1467,18 +1285,23 @@
                                 <div class="tx-nexus-main-card">
                                     <!-- Top Header Row: Title + Pill Toggle Switch -->
                                     <div class="flex items-center justify-between gap-4 pb-6 border-b border-white/5">
-                                        <h2 id="txDepositCardTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Deposit crypto</h2>
+                                        <div class="flex items-center gap-3">
+                                            <button type="button" onclick="txBackToWalletOverview()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-white/10 flex items-center justify-center transition cursor-pointer shrink-0" title="Back to Wallet Overview">
+                                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                            </button>
+                                            <h2 id="txDepositCardTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Deposit crypto</h2>
+                                        </div>
                                 
-                                <!-- Crypto / Money Pill Toggle -->
-                                <div class="tx-nexus-toggle-pill">
-                                    <button type="button" id="txDepositToggleCrypto" class="active">
-                                        Crypto
-                                    </button>
-                                    <button type="button" id="txDepositToggleMoney">
-                                        Money
-                                    </button>
-                                </div>
-                            </div>
+                                        <!-- Crypto / Money Pill Toggle -->
+                                        <div class="tx-nexus-toggle-pill">
+                                            <button type="button" id="txDepositToggleCrypto" class="active">
+                                                Crypto
+                                            </button>
+                                            <button type="button" id="txDepositToggleMoney">
+                                                Money
+                                            </button>
+                                        </div>
+                                    </div>
 
                             <!-- ========================================== -->
                             <!-- CRYPTO DEPOSIT STEPPER VIEW                -->
@@ -1916,7 +1739,12 @@
                                 <div class="tx-nexus-main-card">
                                     <!-- Top Header Row: Title + Pill Toggle Switch -->
                                     <div class="flex items-center justify-between gap-4 pb-6 border-b border-white/5">
-                                        <h2 id="txWithdrawCardTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Withdraw money</h2>
+                                        <div class="flex items-center gap-3">
+                                            <button type="button" onclick="txBackToWalletOverview()" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 border border-white/10 flex items-center justify-center transition cursor-pointer shrink-0" title="Back to Wallet Overview">
+                                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                            </button>
+                                            <h2 id="txWithdrawCardTitle" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Withdraw money</h2>
+                                        </div>
                                         
                                         <!-- Crypto / Money Pill Toggle -->
                                         <div class="tx-nexus-toggle-pill">
@@ -2101,9 +1929,9 @@
                                                             <label class="text-xs font-bold text-slate-400">Withdrawal Amount (INR ₹)</label>
                                                             <span class="text-xs text-slate-400 font-semibold">Available: <b id="txWithMoneyAvailableBal" class="text-white font-bold">₹0.00</b></span>
                                                         </div>
-                                                        <div class="relative">
-                                                            <input type="number" id="txWithMoneyAmountInput" placeholder="0.00" min="500" step="any" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 pr-16 text-base font-bold text-white placeholder-slate-500 focus:outline-none transition" />
-                                                            <button type="button" onclick="txWithMoneySetMaxAmount()" class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-cyan-400 cursor-pointer transition">MAX</button>
+                                                        <div class="tx-nexus-input-wrap">
+                                                            <input type="number" id="txWithMoneyAmountInput" placeholder="0.00" min="500" step="any" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 text-base font-bold text-white placeholder-slate-500 focus:outline-none transition" />
+                                                            <button type="button" onclick="txWithMoneySetMaxAmount()" class="tx-nexus-input-btn">MAX</button>
                                                         </div>
                                                         <div class="flex flex-wrap gap-2 mt-2.5">
                                                             <button type="button" onclick="document.getElementById('txWithMoneyAmountInput').value = '1000'" class="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-slate-300 transition cursor-pointer">+ ₹1,000</button>
@@ -2212,9 +2040,9 @@
                                                     </div>
                                                     <div class="space-y-1">
                                                         <label class="text-xs font-bold text-slate-400">Destination Address</label>
-                                                        <div class="relative">
-                                                            <input type="text" id="txWithCryptoAddressInput" placeholder="Enter external USDT address" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 pr-16 text-xs font-mono text-white placeholder-slate-500 focus:outline-none transition" />
-                                                            <button type="button" onclick="navigator.clipboard.readText().then(t => { if(t) document.getElementById('txWithCryptoAddressInput').value = t; })" class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-cyan-400 cursor-pointer transition">PASTE</button>
+                                                        <div class="tx-nexus-input-wrap">
+                                                            <input type="text" id="txWithCryptoAddressInput" placeholder="Enter external USDT address" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none transition" />
+                                                            <button type="button" onclick="navigator.clipboard.readText().then(t => { if(t) document.getElementById('txWithCryptoAddressInput').value = t; })" class="tx-nexus-input-btn">PASTE</button>
                                                         </div>
                                                         <p class="text-[11px] text-amber-300/80 mt-1">⚠️ Ensure the recipient address is on the <span id="txWithCryptoSelectedNetworkLabel" class="font-bold text-amber-300">TRC20</span> network to avoid asset loss.</p>
                                                     </div>
@@ -2257,9 +2085,9 @@
                                                                 <label class="text-xs font-bold text-slate-400">Withdraw Amount (<span id="txWithCryptoAmountSymbol">USDT</span>)</label>
                                                                 <span class="text-xs text-slate-400 font-semibold">Available: <b id="txWithCryptoAvailableBal" class="text-white font-bold">0.00 USDT</b></span>
                                                             </div>
-                                                            <div class="relative">
-                                                                <input type="number" id="txWithCryptoAmountInput" placeholder="0.00" min="10" step="any" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 pr-16 text-base font-bold text-white placeholder-slate-500 focus:outline-none transition" />
-                                                                <button type="button" onclick="txWithCryptoSetMaxAmount()" class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-cyan-400 cursor-pointer transition">MAX</button>
+                                                            <div class="tx-nexus-input-wrap">
+                                                                <input type="number" id="txWithCryptoAmountInput" placeholder="0.00" min="10" step="any" class="w-full bg-[#181e2b] border border-white/10 focus:border-cyan-400 rounded-xl px-3.5 py-3 text-base font-bold text-white placeholder-slate-500 focus:outline-none transition" />
+                                                                <button type="button" onclick="txWithCryptoSetMaxAmount()" class="tx-nexus-input-btn">MAX</button>
                                                             </div>
                                                         </div>
 
@@ -2397,113 +2225,206 @@
                         </div>
                     </div>
 
-                    <!-- Sub-Tab: Transfer & Activity History Full-Width Panel -->
-                    <div id="txNexusHistoryMainPanel" class="hidden w-full space-y-6">
+                    <!-- Sub-Tab: Transfer & Activity History Full-Width Panel (PrimeXBT Reports Style) -->
+                    <div id="txNexusHistoryMainPanel" class="hidden w-full space-y-6 pt-4 sm:pt-6">
                         <!-- Top Header & Action Bar -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Transfer &amp; Activity History</h2>
-                                <p class="text-xs text-slate-400 mt-0.5">Audit-ready unified record of all deposits, withdrawals, transfers, rewards &amp; fees.</p>
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0c1220]/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 backdrop-blur-md relative z-30">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <button type="button" onclick="txBackToWalletOverview()" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-400/60 text-slate-400 hover:text-cyan-300 flex items-center justify-center transition cursor-pointer shrink-0 shadow-sm" title="Back to Wallet Overview">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Account Reports &amp; History</h2>
+                                        <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">Unified Ledger</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1 truncate">Audit-ready record of all deposits, withdrawals, transfers, rewards and trading fees.</p>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2.5">
-                                <button type="button" id="nexusRefreshHistoryBtn" onclick="txReloadNexusHistoryData()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400/10 border border-cyan-400/30 hover:bg-cyan-400/20 text-xs font-bold text-cyan-300 transition cursor-pointer">
-                                    <span id="nexusRefreshSpinner" class="inline-block">↻</span>
+                            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                                <!-- Date Preset Filter Dropdown -->
+                                <div class="tx-pill-dropdown-wrap" id="nexusDatePresetDropdown">
+                                    <button type="button" class="tx-pill-dropdown-btn text-white" id="nexusDatePresetTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                        <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                            <line x1="16" y1="2" x2="16" y2="6"/>
+                                            <line x1="8" y1="2" x2="8" y2="6"/>
+                                            <line x1="3" y1="10" x2="21" y2="10"/>
+                                        </svg>
+                                        <span class="tx-dropdown-label text-white font-bold">All Time</span>
+                                        <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div class="tx-pill-dropdown-menu" id="nexusDatePresetMenu" role="listbox">
+                                        <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                                            <span>All Time</span>
+                                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <div class="tx-pill-dropdown-item" data-value="today">
+                                            <span>Today</span>
+                                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <div class="tx-pill-dropdown-item" data-value="7d">
+                                            <span>Last 7 Days</span>
+                                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <div class="tx-pill-dropdown-item" data-value="30d">
+                                            <span>Last 30 Days</span>
+                                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <div class="tx-pill-dropdown-item" data-value="90d">
+                                            <span>Last 90 Days</span>
+                                            <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" id="nexusRefreshHistoryBtn" onclick="txReloadNexusHistoryData()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-400/10 border border-cyan-400/30 hover:bg-cyan-400/20 text-xs font-bold text-cyan-300 transition cursor-pointer">
+                                    <span id="nexusRefreshSpinner" class="inline-block text-sm">↻</span>
                                     <span>Refresh</span>
                                 </button>
-                                <button type="button" id="nexusExportCsvBtn" onclick="txExportNexusHistoryCsv()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-white/20 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">
-                                    <span>↓</span>
+                                <button type="button" id="nexusExportCsvBtn" onclick="txExportNexusHistoryCsv()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-slate-600 text-xs font-bold text-slate-200 hover:text-white transition cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                     <span>Export CSV</span>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Summary Metric Cards -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                            <div class="tx-card-glass p-4">
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Activity Entries</p>
-                                <h3 id="nexusStatTotalCount" class="text-xl sm:text-2xl font-black text-white mt-1">--</h3>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Recorded in ledger</p>
-                            </div>
-                            <div class="tx-card-glass p-4">
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Total Deposits</p>
-                                <h3 id="nexusStatDepositCount" class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">--</h3>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Credits into wallet</p>
-                            </div>
-                            <div class="tx-card-glass p-4">
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-rose-400">Total Withdrawals</p>
-                                <h3 id="nexusStatWithdrawCount" class="text-xl sm:text-2xl font-black text-rose-400 mt-1">--</h3>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Payout requests</p>
-                            </div>
-                            <div class="tx-card-glass p-4">
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-cyan-400">Internal Transfers</p>
-                                <h3 id="nexusStatTransferCount" class="text-xl sm:text-2xl font-black text-cyan-400 mt-1">--</h3>
-                                <p class="text-[10px] text-slate-500 mt-0.5">Main ↔ Trading wallet</p>
-                            </div>
-                        </div>
 
-                        <!-- Main History Card -->
-                        <div class="tx-card-glass p-4 sm:p-6">
-                            <!-- Category Tabs / Filter Bar -->
-                            <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 custom-scrollbar border-b border-white/5" id="nexusCategoryPillsContainer">
-                                <button type="button" data-nexus-category="all" class="tx-category-pill active">🌟 All Activity</button>
-                                <button type="button" data-nexus-category="transfers" class="tx-category-pill">🔄 Transfers</button>
-                                <button type="button" data-nexus-category="deposits" class="tx-category-pill">📥 Deposits</button>
-                                <button type="button" data-nexus-category="withdrawals" class="tx-category-pill">📤 Withdrawals</button>
-                                <button type="button" data-nexus-category="referral" class="tx-category-pill">🎁 Refer &amp; Earn</button>
-                                <button type="button" data-nexus-category="trading" class="tx-category-pill">📊 Trading Fees &amp; PnL</button>
+                        <!-- Main Reports Container Card -->
+                        <div class="rounded-3xl border border-slate-800/80 bg-[#0c1220] p-4 sm:p-6 shadow-2xl space-y-5">
+                            <!-- Category Segment Tabs (PrimeXBT Reports Tab Bar) -->
+                            <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-white/10" id="nexusCategoryPillsContainer" style="scrollbar-width: none; -ms-overflow-style: none;">
+                                <button type="button" data-nexus-category="all" class="tx-prime-tab active px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap bg-cyan-400 text-slate-950 shadow-sm">All Activity</button>
+                                <button type="button" data-nexus-category="transfers" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Transfers</button>
+                                <button type="button" data-nexus-category="deposits" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Deposits</button>
+                                <button type="button" data-nexus-category="withdrawals" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Withdrawals</button>
+                                <button type="button" data-nexus-category="trading" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Trading &amp; Fees</button>
+                                <button type="button" data-nexus-category="referral" class="tx-prime-tab px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/60">Referral Rewards</button>
                             </div>
 
-                            <!-- Controls Row: Search & Filters -->
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-                                <div class="flex-1 flex items-center gap-2">
-                                    <input type="search" id="nexusHistorySearchInput" placeholder="Search reference, description, tx hash, type..." class="custom-input-dark w-full md:max-w-md" />
+                            <!-- Advanced Filters Toolbar -->
+                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                <!-- Search Input with Embedded Icon -->
+                                <div class="relative flex-1 max-w-lg flex items-center px-3.5 py-2.5 rounded-xl bg-[#070c18] border border-slate-800 focus-within:border-cyan-400 transition gap-2.5">
+                                    <svg class="w-4 h-4 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/></svg>
+                                    <input type="text" id="nexusHistorySearchInput" placeholder="Search reference ID, TX hash, type or description..." class="w-full bg-transparent border-0 outline-none text-xs sm:text-sm font-medium text-white placeholder-slate-500 p-0" />
                                 </div>
 
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <select id="nexusAccountFilter" class="custom-select-dark font-bold text-cyan-300 border-cyan-500/30">
-                                        <option value="main">💼 Main Trading Account</option>
-                                        <option value="all">🌟 All Accounts (Combined)</option>
-                                    </select>
+                                <!-- Filter Dropdowns -->
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <!-- Account Filter Dropdown -->
+                                    <div class="tx-pill-dropdown-wrap" id="nexusAccountFilterDropdown">
+                                        <button type="button" class="tx-pill-dropdown-btn text-white" id="nexusAccountFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                            <span class="tx-dropdown-label text-white font-bold">Main Trading Account</span>
+                                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div class="tx-pill-dropdown-menu min-w-[210px]" id="nexusAccountFilterMenu" role="listbox">
+                                            <!-- Populated dynamically via JS -->
+                                        </div>
+                                    </div>
 
-                                    <select id="nexusCurrencyFilter" class="custom-select-dark">
-                                        <option value="all">All Currencies</option>
-                                        <option value="USDT">USDT ($)</option>
-                                        <option value="INR">INR (₹)</option>
-                                    </select>
+                                    <!-- Direction Filter Dropdown -->
+                                    <div class="tx-pill-dropdown-wrap" id="nexusDirectionFilterDropdown">
+                                        <button type="button" class="tx-pill-dropdown-btn text-white" id="nexusDirectionFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                            <span class="tx-dropdown-label text-white font-bold">All Directions</span>
+                                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div class="tx-pill-dropdown-menu min-w-[180px]" id="nexusDirectionFilterMenu" role="listbox">
+                                            <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                                                <span>All Directions</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="credit">
+                                                <span>Credits (+)</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="debit">
+                                                <span>Debits (-)</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="transfer">
+                                                <span>Transfers (↔)</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    <select id="nexusDirectionFilter" class="custom-select-dark">
-                                        <option value="all">All Directions</option>
-                                        <option value="credit">Credits (+)</option>
-                                        <option value="debit">Debits (-)</option>
-                                        <option value="transfer">Transfers</option>
-                                    </select>
+                                    <!-- Currency / Asset Filter Dropdown -->
+                                    <div class="tx-pill-dropdown-wrap" id="nexusCurrencyFilterDropdown">
+                                        <button type="button" class="tx-pill-dropdown-btn text-white" id="nexusCurrencyFilterTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                            <span class="tx-dropdown-label text-white font-bold">All Assets</span>
+                                            <svg class="tx-dropdown-chevron-icon w-3 h-3 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div class="tx-pill-dropdown-menu min-w-[160px]" id="nexusCurrencyFilterMenu" role="listbox">
+                                            <div class="tx-pill-dropdown-item is-selected" data-value="all">
+                                                <span>All Assets</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="USDT">
+                                                <span>USDT ($)</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="INR">
+                                                <span>INR (₹)</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="BTC">
+                                                <span>BTC</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="ETH">
+                                                <span>ETH</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                    <select id="nexusPageSizeSelect" class="custom-select-dark">
-                                        <option value="10">10 / page</option>
-                                        <option value="25">25 / page</option>
-                                        <option value="50">50 / page</option>
-                                    </select>
+                                    <!-- Page Size Dropdown -->
+                                    <div class="tx-pill-dropdown-wrap" id="nexusPageSizeDropdown">
+                                        <button type="button" class="tx-pill-dropdown-btn text-white" id="nexusPageSizeTrigger" aria-haspopup="listbox" aria-expanded="false">
+                                            <span class="tx-dropdown-label text-white font-bold">10 / page</span>
+                                            <svg class="tx-dropdown-chevron-icon w-2.5 h-2.5 text-slate-400 shrink-0 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div class="tx-pill-dropdown-menu align-right min-w-[130px]" id="nexusPageSizeMenu" role="listbox">
+                                            <div class="tx-pill-dropdown-item is-selected" data-value="10">
+                                                <span>10 / page</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="25">
+                                                <span>25 / page</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                            <div class="tx-pill-dropdown-item" data-value="50">
+                                                <span>50 / page</span>
+                                                <svg class="tx-pill-dropdown-item-check" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- History Table -->
-                            <div class="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-950/40">
-                                <table class="w-full text-left border-collapse">
+                            <!-- History Table Card -->
+                            <div class="tx-history-table-wrap overflow-x-auto rounded-2xl border border-slate-800/80 bg-[#080d1a]">
+                                <table class="min-w-[1040px] w-full text-left border-collapse text-xs">
                                     <thead>
-                                        <tr>
-                                            <th class="tx-table-header">Date &amp; Time</th>
-                                            <th class="tx-table-header">Transaction / Activity</th>
-                                            <th class="tx-table-header">Category</th>
-                                            <th class="tx-table-header">Direction</th>
-                                            <th class="tx-table-header">Amount</th>
-                                            <th class="tx-table-header">Balance After</th>
-                                            <th class="tx-table-header">Status</th>
+                                        <tr class="border-b border-white/10 bg-[#060a14]/90 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            <th class="py-3.5 px-4 w-[135px]">Date &amp; Time</th>
+                                            <th class="py-3.5 px-4 min-w-[260px]">Activity &amp; Account</th>
+                                            <th class="py-3.5 px-4 w-[120px]">Category</th>
+                                            <th class="py-3.5 px-4 w-[130px]">Direction</th>
+                                            <th class="py-3.5 px-4 text-right w-[130px]">Amount</th>
+                                            <th class="py-3.5 px-4 text-right w-[130px]">Balance After</th>
+                                            <th class="py-3.5 px-4 text-center w-[120px]">Status</th>
+                                            <th class="py-3.5 px-4 text-center w-[145px]">Reference / Copy</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="nexusHistoryTableBody">
+                                    <tbody id="nexusHistoryTableBody" class="divide-y divide-white/5">
                                         <tr>
-                                            <td colspan="7" class="tx-table-cell text-center text-slate-500 py-12">
-                                                <span class="animate-spin inline-block mr-2">◌</span> Loading complete history...
+                                            <td colspan="8" class="text-center text-slate-400 py-16">
+                                                <div class="inline-flex items-center gap-2">
+                                                    <span class="animate-spin text-cyan-400 text-base">◌</span>
+                                                    <span class="font-bold text-sm">Loading complete activity records...</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -2511,15 +2432,20 @@
                             </div>
 
                             <!-- Empty State -->
-                            <div id="nexusHistoryEmptyState" class="hidden text-center py-16">
-                                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-500 text-lg">📄</div>
-                                <h4 class="text-sm font-bold text-slate-300">No activity records found</h4>
-                                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">No transaction matches your selected category or filter.</p>
+                            <div id="nexusHistoryEmptyState" class="hidden text-center py-16 px-4">
+                                <div class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-400">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h4 class="text-base font-bold text-white">No activity records found</h4>
+                                <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">There are no transactions matching your selected filters or date range.</p>
+                                <button type="button" onclick="txResetNexusHistoryFilters()" class="mt-4 px-4 py-2 rounded-xl bg-cyan-400/10 hover:bg-cyan-400/20 text-cyan-300 font-bold text-xs border border-cyan-400/30 transition cursor-pointer">
+                                    Reset Filters
+                                </button>
                             </div>
 
                             <!-- Pagination Bar -->
-                            <div id="nexusPaginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-3 border-t border-white/5 text-xs text-slate-400">
-                                <span id="nexusPaginationInfo">Showing 0 of 0 entries</span>
+                            <div id="nexusPaginationContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/5 text-xs text-slate-400">
+                                <span id="nexusPaginationInfo" class="font-semibold text-slate-300">Showing 0 of 0 entries</span>
                                 <div id="nexusPaginationControls" class="flex items-center gap-1.5"></div>
                             </div>
                         </div>
@@ -3562,35 +3488,40 @@
         </div>
     </div>
 
-    <!-- Sub-Account Creation & Management Modal (PrimeXBT Style) -->
-    <div id="subAccountModal" data-lenis-prevent class="fixed inset-0 z-[9998] hidden items-center justify-center bg-slate-950/80 px-2 sm:px-4 py-3 backdrop-blur-md">
-        <div data-lenis-prevent class="w-full max-w-5xl max-h-[95vh] flex flex-col rounded-[22px] sm:rounded-[26px] border border-cyan-400/25 bg-[#0b1320] text-slate-100 shadow-2xl shadow-cyan-950/50 overflow-hidden" onclick="event.stopPropagation();">
+    <!-- Sub-Account Creation & Management Modal (Modern Compact Refined Design from Image 2) -->
+    <div id="subAccountModal" data-lenis-prevent class="fixed inset-0 z-[9998] hidden items-center justify-center bg-black/85 px-3 sm:px-4 py-4 backdrop-blur-md">
+        <div data-lenis-prevent class="tx-sub-modal-box w-full max-w-[860px] max-h-[90vh] flex flex-col rounded-3xl border border-slate-700/80 bg-[#0c1220] text-slate-100 shadow-2xl shadow-black/90 overflow-hidden" onclick="event.stopPropagation();">
             
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 shrink-0">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <div class="tx-sub-modal-header flex items-center justify-between border-b border-white/10 px-6 py-4 bg-[#080d1a] shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                     </div>
-                    <h3 class="text-sm sm:text-base font-bold text-white tracking-wide">Create new account</h3>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">Create new account</h3>
+                        <p class="text-xs text-slate-400">Set up your trading account in just a few steps.</p>
+                    </div>
                 </div>
-                <button id="subAccountModalClose" type="button" class="w-7 h-7 rounded-full border border-slate-700/80 hover:border-red-400/60 bg-slate-900/60 text-slate-400 hover:text-red-300 flex items-center justify-center text-xs font-bold transition cursor-pointer">✕</button>
+                <button id="subAccountModalClose" type="button" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-700/60" title="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
 
             <!-- Modal Scrollable Body -->
-            <div id="subAccountModalScrollBody" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+            <div id="subAccountModalScrollBody" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="tx-sub-modal-body flex-1 overflow-y-auto p-5 sm:p-7 space-y-5 custom-scrollbar bg-[#0c1220]">
                 
                 <!-- 1. Real / Demo Selector -->
                 <div>
-                    <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-300 mb-1.5">
-                        <span>1. Select a real or demo account</span>
-                        <span class="text-slate-500 hover:text-slate-300 cursor-help text-[11px]" title="Real accounts trade with actual funds. Demo accounts provide $10,000 USD virtual balance.">ⓘ</span>
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 mb-2">
+                        <span>1. Select a trading platform</span>
+                        <span class="text-slate-500 hover:text-slate-300 cursor-help text-xs" title="Real accounts trade with actual funds. Demo accounts provide $10,000 USD virtual balance.">ⓘ</span>
                     </div>
-                    <div class="inline-flex p-0.5 rounded-lg bg-slate-900 border border-slate-800">
-                        <button type="button" id="subModalModeRealBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-black transition cursor-pointer bg-white/10 text-white border border-white/20 shadow-sm">
+                    <div class="inline-flex p-1 rounded-xl bg-[#060a14] border border-slate-800">
+                        <button type="button" id="subModalModeRealBtn" class="px-7 py-2 rounded-lg text-xs font-black transition cursor-pointer bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20">
                             Real
                         </button>
-                        <button type="button" id="subModalModeDemoBtn" class="px-4 sm:px-5 py-1.5 rounded-md text-[11px] font-semibold transition cursor-pointer text-slate-400 hover:text-white">
+                        <button type="button" id="subModalModeDemoBtn" class="px-7 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-slate-400 hover:text-white">
                             Demo
                         </button>
                     </div>
@@ -3598,212 +3529,207 @@
 
                 <!-- 2. Platform Selector -->
                 <div id="subModalPlatformSection">
-                    <div class="text-[11px] font-bold text-slate-300 mb-1.5">
+                    <div class="text-xs font-bold text-slate-300 mb-2">
                         2. Select platform
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- TraidiumX 2.0 Card -->
-                        <div id="subPlatformPxTrader" class="relative rounded-xl border-2 border-cyan-400/80 bg-slate-900/90 p-3 transition cursor-pointer ring-1 ring-cyan-400/30">
-                            <div class="flex items-start justify-between">
-                                <div>
+                        <div id="subPlatformPxTrader" class="relative rounded-2xl border-2 border-cyan-400 bg-[#081526] p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-center justify-between">
+                            <div class="flex items-center gap-3.5 min-w-0 pr-2">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                </div>
+                                <div class="min-w-0">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-bold text-white text-xs sm:text-sm">TraidiumX 2.0</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Active</span>
+                                        <span class="font-black text-white text-sm">TraidiumX 2.0</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Active</span>
                                     </div>
-                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade crypto futures and CFDs</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Trade crypto futures and options with advanced tools, low fees and high performance.</p>
                                 </div>
-                                <div class="w-8 h-7 rounded-md bg-cyan-950/40 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1h18v1z"></path><path d="M8 12l3-3 2 2 3-3"></path></svg>
-                                </div>
+                            </div>
+                            <div id="subPlatformPxRadio" class="w-5 h-5 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center text-slate-950 shrink-0">
+                                <svg class="w-3 h-3 text-slate-950" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </div>
                         </div>
 
                         <!-- MetaTrader 5 Card -->
-                        <div id="subPlatformMT5" class="relative rounded-xl border border-slate-800 bg-slate-900/40 p-3 transition cursor-pointer hover:border-slate-700 opacity-75 hover:opacity-100">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-bold text-slate-300 text-xs sm:text-sm">MetaTrader 5</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-slate-800 text-slate-400">MT5</span>
-                                    </div>
-                                    <p class="text-[10.5px] text-slate-400 mt-0.5">Trade CFDs and Forex on MetaTrader 5</p>
+                        <div id="subPlatformMT5" class="relative rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700 flex items-center justify-between opacity-80 hover:opacity-100">
+                            <div class="flex items-center gap-3.5 min-w-0 pr-2">
+                                <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 shrink-0">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"></circle><circle cx="6" cy="17" r="3"></circle><circle cx="18" cy="17" r="3"></circle><path d="M10 9l-2.5 5.5M14 9l2.5 5.5M9 17h6"></path></svg>
                                 </div>
-                                <div class="w-8 h-7 rounded-md bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-400 shrink-0">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="3"></circle><circle cx="6" cy="17" r="3"></circle><circle cx="18" cy="17" r="3"></circle><path d="M10 9l-2.5 5.5M14 9l2.5 5.5M9 17h6"></path></svg>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-300 text-sm">MetaTrader 5</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">MT5</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Trade CFDs and Forex on MetaTrader 5</p>
                                 </div>
                             </div>
+                            <div id="subPlatformMt5Radio" class="w-5 h-5 rounded-full border border-slate-600 bg-transparent shrink-0"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. Real Mode: Account Name + 3 Plan Cards -->
-                <div id="subModalRealPlanSection" class="space-y-3">
+                <div id="subModalRealPlanSection" class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
-                        <input id="newSubNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-cyan-400 placeholder:text-slate-500 transition" />
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
+                        <input id="newSubNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="w-full rounded-xl border border-slate-800 bg-[#070c18] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white outline-none focus:border-cyan-400 placeholder:text-slate-500 transition" />
                     </div>
 
                     <div>
-                        <div class="text-[11px] font-bold text-slate-300 mb-2">
+                        <div class="text-xs font-bold text-slate-300 mb-2.5">
                             3. Select account type
                         </div>
 
                         <!-- 3 Plan Cards Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                             
                             <!-- Basic Plan Card -->
-                            <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border-2 border-cyan-400/90 bg-slate-900/90 p-3.5 transition cursor-pointer ring-1 ring-cyan-400/30">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="text-xs sm:text-sm font-black text-white">Basic</h4>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border-2 border-cyan-400 flex items-center justify-center p-0.5">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                            <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526] p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="text-sm font-black text-white">Basic</h4>
+                                            </div>
+                                        </div>
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For traders trading perpetual crypto futures and CFD markets with standard leverage.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Standard trading conditions ideal for beginners and casual traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanBasicSpread" class="font-bold text-emerald-400">Fixed 18 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-slate-500 font-normal">| Fixed 18 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 1.0 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Customisable leverage</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Netting & Hedge modes</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> Order Book & TV charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-cyan-400 font-bold">✓</span> 10% Cashback & VIP tiers</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Customizable leverage</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> 24/7 Market access</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-emerald-400 font-bold">✔</span> Standard support</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">No min deposit</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanBasicMinPill" class="w-full py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-black text-center tracking-wide">
+                                        MIN $0.00
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Standard Plan Card -->
-                            <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-1.5">
-                                            <h4 class="text-xs sm:text-sm font-black text-white">Standard</h4>
-                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">Popular</span>
+                            <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9l4-6z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <h4 class="text-sm font-black text-white">Standard</h4>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">Popular</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For intermediate traders wanting tighter spreads (12 USDT) and enhanced execution speed.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Optimized tighter spreads and enhanced execution for active traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanStandardSpread" class="font-bold text-blue-400">Fixed 12 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-blue-400 font-normal">| Fixed 12 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.3 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.8 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Customisable leverage</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> Faster order routing</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> TradingView charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✓</span> 15% Cashback & Priority Support</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Tighter spreads for lower cost</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Advanced TradingView charts</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-blue-400 font-bold">✔</span> Priority order execution</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-300 border border-blue-500/30">Min $2,000</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanStandardMinPill" class="w-full py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/40 text-xs font-black text-center tracking-wide">
+                                        MIN $2,000.00
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Advanced Plan Card -->
-                            <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-xl border border-slate-800/90 bg-slate-900/50 p-3.5 transition cursor-pointer hover:border-slate-700">
-                                <div class="space-y-2.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-1.5">
-                                            <h4 class="text-xs sm:text-sm font-black text-white">Advanced</h4>
-                                            <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">VIP Pro</span>
+                            <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18h18M4 14l3-8 5 5 5-5 3 8H4z"/></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <h4 class="text-sm font-black text-white">Advanced</h4>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Pro</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="tx-plan-radio w-3.5 h-3.5 rounded-full border border-slate-700 flex items-center justify-center p-0.5">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
-                                    <p class="text-[10.5px] leading-snug text-slate-400">For high-volume traders seeking lowest spreads (5 USDT) and dedicated VIP conditions.</p>
+                                    <p class="text-[11px] leading-tight text-slate-400">Institutional VIP conditions with lowest spreads for high-volume traders.</p>
                                     
-                                    <!-- Leverage & Spreads Table -->
-                                    <div class="rounded-lg bg-slate-950/70 border border-slate-800/80 p-2 space-y-1 text-[9.5px]">
-                                        <div class="flex justify-between font-bold text-slate-500 pb-0.5 border-b border-slate-800/60">
-                                            <span>MAX. LEVERAGE</span>
-                                            <span>SPREADS</span>
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanAdvancedSpread" class="font-bold text-purple-400">Fixed 5 USDT</span>
                                         </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Crypto futures</span>
-                                            <span class="font-bold text-white">1:500 <span class="text-purple-400 font-normal">| Fixed 5 USDT</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Forex</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Commodities</span>
-                                            <span class="font-bold text-white">1:1000 <span class="text-slate-500 font-normal">| 0.1 pips</span></span>
-                                        </div>
-                                        <div class="flex justify-between text-slate-300">
-                                            <span class="text-slate-400">Indices</span>
-                                            <span class="font-bold text-white">1:200 <span class="text-slate-500 font-normal">| 0.5 pips</span></span>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Max Leverage</span>
+                                            <span class="font-bold text-white">Up to 1:1000</span>
                                         </div>
                                     </div>
 
                                     <!-- Features list -->
-                                    <div class="space-y-0.5 text-[10px] text-slate-300 pt-0.5">
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Cross & Isolated margin</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Institutional Raw Spreads</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> TradingView charts</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> 25% Cashback & VIP Manager</div>
-                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✓</span> Zero fee internal transfers</div>
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Cross &amp; Isolated margin</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Lowest VIP institutional spreads</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Trailing &amp; Stop Loss orders</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> Dedicated VIP account manager</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-purple-400 font-bold">✔</span> 24/7 Priority VIP support</div>
                                     </div>
                                 </div>
 
-                                <div class="mt-3 pt-2.5 border-t border-slate-800/80">
-                                    <span class="inline-block px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/30">Min $5,000</span>
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanAdvancedMinPill" class="w-full py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-black text-center tracking-wide">
+                                        MIN $5,000.00
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -3818,14 +3744,14 @@
                 </div>
 
                 <!-- 4. Demo Mode Views -->
-                <!-- Demo Mode: Already Exists Notice (matching PrimeXBT screenshot) -->
-                <div id="subModalDemoExistingNotice" class="hidden rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-2.5">
+                <!-- Demo Mode: Already Exists Notice -->
+                <div id="subModalDemoExistingNotice" class="hidden rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5 space-y-2.5">
                     <div class="flex items-start gap-3">
                         <div class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-black shrink-0 text-xs">ⓘ</div>
                         <div>
-                            <h4 class="text-xs sm:text-sm font-bold text-amber-300">All available accounts have been created.</h4>
-                            <p class="text-[11px] text-slate-400 mt-0.5">(1 Demo account per profile)</p>
-                            <p class="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                            <h4 class="text-sm font-bold text-amber-300">All available accounts have been created.</h4>
+                            <p class="text-xs text-slate-400 mt-0.5">(1 Demo account per profile)</p>
+                            <p class="text-xs text-slate-300 mt-2 leading-relaxed">
                                 You already have an active Demo account with virtual funds. You can continue trading or top up its balance from your existing sub-accounts list below.
                             </p>
                         </div>
@@ -3835,38 +3761,38 @@
                 <!-- Demo Mode: Create Demo Form (if none exists) -->
                 <div id="subModalDemoNewSection" class="hidden space-y-3">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">Account Name</label>
-                        <input id="newSubDemoNameInput" type="text" value="Demo Account" placeholder="Demo Account Name" class="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-medium text-white outline-none focus:border-amber-400 placeholder:text-slate-500 transition" />
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
+                        <input id="newSubDemoNameInput" type="text" value="Demo Account" placeholder="Demo Account Name" class="w-full rounded-xl border border-slate-800 bg-[#070c18] px-4 py-2.5 text-xs sm:text-sm font-semibold text-white outline-none focus:border-amber-400 placeholder:text-slate-500 transition" />
                     </div>
-                    <div class="rounded-xl border border-amber-500/30 bg-slate-900/80 p-4 space-y-2">
+                    <div class="rounded-2xl border border-amber-500/30 bg-[#090e1a] p-5 space-y-2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                                <h4 class="text-xs sm:text-sm font-bold text-white">TraidiumX 2.0 Demo</h4>
+                                <h4 class="text-sm font-bold text-white">TraidiumX 2.0 Demo</h4>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">$10,000 USD</span>
+                            <span class="px-2.5 py-0.5 rounded text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">$10,000 USD</span>
                         </div>
-                        <p class="text-[11px] text-slate-300 leading-relaxed">
+                        <p class="text-xs text-slate-300 leading-relaxed">
                             Practice risk-free with <strong>$10,000 USDT virtual funds</strong>. Access real-time price feeds, order books, and full charting features with zero financial risk.
                         </p>
                     </div>
                 </div>
 
                 <!-- Feedback / Status Message -->
-                <p id="createSubMessage" class="hidden text-xs font-bold p-2.5 rounded-lg border"></p>
+                <p id="createSubMessage" class="hidden text-xs font-bold p-3 rounded-xl border"></p>
 
                 <!-- 5. Collapsible Existing Sub-Accounts Section -->
-                <div class="border-t border-slate-800/80 pt-3">
-                    <button type="button" id="subExistingToggleBtn" class="flex items-center justify-between w-full text-[11px] font-bold text-slate-400 hover:text-white transition cursor-pointer">
+                <div class="border-t border-white/10 pt-3">
+                    <button type="button" id="subExistingToggleBtn" class="flex items-center justify-between w-full text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
                         <span class="flex items-center gap-2">
                             <span>Your Existing Accounts</span>
-                            <span id="subExistingCountBadge" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[9.5px] text-cyan-300 font-black">0</span>
+                            <span id="subExistingCountBadge" class="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-cyan-300 font-black">0</span>
                         </span>
-                        <span id="subExistingArrow" class="text-[10px] transition-transform duration-200">▼</span>
+                        <span id="subExistingArrow" class="text-xs transition-transform duration-200">▼</span>
                     </button>
-                    <div id="subExistingDrawer" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="hidden mt-2.5 max-h-[260px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
-                        <div id="subAccountsContainer" class="space-y-1.5">
-                            <p class="text-[11px] text-slate-500 font-semibold py-1">Loading sub accounts...</p>
+                    <div id="subExistingDrawer" data-lenis-prevent style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;" class="hidden mt-3 max-h-[220px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        <div id="subAccountsContainer" class="space-y-2">
+                            <p class="text-xs text-slate-500 font-semibold py-1">Loading sub accounts...</p>
                         </div>
                     </div>
                 </div>
@@ -3874,16 +3800,107 @@
             </div>
 
             <!-- Modal Footer Action Bar -->
-            <div class="border-t border-slate-800/80 px-5 sm:px-6 py-3 bg-[#0d1624]/90 flex flex-col sm:flex-row items-center justify-between gap-2.5 shrink-0">
-                <p class="text-[10.5px] text-slate-400 text-center sm:text-left">
-                    For detailed trading fees and conditions, please review our <a href="./fee-structure.html" class="text-cyan-400 hover:underline">Fee Schedule</a>.
-                </p>
-                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                    <button id="subAccountModalBottomClose" type="button" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">Close</button>
-                    <button id="subAccountSubmitBtn" type="button" class="flex-1 sm:flex-initial px-5 py-2 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-xs font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed">Create account</button>
+            <div class="tx-sub-modal-footer border-t border-white/10 px-6 py-4 bg-[#080d1a] flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2 text-xs text-slate-400 text-center sm:text-left">
+                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>For detailed trading fees and conditions, please refer to our <a href="./fee-structure.html" class="text-cyan-400 hover:underline">Fee Schedule</a>.</span>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button id="subAccountModalBottomClose" type="button" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer">Close</button>
+                    <button id="subAccountSubmitBtn" type="button" class="flex-1 sm:flex-initial px-7 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-xs sm:text-sm font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-500/25 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5">
+                        <span>Create account</span>
+                        <span>›</span>
+                    </button>
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Transaction Detail Modal (Top-Level Body Placement, High Stacking Context) -->
+    <div id="txNexusDetailModal" onclick="if(event.target === this) txCloseTxDetailModal()" class="tx-detail-modal-overlay fixed inset-0 z-[9999999] hidden items-center justify-center p-4" style="background-color: rgba(2, 6, 23, 0.90) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;">
+        <div data-lenis-prevent="true" class="tx-detail-modal-card relative w-full max-w-lg rounded-3xl p-6 sm:p-7 overflow-hidden text-white animate-in fade-in zoom-in-95 duration-200" style="background-color: #0c1220 !important; background: #0c1220 !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 30px 90px rgba(0,0,0,0.95), 0 0 40px rgba(6,182,212,0.15) !important;">
+            <!-- Background Accent Glow -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/10 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div id="txDetailModalIcon" class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 text-lg font-black shrink-0">
+                        ⇄
+                    </div>
+                    <div>
+                        <h3 id="txDetailModalTitle" class="text-base sm:text-lg font-black text-white tracking-tight">Transaction Details</h3>
+                        <p id="txDetailModalSubtitle" class="text-[11px] text-slate-400">Unified Ledger Record</p>
+                    </div>
+                </div>
+                <button type="button" onclick="txCloseTxDetailModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold" title="Close (Esc)">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Main Amount Card -->
+            <div class="tx-detail-modal-amount-box my-4 text-center py-4 px-3 rounded-2xl relative z-10" style="background-color: #070c18 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Transaction Amount</span>
+                <div id="txDetailModalAmount" class="text-2xl sm:text-3xl font-black font-mono text-cyan-300 tracking-tight">
+                    $0.00
+                </div>
+                <div id="txDetailModalStatusBadge" class="mt-2.5 inline-block">
+                    <!-- Status Badge -->
+                </div>
+            </div>
+
+            <!-- Detail List Grid -->
+            <div class="space-y-2.5 text-xs relative z-10 max-h-[42vh] overflow-y-auto pr-1 tx-history-table-wrap">
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Activity Type</span>
+                    <span id="txDetailModalType" class="font-bold text-slate-100 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Account</span>
+                    <span id="txDetailModalAccount" class="font-bold text-slate-100 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Category</span>
+                    <span id="txDetailModalCategory">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Direction</span>
+                    <span id="txDetailModalDirection">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Date &amp; Time</span>
+                    <span id="txDetailModalTimestamp" class="font-mono font-semibold text-slate-200 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Balance After</span>
+                    <span id="txDetailModalBalanceAfter" class="font-mono font-bold text-slate-200 text-right">--</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-white/5">
+                    <span class="text-slate-400 font-medium">Reference ID</span>
+                    <div class="flex items-center gap-1.5 max-w-[65%]">
+                        <span id="txDetailModalRefId" class="font-mono font-bold text-cyan-300 truncate text-right">--</span>
+                        <button type="button" id="txDetailModalCopyBtn" onclick="txCopyModalRefId()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[10px] text-slate-300 hover:text-cyan-300 font-mono transition cursor-pointer shrink-0" title="Copy Reference ID">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="py-2">
+                    <span class="text-slate-400 font-medium block mb-1">Description / Notes</span>
+                    <p id="txDetailModalDescription" class="tx-detail-modal-desc-box text-xs text-slate-300 rounded-xl p-3 leading-relaxed font-sans break-words select-text" style="background-color: #070c18 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                        --
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-4 mt-2 border-t border-white/10 flex items-center justify-between gap-2 relative z-10">
+                <span class="text-[11px] text-slate-500 italic">Tip: Double-click any row to view details</span>
+                <button type="button" onclick="txCloseTxDetailModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition cursor-pointer">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 
@@ -3892,9 +3909,9 @@
     <script src="../js/lenis.min.js"></script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
-    <script src="../js/auth-state.js"></script>
+    <script src="../js/auth-state.js?v=79"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="../js/wallet.js?v=94"></script>
+    <script src="../js/wallet.js?v=129"></script>
     <script src="../js/responsive.js"></script>
 
     <script>

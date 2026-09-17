@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Buy &amp; Exchange Crypto | TraidiumX</title>
+
+    <link rel="stylesheet" href="../../dist/output.css" />
+    <link rel="stylesheet" href="../css/custom.css?v=42" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
+        :root {
+            --color-bg: #030712;
+            --color-card-bg: rgba(15, 23, 42, 0.75);
+            --color-card-border: rgba(255, 255, 255, 0.08);
+            --color-accent-cyan: #22d3ee;
+            --color-accent-emerald: #10b981;
+        }
+
+        body {
+            background: #020617 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .tx-exchange-shell {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 160px 16px 80px;
+        }
+
+        @media (min-width: 640px) {
+            .tx-exchange-shell {
+                padding-left: 24px;
+                padding-right: 24px;
+                padding-top: 170px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .tx-exchange-shell {
+                padding-left: 32px;
+                padding-right: 32px;
+                padding-top: 180px;
+            }
+        }
+
+        /* Ambient Glow & Background effects */
+        .tx-exchange-bg-glow {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            width: 650px;
+            height: 650px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, rgba(59, 130, 246, 0.04) 45%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(60px);
+        }
+
+        /* Glassmorphism Card System */
+        .tx-exchange-card {
+            position: relative;
+            background: rgba(11, 19, 38, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 28px;
+            box-shadow: 0 25px 60px -15px rgba(2, 6, 23, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .tx-exchange-card:hover {
+            border-color: rgba(34, 211, 238, 0.22);
+            box-shadow: 0 30px 70px -12px rgba(2, 6, 23, 0.95), 0 0 30px rgba(34, 211, 238, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        /* Input / Output Row Blocks */
+        .tx-swap-box {
+            background: rgba(6, 12, 26, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 20px;
+            padding: 18px 20px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tx-swap-box:focus-within {
+            border-color: rgba(34, 211, 238, 0.45);
+            background: rgba(6, 12, 26, 0.9);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.12);
+        }
+
+        /* Coin Selector Pill Button */
+        .tx-coin-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .tx-coin-pill-btn:hover {
+            background: rgba(34, 211, 238, 0.15);
+            border-color: rgba(34, 211, 238, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Reversal / Swap Direction Button */
+        .tx-swap-switch-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            background: #0f1c34;
+            border: 2px solid rgba(34, 211, 238, 0.25);
+            color: #22d3ee;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+            z-index: 10;
+        }
+
+        .tx-swap-switch-btn:hover {
+            background: #22d3ee;
+            color: #020617;
+            border-color: #22d3ee;
+            transform: rotate(180deg) scale(1.12);
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.5);
+        }
+
+        .tx-swap-switch-btn:active {
+            transform: rotate(180deg) scale(0.95);
+        }
+
+        /* Numeric Inputs */
+        .tx-swap-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+        }
+
+        .tx-swap-input::placeholder {
+            color: #475569;
+        }
+
+        /* Dropdown Overlay / Modal */
+        .tx-coin-picker-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100000;
+            display: grid;
+            place-items: center;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .tx-coin-picker-modal.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tx-coin-picker-dialog {
+            width: 100%;
+            max-width: 480px;
+            background: #091326;
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(34, 211, 238, 0.1);
+            overflow: hidden;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tx-coin-picker-modal.is-open .tx-coin-picker-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        /* 3D Decorative Coins at bottom */
+        .tx-bottom-coins-wrap {
+            position: relative;
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .tx-bottom-coins-graphic {
+            max-width: 520px;
+            width: 90%;
+            opacity: 0.9;
+            filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.7));
+            animation: txFloatCoins 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes txFloatCoins {
+            0% {
+                transform: translateY(0px);
+            }
+            100% {
+                transform: translateY(-8px);
+            }
+        }
+    </style>
+</head>
+<body data-page="exchange">
+    <!-- Ambient Background Glow -->
+    <div class="tx-exchange-bg-glow"></div>
+
+    <!-- Dynamic Header Component -->
+    <div data-component="navbar"></div>
+
+    <!-- Main Exchange Shell -->
+    <main class="relative z-10 tx-exchange-shell">
+        
+        <!-- Top Nav Action Bar (Back | Title | History) -->
+        <div class="flex items-center justify-between gap-4 mb-6 max-w-xl mx-auto">
+            <!-- Back Button -->
+            <button
+                type="button"
+                id="txExchangeBackBtn"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition cursor-pointer active:scale-95 shadow-sm"
+                title="Go Back"
+            >
+                <span>←</span>
+                <span>Back</span>
+            </button>
+
+            <!-- Center Heading with Badge -->
+            <div class="text-center">
+                <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2.5">
+                    <span>Buy &amp; Exchange</span>
+                </h1>
+            </div>
+
+            <!-- History Button -->
+            <button
+                type="button"
+                id="txExchangeHistoryBtn"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition cursor-pointer active:scale-95 shadow-sm"
+                title="View Exchange History"
+            >
+                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>History</span>
+            </button>
+        </div>
+
+        <!-- Subtitle -->
+        <div class="text-center max-w-md mx-auto mb-8 px-4">
+            <p class="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                Instantly swap cryptocurrencies or buy stablecoins at favorable rates. Funds must be available in your Wallet before making an exchange.
+            </p>
+        </div>
+
+        <!-- Main Centered Swap Card Container -->
+        <div class="max-w-xl mx-auto">
+            <div class="tx-exchange-card p-6 sm:p-8">
+                
+                <!-- 1. FROM SECTION -->
+                <div class="tx-swap-box mb-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">From</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Wallet balance:</span>
+                            <span id="txFromBalanceVal" class="text-xs font-bold text-white font-mono">0</span>
+                            <button
+                                type="button"
+                                id="txFromMaxBtn"
+                                class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 transition border border-cyan-400/30 cursor-pointer"
+                                title="Use Maximum Available Balance"
+                            >
+                                MAX
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <!-- Coin Selector Button -->
+                        <button
+                            type="button"
+                            id="txFromCoinBtn"
+                            class="tx-coin-pill-btn flex-shrink-0"
+                        >
+                            <span id="txFromCoinIcon" class="flex items-center justify-center w-6 h-6"></span>
+                            <span id="txFromCoinSymbol" class="font-black">BTC</span>
+                            <span class="text-xs text-slate-400">⌄</span>
+                        </button>
+
+                        <!-- Input Amount -->
+                        <div class="flex-1 min-w-0">
+                            <input
+                                type="number"
+                                id="txFromAmountInput"
+                                class="tx-swap-input"
+                                placeholder="0"
+                                step="any"
+                                min="0"
+                                autocomplete="off"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Approx USD Value -->
+                    <div class="text-right mt-1">
+                        <span id="txFromUsdEstimate" class="text-[11px] text-slate-500 font-medium font-mono">≈ $0.00 USD</span>
+                    </div>
+                </div>
+
+                <!-- 2. SWAP DIRECTION TOGGLE (⇅) -->
+                <div class="relative flex justify-center -my-3 z-20">
+                    <button
+                        type="button"
+                        id="txSwapToggleBtn"
+                        class="tx-swap-switch-btn"
+                        title="Switch currencies"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- 3. TO SECTION -->
+                <div class="tx-swap-box mt-3 mb-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">To</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-slate-400">Wallet balance:</span>
+                            <span id="txToBalanceVal" class="text-xs font-bold text-white font-mono">—</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <!-- Coin Selector Button -->
+                        <button
+                            type="button"
+                            id="txToCoinBtn"
+                            class="tx-coin-pill-btn flex-shrink-0"
+                        >
+                            <span id="txToCoinIcon" class="flex items-center justify-center w-6 h-6"></span>
+                            <span id="txToCoinSymbol" class="font-black">USDT</span>
+                            <span class="text-xs text-slate-400">⌄</span>
+                        </button>
+
+                        <!-- Calculated Output Amount -->
+                        <div class="flex-1 min-w-0">
+                            <input
+                                type="text"
+                                id="txToAmountOutput"
+                                class="tx-swap-input text-cyan-300 font-mono"
+                                placeholder="0"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Approx USD Value -->
+                    <div class="text-right mt-1">
+                        <span id="txToUsdEstimate" class="text-[11px] text-slate-500 font-medium font-mono">≈ $0.00 USD</span>
+                    </div>
+                </div>
+
+                <!-- 4. LIVE RATE & MARKET INFO -->
+                <div id="txRateInfoWrap" class="mb-5 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 text-xs text-slate-300 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 font-medium">Exchange Rate</span>
+                        <div class="flex items-center gap-1.5 font-mono font-bold text-white">
+                            <span id="txExchangeRateText">1 BTC ≈ ... USDT</span>
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Trading Fee</span>
+                        <span class="text-emerald-400 font-semibold font-mono">0.00% (Free Instant Swap)</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Slippage Guarantee</span>
+                        <span class="text-cyan-400 font-semibold">Guaranteed Fixed Quote</span>
+                    </div>
+                </div>
+
+                <!-- 5. INSUFFICIENT BALANCE / NOTICE ALERT -->
+                <div id="txExchangeAlertBox" class="mb-5 p-3.5 rounded-2xl bg-blue-950/40 border border-blue-500/20 text-xs text-blue-200 flex items-center gap-2.5 hidden">
+                    <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="txExchangeAlertMsg" class="flex-1">
+                        No BTC in your wallet. <a href="./wallet.html?action=deposit&asset=BTC" class="font-bold underline text-cyan-300 hover:text-cyan-200">Deposit</a> to start exchanging.
+                    </span>
+                </div>
+
+                <!-- 6. MAIN EXCHANGE ACTION BUTTON -->
+                <button
+                    type="button"
+                    id="txSubmitExchangeBtn"
+                    class="w-full py-4 px-6 rounded-2xl font-black text-sm sm:text-base tracking-wide bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 transition-all duration-200 shadow-xl shadow-cyan-950/40 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                    disabled
+                >
+                    <span id="txSubmitBtnText">Enter an Amount</span>
+                </button>
+
+                <!-- 7. CHECK FAQ LINK -->
+                <div class="text-center mt-5">
+                    <button
+                        type="button"
+                        id="txFaqLinkBtn"
+                        class="text-xs font-semibold text-slate-400 hover:text-cyan-400 transition inline-flex items-center gap-1 cursor-pointer"
+                    >
+                        <span>Check</span>
+                        <span class="text-cyan-400 underline font-bold">FAQ</span>
+                        <span>for more information</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 8. 3D DECORATIVE CRYPTO COINS -->
+        <div class="tx-bottom-coins-wrap">
+            <div class="flex items-center justify-center -space-x-8 opacity-90">
+                <!-- Bitcoin 3D Pill SVG -->
+                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/30 backdrop-blur-md flex items-center justify-center shadow-2xl shadow-amber-500/10 transform -rotate-12">
+                    <svg viewBox="0 0 32 32" class="w-14 h-14 drop-shadow-lg"><circle cx="16" cy="16" r="16" fill="#f7931a"/><path fill="#fff" d="M23.18 13.84c.34-2.28-1.4-3.5-3.78-4.31l.77-3.1-1.89-.47-.75 3c-.5 0-1-.13-1.5-.24l.76-3.05-1.89-.47-.77 3.09c-.41-.09-.82-.19-1.22-.29l-2.61-.65-.5 2.02s1.4.32 1.37.34c.77.19.9.7.88 1.1l-.88 3.53c.05.01.12.04.2.08l-.2-.05-1.23 4.94c-.09.23-.33.58-.87.45.02.03-1.37-.34-1.37-.34l-.94 2.18 2.47.62c.46.12.91.24 1.36.36l-.78 3.14 1.89.47.77-3.1c.52.14 1.02.27 1.52.39l-.77 3.09 1.89.47.78-3.13c3.22.61 5.64.36 6.66-2.55.82-2.34-.04-3.69-1.74-4.57 1.24-.29 2.17-1.1 2.42-2.77zm-4.33 6.05c-.58 2.35-4.53 1.08-5.8.76l1.04-4.16c1.28.32 5.37.95 4.76 3.4zm.59-6.08c-.53 2.14-3.83.99-4.89.73l.94-3.77c1.06.27 4.49.77 3.95 3.04z"/></svg>
+                </div>
+                <!-- Tether USDT 3D Pill SVG -->
+                <div class="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-600/5 border border-emerald-500/30 backdrop-blur-md flex items-center justify-center shadow-2xl shadow-emerald-500/15 z-10 transform scale-105">
+                    <svg viewBox="0 0 32 32" class="w-18 h-18 drop-shadow-xl"><circle cx="16" cy="16" r="16" fill="#26a17b"/><path fill="#fff" d="M17.92 16.38c-.14.01-.84.05-1.92.05-1.01 0-1.74-.04-1.93-.05-3.66-.17-6.39-.81-6.39-1.58s2.73-1.41 6.39-1.58v-2.31h7.86v2.31c3.66.17 6.39.81 6.39 1.58s-2.73 1.41-6.4 1.58v6.23h-4v-6.23zM16 11.23c-3.15 0-5.83.47-6.09 1.07.26.6 2.94 1.07 6.09 1.07 3.15 0 5.83-.47 6.09-1.07-.26-.6-2.94-1.07-6.09-1.07z"/></svg>
+                </div>
+                <!-- Ethereum 3D Pill SVG -->
+                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-600/5 border border-indigo-500/30 backdrop-blur-md flex items-center justify-center shadow-2xl shadow-indigo-500/10 transform rotate-12">
+                    <svg viewBox="0 0 32 32" class="w-14 h-14 drop-shadow-lg"><circle cx="16" cy="16" r="16" fill="#627eea"/><path fill="#fff" fill-opacity=".6" d="M16 4v8.87l7.5 3.35z"/><path fill="#fff" d="M16 4L8.5 16.22l7.5-3.35z"/><path fill="#fff" fill-opacity=".6" d="M16 21.97v6.03l7.5-10.46z"/><path fill="#fff" d="M16 28v-6.03L8.5 17.54z"/><path fill="#fff" fill-opacity=".2" d="M16 20.57l7.5-4.35L16 12.87z"/><path fill="#fff" fill-opacity=".6" d="M8.5 16.22l7.5 4.35v-7.7z"/></svg>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- COIN PICKER MODAL -->
+    <div id="txCoinPickerModal" class="tx-coin-picker-modal" role="dialog" aria-modal="true" aria-labelledby="txCoinPickerTitle">
+        <div class="tx-coin-picker-dialog p-5 sm:p-6">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <h3 id="txCoinPickerTitle" class="text-base sm:text-lg font-black text-white">Select Currency</h3>
+                <button
+                    type="button"
+                    id="txCloseCoinPickerBtn"
+                    class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-lg"
+                    aria-label="Close"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <!-- Search Filter -->
+            <div class="mt-4 mb-3">
+                <div class="relative">
+                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                    <input
+                        type="text"
+                        id="txCoinSearchInput"
+                        class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-900 border border-white/10 focus:border-cyan-400 text-sm text-white outline-none transition"
+                        placeholder="Search currency name or symbol..."
+                    />
+                </div>
+            </div>
+
+            <!-- Coin Category Filter Tabs -->
+            <div class="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 text-xs font-bold">
+                <button class="tx-coin-filter-pill px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 transition cursor-pointer" data-category="all">All</button>
+                <button class="tx-coin-filter-pill px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white transition cursor-pointer" data-category="crypto">Crypto</button>
+                <button class="tx-coin-filter-pill px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white transition cursor-pointer" data-category="stable">Stablecoins</button>
+                <button class="tx-coin-filter-pill px-3 py-1.5 rounded-lg bg-white/5 text-slate-400 hover:text-white transition cursor-pointer" data-category="fiat">Fiat (INR/USD)</button>
+            </div>
+
+            <!-- Coins List (Scrollable) -->
+            <div id="txCoinsListContainer" class="max-h-72 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- EXCHANGE HISTORY MODAL -->
+    <div id="txExchangeHistoryModal" class="tx-coin-picker-modal" role="dialog" aria-modal="true">
+        <div class="tx-coin-picker-dialog max-w-2xl p-5 sm:p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <span class="text-cyan-400 text-lg">📜</span>
+                    <h3 class="text-base sm:text-lg font-black text-white">Exchange History</h3>
+                </div>
+                <button
+                    type="button"
+                    id="txCloseHistoryModalBtn"
+                    class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-lg"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div id="txExchangeHistoryList" class="mt-4 max-h-96 overflow-y-auto custom-scrollbar space-y-2.5">
+                <div class="text-center py-10 text-slate-400 text-sm">Loading history...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ MODAL -->
+    <div id="txFaqModal" class="tx-coin-picker-modal" role="dialog" aria-modal="true">
+        <div class="tx-coin-picker-dialog max-w-xl p-5 sm:p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <h3 class="text-base sm:text-lg font-black text-white">Frequently Asked Questions</h3>
+                <button
+                    type="button"
+                    id="txCloseFaqModalBtn"
+                    class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-lg"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <div class="mt-4 max-h-96 overflow-y-auto custom-scrollbar space-y-3 text-xs sm:text-sm">
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h4 class="font-bold text-white mb-1">What is Buy &amp; Exchange?</h4>
+                    <p class="text-slate-400 leading-relaxed">It allows you to instantly convert one cryptocurrency into another or into stablecoins without having to open order books on the spot or futures market.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h4 class="font-bold text-white mb-1">Are there any hidden fees?</h4>
+                    <p class="text-slate-400 leading-relaxed">No. TraidiumX offers 0% commission on instant wallet exchanges. The rate shown is the exact guaranteed amount you receive.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h4 class="font-bold text-white mb-1">How fast is the exchange processed?</h4>
+                    <p class="text-slate-400 leading-relaxed">Exchanges are executed instantaneously and credited directly to your main wallet balance within seconds.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h4 class="font-bold text-white mb-1">Can I exchange funds directly from my trading account?</h4>
+                    <p class="text-slate-400 leading-relaxed">Exchange operates on your Main Wallet balance. To exchange trading margin, transfer it to your Main Wallet first via the Wallet Transfer tab.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS / CONFIRMATION MODAL -->
+    <div id="txExchangeSuccessModal" class="tx-coin-picker-modal" role="dialog" aria-modal="true">
+        <div class="tx-coin-picker-dialog max-w-md p-6 text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-emerald-950/40">
+                ✓
+            </div>
+            <h3 class="text-xl font-black text-white mb-1">Exchange Successful!</h3>
+            <p id="txSuccessModalMsg" class="text-xs sm:text-sm text-slate-300 mb-6">
+                You have successfully swapped your crypto.
+            </p>
+            <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/10 mb-6 text-left space-y-2 text-xs font-mono">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Swapped:</span>
+                    <span id="txSuccessSpentVal" class="text-white font-bold">0 BTC</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Received:</span>
+                    <span id="txSuccessReceivedVal" class="text-emerald-400 font-bold">0 USDT</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Rate:</span>
+                    <span id="txSuccessRateVal" class="text-cyan-300">1 BTC = 0 USDT</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    type="button"
+                    id="txSuccessDoneBtn"
+                    class="flex-1 py-3 px-4 rounded-xl font-black text-sm bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 hover:opacity-90 transition cursor-pointer"
+                >
+                    Make Another Swap
+                </button>
+                <a
+                    href="./wallet.html"
+                    class="py-3 px-4 rounded-xl font-bold text-sm bg-white/5 hover:bg-white/10 text-white border border-white/10 transition"
+                >
+                    Go to Wallet
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <div data-component="footer"></div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="/src/js/components-loader.js"></script>
+    <script src="/src/js/api-config.js"></script>
+    <script src="/src/js/auth-state.js?v=79"></script>
+    <script src="/src/js/exchange.js?v=3"></script>
+    <script src="/src/js/responsive.js"></script>
+    <script src="/src/js/lenis.min.js"></script>
+    <script>
+        // Lenis Smooth Scrolling Engine
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    gestureDirection: "vertical",
+                    smooth: true,
+                    smoothTouch: false,
+                    touchMultiplier: 1.5,
+                    wheelMultiplier: 1.05
+                });
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -297,10 +297,17 @@ def create_sub_account_endpoint():
 
     token = get_bearer_token(request)
     token_result = verify_token(token)
-    main_user_id = token_result["data"].get("user_id")
+    token_user_id = token_result["data"].get("user_id")
 
     db = get_database()
-    count = db.users.count_documents({"parent_user_id": str(main_user_id)})
+    token_user = db.users.find_one({"_id": ObjectId(token_user_id)})
+    if not token_user:
+        return error_response(message="User not found.", status_code=404)
+
+    actual_parent_id = token_user.get("parent_user_id") or str(token_user["_id"])
+    parent_user = db.users.find_one({"_id": ObjectId(actual_parent_id)}) or token_user
+
+    count = db.users.count_documents({"parent_user_id": str(actual_parent_id)})
     sub_index = count + 1
 
     if count >= 10:
@@ -308,7 +315,7 @@ def create_sub_account_endpoint():
 
     if is_demo:
         existing_demo = db.users.find_one({
-            "parent_user_id": str(main_user_id),
+            "parent_user_id": str(actual_parent_id),
             "$or": [{"is_demo": True}, {"account_mode": "demo"}, {"plan": "demo"}]
         })
         if existing_demo:
@@ -317,11 +324,7 @@ def create_sub_account_endpoint():
                 status_code=400
             )
 
-    main_user = db.users.find_one({"_id": ObjectId(main_user_id)})
-    if not main_user:
-        return error_response(message="Main user not found.", status_code=404)
-
-    parent_client_id = main_user.get("client_id", "MAIN")
+    parent_client_id = parent_user.get("client_id", "MAIN")
     suffix = uuid.uuid4().hex[:6].upper()
     email = f"{parent_client_id}_sub_{sub_index}_{suffix}@traidiumx.local".lower()
     mobile = f"SUB_{parent_client_id}_{sub_index}_{suffix}"
@@ -331,7 +334,7 @@ def create_sub_account_endpoint():
         "email": email,
         "mobile": mobile,
         "password_hash": "",
-        "parent_user_id": str(main_user_id),
+        "parent_user_id": str(actual_parent_id),
         "role": "sub_account",
         "email_verified": True,
         "mobile_verified": True,
