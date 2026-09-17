@@ -898,6 +898,12 @@ function bindNavbarProfileHover() {
 }
 
 window.txOpenDepositChoiceModal = function() {
+    if (window.location.pathname.includes("wallet")) {
+        if (typeof window.txActivateDepositTab === "function") {
+            window.txActivateDepositTab("crypto");
+            return;
+        }
+    }
     const depositModal = document.getElementById("txDepositChoiceModal");
     if (depositModal) {
         depositModal.classList.remove("hidden");
@@ -917,6 +923,13 @@ document.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
         closeNavbarWalletMenu(true);
+
+        if (window.location.pathname.includes("wallet")) {
+            if (typeof window.txActivateDepositTab === "function") {
+                window.txActivateDepositTab("crypto");
+                return;
+            }
+        }
 
         if (depositModal) {
             depositModal.classList.remove("hidden");

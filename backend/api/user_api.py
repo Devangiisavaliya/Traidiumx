@@ -209,6 +209,30 @@ def get_sub_accounts():
         "is_inr_trading_account": {"$ne": True}
     }))
     
+    from services.trading_service import get_user_open_positions, format_position_with_live_pnl
+    from services.options_service import get_option_positions
+
+    def _calc_acc_positions_and_pnl(uid):
+        try:
+            f_positions = get_user_open_positions(uid)
+            formatted_f = [format_position_with_live_pnl(p) for p in f_positions]
+            f_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in formatted_f)
+            f_margin = sum(float(p.get("margin_amount") or p.get("margin") or 0.0) for p in formatted_f)
+
+            opt_res = get_option_positions(uid)
+            opt_positions = (opt_res.get("data") or {}).get("positions", [])
+            opt_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in opt_positions)
+            opt_margin = sum(float(p.get("investment") or p.get("premium") or 0.0) for p in opt_positions)
+
+            all_pos = formatted_f + opt_positions
+            return {
+                "unrealized_pnl": round(f_unrealized + opt_unrealized, 4),
+                "total_margin": round(f_margin + opt_margin, 4),
+                "positions": all_pos
+            }
+        except Exception:
+            return {"unrealized_pnl": 0.0, "total_margin": 0.0, "positions": []}
+
     sub_accounts_data = []
 
     # Add parent account info as a special entry
@@ -216,6 +240,7 @@ def get_sub_accounts():
     if parent_user:
         parent_wallet = find_wallet_by_user_id(parent_user_id)
         formatted_parent_wallet = format_wallet(parent_wallet) if parent_wallet else None
+        parent_pnl_data = _calc_acc_positions_and_pnl(parent_user_id)
         sub_accounts_data.append({
             "id": parent_user_id,
             "name": parent_user.get("name") or "Main Trading Account",
@@ -224,6 +249,9 @@ def get_sub_accounts():
             "plan_name": "Main Master Account",
             "plan_color": "cyan",
             "wallet": formatted_parent_wallet,
+            "unrealized_pnl": parent_pnl_data["unrealized_pnl"],
+            "total_margin": parent_pnl_data["total_margin"],
+            "positions": parent_pnl_data["positions"],
             "is_parent": True,
             "created_at": parent_user.get("created_at").isoformat() if parent_user.get("created_at") else None
         })
@@ -234,6 +262,7 @@ def get_sub_accounts():
             continue
         wallet = find_wallet_by_user_id(sub_id)
         formatted_wallet = format_wallet(wallet) if wallet else None
+        sub_pnl_data = _calc_acc_positions_and_pnl(sub_id)
         plan_key = str(sub.get("plan") or "basic").lower()
         is_demo = bool(sub.get("is_demo") or sub.get("account_mode") == "demo")
         plan_names = {
@@ -254,6 +283,9 @@ def get_sub_accounts():
             "account_mode": "demo" if is_demo else "real",
             "is_demo": is_demo,
             "wallet": formatted_wallet,
+            "unrealized_pnl": sub_pnl_data["unrealized_pnl"],
+            "total_margin": sub_pnl_data["total_margin"],
+            "positions": sub_pnl_data["positions"],
             "created_at": sub.get("created_at").isoformat() if sub.get("created_at") else None
         })
         

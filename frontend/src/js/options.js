@@ -726,6 +726,7 @@ function applyWallet(wallet) {
 
     renderWalletBox();
     updateOptionsWalletModalBalances();
+    txSyncOptionsDemoCurrencyState();
     return true;
 }
 
@@ -1659,7 +1660,7 @@ function renderSummary() {
         el.coinBadge.style.color = config.badgeColor || "#f59e0b";
     }
     if (el.selectedTitle) {
-        el.selectedTitle.innerHTML = `${config.title} <svg style="display:inline-block; width:1.25rem; height:1.25rem; margin-left:0.35rem; color:#94a3b8; vertical-align:middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>`;
+        el.selectedTitle.innerHTML = `${config.title} <svg style="display:inline-block; width:1rem; height:1rem; margin-left:0.25rem; color:#94a3b8; vertical-align:middle;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>`;
     }
 
     const pickerDropdown = document.getElementById("optionsAssetPickerDropdown");
@@ -2932,8 +2933,57 @@ function initMobileOptionsSubNav() {
 }
 
 
+function txIsOptionsDemoActive() {
+    const activeSubId = document.getElementById("tradingAccountSelector")?.value || localStorage.getItem("traidiumx_active_user_id") || "main";
+    const currentName = localStorage.getItem("traidiumx_active_user_name") || "";
+    const customLabel = document.getElementById("txCustomAccountLabel")?.textContent || "";
+    
+    if (customLabel.toLowerCase().includes("demo") || currentName.toLowerCase().includes("demo")) {
+        return true;
+    }
+    if (activeSubId === "main") return false;
+    if (typeof state !== "undefined" && state && state.wallet) {
+        if (state.wallet.is_demo || state.wallet.account_mode === "demo" || state.wallet.plan === "demo") return true;
+        if (state.wallet.rawWallet && (state.wallet.rawWallet.is_demo || state.wallet.rawWallet.account_mode === "demo" || state.wallet.plan === "demo")) return true;
+    }
+    if (typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) {
+        const sub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
+        if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || (sub.name && sub.name.toLowerCase().includes("demo")))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function txSyncOptionsDemoCurrencyState() {
+    const isDemo = txIsOptionsDemoActive();
+    const headerCurrToggle = document.getElementById("optionsHeaderCurrencyToggle");
+    const mobCurrToggle = document.getElementById("optionsMobileCurrencyToggle");
+
+    if (headerCurrToggle) {
+        if (isDemo) {
+            headerCurrToggle.classList.add("hidden");
+            headerCurrToggle.style.setProperty("display", "none", "important");
+        } else {
+            headerCurrToggle.classList.remove("hidden");
+            headerCurrToggle.style.removeProperty("display");
+        }
+    }
+    if (mobCurrToggle) {
+        if (isDemo) {
+            mobCurrToggle.classList.add("hidden");
+            mobCurrToggle.style.setProperty("display", "none", "important");
+        } else {
+            mobCurrToggle.classList.remove("hidden");
+            mobCurrToggle.style.removeProperty("display");
+        }
+    }
+}
+
 function initOptionsCurrencyToggles() {
     const syncActiveCurrencyUI = () => {
+        txSyncOptionsDemoCurrencyState();
+
         const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
         document.querySelectorAll("#optionsHeaderCurrencyToggle [data-currency-switch]").forEach((btn) => {
             const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
@@ -2959,6 +3009,7 @@ function initOptionsCurrencyToggles() {
         if (btn.__txCurrencyBound) return;
         btn.__txCurrencyBound = true;
         btn.addEventListener("click", () => {
+            if (txIsOptionsDemoActive()) return;
             const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
             localStorage.setItem("tx_navbar_currency", targetCurr);
             syncActiveCurrencyUI();
@@ -2988,6 +3039,7 @@ function initOptionsMobileWalletBar() {
     if (mobCurrToggle) {
         const currBtns = mobCurrToggle.querySelectorAll("[data-currency-switch]");
         const syncActiveCurrencyUI = () => {
+            txSyncOptionsDemoCurrencyState();
             const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             currBtns.forEach((btn) => {
                 const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
@@ -3002,6 +3054,7 @@ function initOptionsMobileWalletBar() {
 
         currBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
+                if (txIsOptionsDemoActive()) return;
                 const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
                 localStorage.setItem("tx_navbar_currency", targetCurr);
                 syncActiveCurrencyUI();
@@ -4460,15 +4513,15 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
         ...subAccounts.map(s => ({
             id: s.id,
             name: s.name,
-            is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo",
-            account_mode: s.account_mode || (s.plan === "demo" ? "demo" : "real"),
-            plan_name: s.plan_name || (s.is_demo || s.plan === "demo" ? "Demo" : "Basic"),
-            plan_color: s.plan_color || (s.is_demo || s.plan === "demo" ? "amber" : "cyan")
+            is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")),
+            account_mode: s.account_mode || (s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "demo" : "real"),
+            plan_name: s.plan_name || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "Demo" : "Basic"),
+            plan_color: s.plan_color || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "amber" : "cyan")
         }))
     ];
 
     const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
-    const isCurrentDemo = !!currentAcc.is_demo;
+    const isCurrentDemo = !!currentAcc.is_demo || (currentAcc.name && currentAcc.name.toLowerCase().includes("demo")) || String(activeSubId).toLowerCase().includes("demo");
 
     const dotEl = document.getElementById("txCustomAccountDot");
     const triggerEl = document.getElementById("txCustomAccountTrigger");
@@ -4492,6 +4545,40 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
         <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : 'text-cyan-300'}">${escapeHtml(currentAcc.name)}</span>
         ${isCurrentDemo ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30">DEMO</span>' : ''}
     `;
+
+    // Update Demo Banner UI
+    const demoBanner = document.getElementById("txDemoAccountBanner");
+    const demoBannerName = document.getElementById("txDemoBannerAccountName");
+    if (demoBanner) {
+        if (isCurrentDemo) {
+            demoBanner.classList.remove("hidden");
+            if (demoBannerName) demoBannerName.textContent = `${currentAcc.name} (Demo Active)`;
+        } else {
+            demoBanner.classList.add("hidden");
+        }
+    }
+
+    // Hide INR / USD Currency Toggle in Demo Mode (Demo is strictly USD)
+    const headerCurrToggle = document.getElementById("optionsHeaderCurrencyToggle");
+    const mobCurrToggle = document.getElementById("optionsMobileCurrencyToggle");
+    if (headerCurrToggle) {
+        if (isCurrentDemo) {
+            headerCurrToggle.classList.add("hidden");
+            headerCurrToggle.style.setProperty("display", "none", "important");
+        } else {
+            headerCurrToggle.classList.remove("hidden");
+            headerCurrToggle.style.removeProperty("display");
+        }
+    }
+    if (mobCurrToggle) {
+        if (isCurrentDemo) {
+            mobCurrToggle.classList.add("hidden");
+            mobCurrToggle.style.setProperty("display", "none", "important");
+        } else {
+            mobCurrToggle.classList.remove("hidden");
+            mobCurrToggle.style.removeProperty("display");
+        }
+    }
 
     listEl.innerHTML = allAccounts.map(acc => {
         const isSelected = String(acc.id) === String(activeSubId);
@@ -4618,7 +4705,7 @@ async function txInitSubAccountsAndSelector() {
         if (activeSubId && subAccounts.some(s => s.id === activeSubId)) {
             selector.value = activeSubId;
             const sub = subAccounts.find(s => s.id === activeSubId);
-            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo")) {
+            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || (sub.name && sub.name.toLowerCase().includes("demo")))) {
                 isCurrentDemo = true;
             }
         } else {
@@ -4654,8 +4741,183 @@ async function txInitSubAccountsAndSelector() {
                 transferSelect.appendChild(opt);
             });
         }
+        txInitOptionsDemoBalanceModal();
     } catch (e) {
         console.error("Failed to load sub accounts:", e);
+    }
+}
+
+function txInitOptionsDemoBalanceModal() {
+    function updateDemoModalBalance() {
+        const balEl = document.getElementById("txDemoModalCurrentBal");
+        if (balEl && typeof state !== "undefined" && state.wallet) {
+            const tradingBal = state.wallet.rawWallet?.trading_wallet ? Number(state.wallet.rawWallet.trading_wallet.available_balance || 0) : Number(state.wallet.availableBalance || 0);
+            balEl.textContent = `$${tradingBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+        }
+    }
+
+    function openDemoBalanceModal() {
+        const modal = document.getElementById("txDemoBalanceModal");
+        if (!modal) return;
+        updateDemoModalBalance();
+        const msgEl = document.getElementById("txDemoModalMsg");
+        if (msgEl) {
+            msgEl.classList.add("hidden");
+            msgEl.textContent = "";
+        }
+        const input = document.getElementById("txDemoCustomAmountInput");
+        if (input) input.value = "";
+        document.querySelectorAll(".tx-demo-instant-topup-btn").forEach((b) => {
+            b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+            b.style.setProperty("background", "#080e1a", "important");
+        });
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        if (input) setTimeout(() => input.focus(), 50);
+    }
+
+    function closeDemoBalanceModal() {
+        const modal = document.getElementById("txDemoBalanceModal");
+        if (!modal) return;
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    const demoModalCloseBtn = document.getElementById("txDemoBalanceModalClose");
+    if (demoModalCloseBtn) {
+        demoModalCloseBtn.addEventListener("click", closeDemoBalanceModal);
+    }
+
+    const demoModal = document.getElementById("txDemoBalanceModal");
+    if (demoModal) {
+        demoModal.addEventListener("click", (e) => {
+            if (e.target === demoModal) {
+                closeDemoBalanceModal();
+            }
+        });
+    }
+
+    const demoTopUpBtn = document.getElementById("txDemoTopUpBtn");
+    if (demoTopUpBtn) {
+        demoTopUpBtn.addEventListener("click", () => {
+            openDemoBalanceModal();
+        });
+    }
+
+    // Quick Amount Selection (+100, +1,000, +10,000) -> Populates Input Box
+    const quickBtns = document.querySelectorAll(".tx-demo-instant-topup-btn");
+    quickBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const addAmount = Number(btn.getAttribute("data-amount") || 1000);
+            const input = document.getElementById("txDemoCustomAmountInput");
+            if (input) {
+                input.value = addAmount;
+                input.focus();
+            }
+            quickBtns.forEach((b) => {
+                if (b === btn) {
+                    b.style.setProperty("border-color", "rgba(6, 182, 212, 0.9)", "important");
+                    b.style.setProperty("background", "rgba(6, 182, 212, 0.2)", "important");
+                } else {
+                    b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+                    b.style.setProperty("background", "#080e1a", "important");
+                }
+            });
+            const msgEl = document.getElementById("txDemoModalMsg");
+            if (msgEl) msgEl.classList.add("hidden");
+        });
+    });
+
+    const customInput = document.getElementById("txDemoCustomAmountInput");
+    if (customInput) {
+        customInput.addEventListener("input", () => {
+            const val = Number(customInput.value || 0);
+            quickBtns.forEach((b) => {
+                const btnAmt = Number(b.getAttribute("data-amount") || 0);
+                if (val === btnAmt) {
+                    b.style.setProperty("border-color", "rgba(6, 182, 212, 0.9)", "important");
+                    b.style.setProperty("background", "rgba(6, 182, 212, 0.2)", "important");
+                } else {
+                    b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+                    b.style.setProperty("background", "#080e1a", "important");
+                }
+            });
+        });
+        customInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("txDemoSetBalanceBtn")?.click();
+            }
+        });
+    }
+
+    // Set Balance Button (Custom Amount with reset: true)
+    const setBalBtn = document.getElementById("txDemoSetBalanceBtn");
+    if (setBalBtn) {
+        setBalBtn.addEventListener("click", async () => {
+            const input = document.getElementById("txDemoCustomAmountInput");
+            const customAmount = Number(input ? input.value : 0);
+            const msgEl = document.getElementById("txDemoModalMsg");
+
+            if (!customAmount || customAmount <= 0) {
+                if (msgEl) {
+                    msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
+                    msgEl.textContent = "Please enter or select a valid amount.";
+                    msgEl.classList.remove("hidden");
+                }
+                input?.focus();
+                return;
+            }
+
+            const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "active";
+
+            try {
+                setBalBtn.disabled = true;
+                setBalBtn.textContent = "Confirming...";
+
+                await apiRequest(`/user/sub-accounts/${activeSubId}/demo-deposit`, {
+                    method: "POST",
+                    body: JSON.stringify({ amount: customAmount, reset: false })
+                });
+
+                if (typeof loadOptionsWalletState === "function") {
+                    await loadOptionsWalletState();
+                }
+                updateDemoModalBalance();
+
+                if (msgEl) {
+                    msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+                    msgEl.textContent = `+$${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} Demo USD added to Trading Wallet!`;
+                    msgEl.classList.remove("hidden");
+                }
+                if (typeof showToast === "function") {
+                    showToast(`+$${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} Demo USD added to Trading Wallet!`, "success");
+                } else if (typeof showOrderMessage === "function") {
+                    showOrderMessage(`+$${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} Demo USD added to Trading Wallet!`, "success");
+                }
+                setTimeout(() => {
+                    closeDemoBalanceModal();
+                }, 300);
+            } catch (err) {
+                if (msgEl) {
+                    msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
+                    msgEl.textContent = err.message || "Failed to set demo balance.";
+                    msgEl.classList.remove("hidden");
+                }
+            } finally {
+                setBalBtn.disabled = false;
+                setBalBtn.textContent = "Confirm & Set";
+            }
+        });
+    }
+
+    const demoSwitchRealBtn = document.getElementById("txDemoSwitchRealBtn");
+    if (demoSwitchRealBtn) {
+        demoSwitchRealBtn.addEventListener("click", () => {
+            localStorage.removeItem("traidiumx_active_user_id");
+            localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
+            window.location.reload();
+        });
     }
 }
 

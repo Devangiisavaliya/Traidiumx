@@ -740,11 +740,11 @@
         body[data-page="options"] .tx-currency-toggle-wrapper {
             display: none !important;
         }
-        body[data-page="options"] #optionsHeaderCurrencyToggle {
-            display: inline-flex !important;
-        }
-        body[data-page="options"] #optionsMobileCurrencyToggle {
-            display: inline-flex !important;
+        body[data-page="options"] #optionsHeaderCurrencyToggle.hidden,
+        body[data-page="options"] #optionsMobileCurrencyToggle.hidden,
+        body[data-page="options"] .demo-mode #optionsHeaderCurrencyToggle,
+        body[data-page="options"] .demo-mode #optionsMobileCurrencyToggle {
+            display: none !important;
         }
 
     </style>
@@ -793,6 +793,26 @@
             </div>
         </div>
 
+        <!-- DEMO ACCOUNT BANNER (Shown when active account is Demo) -->
+        <div id="txDemoAccountBanner" class="hidden mx-auto mt-2 max-w-[96%] w-full px-4 py-2.5 rounded-2xl border border-amber-500/40 bg-amber-500/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-amber-950/30 z-30">
+            <div class="flex items-center gap-2.5">
+                <span class="tx-demo-mode-badge inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-md" style="background-color: #f59e0b !important; color: #020617 !important;">DEMO MODE</span>
+                <div class="flex items-center flex-wrap">
+                    <span class="tx-demo-banner-title text-xs font-black text-amber-200" id="txDemoBannerAccountName" style="color: #fef08a !important;">Demo Account (Demo Active)</span>
+                    <span class="tx-demo-banner-subtitle text-[11px] text-amber-400/90 font-semibold ml-1.5" style="color: #fcd34d !important;">(Virtual Balance: Practice Mode)</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" id="txDemoTopUpBtn" class="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md" style="background: linear-gradient(135deg, #f59e0b, #d97706) !important; color: #020617 !important;">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>Deposit Demo</span>
+                </button>
+                <button type="button" id="txDemoSwitchRealBtn" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition cursor-pointer" style="background: rgba(30, 41, 59, 0.85) !important; color: #f1f5f9 !important;">
+                    Switch to Real
+                </button>
+            </div>
+        </div>
+
         <section class="mx-auto max-w-[1800px] px-3 pb-10 sm:px-4 lg:px-6 pt-4 sm:pt-6 lg:pt-8">
 
             <!-- MOVING MARKET TICKER -->
@@ -801,15 +821,15 @@
             <!-- TOP OPTIONS INFO BAR -->
             <div class="os-market-bar mt-4">
                 <div class="os-market-left flex items-center gap-3">
-                    <div id="optionsCoinBadge" style="width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); color: #f59e0b; flex-shrink: 0;">
+                    <div id="optionsCoinBadge" style="width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; background: rgba(245, 158, 11, 0.15); border: 2px solid rgba(245, 158, 11, 0.5); color: #f59e0b; flex-shrink: 0;">
                         ₿
                     </div>
 
                     <div style="position: relative; display: inline-flex; align-items: center;">
-                        <button id="optionsTitleDropdownBtn" type="button" style="background: none; border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; text-align: left; outline: none;">
-                            <h1 id="selectedOptionsTitle" style="font-size: 1.5rem; font-weight: 900; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.35rem; letter-spacing: -0.02em;">
+                        <button id="optionsTitleDropdownBtn" type="button" style="background: none; border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; text-align: left; outline: none;">
+                            <h1 id="selectedOptionsTitle" style="font-size: 1.125rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.25rem; letter-spacing: -0.01em;">
                                 BTC-USDT Options
-                                <svg style="width: 1.25rem; height: 1.25rem; color: #94a3b8; transition: transform 0.2s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg style="width: 1rem; height: 1rem; color: #94a3b8; transition: transform 0.2s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </h1>
@@ -1936,6 +1956,74 @@
             <div style="padding-top: 0.75rem; margin-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.1); flex-shrink: 0;">
                 <button id="btnGotItGreeks" type="button" style="width: 100%; padding: 0.75rem; background-color: #22d3ee; color: #020617; font-weight: 900; border-radius: 0.75rem; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.25);">Got it</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Set Demo Account Balance Modal -->
+    <div id="txDemoBalanceModal" class="fixed inset-0 z-[100005] hidden items-center justify-center p-4 transition-all" style="background-color: rgba(2, 6, 23, 0.88) !important; backdrop-filter: blur(14px) !important; -webkit-backdrop-filter: blur(14px) !important;">
+        <div data-lenis-prevent="true" class="tx-demo-modal-card relative w-full max-w-md rounded-3xl p-6 overflow-hidden" style="background-color: #0c1220 !important; background: #0c1220 !important; border: 1px solid rgba(6, 182, 212, 0.3) !important; box-shadow: 0 30px 90px rgba(0,0,0,0.95), 0 0 40px rgba(6,182,212,0.15) !important;">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/35 text-amber-400 flex items-center justify-center shadow-inner" style="background: rgba(245, 158, 11, 0.15) !important; border: 1px solid rgba(245, 158, 11, 0.35) !important; color: #fbbf24 !important;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-black text-white leading-tight">Set Demo Balance</h3>
+                        <p class="text-[11px] font-semibold text-slate-400">Manage your virtual practice funds</p>
+                    </div>
+                </div>
+                <button type="button" id="txDemoBalanceModalClose" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold shadow-sm" title="Close">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Current Balance Stat Card -->
+            <div class="mt-4 p-3.5 rounded-2xl border border-white/10 bg-slate-950/70 flex items-center justify-between shadow-inner" style="background: #060a14 !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                <div>
+                    <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Current Demo Balance</span>
+                    <strong id="txDemoModalCurrentBal" class="block text-lg font-black text-cyan-400 font-mono mt-0.5 tracking-tight" style="color: #22d3ee !important;">0.00 USD</strong>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider" style="background: rgba(245, 158, 11, 0.15) !important; border: 1px solid rgba(245, 158, 11, 0.3) !important; color: #fcd34d !important;">
+                    Virtual Mode
+                </span>
+            </div>
+
+            <!-- Instant Top-up Section -->
+            <div class="mt-5">
+                <label class="block text-xs font-black text-slate-300 mb-2.5 tracking-wide">Quick Select Amount</label>
+                <div class="grid grid-cols-3 gap-2.5">
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="100" style="background: #080e1a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important;">
+                        <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black" style="background: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important;">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+100</span>
+                    </button>
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="1000" style="background: #080e1a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important;">
+                        <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black" style="background: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important;">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+1,000</span>
+                    </button>
+                    <button type="button" class="tx-demo-instant-topup-btn group flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border font-black text-xs transition cursor-pointer active:scale-95 shadow-sm" data-amount="10000" style="background: #080e1a !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #ffffff !important;">
+                        <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black" style="background: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important;">$</span>
+                        <span class="text-slate-200 group-hover:text-emerald-300 font-mono font-bold">+10,000</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Balance Section -->
+            <div class="mt-5 pt-4 border-t border-slate-800/80">
+                <label for="txDemoCustomAmountInput" class="block text-xs font-black text-slate-300 mb-2 tracking-wide">Enter Amount &amp; Confirm</label>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <input id="txDemoCustomAmountInput" type="number" min="1" step="any" placeholder="Enter amount..." class="w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-bold text-white placeholder-slate-500 outline-none focus:border-cyan-400 pr-12 transition shadow-inner" style="background-color: #060a14 !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; color: #ffffff !important;" />
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">USD</span>
+                    </div>
+                    <button id="txDemoSetBalanceBtn" type="button" class="px-5 py-2.5 rounded-xl text-white font-black text-xs transition cursor-pointer whitespace-nowrap shadow-lg" style="background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%) !important; color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; box-shadow: 0 4px 18px rgba(6, 182, 212, 0.45) !important;">
+                        Confirm &amp; Set
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message alert -->
+            <div id="txDemoModalMsg" class="hidden mt-4 text-xs font-bold p-3 rounded-xl"></div>
         </div>
     </div>
 

@@ -921,28 +921,7 @@
 
 
 
-                <!-- 5. Market Sentiment Bar -->
-                <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 backdrop-blur-xl shadow-lg mt-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                        <div class="flex items-center gap-2.5 flex-wrap">
-                            <span class="text-base sm:text-lg font-black text-white">How do you feel about the market today?</span>
-                            <span class="text-xs sm:text-sm text-slate-400 font-bold">(Community Sentiment)</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button id="txPrimeBearBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs sm:text-sm font-black transition cursor-pointer hover:scale-105 active:scale-95">
-                                <span>🐻</span> Bearish <span id="txPrimeBearPct">38%</span>
-                            </button>
-                            <button id="txPrimeBullBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs sm:text-sm font-black transition cursor-pointer hover:scale-105 active:scale-95">
-                                <span>🐂</span> Bullish <span id="txPrimeBullPct">62%</span>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Sentiment Dual Progress Bar -->
-                    <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden flex shadow-inner">
-                        <div id="txPrimeBearBar" class="bg-red-500 h-full transition-all duration-500" style="width: 38%"></div>
-                        <div id="txPrimeBullBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 62%"></div>
-                    </div>
-                </div>
+
 
                 <!-- 6. Today's Popular Markets Table -->
                 <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-lg mt-8">
@@ -1161,7 +1140,7 @@
 
                         <!-- 4 Action Buttons below balance -->
                         <div class="flex flex-wrap items-center gap-3 pt-1">
-                            <button onclick="openWalletActionModal('deposit')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-cyan-400/20 transition hover:scale-105 active:scale-95 cursor-pointer">
+                            <button onclick="txActivateDepositTab('crypto')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs sm:text-sm shadow-md shadow-cyan-400/20 transition hover:scale-105 active:scale-95 cursor-pointer">
                                 Deposit
                             </button>
                             <button onclick="txActivateWithdrawTab('crypto')" type="button" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-white/10 transition hover:scale-105 active:scale-95 cursor-pointer">

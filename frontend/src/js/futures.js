@@ -1975,6 +1975,9 @@ function handleAggTrade(data) {
     updateCurrentCandleFromTrade(price, qty, trade.time, "aggTrade");
 }
 
+let txLastOrderBookRenderTime = 0;
+let txOrderBookRenderTimeout = null;
+
 function handleDepth(data) {
     const asks = (data.a || []).slice(0, 8).map((item) => ({
         price: Number(item[0]),
@@ -1998,7 +2001,19 @@ function handleDepth(data) {
     state.orderBook.asks = asks.reverse();
     state.orderBook.bids = bids;
 
-    renderOrderBook();
+    const now = Date.now();
+    const ORDER_BOOK_THROTTLE_MS = 750; // Smooth readable 750ms refresh rate
+
+    if (now - txLastOrderBookRenderTime >= ORDER_BOOK_THROTTLE_MS) {
+        txLastOrderBookRenderTime = now;
+        renderOrderBook();
+    } else if (!txOrderBookRenderTimeout) {
+        txOrderBookRenderTimeout = setTimeout(() => {
+            txOrderBookRenderTimeout = null;
+            txLastOrderBookRenderTime = Date.now();
+            renderOrderBook();
+        }, ORDER_BOOK_THROTTLE_MS - (now - txLastOrderBookRenderTime));
+    }
 }
 
 function renderCommodityMarketPlaceholder() {
@@ -4392,12 +4407,40 @@ function initEvents() {
     document.getElementById("mobileWalletDepositBtn")?.addEventListener("click", () => goToFuturesWalletAction("deposit"));
     document.getElementById("mobileWalletWithdrawBtn")?.addEventListener("click", () => goToFuturesWalletAction("withdraw"));
 
+    function txIsDemoAccountActive() {
+        const activeSubId = document.getElementById("tradingAccountSelector")?.value || localStorage.getItem("traidiumx_active_user_id") || "main";
+        if (activeSubId === "main") return false;
+        if (typeof TX_BACKEND_FUTURES !== "undefined" && TX_BACKEND_FUTURES.wallet && (TX_BACKEND_FUTURES.wallet.is_demo || TX_BACKEND_FUTURES.wallet.account_mode === "demo" || TX_BACKEND_FUTURES.wallet.plan === "demo")) {
+            return true;
+        }
+        if (typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) {
+            const sub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
+            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo")) {
+                return true;
+            }
+        }
+        const currentName = localStorage.getItem("traidiumx_active_user_name") || "";
+        if (currentName.toLowerCase().includes("demo")) return true;
+        const customLabel = document.getElementById("txCustomAccountLabel")?.textContent || "";
+        if (customLabel.toLowerCase().includes("demo")) return true;
+        return false;
+    }
+
     // Bind USD / INR Currency Toggle Pill inside Mobile Quick Bar
     const mobileCurrToggleContainer = document.getElementById("mobileQuickBarCurrencyToggle");
     if (mobileCurrToggleContainer) {
         const currBtns = mobileCurrToggleContainer.querySelectorAll("[data-currency-switch]");
 
         const syncActiveMobileCurrencyUI = () => {
+            const isDemo = txIsDemoAccountActive();
+            if (isDemo) {
+                mobileCurrToggleContainer.classList.add("hidden");
+                mobileCurrToggleContainer.style.display = "none";
+                return;
+            } else {
+                mobileCurrToggleContainer.classList.remove("hidden");
+                mobileCurrToggleContainer.style.display = "";
+            }
             const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             currBtns.forEach((btn) => {
                 const btnCurr = (btn.getAttribute("data-currency-switch") || "").toUpperCase();
@@ -4412,6 +4455,7 @@ function initEvents() {
 
         currBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
+                if (txIsDemoAccountActive()) return;
                 const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
                 localStorage.setItem("tx_navbar_currency", targetCurr);
                 syncActiveMobileCurrencyUI();
@@ -4440,6 +4484,15 @@ function initEvents() {
         const headerCurrBtns = headerCurrToggleContainer.querySelectorAll("[data-futures-curr]");
 
         const syncActiveHeaderCurrencyUI = () => {
+            const isDemo = txIsDemoAccountActive();
+            if (isDemo) {
+                headerCurrToggleContainer.classList.add("hidden");
+                headerCurrToggleContainer.style.display = "none";
+                return;
+            } else {
+                headerCurrToggleContainer.classList.remove("hidden");
+                headerCurrToggleContainer.style.display = "";
+            }
             const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             headerCurrBtns.forEach((btn) => {
                 const btnCurr = (btn.getAttribute("data-futures-curr") || "").toUpperCase();
@@ -4454,6 +4507,7 @@ function initEvents() {
 
         headerCurrBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
+                if (txIsDemoAccountActive()) return;
                 const targetCurr = (btn.getAttribute("data-futures-curr") || "USDT").toUpperCase();
                 localStorage.setItem("tx_navbar_currency", targetCurr);
                 syncActiveHeaderCurrencyUI();
@@ -7671,6 +7725,27 @@ function updateWalletUI() {
         }
     }
 
+    const headerCurrToggle = document.getElementById("futuresHeaderCurrencyToggle");
+    const mobCurrToggle = document.getElementById("mobileQuickBarCurrencyToggle");
+    if (headerCurrToggle) {
+        if (isCurrentDemo) {
+            headerCurrToggle.classList.add("hidden");
+            headerCurrToggle.style.display = "none";
+        } else {
+            headerCurrToggle.classList.remove("hidden");
+            headerCurrToggle.style.display = "";
+        }
+    }
+    if (mobCurrToggle) {
+        if (isCurrentDemo) {
+            mobCurrToggle.classList.add("hidden");
+            mobCurrToggle.style.display = "none";
+        } else {
+            mobCurrToggle.classList.remove("hidden");
+            mobCurrToggle.style.display = "";
+        }
+    }
+
     if (elements.futuresTotalBalance) {
         elements.futuresTotalBalance.textContent = formatFuturesUsd(tradingAvailableForDisplay, 2);
         elements.futuresTotalBalance.title = "Trading Wallet available balance. Futures trades use this wallet only.";
@@ -9462,7 +9537,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const streamSymbol = state.currentSymbol.toLowerCase();
         const streams = [
             `${streamSymbol}@kline_${state.interval}`,
-            `${streamSymbol}@depth20@100ms`,
+            `${streamSymbol}@depth20@500ms`,
             `${streamSymbol}@aggTrade`,
             `${streamSymbol}@ticker`
         ].join("/");
@@ -10050,6 +10125,28 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 if (demoBannerName) demoBannerName.textContent = `${currentAcc.name} (Demo Active)`;
             } else {
                 demoBanner.classList.add("hidden");
+            }
+        }
+
+        // Hide INR / USD Currency Toggle in Demo Mode (Demo is strictly USD)
+        const headerCurrToggle = document.getElementById("futuresHeaderCurrencyToggle");
+        const mobCurrToggle = document.getElementById("mobileQuickBarCurrencyToggle");
+        if (headerCurrToggle) {
+            if (isCurrentDemo) {
+                headerCurrToggle.classList.add("hidden");
+                headerCurrToggle.style.display = "none";
+            } else {
+                headerCurrToggle.classList.remove("hidden");
+                headerCurrToggle.style.display = "";
+            }
+        }
+        if (mobCurrToggle) {
+            if (isCurrentDemo) {
+                mobCurrToggle.classList.add("hidden");
+                mobCurrToggle.style.display = "none";
+            } else {
+                mobCurrToggle.classList.remove("hidden");
+                mobCurrToggle.style.display = "";
             }
         }
 
@@ -10719,8 +10816,13 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             }
             const input = document.getElementById("txDemoCustomAmountInput");
             if (input) input.value = "";
+            document.querySelectorAll(".tx-demo-instant-topup-btn").forEach((b) => {
+                b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+                b.style.setProperty("background", "#080e1a", "important");
+            });
             modal.classList.remove("hidden");
             modal.classList.add("flex");
+            if (input) setTimeout(() => input.focus(), 50);
         }
 
         function closeDemoBalanceModal() {
@@ -10751,47 +10853,52 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             });
         }
 
-        // Instant Top-Up Buttons (+100, +1,000, +10,000)
-        document.querySelectorAll(".tx-demo-instant-topup-btn").forEach((btn) => {
-            btn.addEventListener("click", async () => {
+        // Quick Amount Selection (+100, +1,000, +10,000) -> Populates Input Box
+        const quickBtns = document.querySelectorAll(".tx-demo-instant-topup-btn");
+        quickBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
                 const addAmount = Number(btn.getAttribute("data-amount") || 1000);
-                const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "active";
-                const msgEl = document.getElementById("txDemoModalMsg");
-
-                try {
-                    btn.disabled = true;
-                    btn.innerHTML = `<span class="text-[10px]">...</span>`;
-
-                    await apiRequest(`/user/sub-accounts/${activeSubId}/demo-deposit`, {
-                        method: "POST",
-                        body: JSON.stringify({ amount: addAmount })
-                    });
-
-                    await refreshBackendFuturesData(true);
-                    await txInitSubAccountsAndSelector();
-                    updateDemoModalBalance();
-
-                    if (msgEl) {
-                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-                        msgEl.textContent = `+$${addAmount.toLocaleString("en-US")} Demo USD deposited to Trading Wallet!`;
-                        msgEl.classList.remove("hidden");
-                    }
-                    showOrderMessage(`+$${addAmount.toLocaleString("en-US")} Demo USD deposited to Trading Wallet!`, "success");
-                } catch (err) {
-                    if (msgEl) {
-                        msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
-                        msgEl.textContent = err.message || "Failed to add demo funds.";
-                        msgEl.classList.remove("hidden");
-                    }
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = `
-                        <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-black">$</span>
-                        <span class="text-slate-200 group-hover:text-emerald-300">+${addAmount >= 1000 ? addAmount.toLocaleString("en-US") : addAmount}</span>
-                    `;
+                const input = document.getElementById("txDemoCustomAmountInput");
+                if (input) {
+                    input.value = addAmount;
+                    input.focus();
                 }
+                quickBtns.forEach((b) => {
+                    if (b === btn) {
+                        b.style.setProperty("border-color", "rgba(6, 182, 212, 0.9)", "important");
+                        b.style.setProperty("background", "rgba(6, 182, 212, 0.2)", "important");
+                    } else {
+                        b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+                        b.style.setProperty("background", "#080e1a", "important");
+                    }
+                });
+                const msgEl = document.getElementById("txDemoModalMsg");
+                if (msgEl) msgEl.classList.add("hidden");
             });
         });
+
+        const customInput = document.getElementById("txDemoCustomAmountInput");
+        if (customInput) {
+            customInput.addEventListener("input", () => {
+                const val = Number(customInput.value || 0);
+                quickBtns.forEach((b) => {
+                    const btnAmt = Number(b.getAttribute("data-amount") || 0);
+                    if (val === btnAmt) {
+                        b.style.setProperty("border-color", "rgba(6, 182, 212, 0.9)", "important");
+                        b.style.setProperty("background", "rgba(6, 182, 212, 0.2)", "important");
+                    } else {
+                        b.style.setProperty("border-color", "rgba(255, 255, 255, 0.1)", "important");
+                        b.style.setProperty("background", "#080e1a", "important");
+                    }
+                });
+            });
+            customInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    document.getElementById("txDemoSetBalanceBtn")?.click();
+                }
+            });
+        }
 
         // Set Balance Button (Custom Amount with reset: true)
         const setBalBtn = document.getElementById("txDemoSetBalanceBtn");
@@ -10804,9 +10911,10 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 if (!customAmount || customAmount <= 0) {
                     if (msgEl) {
                         msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
-                        msgEl.textContent = "Please enter a valid amount.";
+                        msgEl.textContent = "Please enter or select a valid amount.";
                         msgEl.classList.remove("hidden");
                     }
+                    input?.focus();
                     return;
                 }
 
@@ -10814,11 +10922,11 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
                 try {
                     setBalBtn.disabled = true;
-                    setBalBtn.textContent = "Setting...";
+                    setBalBtn.textContent = "Confirming...";
 
                     await apiRequest(`/user/sub-accounts/${activeSubId}/demo-deposit`, {
                         method: "POST",
-                        body: JSON.stringify({ amount: customAmount, reset: true })
+                        body: JSON.stringify({ amount: customAmount, reset: false })
                     });
 
                     await refreshBackendFuturesData(true);
@@ -10827,10 +10935,13 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
                     if (msgEl) {
                         msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-                        msgEl.textContent = `Demo Trading Wallet balance set to $${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} USD!`;
+                        msgEl.textContent = `+$${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} Demo USD added to Trading Wallet!`;
                         msgEl.classList.remove("hidden");
                     }
-                    showOrderMessage(`Demo Trading Wallet balance set to $${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} USD!`, "success");
+                    showOrderMessage(`+$${customAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} Demo USD added to Trading Wallet!`, "success");
+                    setTimeout(() => {
+                        closeDemoBalanceModal();
+                    }, 300);
                 } catch (err) {
                     if (msgEl) {
                         msgEl.className = "mt-4 text-xs font-bold p-3 rounded-xl bg-red-500/20 text-red-300 border border-red-500/30";
@@ -10839,7 +10950,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                     }
                 } finally {
                     setBalBtn.disabled = false;
-                    setBalBtn.textContent = "Set Balance";
+                    setBalBtn.textContent = "Confirm & Set";
                 }
             });
         }
