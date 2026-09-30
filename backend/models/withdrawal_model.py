@@ -1,7 +1,7 @@
 from bson import ObjectId
 
 from config.database import get_database
-from utils.date_helper import now_utc
+from utils.date_helper import now_utc, to_iso_utc
 
 
 def get_withdrawals_collection():
@@ -18,7 +18,20 @@ def create_withdrawal(withdrawal_data):
 
 def find_withdrawal_by_id(withdrawal_id):
     try:
-        return get_withdrawals_collection().find_one({"_id": ObjectId(withdrawal_id)})
+        raw_id = str(withdrawal_id or "").strip()
+        if not raw_id:
+            return None
+        if ObjectId.is_valid(raw_id):
+            doc = get_withdrawals_collection().find_one({"_id": ObjectId(raw_id)})
+            if doc:
+                return doc
+        return get_withdrawals_collection().find_one({
+            "$or": [
+                {"withdrawal_reference": raw_id},
+                {"_id": raw_id},
+                {"id": raw_id}
+            ]
+        })
     except Exception:
         return None
 
@@ -40,7 +53,12 @@ def _user_id_match(user_id):
 
 def find_user_withdrawal_by_id(user_id, withdrawal_id):
     try:
-        query = {"_id": ObjectId(withdrawal_id)}
+        raw_id = str(withdrawal_id or "").strip()
+        query = {}
+        if ObjectId.is_valid(raw_id):
+            query["_id"] = ObjectId(raw_id)
+        else:
+            query["$or"] = [{"withdrawal_reference": raw_id}, {"_id": raw_id}]
         query.update(_user_id_match(user_id))
         return get_withdrawals_collection().find_one(query)
     except Exception:
@@ -57,7 +75,11 @@ def update_withdrawal_status(withdrawal_id, status, extra_data=None):
     if extra_data:
         update_data.update(extra_data)
 
-    get_withdrawals_collection().update_one({"_id": ObjectId(withdrawal_id)}, {"$set": update_data})
+    raw_id = str(withdrawal_id or "").strip()
+    if ObjectId.is_valid(raw_id):
+        get_withdrawals_collection().update_one({"_id": ObjectId(raw_id)}, {"$set": update_data})
+    else:
+        get_withdrawals_collection().update_one({"$or": [{"_id": raw_id}, {"withdrawal_reference": raw_id}]}, {"$set": update_data})
     return find_withdrawal_by_id(withdrawal_id)
 
 
@@ -169,7 +191,7 @@ def get_withdrawal_status_meta(withdrawal):
 
 
 def _iso_or_none(value):
-    return value.isoformat() if value else None
+    return to_iso_utc(value)
 
 
 def format_withdrawal(withdrawal):

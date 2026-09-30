@@ -5,12 +5,14 @@ from bson import ObjectId
 from flask import Blueprint, g, request
 
 from config.database import get_database
+from config.settings import settings
 from models.withdrawal_model import find_withdrawal_by_id, format_withdrawal, update_withdrawal_status
 from services.blockchain_service import build_explorer_url
 from services.wallet_service import complete_main_locked_withdrawal, release_main_locked_amount, credit_admin_profit_wallet
 from services.user_status_service import refresh_user_scheduled_status
 from utils.date_helper import now_utc
 from utils.response import error_response, success_response
+from utils.validators import clean_string
 from .audit_service import create_admin_audit_log
 from .middleware import admin_required
 from .permissions import permission_required
@@ -563,13 +565,6 @@ def approve_withdrawal(withdrawal_id):
     payout_reference = str(data.get("payout_reference") or "").strip()
     remark = str(data.get("remark") or "Withdrawal approved by admin.").strip()
 
-    if not tx_hash:
-        return error_response(
-            message="Transaction hash is required before approving withdrawal.",
-            errors={"tx_hash": "Please enter payout transaction hash / TXID."},
-            status_code=422,
-        )
-
     withdrawal = find_withdrawal_by_id(withdrawal_id)
     if not withdrawal:
         return error_response(
@@ -577,6 +572,33 @@ def approve_withdrawal(withdrawal_id):
             errors={"withdrawal_id": "Invalid withdrawal ID."},
             status_code=404,
         )
+
+    # If tx_hash is not provided manually, check if automated on-chain broadcast is enabled
+    auto_payout_enabled = getattr(settings, "WITHDRAW_ONCHAIN_ENABLED", False) or data.get("auto_payout") is True
+    req_currency = str(withdrawal.get("currency") or "INR").upper()
+    req_network = str(withdrawal.get("network") or withdrawal.get("crypto_network") or "TRC20").upper()
+
+    if not tx_hash:
+        if req_currency == "USDT" and req_network in ("TRC20", "BEP20") and (auto_payout_enabled or getattr(settings, "WITHDRAW_PRIVATE_KEY", "") or getattr(settings, "WITHDRAW_BEP20_PRIVATE_KEY", "")):
+            payout_addr = clean_string(withdrawal.get("payout_address") or withdrawal.get("crypto_address") or withdrawal.get("address") or withdrawal.get("destination_address") or withdrawal.get("withdrawal_address"))
+            payout_amount = float(withdrawal.get("final_amount") or withdrawal.get("net_amount") or withdrawal.get("amount") or 0.0)
+            from services.blockchain_service import send_crypto_payout
+            payout_res = send_crypto_payout(req_network, req_currency, payout_addr, payout_amount)
+            if not payout_res.get("success"):
+                return error_response(
+                    message=f"Automated On-Chain Payout Failed: {payout_res.get('message')}",
+                    errors={"payout": payout_res.get("message")},
+                    status_code=400,
+                )
+            tx_hash = payout_res.get("tx_hash")
+            payout_reference = tx_hash
+            remark = f"Automated on-chain payout broadcasted on {req_network}. Explorer: {payout_res.get('explorer_url', '')}"
+        else:
+            return error_response(
+                message="Transaction hash is required before approving withdrawal.",
+                errors={"tx_hash": "Please enter payout transaction hash / TXID or configure on-chain Hot Wallet private key."},
+                status_code=422,
+            )
 
     current_status = withdrawal.get("status")
     if current_status in FINAL_WITHDRAWAL_STATUSES:

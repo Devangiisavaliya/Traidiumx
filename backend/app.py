@@ -407,6 +407,6 @@ if __name__ == "__main__":
         host=settings.APP_HOST,
         port=settings.APP_PORT,
         debug=settings.APP_DEBUG,
-        use_reloader=settings.APP_DEBUG,
+        use_reloader=False,
         threaded=True
     )

@@ -44,17 +44,71 @@ function hidePortfolioLoader() {
     }
 }
 
+async function ensureChartJsLoaded() {
+    if (typeof Chart !== "undefined") return true;
+    for (let i = 0; i < 50; i++) {
+        await new Promise(r => setTimeout(r, 50));
+        if (typeof Chart !== "undefined") return true;
+    }
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+    });
+}
+
 async function initPortfolioPage() {
+    const startTime = Date.now();
     startPortfolioLoaderStatusLoop();
-    const safetyTimer = setTimeout(hidePortfolioLoader, 2800);
 
     bindPortfolioTabs();
     bindPortfolioActions();
     bindCurrencyChangeListener();
     bindSubAccountChangeListener();
+
+    // Ensure chart cards and layout containers have geometry ready
+    document.querySelectorAll(".tx-scroll-reveal").forEach(el => el.classList.add("is-visible"));
+
+    // Ensure Chart.js is loaded
+    await ensureChartJsLoaded();
+
+    // Fetch and render data & charts
     await fetchAndRenderPortfolio();
 
-    clearTimeout(safetyTimer);
+    // Trigger chart resize & sync layout
+    if (equityChartInstance) {
+        equityChartInstance.resize();
+        equityChartInstance.update();
+    }
+    if (donutChartInstance) {
+        donutChartInstance.resize();
+        donutChartInstance.update();
+    }
+
+    // Keep loader on screen until charts are properly rendered (minimum 1.6s)
+    const elapsed = Date.now() - startTime;
+    const minWait = 1600;
+    if (elapsed < minWait) {
+        await new Promise(r => setTimeout(r, minWait - elapsed));
+    }
+
+    const statusEl = document.getElementById("txPfIntroStatus");
+    if (statusEl) {
+        statusEl.textContent = "PORTFOLIO COMMAND CENTER READY";
+    }
+    await new Promise(r => setTimeout(r, 250));
+
+    if (equityChartInstance) {
+        equityChartInstance.resize();
+        equityChartInstance.update();
+    }
+    if (donutChartInstance) {
+        donutChartInstance.resize();
+        donutChartInstance.update();
+    }
+
     hidePortfolioLoader();
 }
 
@@ -123,6 +177,7 @@ function bindPortfolioTabs() {
 function bindPortfolioActions() {
     const refreshBtn = document.getElementById("pfRefreshBtn");
     const refreshIcon = document.getElementById("pfRefreshIcon");
+    const depositBtn = document.getElementById("pfDepositBtn");
 
     if (refreshBtn) {
         refreshBtn.addEventListener("click", async () => {
@@ -131,6 +186,15 @@ function bindPortfolioActions() {
             setTimeout(() => {
                 if (refreshIcon) refreshIcon.classList.remove("rotate-180");
             }, 600);
+        });
+    }
+
+    if (depositBtn) {
+        depositBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (typeof window.txOpenDepositChoiceModal === "function") {
+                window.txOpenDepositChoiceModal();
+            }
         });
     }
 }
@@ -200,10 +264,8 @@ async function fetchFallbackPortfolioData() {
     let formattedSubAccounts = [];
     if (apiSubAccounts.length > 0) {
         formattedSubAccounts = apiSubAccounts.map(sub => {
-            const isDddad = String(sub.id).includes("dddad") || String(sub.name).includes("dddad");
-            const isScalp = String(sub.id).includes("scalp") || String(sub.name).includes("scalp");
-            const wUsdt = sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.usd_balance ?? sub.available_balance ?? sub.wallet?.trading_wallet?.available_balance ?? (isDddad ? 100.00 : (isScalp ? 3.54 : 0));
-            const wInr = sub.wallet?.trading_wallet_inr?.available_balance ?? sub.inr_balance ?? (isDddad ? 1.13 : (isScalp ? 1.01 : 0));
+            const wUsdt = sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.usd_balance ?? sub.available_balance ?? sub.wallet?.trading_wallet?.available_balance ?? 0;
+            const wInr = sub.wallet?.trading_wallet_inr?.available_balance ?? sub.inr_balance ?? 0;
             return {
                 id: sub.id,
                 name: sub.name || `Sub Account (${sub.client_id || sub.id})`,
@@ -216,15 +278,13 @@ async function fetchFallbackPortfolioData() {
     }
 
     const mainWallet = walletData.main_wallet || {};
-    let availUsdt = parseFloat(mainWallet.available_balance || 0);
-    let lockedUsdt = parseFloat(mainWallet.locked_balance || 0);
-    let totalWalletUsdt = parseFloat(mainWallet.total_balance || (availUsdt + lockedUsdt));
+    let availUsdt = parseFloat((walletData.main_wallet_usdt || mainWallet).available_balance ?? (walletData.main_wallet_usdt || mainWallet).total_balance ?? 0);
+    let lockedUsdt = parseFloat((walletData.main_wallet_usdt || mainWallet).locked_balance || 0);
+    let totalWalletUsdt = parseFloat((walletData.main_wallet_usdt || mainWallet).total_balance || (availUsdt + lockedUsdt));
 
-    if (totalWalletUsdt <= 0) {
-        totalWalletUsdt = parseFloat(walletData.total_balance || walletData.available_balance || (walletData.trading_wallet || {}).total_balance || 0);
-        availUsdt = parseFloat(walletData.available_balance || (walletData.trading_wallet || {}).available_balance || 0);
-        lockedUsdt = parseFloat(walletData.locked_balance || (walletData.trading_wallet || {}).locked_balance || 0);
-    }
+    let availInr = parseFloat((walletData.main_wallet_inr || {}).available_balance ?? 0);
+    let lockedInr = parseFloat((walletData.main_wallet_inr || {}).locked_balance ?? 0);
+    let totalWalletInr = parseFloat((walletData.main_wallet_inr || {}).total_balance || (availInr + lockedInr));
 
     const unrealizedFutures = futuresPositions.reduce((acc, p) => acc + parseFloat(p.unrealized_pnl || 0), 0);
     const unrealizedOptions = optionsPositions.reduce((acc, p) => acc + parseFloat(p.unrealized_pnl || 0), 0);
@@ -234,16 +294,12 @@ async function fetchFallbackPortfolioData() {
     const premiumOptions = optionsPositions.reduce((acc, p) => acc + parseFloat(p.investment || p.premium || 0), 0);
 
     const netWorthUsdt = totalWalletUsdt + totalUnrealized;
-    const netWorthInr = netWorthUsdt * usdtRate;
+    const netWorthInr = totalWalletInr + (totalUnrealized * usdtRate);
 
     const user = typeof getAuthUser === "function" ? getAuthUser() : {};
 
     const defaultSubAccounts = [
-        { id: "main", name: "Trading Account 1 (Default)", usd_balance: 2169.45, inr_balance: 2169.45 * usdtRate, is_main: true },
-        { id: "scalping", name: "Scalping (405125)", usd_balance: 3.54, inr_balance: 1.01, is_main: false },
-        { id: "dddad", name: "dddad (178310)", usd_balance: 100.00, inr_balance: 1.13, is_main: false },
-        { id: "ssdd", name: "ssdd (565303)", usd_balance: 0.0, inr_balance: 0.0, is_main: false },
-        { id: "acc5", name: "acc5 (230381)", usd_balance: 0.0, inr_balance: 0.0, is_main: false }
+        { id: "main", name: "Trading Account 1 (Default)", usd_balance: 0.0, inr_balance: 0.0, is_main: true }
     ];
 
     const finalSubAccounts = formattedSubAccounts.length > 0 ? formattedSubAccounts : defaultSubAccounts;
@@ -345,10 +401,10 @@ function renderPortfolio(data, selectedSubAccountId = null) {
 
     // Stat 2: Main Wallet Card (Dynamic INR / USD)
     const rawMainUsdt = parseFloat((wallet.main_wallet_usdt || mainWallet).available_balance ?? (wallet.main_wallet_usdt || mainWallet).total_balance ?? 0);
-    const walletUsdt = rawMainUsdt > 0 ? rawMainUsdt : 7860155.00;
+    const walletUsdt = !isNaN(rawMainUsdt) ? rawMainUsdt : 0;
 
     const rawMainInr = parseFloat((wallet.main_wallet_inr || {}).available_balance ?? (wallet.main_wallet_inr || {}).total_balance ?? 0);
-    const walletInr = rawMainInr > 0 ? rawMainInr : 645000.00;
+    const walletInr = !isNaN(rawMainInr) ? rawMainInr : 0;
 
     const availUsdt = walletUsdt;
     const availInr = walletInr;
@@ -383,11 +439,7 @@ function renderPortfolio(data, selectedSubAccountId = null) {
     const subAccs = (data.sub_accounts && data.sub_accounts.length > 0)
         ? data.sub_accounts
         : [
-            { id: "main", name: "Trading Account 1 (Default)", usd_balance: 2169.45, inr_balance: 2169.45 * usdtRate },
-            { id: "scalping", name: "Scalping (405125)", usd_balance: 3.54, inr_balance: 1.01 },
-            { id: "dddad", name: "dddad (178310)", usd_balance: 100.00, inr_balance: 1.13 },
-            { id: "ssdd", name: "ssdd (565303)", usd_balance: 0.0, inr_balance: 0.0 },
-            { id: "acc5", name: "acc5 (230381)", usd_balance: 0.0, inr_balance: 0.0 }
+            { id: "main", name: "Trading Account 1 (Default)", usd_balance: 0.0, inr_balance: 0.0 }
         ];
 
     const pfTradingSubAccountSelect = document.getElementById("pfTradingSubAccountSelect");
@@ -427,14 +479,14 @@ function renderPortfolio(data, selectedSubAccountId = null) {
     const liveInrTradingUsdt = parseFloat(
         (wallet.trading_wallet_inr || {}).available_balance ??
         (wallet.trading_wallet_inr || {}).total_balance ??
-        2169.45
+        0
     );
 
     const liveUsdtTradingUsdt = parseFloat(
         (wallet.trading_wallet_usdt || {}).available_balance ??
         (wallet.trading_wallet_usdt || {}).total_balance ??
         (wallet.trading_wallet || {}).available_balance ??
-        2363.59
+        0
     );
 
     const liveMainTradingUsdt = isINR ? liveInrTradingUsdt : liveUsdtTradingUsdt;
@@ -445,31 +497,24 @@ function renderPortfolio(data, selectedSubAccountId = null) {
     if (isMainAcc) {
         tradingUsdt = liveMainTradingUsdt;
     } else {
-        const subIdStr = String(currentSubId || "").toLowerCase();
-        const activeIdStr = String(activeSubAcc.id || "").toLowerCase();
-        const activeNameStr = String(activeSubAcc.name || "").toLowerCase();
-
-        const isDddad = subIdStr.includes("dddad") || activeIdStr.includes("dddad") || activeNameStr.includes("dddad");
-        const isScalping = subIdStr.includes("scalp") || activeIdStr.includes("scalp") || activeNameStr.includes("scalp");
-
         const rawInrVal = activeSubAcc?.inr_balance ?? activeSubAcc?.wallet?.trading_wallet_inr?.available_balance ?? activeSubAcc?.wallet?.trading_wallet_inr?.total_balance;
         const rawUsdVal = activeSubAcc?.usd_balance ?? activeSubAcc?.wallet?.trading_wallet_usdt?.available_balance ?? activeSubAcc?.wallet?.trading_wallet_usdt?.total_balance ?? activeSubAcc?.available_balance;
 
         if (isINR) {
-            if (rawInrVal !== undefined && rawInrVal !== null && Number(rawInrVal) > 0) {
+            if (rawInrVal !== undefined && rawInrVal !== null && !isNaN(Number(rawInrVal))) {
                 tradingUsdt = Number(rawInrVal);
-            } else if (rawUsdVal !== undefined && rawUsdVal !== null && Number(rawUsdVal) > 0) {
+            } else if (rawUsdVal !== undefined && rawUsdVal !== null && !isNaN(Number(rawUsdVal))) {
                 tradingUsdt = Number(rawUsdVal);
             } else {
-                tradingUsdt = isDddad ? 1.13 : (isScalping ? 1.01 : Number(rawInrVal || 0));
+                tradingUsdt = 0;
             }
         } else {
-            if (rawUsdVal !== undefined && rawUsdVal !== null && Number(rawUsdVal) > 0) {
+            if (rawUsdVal !== undefined && rawUsdVal !== null && !isNaN(Number(rawUsdVal))) {
                 tradingUsdt = Number(rawUsdVal);
-            } else if (rawInrVal !== undefined && rawInrVal !== null && Number(rawInrVal) > 0) {
+            } else if (rawInrVal !== undefined && rawInrVal !== null && !isNaN(Number(rawInrVal))) {
                 tradingUsdt = Number(rawInrVal);
             } else {
-                tradingUsdt = isDddad ? 100.00 : (isScalping ? 3.54 : Number(rawUsdVal || 0));
+                tradingUsdt = 0;
             }
         }
     }
@@ -709,8 +754,12 @@ function renderPortfolio(data, selectedSubAccountId = null) {
 
     // Render Equity Performance & Asset Allocation Donut Charts
     const mainWalletAmt = isINR ? availInr : availUsdt;
-    renderEquityChart(equityVal, isINR, currentRange, data.ledger || []);
-    renderDonutChart(mainWalletAmt, tradingUsdt, subMarginOptionsUsdt, isINR);
+    const futuresTradingAmt = isINR ? (tradingUsdt * usdtRate) : tradingUsdt;
+    const optionsPremiumAmt = isINR ? (subMarginOptionsUsdt * usdtRate) : subMarginOptionsUsdt;
+    const equityChartVal = isINR ? (equityVal * usdtRate) : equityVal;
+
+    renderEquityChart(equityChartVal, isINR, currentRange, data.ledger || []);
+    renderDonutChart(mainWalletAmt, futuresTradingAmt, optionsPremiumAmt, isINR);
 
     // Render Tables
     renderFuturesPositionsTable(subPositions);
@@ -1207,7 +1256,14 @@ function formatNumber(val, decimals = 2) {
 function formatDate(dateStr) {
     if (!dateStr) return "--";
     try {
-        const d = new Date(dateStr);
+        let parseable = dateStr;
+        if (typeof dateStr === "string") {
+            const valTrim = dateStr.trim();
+            if (valTrim && !valTrim.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(valTrim)) {
+                parseable = valTrim.replace(" ", "T") + "Z";
+            }
+        }
+        const d = new Date(parseable);
         return d.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -1279,6 +1335,8 @@ function generateTimeframeData(currentVal, range = "1m") {
 }
 
 function renderEquityChart(equityVal, isINR, range = "1m", ledgerData = []) {
+    if (typeof Chart === "undefined") return;
+
     currentEquityVal = equityVal;
     currentIsINR = isINR;
     currentLedgerData = ledgerData;
@@ -1411,6 +1469,8 @@ function renderEquityChart(equityVal, isINR, range = "1m", ledgerData = []) {
 }
 
 function renderDonutChart(mainAmt, futuresAmt, optionsAmt, isINR) {
+    if (typeof Chart === "undefined") return;
+
     const canvas = document.getElementById("pfDonutChartCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -1432,7 +1492,7 @@ function renderDonutChart(mainAmt, futuresAmt, optionsAmt, isINR) {
     const legendFuturesPct = document.getElementById("pfLegendFuturesPct");
     const legendFuturesAmt = document.getElementById("pfLegendFuturesAmt");
     if (legendFuturesPct) legendFuturesPct.textContent = `${futuresPct.toFixed(1)}%`;
-    if (legendFuturesAmt) legendFuturesAmt.textContent = `$${formatNumber(futuresAmt, 2)}`;
+    if (legendFuturesAmt) legendFuturesAmt.textContent = `${sym}${formatNumber(futuresAmt, 2)}`;
 
     const legendOptionsPct = document.getElementById("pfLegendOptionsPct");
     const legendOptionsAmt = document.getElementById("pfLegendOptionsAmt");

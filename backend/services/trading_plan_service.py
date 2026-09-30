@@ -239,40 +239,46 @@ def reconcile_user_plan(user_id, send_notice=False):
     db.users.update_one({"_id": oid}, {"$set": update})
     user.update(update)
 
-    if platform == "mt5":
-        try:
-            from services.mt5_service import sync_mt5_plan
-            sync_mt5_plan(user_id, active, plan["spread_value"], balance=balance)
-        except Exception as error:
-            print("MT5 PLAN SYNC ERROR:", error)
+    def _async_plan_post_actions(uid, usr, plat, act, p_active, pln, bal, sp_str):
+        import threading
+        def _task():
+            if plat == "mt5":
+                try:
+                    from services.mt5_service import sync_mt5_plan
+                    sync_mt5_plan(uid, act, pln["spread_value"], balance=bal)
+                except Exception as error:
+                    print("MT5 PLAN SYNC ERROR:", error)
 
-    if previous_active and previous_active != active:
-        spread_str = f"{plan['spread_value']:g}%" if plan['spread_type'] == "percentage" else f"{plan['spread_value']:g} USDT"
-        try:
-            from services.notification_service import create_user_notification
-            create_user_notification(
-                user=user,
-                title="Trading plan changed",
-                message=f"Your active plan changed from {PLAN_NAMES.get(previous_active, previous_active.title())} to {plan['name']}. Current spread: {spread_str}.",
-                notice_type="plan_change",
-                severity="warning" if PLAN_ORDER[active] < PLAN_ORDER[previous_active] else "success",
-                metadata={"previous_plan": previous_active, "active_plan": active, "balance": balance},
-            )
-        except Exception as error:
-            print("PLAN NOTIFICATION ERROR:", error)
-        try:
-            from services.email_service import send_trading_plan_changed_email
-            send_trading_plan_changed_email(
-                to_email=user.get("email", ""),
-                previous_plan=PLAN_NAMES.get(previous_active, previous_active.title()),
-                active_plan=plan["name"],
-                spread_value=plan["spread_value"],
-                spread_type=plan["spread_type"],
-                balance=balance,
-                minimum_balance=plan["minimum_balance"],
-            )
-        except Exception as error:
-            print("PLAN EMAIL ERROR:", error)
+            if p_active and p_active != act:
+                try:
+                    from services.notification_service import create_user_notification
+                    create_user_notification(
+                        user=usr,
+                        title="Trading plan changed",
+                        message=f"Your active plan changed from {PLAN_NAMES.get(p_active, p_active.title())} to {pln['name']}. Current spread: {sp_str}.",
+                        notice_type="plan_change",
+                        severity="warning" if PLAN_ORDER[act] < PLAN_ORDER[p_active] else "success",
+                        metadata={"previous_plan": p_active, "active_plan": act, "balance": bal},
+                    )
+                except Exception as error:
+                    print("PLAN NOTIFICATION ERROR:", error)
+                try:
+                    from services.email_service import send_trading_plan_changed_email
+                    send_trading_plan_changed_email(
+                        to_email=usr.get("email", ""),
+                        previous_plan=PLAN_NAMES.get(p_active, p_active.title()),
+                        active_plan=pln["name"],
+                        spread_value=pln["spread_value"],
+                        spread_type=pln["spread_type"],
+                        balance=bal,
+                        minimum_balance=pln["minimum_balance"],
+                    )
+                except Exception as error:
+                    print("PLAN EMAIL ERROR:", error)
+        threading.Thread(target=_task, daemon=True).start()
+
+    spread_str = f"{plan['spread_value']:g}%" if plan['spread_type'] == "percentage" else f"{plan['spread_value']:g} USDT"
+    _async_plan_post_actions(user_id, user, platform, active, previous_active, plan, balance, spread_str)
 
     return {
         "success": True,

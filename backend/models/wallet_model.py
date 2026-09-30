@@ -62,17 +62,29 @@ def _wallet_bucket(available=0.0, locked=0.0, wallet_type="main_wallet", address
 def build_demo_wallet_addresses(user_id=None):
     if not user_id:
         return _company_deposit_addresses()
-    
+
+    try:
+        from services.hd_wallet_service import get_or_create_user_deposit_address
+        trc20_address = get_or_create_user_deposit_address(user_id, "TRC20")
+        bep20_address = get_or_create_user_deposit_address(user_id, "BEP20")
+        erc20_address = get_or_create_user_deposit_address(user_id, "ERC20")
+    except Exception:
+        trc20_address = "TPDQ3DTMQWSg4iJ7dhKXsSAKT83jfD49GP"
+        bep20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
+        erc20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
+
     import hashlib
-    # Deterministic generation using user_id
+    # Deterministic generation using user_id for remaining networks
     def gen_addr(network):
+        if network == "TRC20":
+            return trc20_address
+        if network == "BEP20":
+            return bep20_address
+        if network == "ERC20":
+            return erc20_address
         h = hashlib.sha256(f"{user_id}_{network}".encode()).hexdigest()
         if network == "BITCOIN":
             return "1" + h[:33]
-        elif network in ("ERC20", "BEP20"):
-            return "0x" + h[:40]
-        elif network == "TRC20":
-            return "T" + h[:33]
         elif network == "SOLANA":
             alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
             seed = int(h, 16)
@@ -87,10 +99,10 @@ def build_demo_wallet_addresses(user_id=None):
             return "Ae2td" + h[:28]
         elif network == "INTERNAL":
             return "txinr" + h[:35]
-        return "T" + h[:33]
+        return "0x" + h[:40]
 
     return {
-        "TRC20": gen_addr("TRC20"),
+        "TRC20": trc20_address,
         "ERC20": gen_addr("ERC20"),
         "BEP20": gen_addr("BEP20"),
         "BITCOIN": gen_addr("BITCOIN"),
@@ -149,13 +161,24 @@ def normalize_wallet_currency(wallet):
     if not wallet:
         return wallet
 
+    SUPPORTED_ASSETS = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
+    
+    # Fast path: if wallet is already initialized with all buckets, avoid slow HD derivation
+    is_fully_normalized = True
+    for asset in SUPPORTED_ASSETS:
+        asset_lower = asset.lower()
+        if f"main_wallet_{asset_lower}" not in wallet or f"trading_wallet_{asset_lower}" not in wallet:
+            is_fully_normalized = False
+            break
+            
+    if is_fully_normalized and wallet.get("primary_currency"):
+        return wallet
+
     updates = {}
     user_id = wallet.get("user_id")
     primary_currency = str(wallet.get("primary_currency") or (wallet.get("main_wallet") or {}).get("currency") or "INR").upper()
     
     main_addresses = build_demo_wallet_addresses(user_id)
-
-    SUPPORTED_ASSETS = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
     
     coin_to_network = {
         "USDT": "TRC20",

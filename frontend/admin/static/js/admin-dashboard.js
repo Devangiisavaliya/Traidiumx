@@ -233,44 +233,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("dashboardTradingCards") && (document.getElementById("dashboardTradingCards").innerHTML = emptyCard("Loading trading cards..."));
     document.getElementById("withdrawalStatusList") && (document.getElementById("withdrawalStatusList").innerHTML = emptyCard("Loading withdrawal status..."));
 
-    try {
-        const summary = await api.request("/dashboard/summary");
-        setText("totalUsers", ui.compact(summary.users?.total || 0));
-        setText("activeUsers", ui.compact(summary.users?.active || 0));
-        setText("growthActiveUsers", ui.compact(summary.users?.active || 0));
-        setText("pendingKyc", summary.kyc?.pending || 0);
-        setText("growthPendingKyc", summary.kyc?.pending || 0);
-        setText("pendingWithdrawals", summary.withdrawals?.pending || 0);
-        setText("openPositions", summary.trading?.open_positions || 0);
-        setText("totalWallet", ui.money(summary.wallet?.total_balance || summary.wallet?.available_balance || 0));
-        setText("dailyVolume", ui.money(summary.trading?.daily_volume || 0));
-        setText("riskAlerts", summary.trading?.risk_alerts || 0);
-        setText("growthRiskAlerts", summary.trading?.risk_alerts || 0);
-    } catch (error) {
-        api.showError(error, "Dashboard summary failed.");
+    async function refreshDashboard() {
+        try {
+            const summary = await api.request("/dashboard/summary");
+            setText("totalUsers", ui.compact(summary.users?.total || 0));
+            setText("activeUsers", ui.compact(summary.users?.active || 0));
+            setText("growthActiveUsers", ui.compact(summary.users?.active || 0));
+            setText("pendingKyc", summary.kyc?.pending || 0);
+            setText("growthPendingKyc", summary.kyc?.pending || 0);
+            setText("pendingWithdrawals", summary.withdrawals?.pending || 0);
+            setText("openPositions", summary.trading?.open_positions || 0);
+            setText("totalWallet", ui.money(summary.wallet?.total_balance || summary.wallet?.available_balance || 0));
+            setText("dailyVolume", ui.money(summary.trading?.daily_volume || 0));
+            setText("riskAlerts", summary.trading?.risk_alerts || 0);
+            setText("growthRiskAlerts", summary.trading?.risk_alerts || 0);
+        } catch (error) {
+            api.showError(error, "Dashboard summary failed.");
+        }
+
+        try {
+            const analytics = await api.request("/dashboard/analytics");
+            renderAnalytics(analytics);
+        } catch (error) {
+            renderFallbackCards();
+        }
+
+        try {
+            const data = await api.request("/withdrawals", { params: { status: "pending", limit: 4 } });
+            renderWithdrawals(data.withdrawals || []);
+        } catch (error) {
+            renderWithdrawals([]);
+        }
+
+        try {
+            const data = await api.request("/trading/positions", { params: { status: "open", limit: 8 } });
+            renderPositions(data.positions || []);
+        } catch (error) {
+            renderPositions([]);
+        }
     }
 
-    try {
-        const analytics = await api.request("/dashboard/analytics");
-        renderAnalytics(analytics);
-    } catch (error) {
-        api.showError(error, "Dashboard analytics failed.");
-        renderFallbackCards();
-    }
+    await refreshDashboard();
 
-    try {
-        const data = await api.request("/withdrawals", { params: { status: "pending", limit: 4 } });
-        renderWithdrawals(data.withdrawals || []);
-    } catch (error) {
-        api.showError(error, "Withdrawals failed.");
-        renderWithdrawals([]);
-    }
-
-    try {
-        const data = await api.request("/trading/positions", { params: { status: "open", limit: 8 } });
-        renderPositions(data.positions || []);
-    } catch (error) {
-        api.showError(error, "Positions failed.");
-        renderPositions([]);
-    }
+    // Auto-refresh dashboard metrics every 10 seconds
+    setInterval(() => {
+        if (document.visibilityState === "visible") {
+            refreshDashboard();
+        }
+    }, 10000);
 });

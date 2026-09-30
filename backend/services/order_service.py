@@ -124,6 +124,10 @@ def validate_order_payload(data):
     except Exception:
         current_price = None
 
+    currency = clean_string(data.get("currency", "")).upper()
+    if currency not in ("INR", "USDT"):
+        currency = None
+
     if errors:
         return {
             "valid": False,
@@ -147,6 +151,7 @@ def validate_order_payload(data):
             "current_price": current_price,
             "reduce_only": reduce_only,
             "margin_mode": margin_mode,
+            "currency": currency,
             "symbol_meta": {
                 "market_type": stored_symbol.get("market_type", "futures") if stored_symbol else "futures",
                 "quote_asset": stored_symbol.get("quote_asset", "USDT") if stored_symbol else "USDT",
@@ -423,22 +428,62 @@ def place_order(user_id, data):
 
     risk_data = risk_result["data"]
 
+    try:
+        from flask import request
+        header_curr = str(request.headers.get("X-Navbar-Currency") or "").strip().upper()
+    except Exception:
+        header_curr = ""
+
+    active_currency = clean_data.get("currency") or header_curr or "USDT"
+    if active_currency not in ("INR", "USDT"):
+        active_currency = "USDT"
+
     wallet = ensure_user_wallet(user_id)
-    trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
+    bucket_suffix = "inr" if active_currency == "INR" else "usdt"
+    trading_wallet = wallet.get(f"trading_wallet_{bucket_suffix}") or wallet.get("trading_wallet") or {}
     available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)
     platform_charge = calculate_platform_charge(margin_data["notional_value"], "futures")
     platform_fee = float(platform_charge.get("platform_fee_usdt", 0.0) or 0.0)
-    required_available = round(float(margin_data["margin_amount"]) + platform_fee, 8)
+    
+    usdt_inr_rate = float(wallet.get("usdt_inr_rate", 88.50) or 88.50)
+    if active_currency == "INR":
+        margin_amount_to_lock = round(float(margin_data["margin_amount"]) * usdt_inr_rate, 2)
+        platform_fee_to_charge = round(platform_fee * usdt_inr_rate, 2)
+        required_available = round(margin_amount_to_lock + platform_fee_to_charge, 2)
+    else:
+        margin_amount_to_lock = round(float(margin_data["margin_amount"]), 8)
+        platform_fee_to_charge = platform_fee
+        required_available = round(margin_amount_to_lock + platform_fee, 8)
 
     if available_balance < required_available:
+        curr_symbol = "₹" if active_currency == "INR" else "$"
         return {
             "success": False,
-            "message": "Insufficient Trading Wallet balance.",
+            "message": f"Insufficient {active_currency} Trading Wallet balance.",
             "errors": {
-                "wallet": f"Required margin plus trading fee is {required_available}, Trading Wallet available balance is {available_balance}. Transfer Main Wallet to Trading Wallet first."
+                "wallet": f"Required margin plus trading fee is {curr_symbol}{required_available}, Trading Wallet ({active_currency}) available balance is {curr_symbol}{available_balance}. Transfer Main Wallet to Trading Wallet first."
             },
             "status_code": 422
         }
+
+    # Ensure margin mode consistency: cannot place an order with different margin mode if an open position exists for this symbol
+    from models.position_model import get_positions_collection
+    existing_position = get_positions_collection().find_one({
+        "user_id": str(user_id),
+        "symbol": clean_data["symbol"],
+        "status": "open"
+    })
+    if existing_position:
+        existing_margin_mode = str(existing_position.get("margin_mode", "isolated")).lower()
+        if clean_data["margin_mode"].lower() != existing_margin_mode:
+            return {
+                "success": False,
+                "message": f"You already have an open position in {clean_data['symbol']} using {existing_margin_mode.upper()} margin. Please close the existing position before opening trades with {clean_data['margin_mode'].upper()} margin.",
+                "errors": {
+                    "margin_mode": f"Symbol {clean_data['symbol']} currently has an active {existing_margin_mode} position."
+                },
+                "status_code": 400
+            }
 
     order_reference = f"TXO-{uuid.uuid4().hex[:12].upper()}"
 
@@ -446,15 +491,6 @@ def place_order(user_id, data):
         status = "pending_trigger"
     else:
         status = "open"
-
-    try:
-        from flask import request
-        active_currency = str(request.headers.get("X-Navbar-Currency") or "USDT").strip().upper()
-    except Exception:
-        active_currency = "USDT"
-
-    if active_currency not in ("INR", "USDT"):
-        active_currency = "USDT"
 
     order_id = create_order({
         "user_id": str(user_id),
@@ -498,7 +534,7 @@ def place_order(user_id, data):
 
     lock_result = lock_wallet_amount(
         user_id=user_id,
-        amount=margin_data["margin_amount"],
+        amount=margin_amount_to_lock,
         transaction_type="order_margin_lock",
         reference_id=str(order_id),
         description=f"Margin locked for order {order_reference}",

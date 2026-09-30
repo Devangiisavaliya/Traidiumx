@@ -27,7 +27,14 @@ function formatMoney(value, currency = "USDT") {
 
 function formatDate(value) {
     if (!value) return { date: "--", time: "--" };
-    const d = new Date(value);
+    let parseable = value;
+    if (typeof value === "string") {
+        const valTrim = value.trim();
+        if (valTrim && !valTrim.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(valTrim)) {
+            parseable = valTrim.replace(" ", "T") + "Z";
+        }
+    }
+    const d = new Date(parseable);
     if (Number.isNaN(d.getTime())) return { date: "--", time: "--" };
     const date = d.toLocaleDateString("en-IN", {
         day: "2-digit",
@@ -37,6 +44,7 @@ function formatDate(value) {
     const time = d.toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
         hour12: true
     });
     return { date, time };

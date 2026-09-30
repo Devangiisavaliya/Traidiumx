@@ -258,7 +258,13 @@ function renderLoggedInDesktop(container, user) {
     const userInitial = getUserInitial(user);
 
     const currentPath = window.location.pathname.toLowerCase();
-    const shouldHideToggle = currentPath.endsWith("/index.html") || currentPath.endsWith("/markets.html") || currentPath.endsWith("/") || currentPath.includes("futures") || currentPath.includes("wallet") || currentPath.includes("options");
+    const isIndexOrMarkets = currentPath.endsWith("/index.html") 
+        || currentPath.endsWith("/markets.html") 
+        || currentPath.endsWith("/") 
+        || currentPath.endsWith("/markets") 
+        || currentPath.includes("markets.html") 
+        || currentPath === "";
+    const shouldHideToggle = isIndexOrMarkets || currentPath.includes("futures") || currentPath.includes("wallet") || currentPath.includes("options");
 
     const resolveRoute = (route) => {
         if (typeof resolveAppPath === "function") {
@@ -267,6 +273,35 @@ function renderLoggedInDesktop(container, user) {
         const isPages = window.location.pathname.replace(/\\/g, "/").includes("/src/pages/");
         return (isPages ? "../../" : "./") + route;
     };
+
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const cachedNavBal = localStorage.getItem("tx_cached_navbar_balance_" + activeCurrency)
+        || (activeCurrency === "INR" ? "₹0.00" : (localStorage.getItem("tx_cached_navbar_balance") || "0.00 USD"));
+
+    if (isIndexOrMarkets) {
+        container.innerHTML = `
+            <div class="flex items-center gap-2.5 relative z-10">
+                <!-- Notifications -->
+                <div class="relative" data-notification-root>
+                    <button data-notification-toggle type="button" class="w-10 h-10 flex items-center justify-center border border-slate-800 rounded-xl bg-slate-950/60 text-slate-400 hover:text-white transition cursor-pointer" title="Notifications">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-cyan-400 text-slate-950 font-black text-[9px] flex items-center justify-center rounded-full px-1 shadow-sm hidden animate-pulse" data-notification-badge>0</span>
+                    </button>
+                </div>
+
+                <!-- Profile Avatar wrapper -->
+                <div id="txDesktopProfileWrapper" class="relative ml-1">
+                    <button id="txNavbarProfileBtn" type="button" class="w-10 h-10 rounded-full bg-[#22d3ee] text-[#0f172a] flex items-center justify-center font-extrabold text-base cursor-pointer hover:opacity-90 transition select-none shadow-md shadow-cyan-950/25">
+                        ${userInitial}
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
 
     container.innerHTML = `
         <div class="flex items-center gap-2.5 relative z-10">
@@ -279,7 +314,7 @@ function renderLoggedInDesktop(container, user) {
             <div class="relative" id="txNavbarWalletRoot">
                 <button type="button" id="txNavbarWalletTrigger" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-700/80 text-white font-extrabold text-xs transition cursor-pointer select-none">
                     <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><circle cx="16" cy="14" r="1"/></svg>
-                    <span id="txNavbarWalletBalanceText">0.00 USD</span>
+                    <span id="txNavbarWalletBalanceText">${cachedNavBal}</span>
                     <svg id="txNavbarWalletChevron" class="w-3 h-3 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
 
@@ -642,6 +677,7 @@ function initPrimeXbtNavbarControls() {
         depositModal = document.createElement("div");
         depositModal.id = "txDepositChoiceModal";
         depositModal.className = "fixed inset-0 z-[100005] hidden items-center justify-center bg-black/85 backdrop-blur-md p-4 transition-all";
+        depositModal.style.setProperty("display", "none", "important");
         depositModal.innerHTML = `
             <div class="tx-deposit-choice-card relative w-full max-w-[420px] rounded-[24px] border border-slate-800/90 bg-[#131722] p-6 sm:p-7 shadow-2xl shadow-black/80 text-slate-200 select-none">
                 <!-- Header -->
@@ -723,11 +759,13 @@ function initPrimeXbtNavbarControls() {
     const depositCloseBtn = document.getElementById("txDepositChoiceModalClose");
     if (depositCloseBtn && depositModal) {
         depositCloseBtn.onclick = () => {
+            depositModal.style.setProperty("display", "none", "important");
             depositModal.classList.add("hidden");
             depositModal.classList.remove("flex");
         };
         depositModal.onclick = (e) => {
             if (e.target === depositModal) {
+                depositModal.style.setProperty("display", "none", "important");
                 depositModal.classList.add("hidden");
                 depositModal.classList.remove("flex");
             }
@@ -738,6 +776,7 @@ function initPrimeXbtNavbarControls() {
     depositModal.querySelectorAll(".tx-deposit-choice-item").forEach(item => {
         item.addEventListener("click", (e) => {
             const depositType = item.getAttribute("data-deposit-type");
+            depositModal.style.setProperty("display", "none", "important");
             depositModal.classList.add("hidden");
             depositModal.classList.remove("flex");
 
@@ -898,14 +937,13 @@ function bindNavbarProfileHover() {
 }
 
 window.txOpenDepositChoiceModal = function() {
-    if (window.location.pathname.includes("wallet")) {
-        if (typeof window.txActivateDepositTab === "function") {
-            window.txActivateDepositTab("crypto");
-            return;
-        }
+    let depositModal = document.getElementById("txDepositChoiceModal");
+    if (!depositModal && typeof initPrimeXbtNavbarControls === "function") {
+        initPrimeXbtNavbarControls();
+        depositModal = document.getElementById("txDepositChoiceModal");
     }
-    const depositModal = document.getElementById("txDepositChoiceModal");
     if (depositModal) {
+        depositModal.style.setProperty("display", "flex", "important");
         depositModal.classList.remove("hidden");
         depositModal.classList.add("flex");
     }
@@ -913,27 +951,18 @@ window.txOpenDepositChoiceModal = function() {
 
 // Global click delegation for PrimeXBT navbar deposit and wallet dropdown
 document.addEventListener("click", function(e) {
-    const depositBtn = e.target.closest("#txNavbarDepositBtn, #txWalletMenuDepositBtn, #txPrimeDepositBtn, button[onclick*=\"openWalletActionModal('deposit')\"], [data-action='deposit']");
+    const depositBtn = e.target.closest("#txNavbarDepositBtn, #txWalletMenuDepositBtn, #txPrimeDepositBtn, #txTaDepositBtn, #quickDepositBtn, button[onclick*=\"openWalletActionModal('deposit')\"], [data-action='deposit']");
     const walletTrigger = e.target.closest("#txNavbarWalletTrigger");
     const walletMenu = document.getElementById("txNavbarWalletMenu");
     const walletChevron = document.getElementById("txNavbarWalletChevron");
-    const depositModal = document.getElementById("txDepositChoiceModal");
 
     if (depositBtn) {
         e.preventDefault();
         e.stopPropagation();
         closeNavbarWalletMenu(true);
 
-        if (window.location.pathname.includes("wallet")) {
-            if (typeof window.txActivateDepositTab === "function") {
-                window.txActivateDepositTab("crypto");
-                return;
-            }
-        }
-
-        if (depositModal) {
-            depositModal.classList.remove("hidden");
-            depositModal.classList.add("flex");
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
         }
         return;
     }
@@ -979,53 +1008,61 @@ document.addEventListener("click", function(e) {
 async function loadNavbarWalletBalance() {
     const balEl = document.getElementById("txNavbarWalletBalanceText");
     if (!balEl) return;
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const cachedNavBal = localStorage.getItem("tx_cached_navbar_balance_" + activeCurrency)
+        || (activeCurrency === "INR" ? "₹0.00" : (localStorage.getItem("tx_cached_navbar_balance") || "0.00 USD"));
+    if (cachedNavBal && (!balEl.textContent || balEl.textContent.trim() === "0.00 USD" || balEl.textContent.trim() === "₹0.00" || balEl.textContent.trim() === "0.00 USDT")) {
+        balEl.textContent = cachedNavBal;
+    }
     try {
         if (typeof apiRequest !== "function") return;
         const res = await apiRequest("/wallet/balance");
         if (res && res.data) {
             const w = res.data.wallet || res.data;
-            const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-            let avail = 0;
-            let curr = activeCurrency;
+            const curActiveCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             
+            let inrAvail = 0;
+            let usdtAvail = 0;
+
             if (w) {
-                if (activeCurrency === "INR") {
-                    if (w.main_wallet_inr && (typeof w.main_wallet_inr.available_balance === "number" || w.main_wallet_inr.available_balance)) {
-                        avail = Number(w.main_wallet_inr.available_balance);
-                    } else if (w.main_wallet && w.main_wallet.currency === "INR" && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
-                        avail = Number(w.main_wallet.available_balance);
-                    } else if (w.main_wallet && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
-                        avail = Number(w.main_wallet.available_balance);
-                    } else {
-                        avail = Number(w.available_balance || 0);
-                    }
-                    curr = "INR";
+                // Compute INR Available
+                if (w.main_wallet_inr && (typeof w.main_wallet_inr.available_balance === "number" || w.main_wallet_inr.available_balance)) {
+                    inrAvail = Number(w.main_wallet_inr.available_balance);
+                } else if (w.main_wallet && w.main_wallet.currency === "INR" && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
+                    inrAvail = Number(w.main_wallet.available_balance);
+                }
+
+                // Compute USDT / USD Available
+                if (w.main_wallet_usdt && (typeof w.main_wallet_usdt.available_balance === "number" || w.main_wallet_usdt.available_balance)) {
+                    usdtAvail = Number(w.main_wallet_usdt.available_balance);
+                } else if (w.main_wallet && (w.main_wallet.currency === "USDT" || w.main_wallet.currency === "USD") && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
+                    usdtAvail = Number(w.main_wallet.available_balance);
+                } else if (w.main_wallet && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
+                    usdtAvail = Number(w.main_wallet.available_balance);
                 } else {
-                    // USDT / USD
-                    if (w.main_wallet_usdt && (typeof w.main_wallet_usdt.available_balance === "number" || w.main_wallet_usdt.available_balance)) {
-                        avail = Number(w.main_wallet_usdt.available_balance);
-                    } else if (w.main_wallet && w.main_wallet.currency === "USDT" && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
-                        avail = Number(w.main_wallet.available_balance);
-                    } else if (w.main_wallet && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
-                        avail = Number(w.main_wallet.available_balance);
-                    } else {
-                        avail = Number(w.available_balance || 0);
-                    }
-                    curr = "USDT";
+                    usdtAvail = Number(w.available_balance || 0);
                 }
             }
-            if (isNaN(avail)) avail = 0;
+            if (isNaN(inrAvail)) inrAvail = 0;
+            if (isNaN(usdtAvail)) usdtAvail = 0;
 
-            if (curr === "INR") {
-                balEl.textContent = `₹${avail.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            } else {
-                balEl.textContent = `${avail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${curr}`;
-            }
+            const formattedInr = `₹${inrAvail.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const formattedUsdt = `${usdtAvail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
+
+            try {
+                localStorage.setItem("tx_cached_navbar_balance_INR", formattedInr);
+                localStorage.setItem("tx_cached_navbar_balance_USDT", formattedUsdt);
+                localStorage.setItem("tx_cached_navbar_balance", curActiveCurrency === "INR" ? formattedInr : formattedUsdt);
+            } catch (_) {}
+
+            const activeFormatted = curActiveCurrency === "INR" ? formattedInr : formattedUsdt;
+            balEl.textContent = activeFormatted;
             
             const trigger = document.getElementById("txNavbarWalletTrigger");
             const activeAccName = localStorage.getItem("traidiumx_active_user_name") || "Main Trading Account";
             if (trigger) {
-                trigger.setAttribute("title", `Main Wallet: ${curr === "INR" ? "₹" : ""}${avail.toFixed(2)} ${curr} (${activeAccName})`);
+                const activeVal = curActiveCurrency === "INR" ? inrAvail : usdtAvail;
+                trigger.setAttribute("title", `Main Wallet: ${curActiveCurrency === "INR" ? "₹" : ""}${activeVal.toFixed(2)} ${curActiveCurrency} (${activeAccName})`);
             }
         }
     } catch (err) {

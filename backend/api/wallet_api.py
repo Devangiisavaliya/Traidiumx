@@ -580,7 +580,7 @@ def transfer_sub():
     if requested_currency:
         primary_currency = requested_currency
     else:
-        primary_currency = "USDT" if is_demo_account else str(main_wallet_doc.get("primary_currency") or "INR").upper()
+        primary_currency = "USDT" if is_demo_account else str(main_wallet_doc.get("primary_currency") or "USDT").upper()
 
     bucket_prefix = "main_wallet_inr" if primary_currency == "INR" else "main_wallet_usdt"
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
@@ -958,8 +958,8 @@ def lookup_recipient():
         from config.database import get_database
         db = get_database()
         
-        # 1. Match by Email
-        recipient_user = db.users.find_one({"email": query})
+        # 1. Match by Email (case-insensitive)
+        recipient_user = db.users.find_one({"email": query.lower()}) or db.users.find_one({"email": query})
         
         # 2. Match by Client ID
         if not recipient_user:

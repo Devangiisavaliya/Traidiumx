@@ -90,9 +90,6 @@ function saveCachedWalletData(wallet) {
     }
 }
 
-// Pre-load cached wallet data immediately
-loadCachedWalletData();
-
 /* Global SVG Coin Logo Provider */
 window.txGetCoinLogoSvg = function(pairOrCode) {
     const rawPair = String(pairOrCode || "").replace(" Options", "").trim();
@@ -238,6 +235,9 @@ const WALLET_STATE = {
         withdrawals: { search: "", status: "all", page: 1, pageSize: 5 }
     }
 };
+
+// Pre-load cached wallet data safely after WALLET_STATE is initialized
+loadCachedWalletData();
 
 const walletElements = {
     get alert() { return document.getElementById("walletAlert"); },
@@ -436,16 +436,41 @@ function getMainWalletData() {
     }
 }
 
+function txSyncNavbarBalanceFromWalletState() {
+    const balEl = document.getElementById("txNavbarWalletBalanceText");
+    const wallet = WALLET_STATE.wallet || {};
+    const inrWallet = wallet.main_wallet_inr || {};
+    const usdtWallet = wallet.main_wallet_usdt || {};
+    const inrAvail = walletNumber(inrWallet.available_balance, 0);
+    const usdtAvail = walletNumber(usdtWallet.available_balance, 0);
+    const formattedInr = `₹${inrAvail.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formattedUsdt = `${usdtAvail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
+
+    try {
+        localStorage.setItem("tx_cached_navbar_balance_INR", formattedInr);
+        localStorage.setItem("tx_cached_navbar_balance_USDT", formattedUsdt);
+    } catch (_) {}
+
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const formatted = activeCurrency === "INR" ? formattedInr : formattedUsdt;
+    if (balEl) {
+        balEl.textContent = formatted;
+    }
+    try {
+        localStorage.setItem("tx_cached_navbar_balance", formatted);
+    } catch (_) {}
+}
+window.txSyncNavbarBalanceFromWalletState = txSyncNavbarBalanceFromWalletState;
+
 function getActiveWalletData() {
     const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    if (!activeSubId || activeSubId === "main") {
+        return WALLET_STATE.wallet || {};
+    }
     const cache = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
-    if (activeSubId && cache.length > 0) {
+    if (cache.length > 0) {
         const sub = cache.find(s => s.id === activeSubId);
         if (sub && sub.wallet) return sub.wallet;
-    }
-    const parentEntry = cache.find(s => s.is_parent);
-    if (!activeSubId && parentEntry && parentEntry.wallet) {
-        return parentEntry.wallet;
     }
     return WALLET_STATE.wallet || {};
 }
@@ -1435,12 +1460,12 @@ async function txRefreshTransferSubAccounts() {
     }
 }
 
-function txPopulateTradingAccountSelect() {
+function txPopulateTradingAccountSelect(preSelectedAccId = null) {
     const select = document.getElementById("txTransferTradingAccountSelect");
     const cache = (typeof txSubAccountsLocalCache !== "undefined" && txSubAccountsLocalCache && txSubAccountsLocalCache.length > 0)
         ? txSubAccountsLocalCache
         : ((typeof window !== "undefined" && window.txSubAccountsLocalCache && window.txSubAccountsLocalCache.length > 0) ? window.txSubAccountsLocalCache : []);
-    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const activeSubId = preSelectedAccId || localStorage.getItem("traidiumx_active_user_id");
 
     let options = [{ id: "main", name: "Main Trading Account" }];
     if (Array.isArray(cache) && cache.length > 0) {
@@ -1543,7 +1568,8 @@ function txUpdateTransferModalUI() {
     const dir = dirInput ? dirInput.value : "main_to_trading";
 
     const assetSelect = document.getElementById("walletTransferAsset");
-    const asset = assetSelect ? assetSelect.value : "USDT";
+    const asset = (assetSelect ? assetSelect.value : (localStorage.getItem("tx_navbar_currency") || "USDT")).toUpperCase();
+    const isModalInr = (asset === "INR");
 
     const currencyLabel = document.getElementById("txTransferCurrencyLabel");
     if (currencyLabel) currencyLabel.textContent = asset;
@@ -1551,11 +1577,9 @@ function txUpdateTransferModalUI() {
     const activeSubId = localStorage.getItem("traidiumx_active_user_id");
 
     const wallet = WALLET_STATE.wallet || {};
-    const rate = walletNumber(wallet.usdt_inr_rate || localStorage.getItem("tx_usdt_inr_rate") || 88.50, 88.50);
-
-    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const mainWallet = getMainWalletData();
-    const mainAvail = walletNumber(mainWallet.available_balance, 0);
+    const mainAvail = isModalInr
+        ? walletNumber(wallet.main_wallet_inr?.available_balance, 0)
+        : walletNumber(wallet.main_wallet_usdt?.available_balance ?? wallet.main_wallet?.available_balance, 0);
 
     const cache = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
     const activeAccountEntry = !activeSubId 
@@ -1563,16 +1587,24 @@ function txUpdateTransferModalUI() {
         : cache.find(s => s.id === activeSubId);
 
     let tradingAvail = 0;
-    if (activeCurrency === "INR") {
+    if (isModalInr) {
         const tradingWalletInr = wallet.trading_wallet_inr || {};
-        tradingAvail = activeAccountEntry && activeAccountEntry.wallet && activeAccountEntry.wallet.trading_wallet_inr
-            ? walletNumber(activeAccountEntry.wallet.trading_wallet_inr.available_balance, 0)
-            : walletNumber(tradingWalletInr.available_balance, 0);
+        if (!activeSubId || activeSubId === "main") {
+            tradingAvail = walletNumber(tradingWalletInr.available_balance, 0);
+        } else {
+            tradingAvail = activeAccountEntry && activeAccountEntry.wallet && activeAccountEntry.wallet.trading_wallet_inr
+                ? walletNumber(activeAccountEntry.wallet.trading_wallet_inr.available_balance, 0)
+                : 0;
+        }
     } else {
-        const tradingWalletUsdt = wallet.trading_wallet_usdt || {};
-        tradingAvail = activeAccountEntry && activeAccountEntry.wallet && activeAccountEntry.wallet.trading_wallet_usdt
-            ? walletNumber(activeAccountEntry.wallet.trading_wallet_usdt.available_balance, 0)
-            : walletNumber(tradingWalletUsdt.available_balance, 0);
+        const tradingWalletUsdt = wallet.trading_wallet_usdt || wallet.trading_wallet || {};
+        if (!activeSubId || activeSubId === "main") {
+            tradingAvail = walletNumber(tradingWalletUsdt.available_balance ?? wallet.available_balance, 0);
+        } else {
+            tradingAvail = activeAccountEntry && activeAccountEntry.wallet && (activeAccountEntry.wallet.trading_wallet_usdt || activeAccountEntry.wallet)
+                ? walletNumber(activeAccountEntry.wallet.trading_wallet_usdt?.available_balance ?? activeAccountEntry.wallet.available_balance, 0)
+                : 0;
+        }
     }
 
     let fromAvailVal = 0;
@@ -1796,8 +1828,12 @@ function txInitTransferModalListeners() {
     }
 }
 
-function openWalletActionModal(action = "deposit", selectedAsset = null) {
+function openWalletActionModal(action = "deposit", selectedAsset = null, preSelectedAccId = null) {
     if (String(action).toLowerCase() === "deposit") {
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+            return;
+        }
         if (typeof window.txActivateDepositTab === "function") {
             window.txActivateDepositTab("crypto");
             return;
@@ -1854,9 +1890,13 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
 
     clearWalletActionMessage();
     updateWalletActionModalBalances();
-    walletElements.actionModal.classList.remove("hidden");
-    walletElements.actionModal.classList.add("flex");
-    walletElements.actionModal.setAttribute("aria-hidden", "false");
+    const modalEl = walletElements.actionModal || document.getElementById("walletActionModal");
+    if (modalEl) {
+        modalEl.classList.remove("hidden");
+        modalEl.classList.add("flex");
+        modalEl.style.removeProperty("display");
+        modalEl.setAttribute("aria-hidden", "false");
+    }
 
     if (target === "transfer") {
         const pretitle = document.getElementById("txModalHeaderPretitle");
@@ -1878,7 +1918,20 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
         const statsGrid = document.getElementById("walletModalStatsGrid");
         if (statsGrid) statsGrid.classList.add("hidden");
 
-        txPopulateTradingAccountSelect();
+        const assetSelect = document.getElementById("walletTransferAsset");
+        if (assetSelect) {
+            if (selectedAsset) {
+                assetSelect.value = selectedAsset.toUpperCase();
+            } else {
+                const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+                assetSelect.value = (activeCurrency === "INR" ? "INR" : "USD");
+            }
+        }
+        if (typeof txPopulateAssetDropdown === "function") {
+            txPopulateAssetDropdown();
+        }
+
+        txPopulateTradingAccountSelect(preSelectedAccId);
         txUpdateTransferModalUI();
         txInitTransferModalListeners();
         if (typeof txRefreshTransferSubAccounts === "function") {
@@ -2026,10 +2079,13 @@ function openWalletActionModal(action = "deposit", selectedAsset = null) {
 }
 
 function closeWalletActionModal() {
-    if (!walletElements.actionModal) return;
-    walletElements.actionModal.classList.add("hidden");
-    walletElements.actionModal.classList.remove("flex");
-    walletElements.actionModal.setAttribute("aria-hidden", "true");
+    const modalEl = walletElements.actionModal || document.getElementById("walletActionModal");
+    if (modalEl) {
+        modalEl.classList.add("hidden");
+        modalEl.classList.remove("flex");
+        modalEl.style.setProperty("display", "none", "important");
+        modalEl.setAttribute("aria-hidden", "true");
+    }
     WALLET_STATE.activeAction = "";
     clearWalletActionMessage();
 
@@ -2042,13 +2098,20 @@ function closeWalletActionModal() {
 function walletSetButtonLoading(button, loading, text = "Processing...") {
     if (!button) return;
     if (loading) {
-        button.dataset.originalText = button.textContent || "Submit";
-        button.textContent = text;
+        if (!button.dataset.originalHtml) {
+            button.dataset.originalHtml = button.innerHTML;
+        }
+        button.innerHTML = `<span>${text}</span>`;
         button.setAttribute("disabled", "disabled");
         button.classList.add("opacity-60", "cursor-not-allowed");
         return;
     }
-    button.textContent = button.dataset.originalText || button.textContent || "Submit";
+    if (button.dataset.originalHtml) {
+        button.innerHTML = button.dataset.originalHtml;
+        delete button.dataset.originalHtml;
+    } else {
+        button.innerHTML = `<span>Confirm Transfer</span>`;
+    }
     button.removeAttribute("disabled");
     button.classList.remove("opacity-60", "cursor-not-allowed");
 }
@@ -3087,6 +3150,7 @@ function renderWalletPage() {
     }
     updateMainWithdrawalPageBalanceDisplay();
     updateWalletActionModalBalances();
+    txSyncNavbarBalanceFromWalletState();
 }
 
 function renderWalletBalanceCardsOnly() {
@@ -3134,6 +3198,7 @@ function renderWalletBalanceCardsOnly() {
     }
     updateMainWithdrawalPageBalanceDisplay();
     updateWalletActionModalBalances();
+    txSyncNavbarBalanceFromWalletState();
 }
 
 async function refreshWalletBalanceOnly() {
@@ -4656,13 +4721,37 @@ async function handleUnifiedWalletTransferSubmit(event) {
         }
 
         form.reset();
-        WALLET_STATE.wallet = response.data?.wallet || WALLET_STATE.wallet;
-        await loadWalletData({ silent: true });
-        await refreshWalletBalanceOnly();
-        showWalletAlert(response.message || "Wallet transfer completed successfully.", "success");
         closeWalletActionModal();
+        if (response && response.data && response.data.wallet) {
+            WALLET_STATE.wallet = response.data.wallet;
+            if (Array.isArray(txSubAccountsLocalCache)) {
+                const p = txSubAccountsLocalCache.find(s => s.is_parent);
+                if (p) {
+                    p.wallet = response.data.wallet;
+                }
+                try {
+                    localStorage.setItem("tx_cached_sub_accounts", JSON.stringify(txSubAccountsLocalCache));
+                } catch (_) {}
+            }
+        } else {
+            WALLET_STATE.wallet = response.data?.wallet || WALLET_STATE.wallet;
+        }
+
+        if (typeof txSyncNavbarBalanceFromWalletState === "function") {
+            txSyncNavbarBalanceFromWalletState();
+        }
+
+        showWalletAlert(response.message || "Wallet transfer completed successfully.", "success");
+        if (typeof txRenderAssetLists === "function") txRenderAssetLists();
+        if (typeof txRenderTradingAccounts === "function") txRenderTradingAccounts();
+        if (typeof txInitSubAccountsAndSelector === "function") txInitSubAccountsAndSelector();
+        if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+        window.dispatchEvent(new CustomEvent("traidiumx:wallet-sync"));
+        Promise.all([loadWalletData({ silent: true }), refreshWalletBalanceOnly()]).catch(() => {});
     } catch (error) {
-        showWalletActionMessage(getErrorMessage(error, "Wallet transfer failed."), "error");
+        const errMsg = getErrorMessage(error, "Wallet transfer failed.");
+        showWalletActionMessage(errMsg, "error");
+        showWalletAlert(errMsg, "error");
     } finally {
         walletSetButtonLoading(walletElements.unifiedTransferBtn, false);
     }
@@ -5349,8 +5438,8 @@ function updateWithdrawalModalUIByCurrency(currency, isModal = false) {
     updateWalletFaqUI(activeCurrency);
 }
 
-async function txFetchFeeStructure() {
-    if (WALLET_STATE.feeStructure) return WALLET_STATE.feeStructure;
+async function txFetchFeeStructure(force = false) {
+    if (!force && WALLET_STATE.feeStructure) return WALLET_STATE.feeStructure;
     try {
         if (typeof apiRequest === "function") {
             const res = await apiRequest("/fees/structure", { method: "GET" });
@@ -6355,9 +6444,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         txInitPrimeOverview();
     }
 
-    document.getElementById("quickDepositBtn")?.addEventListener("click", () => {
-        // Open Deposit popup modal
-        openWalletActionModal("deposit");
+    document.getElementById("quickDepositBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+        } else {
+            openWalletActionModal("deposit");
+        }
     });
     document.getElementById("quickWithdrawBtn")?.addEventListener("click", () => {
         // Switch main tab to Wallet
@@ -6583,8 +6676,17 @@ async function txInitLedgerSubAccountDropdown() {
     }
 }
 
-// Global cache for sub-accounts list
+// Global cache for sub-accounts list with localStorage persistence
 let txSubAccountsLocalCache = [];
+try {
+    const cachedSubs = localStorage.getItem("tx_cached_sub_accounts");
+    if (cachedSubs) {
+        const parsed = JSON.parse(cachedSubs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            txSubAccountsLocalCache = parsed;
+        }
+    }
+} catch (_) {}
 
 function txUpdateWalletActiveAccountBanner() {
     const banner = document.getElementById("txWalletActiveAccountBanner");
@@ -6635,7 +6737,12 @@ async function txInitSubAccountsAndSelector() {
     try {
         const response = await apiRequest("/user/sub-accounts");
         const subAccounts = response.data || [];
-        txSubAccountsLocalCache = subAccounts;
+        if (Array.isArray(subAccounts) && subAccounts.length > 0) {
+            txSubAccountsLocalCache = subAccounts;
+            try {
+                localStorage.setItem("tx_cached_sub_accounts", JSON.stringify(subAccounts));
+            } catch (_) {}
+        }
 
         if (typeof txRenderTradingAccounts === "function") {
             txRenderTradingAccounts();
@@ -6834,19 +6941,25 @@ function txRenderPrimePopularMarkets() {
 }
 
 async function txInitPrimeMarketStreams() {
-    // 1. Initial REST fetch for Binance Crypto 24hr tickers
+    // 1. Initial REST fetch for Crypto 24hr tickers via backend market API
     try {
-        const res = await fetch("https://fapi.binance.com/fapi/v1/ticker/24hr");
-        if (res.ok) {
-            const data = await res.json();
+        const res = typeof apiRequest === "function" ? await apiRequest("/market/board") : null;
+        if (res && res.data && Array.isArray(res.data.categories)) {
+            const allItems = res.data.categories.flatMap(c => c.symbols || []);
             const dataMap = new Map();
-            data.forEach(item => dataMap.set(item.symbol, item));
+            allItems.forEach(item => {
+                if (item.symbol) {
+                    dataMap.set(item.symbol.toUpperCase().replace("-", ""), item);
+                    dataMap.set(item.symbol.toUpperCase(), item);
+                }
+            });
 
             TX_PRIME_MARKETS.forEach(m => {
-                if (m.rawSymbol && dataMap.has(m.rawSymbol)) {
-                    const tick = dataMap.get(m.rawSymbol);
-                    const lastPrice = parseFloat(tick.lastPrice) || m.bid;
-                    const changePct = parseFloat(tick.priceChangePercent) || m.change;
+                const symKey = (m.rawSymbol || m.symbol || "").toUpperCase().replace("-", "");
+                if (dataMap.has(symKey)) {
+                    const tick = dataMap.get(symKey);
+                    const lastPrice = parseFloat(tick.last_price || tick.price) || m.bid;
+                    const changePct = parseFloat(tick.change_24h || tick.change_percent) || m.change;
                     const spreadVal = (lastPrice * 0.00015).toFixed(lastPrice < 1 ? 5 : (lastPrice < 100 ? 4 : 2));
                     
                     m.bid = lastPrice;
@@ -6860,7 +6973,7 @@ async function txInitPrimeMarketStreams() {
             txRenderPrimePopularMarkets();
         }
     } catch (e) {
-        console.warn("REST ticker fetch failed, using fallback:", e);
+        // Silent fallback to default market state
     }
 
     // 2. Open Live WebSocket stream for real-time tick-by-tick updates
@@ -6988,7 +7101,9 @@ function txInitPrimeOverview() {
     document.getElementById("txPrimeDepositBtn")?.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (typeof window.txActivateDepositTab === "function") {
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+        } else if (typeof window.txActivateDepositTab === "function") {
             window.txActivateDepositTab("crypto");
         } else if (typeof txSwitchNexusSubTab === "function") {
             txSwitchNexusSubTab("deposit");
@@ -7046,6 +7161,154 @@ function txInitPrimeOverview() {
     txInitPrimeMarketStreams();
 }
 
+function txActivateDepositTab(mode = "crypto") {
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    [
+        document.getElementById("mainTabOverview"),
+        document.getElementById("mainTabTradingAccounts"),
+        document.getElementById("mainTabWallet")
+    ].forEach(t => {
+        if (t) {
+            t.classList.remove("border-cyan-400", "text-cyan-300");
+            t.classList.add("border-transparent", "text-slate-400");
+        }
+    });
+
+    [contentOverview, contentTrading, contentWallet].forEach(c => {
+        if (c) {
+            c.classList.add("hidden");
+            c.classList.remove("block");
+            c.style.display = "none";
+        }
+    });
+
+    if (contentDeposit) {
+        contentDeposit.classList.remove("hidden");
+        contentDeposit.style.display = "block";
+    }
+
+    if (topTabsBar) {
+        topTabsBar.classList.add("hidden");
+    }
+
+    if (typeof txSwitchNexusSubTab === "function") {
+        txSwitchNexusSubTab("deposit");
+    }
+    if (typeof txSwitchDepositMode === "function") {
+        txSwitchDepositMode(mode);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.txActivateDepositTab = txActivateDepositTab;
+
+function txActivateWithdrawTab(mode = "crypto") {
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    [
+        document.getElementById("mainTabOverview"),
+        document.getElementById("mainTabTradingAccounts"),
+        document.getElementById("mainTabWallet")
+    ].forEach(t => {
+        if (t) {
+            t.classList.remove("border-cyan-400", "text-cyan-300");
+            t.classList.add("border-transparent", "text-slate-400");
+        }
+    });
+
+    [contentOverview, contentTrading, contentWallet].forEach(c => {
+        if (c) {
+            c.classList.add("hidden");
+            c.classList.remove("block");
+            c.style.display = "none";
+        }
+    });
+
+    if (contentDeposit) {
+        contentDeposit.classList.remove("hidden");
+        contentDeposit.style.display = "block";
+    }
+
+    if (topTabsBar) {
+        topTabsBar.classList.add("hidden");
+    }
+
+    if (typeof txSwitchNexusSubTab === "function") {
+        txSwitchNexusSubTab("withdraw");
+    }
+    if (typeof txSwitchWithdrawMode === "function") {
+        txSwitchWithdrawMode(mode);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.txActivateWithdrawTab = txActivateWithdrawTab;
+
+function txActivateHistoryTab() {
+    const contentDeposit = document.getElementById("contentDeposit");
+    const contentOverview = document.getElementById("contentOverview");
+    const contentTrading = document.getElementById("contentTradingAccounts");
+    const contentWallet = document.getElementById("contentWallet");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+
+    [
+        document.getElementById("mainTabOverview"),
+        document.getElementById("mainTabTradingAccounts"),
+        document.getElementById("mainTabWallet")
+    ].forEach(t => {
+        if (t) {
+            t.classList.remove("border-cyan-400", "text-cyan-300");
+            t.classList.add("border-transparent", "text-slate-400");
+        }
+    });
+
+    [contentOverview, contentTrading, contentWallet].forEach(c => {
+        if (c) {
+            c.classList.add("hidden");
+            c.classList.remove("block");
+            c.style.display = "none";
+        }
+    });
+
+    if (contentDeposit) {
+        contentDeposit.classList.remove("hidden");
+        contentDeposit.style.display = "block";
+    }
+
+    if (topTabsBar) {
+        topTabsBar.classList.add("hidden");
+    }
+
+    if (typeof txSwitchNexusSubTab === "function") {
+        txSwitchNexusSubTab("history");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.txActivateHistoryTab = txActivateHistoryTab;
+
+function txBackToWalletOverview() {
+    sessionStorage.removeItem("tx_wallet_sub_tab");
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    const tabOverview = document.getElementById("mainTabOverview");
+    const contentOverview = document.getElementById("contentOverview");
+    const topTabsBar = document.getElementById("txWalletTopTabsBar");
+    if (topTabsBar) topTabsBar.classList.remove("hidden");
+    if (tabOverview && contentOverview) {
+        tabOverview.click();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+}
+window.txBackToWalletOverview = txBackToWalletOverview;
+
 function txInitTabs() {
     const tabOverview = document.getElementById("mainTabOverview");
     const tabTrading = document.getElementById("mainTabTradingAccounts");
@@ -7069,18 +7332,33 @@ function txInitTabs() {
 
     function selectTab(activeTab, activeContent) {
         tabs.forEach(t => {
-            t.classList.remove("border-cyan-400", "text-cyan-300");
-            t.classList.add("border-transparent", "text-slate-400");
+            if (t) {
+                t.classList.remove("border-cyan-400", "text-cyan-300");
+                t.classList.add("border-transparent", "text-slate-400");
+            }
         });
-        activeTab.classList.remove("border-transparent", "text-slate-400");
-        activeTab.classList.add("border-cyan-400", "text-cyan-300");
+        if (activeTab) {
+            activeTab.classList.remove("border-transparent", "text-slate-400");
+            activeTab.classList.add("border-cyan-400", "text-cyan-300");
+        }
 
-        contents.forEach(c => c.classList.add("hidden"));
-        activeContent.classList.remove("hidden");
+        const allContents = [contentOverview, contentTrading, contentWallet, contentDeposit];
+        allContents.forEach(c => {
+            if (c) {
+                c.classList.add("hidden");
+                c.classList.remove("block");
+                c.style.display = "none";
+            }
+        });
+
+        if (activeContent) {
+            activeContent.classList.remove("hidden");
+            activeContent.style.display = "block";
+        }
 
         const topTabsBar = document.getElementById("txWalletTopTabsBar");
         if (topTabsBar) {
-            if (activeTab === tabDeposit) {
+            if (activeTab === tabDeposit || activeContent === contentDeposit) {
                 topTabsBar.classList.add("hidden");
             } else {
                 topTabsBar.classList.remove("hidden");
@@ -7088,8 +7366,10 @@ function txInitTabs() {
         }
 
         // Save active main tab in localStorage and clear subtab session
-        localStorage.setItem("tx_active_main_tab", activeTab.id);
-        if (activeTab !== tabDeposit) {
+        if (activeTab && activeTab.id) {
+            localStorage.setItem("tx_active_main_tab", activeTab.id);
+        }
+        if (activeTab !== tabDeposit && activeContent !== contentDeposit) {
             sessionStorage.removeItem("tx_wallet_sub_tab");
             if (window.history && window.history.replaceState) {
                 const h = activeTab === tabOverview ? "" : (activeTab === tabTrading ? "#trading" : "#wallet");
@@ -7108,6 +7388,9 @@ function txInitTabs() {
     tabTrading.addEventListener("click", () => {
         selectTab(tabTrading, contentTrading);
         txRenderTradingAccounts();
+        if (typeof txInitSubAccountsAndSelector === "function") {
+            txInitSubAccountsAndSelector();
+        }
     });
     tabWallet.addEventListener("click", () => {
         selectTab(tabWallet, contentWallet);
@@ -7391,7 +7674,7 @@ function txRenderAssetLists() {
     let displayAvailUsd = isMt5 ? mt5Bal : activeSubMainUsdtAvail;
     let displayLockedUsd = isMt5 ? 0 : activeSubMainUsdtLocked;
 
-    const displayTotalInr = activeSubMainInrAvail > 0 ? activeSubMainInrAvail : (displayTotalUsd * rate);
+    const displayTotalInr = activeSubMainInrAvail;
 
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const totalEl = document.getElementById("portfolioTotalBalance");
@@ -7401,7 +7684,7 @@ function txRenderAssetLists() {
         } else if (isMt5) {
             totalEl.textContent = `≈ ${mt5Bal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         } else if (activeCurrency === "INR") {
-            totalEl.textContent = `≈ ₹${displayTotalInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+            totalEl.textContent = `≈ ₹${displayTotalInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {
             totalEl.textContent = `≈ ${displayTotalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         }
@@ -7548,13 +7831,13 @@ function txRenderOverviewStats(stats) {
         
         const pnlUsd = isMt5 ? 0 : unrealizedPnl;
 
-        const availVal = isINR ? (displayAvailUsd * rate) : displayAvailUsd;
-        const lockedVal = isINR ? (displayLockedUsd * rate) : displayLockedUsd;
+        const availVal = isINR ? activeSubMainInrAvail : displayAvailUsd;
+        const lockedVal = isINR ? activeSubMainInrLocked : displayLockedUsd;
         const pnlVal = isINR ? (pnlUsd * rate) : pnlUsd;
 
-        availEl.textContent = isHidden ? "********" : `${sym}${availVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        lockedEl.textContent = isHidden ? "*****" : `${sym}${lockedVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        pnlEl.textContent = isHidden ? "*****" : `${pnlVal >= 0 ? "+" : ""}${sym}${pnlVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        availEl.textContent = isHidden ? "********" : `${sym}${availVal.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        lockedEl.textContent = isHidden ? "*****" : `${sym}${lockedVal.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        pnlEl.textContent = isHidden ? "*****" : `${pnlVal >= 0 ? "+" : ""}${sym}${pnlVal.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         if (pnlVal > 0) {
             pnlEl.className = "font-black font-mono text-emerald-400";
         } else if (pnlVal < 0) {
@@ -7580,21 +7863,12 @@ function txRenderOverviewStats(stats) {
     // Update Section Summaries
     const moneySub = document.getElementById("moneySubVal");
     if (moneySub) {
-        let moneyTotalUsd = 0;
-        filteredMoney.forEach(a => {
-            if (a.code === "INR") {
-                moneyTotalUsd += a.balance / rate;
-            } else {
-                moneyTotalUsd += a.balance; // USDT
-            }
-        });
         if (isBalanceHidden()) {
             moneySub.textContent = `≈ ******** ${activeCurrency}`;
         } else if (activeCurrency === "INR") {
-            const moneyInr = moneyTotalUsd * rate;
-            moneySub.textContent = `≈ ₹${moneyInr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
+            moneySub.textContent = `≈ ₹${activeSubMainInrAvail.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
         } else {
-            moneySub.textContent = `≈ ${moneyTotalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            moneySub.textContent = `≈ ${displayTotalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
         }
     }
 
@@ -7635,6 +7909,7 @@ function txRenderOverviewStats(stats) {
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Withdraw</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'transfer')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Transfer</button>
                         ${asset.code === "USDT" ? `<button onclick="txTriggerRowAction('${asset.code}', 'exchange')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Exchange</button>` : ''}
+                        <button onclick="txTriggerRowAction('${asset.code}', 'internal_transfer')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Internal Transfer</button>
                     </div>
                 </td>
             </tr>
@@ -7669,6 +7944,7 @@ function txRenderOverviewStats(stats) {
                         <button onclick="txTriggerRowAction('${asset.code}', 'withdraw')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Withdraw</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'transfer')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Transfer</button>
                         <button onclick="txTriggerRowAction('${asset.code}', 'exchange')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Exchange</button>
+                        <button onclick="txTriggerRowAction('${asset.code}', 'internal_transfer')" class="text-slate-300 hover:text-cyan-400 transition cursor-pointer">Internal Transfer</button>
                     </div>
                 </td>
             </tr>
@@ -7865,38 +8141,27 @@ window.txStartTaLivePnlStreaming = function() {
         });
     });
 
-    // 1. Initial Fast REST Fetch for live Mark Prices & Ticker Prices
-    fetch("https://fapi.binance.com/fapi/v1/premiumIndex")
-        .then(res => res.json())
-        .then(data => {
-            if (Array.isArray(data)) {
-                data.forEach(item => {
-                    const mark = parseFloat(item.markPrice);
-                    if (mark && !isNaN(mark)) {
-                        window.txWalletLivePrices[item.symbol] = mark;
-                        window.txWalletLivePrices[item.symbol.toLowerCase()] = mark;
-                    }
-                });
-                window.txUpdateLiveTradingAccountsPnL();
-            }
-        })
-        .catch(() => {
-            fetch("https://fapi.binance.com/fapi/v1/ticker/price")
-                .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        data.forEach(item => {
-                            const price = parseFloat(item.price);
-                            if (!isNaN(price)) {
-                                window.txWalletLivePrices[item.symbol] = price;
-                                window.txWalletLivePrices[item.symbol.toLowerCase()] = price;
-                            }
-                        });
+    // 1. Initial Fast Fetch for live Mark Prices & Ticker Prices via backend
+    if (typeof apiRequest === "function") {
+        apiRequest("/market/board")
+            .then(res => {
+                if (res && res.data && Array.isArray(res.data.categories)) {
+                    const allSymbols = res.data.categories.flatMap(c => c.symbols || []);
+                    allSymbols.forEach(item => {
+                        const mark = parseFloat(item.last_price || item.price);
+                        if (mark && !isNaN(mark) && item.symbol) {
+                            const rawSym = item.symbol.toUpperCase().replace("-", "");
+                            window.txWalletLivePrices[rawSym] = mark;
+                            window.txWalletLivePrices[rawSym.toLowerCase()] = mark;
+                        }
+                    });
+                    if (typeof window.txUpdateLiveTradingAccountsPnL === "function") {
                         window.txUpdateLiveTradingAccountsPnL();
                     }
-                })
-                .catch(() => {});
-        });
+                }
+            })
+            .catch(() => {});
+    }
 
     // 2. Open / reconnect Binance WebSocket for real-time tick-by-tick Mark Price updates
     const markStreams = Array.from(symbolSet).map(s => `${s.toLowerCase()}@markPrice`).join("/");
@@ -7962,12 +8227,12 @@ window.txStartTaLivePnlStreaming = function() {
                         const subAccountsOnly = res.data.filter(s => !s.is_parent);
                         const activeSubId = localStorage.getItem("traidiumx_active_user_id");
                         const isMainActive = !activeSubId || activeSubId === "main";
-                        const wallet = WALLET_STATE.wallet || {};
-                        const rate = walletNumber(wallet.usdt_inr_rate || 88.50, 88.50);
-
+                        const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+                        const isINR = activeCurrency === "INR";
                         const updatedAllAccounts = [];
-                        const mainTradingBal = walletNumber(parentEntry?.wallet?.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet_usdt?.available_balance, 0)
-                            + (walletNumber(parentEntry?.wallet?.trading_wallet_inr?.available_balance, 0) / rate);
+                        const mainTradingBal = isINR
+                            ? walletNumber(WALLET_STATE.wallet?.trading_wallet_inr?.available_balance ?? parentEntry?.wallet?.trading_wallet_inr?.available_balance, 0)
+                            : walletNumber(WALLET_STATE.wallet?.trading_wallet_usdt?.available_balance ?? WALLET_STATE.wallet?.trading_wallet?.available_balance ?? WALLET_STATE.wallet?.available_balance ?? parentEntry?.wallet?.trading_wallet_usdt?.available_balance, 0);
                         
                         let mainPos = parentEntry?.positions || [];
                         if (!mainPos.length) {
@@ -7999,8 +8264,9 @@ window.txStartTaLivePnlStreaming = function() {
 
                         subAccountsOnly.forEach(sub => {
                             const isDemo = Boolean(sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || sub.plan_name?.toLowerCase().includes("demo"));
-                            const balUsd = walletNumber(sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance, 0)
-                                + (walletNumber(sub.wallet?.trading_wallet_inr?.available_balance, 0) / rate);
+                            const balUsd = isINR
+                                ? walletNumber(sub.wallet?.trading_wallet_inr?.available_balance, 0)
+                                : walletNumber(sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance, 0);
                             let subPos = sub.positions || [];
                             if (!subPos.length) {
                                 try {
@@ -8047,6 +8313,8 @@ function txRenderTradingAccounts() {
     const subAccountsOnly = cache.filter(sub => !sub.is_parent);
 
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+    const currLabel = isINR ? "INR" : "USD";
     const activeSubId = localStorage.getItem("traidiumx_active_user_id");
     const isMainActive = !activeSubId || activeSubId === "main";
 
@@ -8055,8 +8323,9 @@ function txRenderTradingAccounts() {
     const hidden = isBalanceHidden();
 
     // 1. Calculate Main Account Balance & PnL
-    const mainTradingBal = walletNumber(parentEntry?.wallet?.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet?.available_balance, 0)
-        + (walletNumber(parentEntry?.wallet?.trading_wallet_inr?.available_balance ?? wallet.trading_wallet_inr?.available_balance, 0) / rate);
+    const mainTradingBal = isINR
+        ? walletNumber(wallet.trading_wallet_inr?.available_balance ?? parentEntry?.wallet?.trading_wallet_inr?.available_balance, 0)
+        : walletNumber(wallet.trading_wallet_usdt?.available_balance ?? wallet.trading_wallet?.available_balance ?? wallet.available_balance ?? parentEntry?.wallet?.trading_wallet_usdt?.available_balance, 0);
     let mainPositions = parentEntry?.positions || [];
     if (!mainPositions.length) {
         try {
@@ -8080,7 +8349,7 @@ function txRenderTradingAccounts() {
     allAccounts.push({
         id: "main",
         name: "Main Trading Account",
-        clientId: parentEntry?.client_id || (parentEntry?.id ? parentEntry.id.slice(0, 8) : "L1723926"),
+        clientId: parentEntry?.client_id || (parentEntry?.id ? parentEntry.id.slice(0, 8) : ((typeof getAuthUser === "function" ? getAuthUser()?.client_id : "") || "554523")),
         isDemo: false,
         isParent: true,
         isActive: isMainActive,
@@ -8094,8 +8363,9 @@ function txRenderTradingAccounts() {
     // Sub accounts
     subAccountsOnly.forEach(sub => {
         const isDemo = Boolean(sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || sub.plan_name?.toLowerCase().includes("demo"));
-        const balUsd = walletNumber(sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance, 0)
-            + (walletNumber(sub.wallet?.trading_wallet_inr?.available_balance, 0) / rate);
+        const balUsd = isINR
+            ? walletNumber(sub.wallet?.trading_wallet_inr?.available_balance, 0)
+            : walletNumber(sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance, 0);
         let subPositions = sub.positions || [];
         if (!subPositions.length) {
             try {
@@ -8143,18 +8413,18 @@ function txRenderTradingAccounts() {
     const taTotalEl = document.getElementById("txTaTotalFundsVal");
     if (taTotalEl) {
         if (hidden) {
-            taTotalEl.textContent = "≈ ******** USD";
+            taTotalEl.textContent = `≈ ******** ${currLabel}`;
         } else {
-            taTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            taTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currLabel}`;
         }
     }
 
     const groupTotalEl = document.getElementById("txTaGroupTotal");
     if (groupTotalEl) {
         if (hidden) {
-            groupTotalEl.textContent = "≈ ******** USD";
+            groupTotalEl.textContent = `≈ ******** ${currLabel}`;
         } else {
-            groupTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            groupTotalEl.textContent = `≈ ${activeAccountBalUsd.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currLabel}`;
         }
     }
 
@@ -8169,15 +8439,20 @@ function txRenderTradingAccounts() {
             </div>
         `;
     } else {
+        window.txExpandedTaCards = window.txExpandedTaCards || new Set();
         listContainer.innerHTML = filteredAccounts.map(acc => {
             const isSelected = acc.isActive;
-            const balStr = hidden ? "********" : `${acc.balanceUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            const isExpanded = window.txExpandedTaCards.has(String(acc.id));
+            const balStr = hidden ? "********" : `${acc.balanceUsd.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currLabel}`;
             const pnlPrefix = acc.pnlUsd > 0 ? "+" : "";
-            const pnlStr = hidden ? "*****" : `${pnlPrefix}${acc.pnlUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+            const pnlStr = hidden ? "*****" : `${pnlPrefix}${acc.pnlUsd.toLocaleString(isINR ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currLabel}`;
             const pnlClass = acc.pnlUsd > 0 ? "text-emerald-400" : (acc.pnlUsd < 0 ? "text-red-400" : "text-white");
             const badgeClass = acc.isDemo 
                 ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
                 : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30";
+            const detailsWrapperClass = isExpanded ? "expanded" : "";
+            const toggleText = isExpanded ? "Show less" : "Show more";
+            const toggleIconClass = isExpanded ? "rotate-180" : "";
 
             return `
                 <div class="rounded-3xl border ${isSelected ? 'border-cyan-500/50 bg-[#07111f]/90 shadow-lg shadow-cyan-950/30' : 'border-white/10 bg-[#07111f]/70 hover:border-white/20'} p-5 sm:p-6 backdrop-blur-xl transition duration-200">
@@ -8220,34 +8495,38 @@ function txRenderTradingAccounts() {
 
                         <div class="sm:col-span-2 lg:col-span-1 flex items-end justify-end">
                             <button onclick="txToggleTaCardDetails('${acc.id}')" type="button" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-cyan-300 transition p-1 cursor-pointer">
-                                <span id="txTaToggleText_${acc.id}">Show more</span>
-                                <svg id="txTaToggleIcon_${acc.id}" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                <span id="txTaToggleText_${acc.id}">${toggleText}</span>
+                                <svg id="txTaToggleIcon_${acc.id}" class="w-3.5 h-3.5 transition-transform duration-300 ${toggleIconClass}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Collapsible Details Section -->
-                    <div id="txTaDetails_${acc.id}" class="hidden mt-4 pt-4 border-t border-white/5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                        <div>
-                            <span class="text-slate-500 font-semibold block">Leverage</span>
-                            <strong class="text-white font-mono font-bold mt-0.5 block">100x</strong>
-                        </div>
-                        <div>
-                            <span class="text-slate-500 font-semibold block">Margin Mode</span>
-                            <strong class="text-white font-mono font-bold mt-0.5 block">Cross / Isolated</strong>
-                        </div>
-                        <div>
-                            <span class="text-slate-500 font-semibold block">Currency</span>
-                            <strong class="text-white font-mono font-bold mt-0.5 block">${acc.isDemo ? "USDT (Demo)" : "USDT / USD"}</strong>
-                        </div>
-                        <div class="flex items-center justify-end">
-                            ${!isSelected ? `
-                                <button onclick="txSetActiveTradingAccount('${acc.id}')" class="px-3.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition cursor-pointer">
-                                    Set as Active
-                                </button>
-                            ` : `
-                                <span class="text-emerald-400 font-bold text-xs flex items-center gap-1">✓ Current Active Account</span>
-                            `}
+                    <!-- Collapsible Details Section with Smooth Dropdown Animation -->
+                    <div id="txTaDetails_${acc.id}" class="tx-ta-details-wrapper ${detailsWrapperClass}">
+                        <div class="tx-ta-details-inner">
+                            <div class="pt-4 border-t border-white/5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                                <div>
+                                    <span class="text-slate-500 font-semibold block">Leverage</span>
+                                    <strong class="text-white font-mono font-bold mt-0.5 block">100x</strong>
+                                </div>
+                                <div>
+                                    <span class="text-slate-500 font-semibold block">Margin Mode</span>
+                                    <strong class="text-white font-mono font-bold mt-0.5 block">Cross / Isolated</strong>
+                                </div>
+                                <div>
+                                    <span class="text-slate-500 font-semibold block">Currency</span>
+                                    <strong class="text-white font-mono font-bold mt-0.5 block">${acc.isDemo ? "USDT (Demo)" : "USDT / USD"}</strong>
+                                </div>
+                                <div class="flex items-center justify-end">
+                                    ${!isSelected ? `
+                                        <button onclick="txSetActiveTradingAccount('${acc.id}')" class="px-3.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition cursor-pointer">
+                                             Set as Active
+                                        </button>
+                                    ` : `
+                                        <span class="text-emerald-400 font-bold text-xs flex items-center gap-1">✓ Current Active Account</span>
+                                    `}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -8307,9 +8586,18 @@ function txRenderTradingAccounts() {
 
 window.txHandleAccountAction = function(accId, action) {
     if (action === "deposit") {
-        openWalletActionModal("deposit");
+        if (accId && typeof TX_DEPOSIT_STATE !== "undefined") {
+            TX_DEPOSIT_STATE.selectedAccount = accId;
+        }
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+        } else if (typeof window.txActivateDepositTab === "function") {
+            window.txActivateDepositTab("crypto");
+        } else {
+            openWalletActionModal("deposit", null, accId);
+        }
     } else if (action === "transfer") {
-        openWalletActionModal("transfer");
+        openWalletActionModal("transfer", null, accId);
     } else if (action === "trade") {
         if (typeof txSetActiveTradingAccount === "function") {
             txSetActiveTradingAccount(accId);
@@ -8318,19 +8606,23 @@ window.txHandleAccountAction = function(accId, action) {
     }
 };
 
+window.txExpandedTaCards = window.txExpandedTaCards || new Set();
 window.txToggleTaCardDetails = function(accId) {
-    const details = document.getElementById(`txTaDetails_${accId}`);
+    const wrapper = document.getElementById(`txTaDetails_${accId}`);
     const text = document.getElementById(`txTaToggleText_${accId}`);
     const icon = document.getElementById(`txTaToggleIcon_${accId}`);
-    if (!details) return;
+    if (!wrapper) return;
 
-    const isHidden = details.classList.contains("hidden");
-    if (isHidden) {
-        details.classList.remove("hidden");
+    window.txExpandedTaCards = window.txExpandedTaCards || new Set();
+    const isExpanded = wrapper.classList.contains("expanded");
+    if (!isExpanded) {
+        wrapper.classList.add("expanded");
+        window.txExpandedTaCards.add(String(accId));
         if (text) text.textContent = "Show less";
         if (icon) icon.classList.add("rotate-180");
     } else {
-        details.classList.add("hidden");
+        wrapper.classList.remove("expanded");
+        window.txExpandedTaCards.delete(String(accId));
         if (text) text.textContent = "Show more";
         if (icon) icon.classList.remove("rotate-180");
     }
@@ -8531,14 +8823,19 @@ function txInitTradingAccountsInteractions() {
     });
 
     document.getElementById("txTaDepositBtn")?.addEventListener("click", () => {
-        openWalletActionModal("deposit");
+        if (typeof window.txOpenDepositChoiceModal === "function") {
+            window.txOpenDepositChoiceModal();
+        } else if (typeof window.txActivateDepositTab === "function") {
+            window.txActivateDepositTab("crypto");
+        } else {
+            openWalletActionModal("deposit");
+        }
     });
     document.getElementById("txTaWithdrawBtn")?.addEventListener("click", () => {
-        const tabWallet = document.getElementById("mainTabWallet");
-        if (tabWallet) {
-            tabWallet.click();
-            const tabWithdraw = document.getElementById("subTabWithdraw");
-            if (tabWithdraw) tabWithdraw.click();
+        if (typeof window.txActivateWithdrawTab === "function") {
+            window.txActivateWithdrawTab("crypto");
+        } else if (typeof openWalletActionModal === "function") {
+            openWalletActionModal("withdraw");
         }
     });
     document.getElementById("txTaTransferBtn")?.addEventListener("click", () => {
@@ -9345,16 +9642,15 @@ let TX_DEPOSIT_STATE = {
     moneyStep: 1,
     moneyMethod: null,
     moneyAccount: null,
-    moneyAccountName: "Account / Wallet",
     selectedCoin: null,
     selectedAccount: null,
-    selectedAccountName: "Select destination account",
+    selectedAccountName: null,
     selectedNetwork: null,
     cryptoAddresses: {},
     inrDetails: null,
     initialized: false,
     coins: [
-        { symbol: "USDT", name: "Tether USD", icon: "₮", color: "emerald", networks: ["TRC20", "BEP20", "ERC20", "SOLANA", "POLYGON", "ARBITRUM"], min: "5 USDT" },
+        { symbol: "USDT", name: "Tether USD", icon: "₮", color: "emerald", networks: ["TRC20", "BEP20", "ERC20", "SOLANA"], min: "5 USDT" },
         { symbol: "BTC", name: "Bitcoin", icon: "₿", color: "amber", networks: ["BITCOIN", "BEP20"], min: "0.0002 BTC" },
         { symbol: "ETH", name: "Ethereum", icon: "Ξ", color: "cyan", networks: ["ERC20", "ARBITRUM", "BEP20"], min: "0.005 ETH" },
         { symbol: "SOL", name: "Solana", icon: "◎", color: "purple", networks: ["SOLANA"], min: "0.05 SOL" },
@@ -9396,8 +9692,8 @@ function txSetDepositStep(step) {
         if (title1) title1.className = "block text-sm font-bold text-white cursor-pointer";
 
         if (dot2) {
-            dot2.className = "tx-nexus-step-dot inactive";
-            dot2.textContent = "2";
+            dot2.className = TX_DEPOSIT_STATE.selectedAccount ? "tx-nexus-step-dot completed" : "tx-nexus-step-dot inactive";
+            dot2.textContent = TX_DEPOSIT_STATE.selectedAccount ? "✓" : "2";
         }
         if (body2) body2.classList.add("hidden");
         if (title2) title2.className = TX_DEPOSIT_STATE.selectedCoin ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
@@ -9407,7 +9703,10 @@ function txSetDepositStep(step) {
             dot3.textContent = "3";
         }
         if (body3) body3.classList.add("hidden");
-        if (title3) title3.className = "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+        if (title3) {
+            title3.textContent = "Deposit details";
+            title3.className = "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+        }
     } else if (step === 2) {
         if (dot1) {
             dot1.className = "tx-nexus-step-dot completed";
@@ -9428,7 +9727,10 @@ function txSetDepositStep(step) {
             dot3.textContent = "3";
         }
         if (body3) body3.classList.add("hidden");
-        if (title3) title3.className = TX_DEPOSIT_STATE.selectedAccount ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+        if (title3) {
+            title3.textContent = "Deposit details";
+            title3.className = TX_DEPOSIT_STATE.selectedAccount ? "text-sm font-bold text-slate-400 flex items-center gap-1.5 cursor-pointer" : "text-sm font-bold text-slate-500 flex items-center gap-1.5 cursor-not-allowed opacity-60";
+        }
     } else if (step >= 3) {
         if (dot1) {
             dot1.className = "tx-nexus-step-dot completed";
@@ -9704,10 +10006,9 @@ function txInitDepositView() {
     txFetchSubAccountsForDeposit();
     txFetchCryptoAddresses();
     txFetchInrDetails();
-    txCheckUserKycForDeposit();
-    txSelectDepositCoin(TX_DEPOSIT_STATE.selectedCoin, false);
+    txSelectDepositCoin(null, false);
     txSetDepositStep(1);
-    txSetMoneyDepositStep(2); // Step 1 checkmarked, Step 2 active
+    txSetMoneyDepositStep(1);
 }
 
 function txSwitchDepositMode(mode = "crypto") {
@@ -9822,7 +10123,16 @@ function txSelectDepositCoin(symbol, advanceStep = true) {
     if (currencyLabel) currencyLabel.textContent = coin.symbol;
 
     const minLimitEl = document.getElementById("txDepositMinLimit");
-    if (minLimitEl) minLimitEl.textContent = coin.min || "5 " + coin.symbol;
+    const amountInput = document.getElementById("txDepositAmountInput");
+    const minVal = (coin.symbol === "USDT" || coin.symbol === "USDC")
+        ? (TX_DEPOSIT_STATE.minAmount || 10)
+        : (coin.min ? parseFloat(coin.min) : 5);
+
+    if (minLimitEl) minLimitEl.textContent = `${minVal} ${coin.symbol}`;
+    if (amountInput) {
+        amountInput.min = String(minVal);
+        amountInput.placeholder = `Min ${minVal}`;
+    }
 
     txCheckUserKycForDeposit();
     txRenderNetworkPills(coin.networks);
@@ -9831,7 +10141,11 @@ function txSelectDepositCoin(symbol, advanceStep = true) {
     txRenderDepositCurrencyList();
 
     if (advanceStep) {
-        txSetDepositStep(2);
+        if (TX_DEPOSIT_STATE.selectedAccount) {
+            txSetDepositStep(3);
+        } else {
+            txSetDepositStep(2);
+        }
     }
 }
 
@@ -9875,31 +10189,20 @@ function txRenderDepositAccountOptions() {
     const selectedAccNameEl = document.getElementById("txDepositSelectedAccountName");
 
     const currentCoin = TX_DEPOSIT_STATE.selectedCoin || "USDT";
-    const parseBal = (val) => {
-        if (val === undefined || val === null || val === "") return 0;
-        const cleaned = String(val).replace(/[^0-9.-]/g, "");
-        const num = parseFloat(cleaned);
-        return isNaN(num) ? 0 : num;
-    };
+    const wallet = WALLET_STATE?.wallet || {};
 
-    let formattedBal = "0 " + currentCoin;
-
-    if (WALLET_STATE && WALLET_STATE.wallet) {
-        if (currentCoin === "USDT") {
-            const usdtVal = parseBal(WALLET_STATE.wallet.main_wallet_usdt || WALLET_STATE.wallet.available_balance);
-            formattedBal = `${usdtVal.toFixed(2)} USDT`;
-        } else {
-            const cryptoRow = WALLET_STATE.crypto_balances?.find(c => c.currency === currentCoin || c.symbol === currentCoin);
-            if (cryptoRow) {
-                const cVal = parseBal(cryptoRow.balance);
-                formattedBal = `${cVal.toFixed(4)} ${currentCoin}`;
-            } else {
-                formattedBal = `0 ${currentCoin}`;
-            }
-        }
+    let mainCoinBal = 0;
+    if (currentCoin === "USDT") {
+        const rawUsdt = wallet.main_wallet_usdt?.available_balance ?? wallet.main_wallet?.available_balance ?? wallet.main_wallet_usdt ?? wallet.available_balance ?? wallet.total_balance ?? 0;
+        mainCoinBal = typeof rawUsdt === "number" ? rawUsdt : (parseFloat(String(rawUsdt).replace(/[^0-9.-]/g, "")) || 0);
     } else {
-        formattedBal = `0.00 ${currentCoin}`;
+        const coinKey = "main_wallet_" + currentCoin.toLowerCase();
+        const rawCoin = wallet[coinKey]?.available_balance ?? wallet[coinKey] ?? (WALLET_STATE?.crypto_balances?.find(c => c.currency === currentCoin || c.symbol === currentCoin)?.balance) ?? 0;
+        mainCoinBal = typeof rawCoin === "number" ? rawCoin : (parseFloat(String(rawCoin).replace(/[^0-9.-]/g, "")) || 0);
     }
+
+    const decimals = (currentCoin === "USDT" || currentCoin === "USDC") ? 2 : 4;
+    const formattedBal = `${mainCoinBal.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })} ${currentCoin}`;
 
     let activeAccountName = "Select destination account";
     let isSelected = false;
@@ -9964,16 +10267,18 @@ function txRenderDepositAccountOptions() {
     `;
 
     if (filteredSubs.length > 0) {
-        filteredSubs.forEach((sub, idx) => {
+        filteredSubs.forEach((sub) => {
             const subId = sub.id || sub.user_id || sub._id;
             const subName = sub.name || sub.account_name || `Trading Account (${sub.client_id || subId})`;
             const isSel = TX_DEPOSIT_STATE.selectedAccount === subId;
+            const rawSubBal = sub.wallet?.trading_wallet_usdt?.available_balance ?? sub.wallet?.available_balance ?? sub.balance ?? sub.balance_usd ?? 0;
+            const subBal = typeof rawSubBal === "number" ? rawSubBal : (parseFloat(String(rawSubBal).replace(/[^0-9.-]/g, "")) || 0);
 
             html += `
                 <button type="button" onclick="txSelectDepositDestination('${subId}', '${subName}')" class="tx-nexus-coin-row ${isSel ? 'selected' : ''}">
                     <div class="space-y-0.5 text-left">
                         <span class="text-xs font-bold text-white block">${subName}</span>
-                        <span class="text-[11px] text-slate-400 block">Futures margin account</span>
+                        <span class="text-[11px] text-slate-400 block">Futures margin account (${subBal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT)</span>
                     </div>
                     <div class="shrink-0">
                         ${isSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
@@ -10009,6 +10314,11 @@ function txRenderMoneyAccountOptions() {
     const listContainer = document.getElementById("txMoneyAccountOptionsList");
     const destBalEl = document.getElementById("txMoneyDestBalance");
     const selectedAccNameEl = document.getElementById("txMoneySelectedAccountName");
+
+    const wallet = WALLET_STATE?.wallet || {};
+    const rawMainInr = wallet.main_wallet_inr?.available_balance ?? wallet.main_wallet_inr ?? 0;
+    const mainInrBal = typeof rawMainInr === "number" ? rawMainInr : (parseFloat(String(rawMainInr).replace(/[^0-9.-]/g, "")) || 0);
+    const formattedInrBal = `₹${mainInrBal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR`;
 
     const subList = TX_DEPOSIT_STATE.subAccounts || WALLET_STATE?.sub_accounts || [];
     const authUser = typeof getAuthUser === "function" ? getAuthUser() : null;
@@ -10054,7 +10364,7 @@ function txRenderMoneyAccountOptions() {
         <button type="button" onclick="txSelectMoneyAccount('main', 'Wallet')" class="tx-nexus-coin-row ${isMainSel ? 'selected' : ''}">
             <div class="space-y-0.5 text-left">
                 <span class="text-xs font-bold text-white block">Wallet</span>
-                <span class="text-[11px] text-slate-400 block">Main funding wallet</span>
+                <span class="text-[11px] text-slate-400 block">Main funding wallet (${formattedInrBal})</span>
             </div>
             <div class="shrink-0">
                 ${isMainSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
@@ -10066,12 +10376,14 @@ function txRenderMoneyAccountOptions() {
         const subId = sub.id || sub.user_id || sub._id;
         const subName = sub.name || sub.account_name || "Trading Account";
         const isSel = TX_DEPOSIT_STATE.moneyAccount === subId;
+        const rawSubInr = sub.wallet?.trading_wallet_inr?.available_balance ?? 0;
+        const subInr = typeof rawSubInr === "number" ? rawSubInr : (parseFloat(String(rawSubInr).replace(/[^0-9.-]/g, "")) || 0);
 
         html += `
             <button type="button" onclick="txSelectMoneyAccount('${subId}', '${subName}')" class="tx-nexus-coin-row ${isSel ? 'selected' : ''}">
                 <div class="space-y-0.5 text-left">
                     <span class="text-xs font-bold text-white block">${subName}</span>
-                    <span class="text-[11px] text-slate-400 block">Futures margin account</span>
+                    <span class="text-[11px] text-slate-400 block">Futures margin account (₹${subInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span>
                 </div>
                 <div class="shrink-0">
                     ${isSel ? '<span class="w-4 h-4 rounded-full border-2 border-cyan-400 flex items-center justify-center"><span class="w-2 h-2 rounded-full bg-cyan-400"></span></span>' : '<span class="w-4 h-4 rounded-full border border-slate-600 block"></span>'}
@@ -10198,7 +10510,39 @@ async function txFetchCryptoAddresses() {
         if (typeof apiRequest === "function") {
             const resp = await apiRequest("/deposit/crypto-addresses");
             if (resp && resp.data) {
-                TX_DEPOSIT_STATE.cryptoAddresses = resp.data.addresses || resp.data;
+                const addrs = {};
+                if (Array.isArray(resp.data.networks)) {
+                    resp.data.networks.forEach(n => {
+                        if (n.network && n.address) {
+                            addrs[n.network] = n.address;
+                            addrs[`${n.asset}_${n.network}`] = n.address;
+                            addrs[`USDT_${n.network}`] = n.address;
+                        }
+                    });
+                }
+                if (resp.data.addresses) {
+                    Object.assign(addrs, resp.data.addresses);
+                }
+                TX_DEPOSIT_STATE.cryptoAddresses = addrs;
+                if (resp.data.min_amount !== undefined) {
+                    TX_DEPOSIT_STATE.minAmount = Number(resp.data.min_amount);
+                }
+                if (resp.data.max_amount !== undefined) {
+                    TX_DEPOSIT_STATE.maxAmount = Number(resp.data.max_amount);
+                }
+
+                const currentCoin = TX_DEPOSIT_STATE.selectedCoin || "USDT";
+                const minLimitEl = document.getElementById("txDepositMinLimit");
+                const amountInput = document.getElementById("txDepositAmountInput");
+                const minVal = (currentCoin === "USDT" || currentCoin === "USDC") ? (TX_DEPOSIT_STATE.minAmount || 10) : 5;
+                if (minLimitEl) {
+                    minLimitEl.textContent = `${minVal} ${currentCoin}`;
+                }
+                if (amountInput) {
+                    amountInput.min = String(minVal);
+                    amountInput.placeholder = `Min ${minVal}`;
+                }
+
                 txUpdateDepositAddressDisplay();
             }
         }
@@ -10222,6 +10566,12 @@ async function txFetchInrDetails() {
                     const qrImg = document.getElementById("txMoneyUpiQrImg");
                     if (qrImg) qrImg.src = d.upi_qr_url;
                 }
+                const minInr = Number(d.min_deposit_inr || 100);
+                const moneyAmountInput = document.getElementById("txMoneyDepositAmountInput");
+                if (moneyAmountInput) {
+                    moneyAmountInput.min = String(minInr);
+                    moneyAmountInput.placeholder = `Min ₹${minInr}`;
+                }
             }
         }
     } catch (e) {
@@ -10230,26 +10580,14 @@ async function txFetchInrDetails() {
 }
 
 function txUpdateDepositAddressDisplay() {
-    const coin = TX_DEPOSIT_STATE.selectedCoin;
-    const net = TX_DEPOSIT_STATE.selectedNetwork;
+    const coin = TX_DEPOSIT_STATE.selectedCoin || "USDT";
+    const net = TX_DEPOSIT_STATE.selectedNetwork || "TRC20";
 
     const addresses = TX_DEPOSIT_STATE.cryptoAddresses || {};
-    let resolvedAddress = "";
+    let resolvedAddress = addresses[`${coin}_${net}`] || addresses[net] || addresses[`USDT_${net}`] || addresses[coin] || "";
 
-    if (net === "TRC20") {
-        resolvedAddress = addresses.USDT_TRC20 || addresses.TRC20 || "TLPj64XF8fA99dK8tQpC2wX7hWz9Fm1q4";
-    } else if (net === "ERC20") {
-        resolvedAddress = addresses.USDT_ERC20 || addresses.ETH_ERC20 || addresses.ERC20 || "0x71C8364437bE573f324c46fEb04Eb287c8AbB987";
-    } else if (net === "BEP20") {
-        resolvedAddress = addresses.USDT_BEP20 || addresses.BNB_BEP20 || addresses.BEP20 || "0x71C8364437bE573f324c46fEb04Eb287c8AbB987";
-    } else if (net === "BITCOIN") {
-        resolvedAddress = addresses.BTC || addresses.BITCOIN || "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
-    } else if (net === "SOLANA") {
-        resolvedAddress = addresses.SOL || addresses.SOLANA || "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
-    } else if (net === "RIPPLE") {
-        resolvedAddress = addresses.XRP || addresses.RIPPLE || "rEb8TK3gBgk5auZyyb66a2kaLZ2y7Lsypq";
-    } else {
-        resolvedAddress = addresses[coin] || addresses[net] || "0x71C8364437bE573f324c46fEb04Eb287c8AbB987";
+    if (!resolvedAddress && addresses) {
+        resolvedAddress = addresses[net] || addresses.BEP20 || addresses.TRC20 || "";
     }
 
     const addressTextEl = document.getElementById("txDepositAddressText");
@@ -10261,11 +10599,345 @@ function txUpdateDepositAddressDisplay() {
     if (qrImgEl && resolvedAddress) {
         qrImgEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(resolvedAddress)}`;
     }
+
+    // Dedicated TronLink 1-Click Pay toggle (Active ONLY for USDT & TRC20)
+    const tronLinkSection = document.getElementById("txTronLinkDepositSection");
+    if (tronLinkSection) {
+        if (coin === "USDT" && net === "TRC20") {
+            tronLinkSection.classList.remove("hidden");
+            txCheckTronLinkStatus();
+        } else {
+            tronLinkSection.classList.add("hidden");
+        }
+    }
 }
 
 function txRefreshDepositUI() {
     txSelectDepositCoin(TX_DEPOSIT_STATE.selectedCoin);
 }
+
+/* =========================================================
+   TRONLINK WALLET INTEGRATION (USDT TRC-20)
+   ========================================================= */
+
+function txGetTronWebInstance() {
+    if (window.tronLink && window.tronLink.tronWeb) {
+        return window.tronLink.tronWeb;
+    }
+    if (window.tronWeb) {
+        return window.tronWeb;
+    }
+    return null;
+}
+
+function txGetTronUsdtContract(tronWeb) {
+    const tw = tronWeb || txGetTronWebInstance();
+    const host = tw?.fullNode?.host || "";
+    // If connected to Nile testnet, use official Nile USDT contract (TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf)
+    if (host.includes("nile")) {
+        return "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+    }
+    // Mainnet USDT TRC-20 contract
+    return "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+}
+
+async function txCheckTronLinkStatus() {
+    const statusText = document.getElementById("txTronLinkStatusText");
+    const statusDot = document.getElementById("txTronLinkStatusDot");
+    const payBtnText = document.getElementById("txTronLinkPayBtnText");
+    if (!statusText || !statusDot) return false;
+
+    const tronWeb = txGetTronWebInstance();
+
+    if (!tronWeb && !window.tronLink) {
+        statusDot.className = "w-2 h-2 rounded-full bg-slate-500";
+        statusText.textContent = "Extension Not Found";
+        if (payBtnText) payBtnText.textContent = "Install / Enable TronLink";
+        return false;
+    }
+
+    const currentAddress = tronWeb?.defaultAddress?.base58;
+    if (currentAddress) {
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        statusText.textContent = `${currentAddress.slice(0, 6)}...${currentAddress.slice(-4)}`;
+        if (payBtnText) payBtnText.textContent = "Pay with TronLink";
+        return true;
+    } else {
+        statusDot.className = "w-2 h-2 rounded-full bg-amber-400";
+        statusText.textContent = "Unlock / Connect";
+        if (payBtnText) payBtnText.textContent = "Connect TronLink";
+        return false;
+    }
+}
+
+// Global window event listener for TronLink status changes
+if (typeof window !== "undefined") {
+    window.addEventListener("message", function (e) {
+        if (e.data && e.data.message && e.data.message.action) {
+            const act = e.data.message.action;
+            if (act === "setAccount" || act === "setNode" || act === "accountsChanged" || act === "connect") {
+                txCheckTronLinkStatus();
+            }
+        }
+    });
+
+    // Auto-check on interval for initial injection
+    let txTronCheckCount = 0;
+    const txTronTimer = setInterval(() => {
+        txTronCheckCount++;
+        const connected = txCheckTronLinkStatus();
+        if (connected || txTronCheckCount > 10) {
+            clearInterval(txTronTimer);
+        }
+    }, 600);
+}
+
+window.txHandleTronLinkConnectOnly = async function() {
+    let tronWeb = txGetTronWebInstance();
+    const payBtn = document.getElementById("txTronLinkPayBtn");
+    const payBtnText = document.getElementById("txTronLinkPayBtnText");
+    const alertEl = document.getElementById("txTronLinkAlert");
+
+    if (!window.tronLink && !tronWeb) {
+        if (alertEl) {
+            alertEl.classList.remove("hidden");
+            alertEl.className = "text-xs font-bold rounded-xl p-3 bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            alertEl.textContent = "TronLink extension is not detected. Make sure it is enabled in chrome://extensions and reload.";
+        }
+        return;
+    }
+
+    try {
+        if (window.tronLink?.request) {
+            await window.tronLink.request({ method: "tron_requestAccounts" });
+        }
+        txCheckTronLinkStatus();
+    } catch (e) {
+        console.warn("Connect wallet request:", e);
+    }
+};
+
+window.txHandleTronLinkPay = async function() {
+    const alertEl = document.getElementById("txTronLinkAlert");
+    const amountInput = document.getElementById("txTronLinkAmountInput");
+    const payBtn = document.getElementById("txTronLinkPayBtn");
+    const payBtnText = document.getElementById("txTronLinkPayBtnText");
+
+    const showAlert = (msg, type = "error") => {
+        if (!alertEl) return;
+        alertEl.classList.remove("hidden");
+        if (type === "error") {
+            alertEl.className = "text-xs font-bold rounded-xl p-3 bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        } else if (type === "info") {
+            alertEl.className = "text-xs font-bold rounded-xl p-3 bg-cyan-500/15 text-cyan-300 border border-cyan-500/30";
+        } else {
+            alertEl.className = "text-xs font-bold rounded-xl p-3 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+        }
+        alertEl.innerHTML = msg;
+    };
+
+    const hideAlert = () => {
+        if (alertEl) alertEl.classList.add("hidden");
+    };
+
+    hideAlert();
+
+    // 1. Check TronLink presence
+    let tronWeb = txGetTronWebInstance();
+    if (!window.tronLink && !tronWeb) {
+        showAlert('TronLink extension is not detected. Please ensure the extension is turned ON in Chrome and refresh the page.', "error");
+        return;
+    }
+
+    // 2. Connect / Request Account if not ready
+    let userAddress = tronWeb?.defaultAddress?.base58;
+    if (!userAddress && window.tronLink?.request) {
+        try {
+            if (payBtn) payBtn.disabled = true;
+            if (payBtnText) payBtnText.innerHTML = `<span class="animate-spin inline-block mr-1">◌</span> Connecting...`;
+            const res = await window.tronLink.request({ method: "tron_requestAccounts" });
+            if (res && (res.code === 200 || res.code === 0)) {
+                tronWeb = txGetTronWebInstance();
+                userAddress = tronWeb?.defaultAddress?.base58;
+            }
+        } catch (connErr) {
+            showAlert("Could not connect to TronLink: " + (connErr?.message || connErr), "error");
+            if (payBtn) payBtn.disabled = false;
+            txCheckTronLinkStatus();
+            return;
+        }
+    }
+
+    if (!userAddress) {
+        showAlert("Please unlock your TronLink wallet and approve the connection request.", "error");
+        if (payBtn) payBtn.disabled = false;
+        txCheckTronLinkStatus();
+        return;
+    }
+
+    txCheckTronLinkStatus();
+
+    // 3. Amount Validation
+    const amountVal = parseFloat(amountInput?.value);
+    if (isNaN(amountVal) || amountVal <= 0) {
+        showAlert("Please enter a valid USDT amount (e.g. 10, 50, 100 USDT).", "error");
+        if (amountInput) amountInput.focus();
+        if (payBtn) payBtn.disabled = false;
+        return;
+    }
+
+    // 4. Resolve Platform Destination Deposit Address
+    const addresses = TX_DEPOSIT_STATE.cryptoAddresses || {};
+    const destAddress = addresses.USDT_TRC20 || addresses.TRC20 || document.getElementById("txDepositAddressText")?.textContent?.trim() || "TPDQ3DTMQWSg4iJ7dhKXsSAKT83jfD49GP";
+
+    if (!destAddress || !destAddress.startsWith("T") || destAddress.length < 30) {
+        showAlert("Platform TRC20 deposit address not found. Please contact support.", "error");
+        if (payBtn) payBtn.disabled = false;
+        return;
+    }
+
+    // 5. Execute Smart Contract Transfer
+    const activeTronWeb = txGetTronWebInstance() || window.tronWeb;
+    const contractAddress = txGetTronUsdtContract(activeTronWeb);
+    const amountInSun = activeTronWeb.toBigNumber(amountVal).times(1e6).toFixed(0);
+
+    try {
+        if (payBtn) payBtn.disabled = true;
+        if (payBtnText) payBtnText.innerHTML = `<span class="animate-spin inline-block mr-1">◌</span> Confirm in TronLink...`;
+        showAlert("Please confirm the USDT transaction in your TronLink pop-up window...", "info");
+
+        const TRC20_ABI = [
+            {
+                "inputs": [
+                    { "name": "_to", "type": "address" },
+                    { "name": "_value", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        let txid = null;
+        try {
+            const contract = await activeTronWeb.contract(TRC20_ABI, contractAddress);
+            const result = await contract.transfer(destAddress, amountInSun).send({
+                feeLimit: 100_000_000
+            });
+            txid = typeof result === "string" ? result : (result?.txid || result?.transaction?.txID || result);
+        } catch (contractErr) {
+            // Alternative triggerSmartContract method
+            const trigger = await activeTronWeb.transactionBuilder.triggerSmartContract(
+                contractAddress,
+                "transfer(address,uint256)",
+                { feeLimit: 100_000_000 },
+                [
+                    { type: "address", value: destAddress },
+                    { type: "uint256", value: amountInSun }
+                ],
+                userAddress
+            );
+            const signed = await activeTronWeb.trx.sign(trigger.transaction);
+            const broadcast = await activeTronWeb.trx.sendRawTransaction(signed);
+            txid = broadcast?.txid || broadcast?.transaction?.txID || (typeof broadcast === "string" ? broadcast : trigger.transaction?.txID);
+        }
+
+        if (!txid || typeof txid !== "string") {
+            throw new Error("Transaction was not confirmed or was rejected.");
+        }
+
+        // Auto-fill manual form inputs
+        const manualAmountInput = document.getElementById("txDepositAmountInput");
+        const manualTxInput = document.getElementById("txDepositTxHashInput");
+        if (manualAmountInput) manualAmountInput.value = amountVal;
+        if (manualTxInput) manualTxInput.value = txid;
+
+        showAlert(`✓ Transaction Broadcasted! TXID: <span class="font-mono">${txid.slice(0, 10)}...${txid.slice(-8)}</span>. Verifying with server...`, "info");
+
+        // Submit to Backend API
+        const payload = {
+            currency: "USDT",
+            crypto_asset: "USDT",
+            amount: amountVal,
+            tx_hash: txid,
+            network: "TRC20",
+            crypto_network: "TRC20",
+            payment_method: "crypto_deposit",
+            sub_account_id: TX_DEPOSIT_STATE.selectedAccount !== "main" ? TX_DEPOSIT_STATE.selectedAccount : null
+        };
+
+        if (typeof apiRequest === "function") {
+            const resp = await apiRequest("/deposit/create", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+
+            const isNile = (activeTronWeb?.fullNode?.host || "").includes("nile");
+            const explorerUrl = isNile ? `https://nile.tronscan.org/#/transaction/${txid}` : `https://tronscan.org/#/transaction/${txid}`;
+
+            if (resp && (resp.success || resp.status === "success" || resp.data)) {
+                const dep = resp.data?.deposit || resp.data;
+                if (amountInput) amountInput.value = "";
+
+                if (dep && dep.status === "completed") {
+                    showAlert(`✓ <b>Deposit Verified & Credited Instantly!</b> ${amountVal} USDT added to your balance. <a href="${explorerUrl}" target="_blank" class="underline text-cyan-300 font-bold ml-1">View on TronScan ↗</a>`, "success");
+                    if (typeof loadWalletData === "function") loadWalletData();
+                    if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                    if (typeof txInitNexusHistoryView === "function") txInitNexusHistoryView();
+                } else {
+                    showAlert(`⚡ Transaction broadcasted! Verifying on TRON blockchain... <a href="${explorerUrl}" target="_blank" class="underline text-cyan-300 font-bold ml-1">View on TronScan ↗</a>`, "info");
+                    
+                    // Fast automatic background verification poller (every 2s, up to 12 times)
+                    const depId = dep?.id || dep?._id || "";
+                    let pollAttempts = 0;
+                    const pollInterval = setInterval(async () => {
+                        pollAttempts++;
+                        try {
+                            let checkResp = null;
+                            if (depId) {
+                                checkResp = await apiRequest(`/deposit/verify/${depId}`, { method: "POST" });
+                            } else {
+                                checkResp = await apiRequest("/deposit/history");
+                            }
+
+                            const checkDep = checkResp?.data?.deposit;
+                            const isCompleted = checkDep ? checkDep.status === "completed" : (Array.isArray(checkResp?.data?.deposits) && checkResp.data.deposits.some(d => (d.tx_hash === txid || d.gateway_payment_id === txid) && d.status === "completed"));
+
+                            if (isCompleted) {
+                                clearInterval(pollInterval);
+                                showAlert(`✓ <b>Deposit Verified & Credited Instantly!</b> ${amountVal} USDT added to your balance. <a href="${explorerUrl}" target="_blank" class="underline text-cyan-300 font-bold ml-1">View on TronScan ↗</a>`, "success");
+                                if (typeof loadWalletData === "function") loadWalletData();
+                                if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                                if (typeof txInitNexusHistoryView === "function") txInitNexusHistoryView();
+                            } else if (pollAttempts >= 12) {
+                                clearInterval(pollInterval);
+                                showAlert(`✓ Deposit request registered (${txid.slice(0, 8)}...). Blockchain confirmation will update your balance automatically. <a href="${explorerUrl}" target="_blank" class="underline text-cyan-300 font-bold ml-1">View on TronScan ↗</a>`, "info");
+                                if (typeof loadWalletData === "function") loadWalletData();
+                                if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                            }
+                        } catch (pErr) {
+                            if (pollAttempts >= 12) clearInterval(pollInterval);
+                        }
+                    }, 2000);
+                }
+            } else {
+                showAlert(`✓ Transaction sent (${txid.slice(0, 10)}...). Verification pending blockchain confirmation. <a href="${explorerUrl}" target="_blank" class="underline text-cyan-300 font-bold ml-1">View on TronScan ↗</a>`, "info");
+            }
+        }
+    } catch (err) {
+        console.error("TronLink deposit error:", err);
+        const errStr = err?.message || String(err);
+        if (errStr.includes("declined") || errStr.includes("reject") || errStr.includes("cancelled") || errStr.includes("denied")) {
+            showAlert("Transaction was cancelled in TronLink wallet.", "error");
+        } else {
+            showAlert(`Payment error: ${errStr}`, "error");
+        }
+    } finally {
+        if (payBtn) payBtn.disabled = false;
+        txCheckTronLinkStatus();
+    }
+};
 
 async function txHandleDepositFormSubmit(e) {
     e.preventDefault();
@@ -10278,10 +10950,29 @@ async function txHandleDepositFormSubmit(e) {
     if (!amountInput || !txHashInput || !alertBox || !submitBtn) return;
 
     const amount = parseFloat(amountInput.value);
-    const txHash = txHashInput.value.trim();
+    const txHash = (txHashInput.value || "").trim();
+    const coinSymbol = TX_DEPOSIT_STATE.selectedCoin || "USDT";
+    const minLimit = (coinSymbol === "USDT" || coinSymbol === "USDC")
+        ? (TX_DEPOSIT_STATE.minAmount || 1)
+        : 0.0001;
+    const maxLimit = TX_DEPOSIT_STATE.maxAmount || 1000000;
 
     if (isNaN(amount) || amount <= 0) {
         alertBox.textContent = "Please enter a valid deposit amount greater than 0.";
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    if (amount < minLimit) {
+        alertBox.textContent = `Minimum deposit amount is ${minLimit} ${coinSymbol}.`;
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    if (amount > maxLimit) {
+        alertBox.textContent = `Maximum deposit amount is ${maxLimit} ${coinSymbol}.`;
         alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
         alertBox.classList.remove("hidden");
         return;
@@ -10313,12 +11004,61 @@ async function txHandleDepositFormSubmit(e) {
         });
 
         if (resp && (resp.success || resp.status === "success" || resp.data)) {
-            alertBox.textContent = "✓ Deposit request submitted successfully! Your balance will be credited once confirmed on the blockchain.";
-            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
-            alertBox.classList.remove("hidden");
+            const dep = resp.data?.deposit || resp.data;
+            if (dep && dep.status === "completed") {
+                alertBox.textContent = `✓ Deposit of ${dep.amount} ${coinSymbol} verified on blockchain and credited to your wallet instantly!`;
+                alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+                amountInput.value = "";
+                txHashInput.value = "";
+                if (typeof loadWalletData === "function") loadWalletData();
+                if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                if (typeof txInitNexusHistoryView === "function") txInitNexusHistoryView();
+            } else if (dep && dep.status === "rejected") {
+                alertBox.textContent = `❌ Verification Failed: ${dep.verification_message || "Transaction could not be verified."}`;
+                alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+            } else {
+                const isPending = dep?.status === "pending_blockchain_verification" || dep?.verification_status?.includes("mismatch") || dep?.status === "pending_verification";
+                alertBox.textContent = isPending
+                    ? `⚡ ${dep?.verification_message || resp.message || "Deposit submitted. Verifying on blockchain..."}`
+                    : `✓ ${resp.message || "Deposit request submitted."}`;
+                alertBox.className = isPending
+                    ? "rounded-xl p-3 text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                    : "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
 
-            amountInput.value = "";
-            txHashInput.value = "";
+                // Fast background verification poller
+                const depId = dep?.id || dep?._id || "";
+                let pollAttempts = 0;
+                const pollInterval = setInterval(async () => {
+                    pollAttempts++;
+                    try {
+                        let checkResp = null;
+                        if (depId) {
+                            checkResp = await apiRequest(`/deposit/verify/${depId}`, { method: "POST" });
+                        } else {
+                            checkResp = await apiRequest("/deposit/history");
+                        }
+
+                        const checkDep = checkResp?.data?.deposit;
+                        const isCompleted = checkDep ? checkDep.status === "completed" : (Array.isArray(checkResp?.data?.deposits) && checkResp.data.deposits.some(d => (d.tx_hash === txHash || d.gateway_payment_id === txHash) && d.status === "completed"));
+
+                        if (isCompleted) {
+                            clearInterval(pollInterval);
+                            alertBox.textContent = `✓ Deposit of ${amount} ${coinSymbol} verified on blockchain and credited to your wallet instantly!`;
+                            alertBox.className = "rounded-xl p-3 text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+                            amountInput.value = "";
+                            txHashInput.value = "";
+                            if (typeof loadWalletData === "function") loadWalletData();
+                            if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
+                            if (typeof txInitNexusHistoryView === "function") txInitNexusHistoryView();
+                        } else if (pollAttempts >= 12) {
+                            clearInterval(pollInterval);
+                        }
+                    } catch (pErr) {
+                        if (pollAttempts >= 12) clearInterval(pollInterval);
+                    }
+                }, 2000);
+            }
+            alertBox.classList.remove("hidden");
 
             if (typeof loadWalletData === "function") loadWalletData();
             if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
@@ -10349,8 +11089,18 @@ async function txHandleMoneyDepositFormSubmit(e) {
     if (!amountInput || !alertBox || !submitBtn) return;
 
     const amount = parseFloat(amountInput.value);
-    if (isNaN(amount) || amount < 100) {
-        alertBox.textContent = "Minimum deposit amount is ₹100 INR.";
+    const minInr = Number(TX_DEPOSIT_STATE.inrDetails?.min_deposit_inr || 100);
+    const maxInr = Number(TX_DEPOSIT_STATE.inrDetails?.max_deposit_inr || 500000);
+
+    if (isNaN(amount) || amount < minInr) {
+        alertBox.textContent = `Minimum deposit amount is ₹${minInr} INR.`;
+        alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
+        alertBox.classList.remove("hidden");
+        return;
+    }
+
+    if (amount > maxInr) {
+        alertBox.textContent = `Maximum deposit amount is ₹${maxInr} INR.`;
         alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
         alertBox.classList.remove("hidden");
         return;
@@ -10551,77 +11301,7 @@ function txInitDepositFaqAccordion() {
     });
 }
 
-window.txActivateDepositTab = function(mode = "crypto") {
-    const contentDeposit = document.getElementById("contentDeposit");
-    const contentOverview = document.getElementById("contentOverview");
-    const contentTrading = document.getElementById("contentTradingAccounts");
-    const contentWallet = document.getElementById("contentWallet");
-    const topTabsBar = document.getElementById("txWalletTopTabsBar");
 
-    if (contentDeposit) {
-        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
-        contentDeposit.classList.remove("hidden");
-    }
-    if (topTabsBar) topTabsBar.classList.add("hidden");
-    if (typeof txSwitchNexusSubTab === "function") {
-        txSwitchNexusSubTab("deposit");
-    }
-    if (typeof txSwitchDepositMode === "function") {
-        txSwitchDepositMode(mode);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-window.txActivateWithdrawTab = function(mode = "crypto") {
-    const contentDeposit = document.getElementById("contentDeposit");
-    const contentOverview = document.getElementById("contentOverview");
-    const contentTrading = document.getElementById("contentTradingAccounts");
-    const contentWallet = document.getElementById("contentWallet");
-    const topTabsBar = document.getElementById("txWalletTopTabsBar");
-
-    if (contentDeposit) {
-        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
-        contentDeposit.classList.remove("hidden");
-    }
-    if (topTabsBar) topTabsBar.classList.add("hidden");
-    if (typeof txSwitchNexusSubTab === "function") {
-        txSwitchNexusSubTab("withdraw");
-    }
-    if (typeof txSwitchWithdrawMode === "function") {
-        txSwitchWithdrawMode(mode);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-window.txActivateHistoryTab = function() {
-    const contentDeposit = document.getElementById("contentDeposit");
-    const contentOverview = document.getElementById("contentOverview");
-    const contentTrading = document.getElementById("contentTradingAccounts");
-    const contentWallet = document.getElementById("contentWallet");
-    const topTabsBar = document.getElementById("txWalletTopTabsBar");
-
-    if (contentDeposit) {
-        [contentOverview, contentTrading, contentWallet].forEach(c => c && c.classList.add("hidden"));
-        contentDeposit.classList.remove("hidden");
-    }
-    if (topTabsBar) topTabsBar.classList.add("hidden");
-    if (typeof txSwitchNexusSubTab === "function") {
-        txSwitchNexusSubTab("history");
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-window.txBackToWalletOverview = function() {
-    sessionStorage.removeItem("tx_wallet_sub_tab");
-    if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
-    const tabOverview = document.getElementById("mainTabOverview");
-    if (tabOverview) {
-        tabOverview.click();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-};
 
 /* ==========================================================================
    PRIMEXBT / NEXUS SUB-TAB SWITCHER (Deposit / Withdraw / Transfer History)
@@ -10734,7 +11414,14 @@ function txNexusFormatMoney(value, currency = "USDT") {
 
 function txNexusFormatDate(value) {
     if (!value) return { date: "--", time: "--" };
-    const d = new Date(value);
+    let parseable = value;
+    if (typeof value === "string") {
+        const valTrim = value.trim();
+        if (valTrim && !valTrim.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(valTrim)) {
+            parseable = valTrim.replace(" ", "T") + "Z";
+        }
+    }
+    const d = new Date(parseable);
     if (Number.isNaN(d.getTime())) return { date: "--", time: "--" };
     const dateStr = d.toLocaleDateString("en-US", {
         day: "2-digit",
@@ -11731,11 +12418,21 @@ function txInitWithdrawView() {
         });
     }
 
-    // Amount input live fee calculate listener
+    // Amount input live fee calculate listeners
     const cryptoAmountInput = document.getElementById("txWithCryptoAmountInput");
     if (cryptoAmountInput) {
         cryptoAmountInput.oninput = txCalculateCryptoWithdrawalFee;
     }
+
+    const moneyAmountInput = document.getElementById("txWithMoneyAmountInput");
+    if (moneyAmountInput) {
+        moneyAmountInput.oninput = txCalculateMoneyWithdrawalFee;
+    }
+
+    txFetchFeeStructure(true).then(() => {
+        txCalculateMoneyWithdrawalFee();
+        txCalculateCryptoWithdrawalFee();
+    });
 
     txRefreshWithdrawUI();
 }
@@ -11769,6 +12466,7 @@ function txSwitchWithdrawMode(mode = "money") {
         if (cryptoStepper) cryptoStepper.classList.remove("hidden");
         if (moneyStepper) moneyStepper.classList.add("hidden");
         txSetWithdrawCryptoStep(TX_WITHDRAW_STATE.selectedCoin ? (TX_WITHDRAW_STATE.selectedNetwork ? 4 : 3) : 2);
+        txCalculateCryptoWithdrawalFee();
     } else {
         if (titleEl) titleEl.textContent = "Withdraw money";
         if (toggleMoney) toggleMoney.className = "active";
@@ -11776,6 +12474,7 @@ function txSwitchWithdrawMode(mode = "money") {
         if (cryptoStepper) cryptoStepper.classList.add("hidden");
         if (moneyStepper) moneyStepper.classList.remove("hidden");
         txSetWithdrawMoneyStep(TX_WITHDRAW_STATE.selectedMoneyCurrency ? (TX_WITHDRAW_STATE.selectedMoneyMethod ? 4 : 3) : 2);
+        txCalculateMoneyWithdrawalFee();
     }
     txUpdateWithdrawAvailableBalances();
 }
@@ -11793,9 +12492,12 @@ function txCheckUserKycForWithdraw() {
 }
 
 function txUpdateWithdrawAvailableBalances() {
-    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const usdtWallet = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.main_wallet || {};
+    const rawBalUSDT = typeof usdtWallet === "number" ? usdtWallet : (usdtWallet.available_balance ?? WALLET_STATE?.wallet?.available_balance ?? 0);
     const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
-    const rawBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance ?? (mainBalUSDT * 90);
+
+    const inrWallet = WALLET_STATE?.wallet?.main_wallet_inr || {};
+    const rawBalINR = typeof inrWallet === "number" ? inrWallet : (inrWallet.available_balance ?? (mainBalUSDT * 90));
     const mainBalINR = typeof rawBalINR === "number" ? rawBalINR : (parseFloat(String(rawBalINR).replace(/[^0-9.-]/g, "")) || 0);
 
     const moneyBalEl = document.getElementById("txWithMoneyAvailableBal");
@@ -12006,25 +12708,59 @@ function txSelectWithdrawNetwork(network) {
 
 function txCalculateCryptoWithdrawalFee() {
     const coin = TX_WITHDRAW_STATE.coins.find(c => c.symbol === TX_WITHDRAW_STATE.selectedCoin) || TX_WITHDRAW_STATE.coins[0];
-    const net = TX_WITHDRAW_STATE.selectedNetwork || "TRC20";
-    const feeVal = coin.networkFees ? (coin.networkFees[net] || 1) : 1;
+    const net = (TX_WITHDRAW_STATE.selectedNetwork || "TRC20").toUpperCase();
+
+    const feeSettings = WALLET_STATE.feeStructure?.runtime_settings?.withdrawal_fee || {};
+    const enabled = feeSettings.enabled ?? false;
+    const feeType = feeSettings.type || "fixed";
+    const feeValue = Number(feeSettings.value || 0);
+    const minFee = Number(feeSettings.min_fee_usdt || 0);
+    const maxFee = Number(feeSettings.max_fee_usdt || 0);
+
+    const netFees = feeSettings.network_fees || {};
+    const configuredNetFee = netFees[net] !== undefined ? Number(netFees[net]) : null;
+    const netFeeVal = (configuredNetFee !== null && !isNaN(configuredNetFee))
+        ? configuredNetFee
+        : (coin.networkFees ? (coin.networkFees[net] || 1) : 1);
 
     const amountInput = document.getElementById("txWithCryptoAmountInput");
     const sumAmountEl = document.getElementById("txWithCryptoSumAmount");
     const sumFeeEl = document.getElementById("txWithCryptoSumFee");
+    const sumCompanyFeeEl = document.getElementById("txWithCryptoSumCompanyFee");
     const sumReceiveEl = document.getElementById("txWithCryptoSumReceive");
 
     const entered = parseFloat(amountInput?.value || 0);
-    const fee = parseFloat(feeVal);
-    const netReceive = Math.max(0, entered - fee);
+    const networkFee = parseFloat(netFeeVal);
+
+    let companyFee = 0;
+    let companyFeeText = "0% (Free)";
+
+    if (enabled && feeValue > 0) {
+        if (feeType === "percentage") {
+            companyFee = entered > 0 ? (entered * (feeValue / 100)) : 0;
+            if (minFee > 0 && companyFee < minFee && entered > 0) companyFee = minFee;
+            if (maxFee > 0 && companyFee > maxFee) companyFee = maxFee;
+            companyFeeText = `${feeValue}% (${companyFee.toFixed(2)} ${coin.symbol})`;
+        } else {
+            companyFee = feeValue;
+            if (minFee > 0 && companyFee < minFee && entered > 0) companyFee = minFee;
+            if (maxFee > 0 && companyFee > maxFee) companyFee = maxFee;
+            companyFeeText = `${companyFee.toFixed(2)} ${coin.symbol}`;
+        }
+    }
+
+    const totalFee = networkFee + companyFee;
+    const netReceive = Math.max(0, entered - totalFee);
 
     if (sumAmountEl) sumAmountEl.textContent = `${entered > 0 ? entered.toFixed(4) : "0.00"} ${coin.symbol}`;
-    if (sumFeeEl) sumFeeEl.textContent = `${fee} ${coin.symbol}`;
-    if (sumReceiveEl) sumReceiveEl.textContent = `${entered > fee ? netReceive.toFixed(4) : "0.00"} ${coin.symbol}`;
+    if (sumFeeEl) sumFeeEl.textContent = `${networkFee.toFixed(2)} ${coin.symbol}`;
+    if (sumCompanyFeeEl) sumCompanyFeeEl.textContent = companyFeeText;
+    if (sumReceiveEl) sumReceiveEl.textContent = `${entered > totalFee ? netReceive.toFixed(4) : "0.00"} ${coin.symbol}`;
 }
 
 function txWithCryptoSetMaxAmount() {
-    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const usdtWallet = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.main_wallet || {};
+    const rawBalUSDT = typeof usdtWallet === "number" ? usdtWallet : (usdtWallet.available_balance ?? WALLET_STATE?.wallet?.available_balance ?? 0);
     const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
     const coin = TX_WITHDRAW_STATE.selectedCoin || "USDT";
     let max = 0;
@@ -12074,10 +12810,14 @@ async function txSubmitCryptoWithdrawal() {
     try {
         const payload = {
             currency: coin,
+            crypto_asset: coin,
             network: net,
+            crypto_network: net,
             amount: amount,
             withdrawal_address: address,
+            crypto_address: address,
             address: address,
+            withdrawal_method: "crypto_withdrawal",
             type: "crypto"
         };
 
@@ -12098,7 +12838,8 @@ async function txSubmitCryptoWithdrawal() {
             if (typeof loadWalletData === "function") loadWalletData();
             if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
         } else {
-            alertBox.textContent = resp?.message || "Withdrawal request failed. Please check your balance and try again.";
+            const errorMsg = (resp?.errors && (resp.errors.amount || resp.errors.wallet || resp.errors.crypto_network || resp.errors.withdrawal_address || resp.errors.kyc || resp.errors.withdrawal)) || resp?.message || "Withdrawal request failed. Please check your balance and try again.";
+            alertBox.textContent = errorMsg;
             alertBox.className = "rounded-xl p-3 text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30";
             alertBox.classList.remove("hidden");
         }
@@ -12263,10 +13004,49 @@ function txSelectWithdrawMoneyMethod(method = "imps", name = "IMPS (Instant Bank
     txSetWithdrawMoneyStep(4);
 }
 
+function txCalculateMoneyWithdrawalFee() {
+    const feeSettings = WALLET_STATE.feeStructure?.runtime_settings?.withdrawal_fee || {};
+    const enabled = feeSettings.enabled ?? false;
+    const feeType = feeSettings.type || "fixed";
+    const feeValue = Number(feeSettings.value || 0);
+    const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
+    const sym = curr === "INR" ? "₹" : "$";
+
+    const amountInput = document.getElementById("txWithMoneyAmountInput");
+    const feeDisplayEl = document.getElementById("txWithMoneyFeeDisplay");
+    const receiveDisplayEl = document.getElementById("txWithMoneyReceiveDisplay");
+
+    const entered = parseFloat(amountInput?.value || 0);
+
+    let feeAmount = 0;
+    let feeLabelText = "0% (Free)";
+
+    if (enabled && feeValue > 0) {
+        if (feeType === "percentage") {
+            feeAmount = entered > 0 ? (entered * (feeValue / 100)) : 0;
+            feeLabelText = `${feeValue}% (${sym}${feeAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+        } else {
+            feeAmount = feeValue;
+            feeLabelText = `${sym}${feeValue.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+    }
+
+    const netReceive = Math.max(0, entered - feeAmount);
+
+    if (feeDisplayEl) {
+        feeDisplayEl.textContent = feeLabelText;
+    }
+    if (receiveDisplayEl) {
+        receiveDisplayEl.textContent = `${sym}${netReceive.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+}
+
 function txWithMoneySetMaxAmount() {
-    const rawBalUSDT = WALLET_STATE?.wallet?.main_wallet_usdt ?? WALLET_STATE?.wallet?.available_balance ?? 0;
+    const usdtWallet = WALLET_STATE?.wallet?.main_wallet_usdt || WALLET_STATE?.wallet?.main_wallet || {};
+    const rawBalUSDT = typeof usdtWallet === "number" ? usdtWallet : (usdtWallet.available_balance ?? WALLET_STATE?.wallet?.available_balance ?? 0);
     const mainBalUSDT = typeof rawBalUSDT === "number" ? rawBalUSDT : (parseFloat(String(rawBalUSDT).replace(/[^0-9.-]/g, "")) || 0);
-    const rawBalINR = WALLET_STATE?.wallet?.main_wallet_inr?.available_balance ?? (mainBalUSDT * 90);
+    const inrWallet = WALLET_STATE?.wallet?.main_wallet_inr || {};
+    const rawBalINR = typeof inrWallet === "number" ? inrWallet : (inrWallet.available_balance ?? (mainBalUSDT * 90));
     const mainBalINR = typeof rawBalINR === "number" ? rawBalINR : (parseFloat(String(rawBalINR).replace(/[^0-9.-]/g, "")) || 0);
 
     const curr = TX_WITHDRAW_STATE.selectedMoneyCurrency || "INR";
@@ -12275,6 +13055,7 @@ function txWithMoneySetMaxAmount() {
     const amountInput = document.getElementById("txWithMoneyAmountInput");
     if (amountInput) {
         amountInput.value = max > 0 ? max : "";
+        txCalculateMoneyWithdrawalFee();
     }
 }
 
@@ -12358,6 +13139,7 @@ async function txSubmitMoneyWithdrawal() {
             if (accountNoInput) accountNoInput.value = "";
             if (ifscInput) ifscInput.value = "";
             if (upiIdInput) upiIdInput.value = "";
+            txCalculateMoneyWithdrawalFee();
 
             if (typeof loadWalletData === "function") loadWalletData();
             if (typeof loadNavbarWalletBalance === "function") loadNavbarWalletBalance();
@@ -12389,6 +13171,7 @@ window.txSelectWithdrawMoneyMethod = txSelectWithdrawMoneyMethod;
 window.txWithCryptoSetMaxAmount = txWithCryptoSetMaxAmount;
 window.txWithMoneySetMaxAmount = txWithMoneySetMaxAmount;
 window.txCalculateCryptoWithdrawalFee = txCalculateCryptoWithdrawalFee;
+window.txCalculateMoneyWithdrawalFee = txCalculateMoneyWithdrawalFee;
 window.txSubmitCryptoWithdrawal = txSubmitCryptoWithdrawal;
 window.txSubmitMoneyWithdrawal = txSubmitMoneyWithdrawal;
 window.txCheckUserKycForWithdraw = txCheckUserKycForWithdraw;

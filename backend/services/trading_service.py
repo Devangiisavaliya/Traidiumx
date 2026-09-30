@@ -826,22 +826,6 @@ def format_position_with_live_pnl(position):
 
 
 def get_trading_positions(user_id):
-    try:
-        from flask import request
-        active_currency = request.headers.get("X-Navbar-Currency")
-        if not active_currency:
-            from config.database import get_database
-            from bson import ObjectId
-            db = get_database()
-            user = db.users.find_one({"_id": ObjectId(user_id)})
-            active_currency = user.get("last_navbar_currency") if user else "USDT"
-    except Exception:
-        active_currency = "USDT"
-
-    active_currency = str(active_currency or "USDT").strip().upper()
-    if active_currency not in ("INR", "USDT"):
-        active_currency = "USDT"
-
     positions = get_user_open_positions(user_id)
 
     formatted_positions = []
@@ -870,27 +854,7 @@ def get_trading_positions(user_id):
 
 
 def get_trading_trades(user_id):
-    try:
-        from flask import request
-        active_currency = request.headers.get("X-Navbar-Currency")
-        if not active_currency:
-            from config.database import get_database
-            from bson import ObjectId
-            db = get_database()
-            user = db.users.find_one({"_id": ObjectId(user_id)})
-            active_currency = user.get("last_navbar_currency") if user else "USDT"
-    except Exception:
-        active_currency = "USDT"
-
-    active_currency = str(active_currency or "USDT").strip().upper()
-    if active_currency not in ("INR", "USDT"):
-        active_currency = "USDT"
-
     trades = get_user_trades(user_id)
-    if active_currency == "INR":
-        trades = [t for t in trades if t.get("currency") == "INR"]
-    else:
-        trades = [t for t in trades if t.get("currency") in ("USDT", None, "")]
 
     return {
         "success": True,
@@ -1035,14 +999,22 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
     # Margin + net P&L + exit fee are settled in one wallet write. This avoids
     # the temporary wrong wallet balance and removes the fee-after-close race.
     net_realized_pnl = round(gross_realized_pnl - exit_trading_fee, 8)
-    position_currency = position.get("currency", "USDT")
+    position_currency = str(position.get("currency") or "USDT").strip().upper()
+
+    user_wallet = ensure_user_wallet(user_id)
+    usdt_inr_rate = float(user_wallet.get("usdt_inr_rate", 88.50) or 88.50)
+
+    settle_margin = round(margin_amount * usdt_inr_rate, 2) if position_currency == "INR" else margin_amount
+    settle_pnl = round(net_realized_pnl * usdt_inr_rate, 2) if position_currency == "INR" else net_realized_pnl
+    settle_fee = round(exit_trading_fee * usdt_inr_rate, 2) if position_currency == "INR" else exit_trading_fee
+
     wallet_result = settle_position_margin(
         user_id=user_id,
-        margin_amount=margin_amount,
-        realized_pnl=net_realized_pnl,
+        margin_amount=settle_margin,
+        realized_pnl=settle_pnl,
         reference_id=position_id,
         description=f"Position closed for {position.get('symbol')} ({close_reason})",
-        exit_trading_fee=exit_trading_fee,
+        exit_trading_fee=settle_fee,
         currency=position_currency,
     )
 

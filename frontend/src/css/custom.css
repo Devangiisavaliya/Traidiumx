@@ -8603,6 +8603,7 @@ html.light .rt-perfect-tv-wrap iframe {
    PRIME XBT DEPOSIT CHOICE POPUP MODAL (SOLID BACKDROP & NON-TRANSPARENT CARD)
    ========================================================================== */
 #txDepositChoiceModal {
+    display: none !important;
     position: fixed !important;
     inset: 0 !important;
     z-index: 100005 !important;
@@ -11337,3 +11338,27 @@ body[data-page="options"] .rt-pair-funds-head {
 #txDemoSetBalanceBtn:active {
     transform: translateY(0) scale(0.98) !important;
 }
+
+/* ==========================================================================
+   Smooth Trading Account Card Dropdown (Show more / Show less) Animation
+   ========================================================================== */
+.tx-ta-details-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, margin-top 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    margin-top: 0;
+    will-change: grid-template-rows, opacity;
+}
+
+.tx-ta-details-wrapper.expanded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 1rem;
+}
+
+.tx-ta-details-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+

@@ -1,5 +1,5 @@
 from config.database import get_database
-from utils.date_helper import now_utc
+from utils.date_helper import now_utc, to_iso_utc
 
 
 def get_wallet_ledger_collection():
@@ -126,7 +126,7 @@ def format_ledger_item(item, wallet_currency_cache=None):
         "description": item.get("description", ""),
         "currency": currency,
         "status": item.get("status", "completed"),
-        "created_at": item.get("created_at").isoformat() if item.get("created_at") else None
+        "created_at": to_iso_utc(item.get("created_at"))
     }
 
 

@@ -1,7 +1,7 @@
 from bson import ObjectId
 
 from config.database import get_database
-from utils.date_helper import now_utc
+from utils.date_helper import now_utc, to_iso_utc
 
 
 def get_deposits_collection():
@@ -83,11 +83,11 @@ def format_deposit(deposit):
         "required_confirmations": deposit.get("required_confirmations", 0),
         "verified_amount": deposit.get("verified_amount", 0.0),
         "verified_to_address": deposit.get("verified_to_address", ""),
-        "credited_at": deposit.get("credited_at").isoformat() if deposit.get("credited_at") else None,
+        "credited_at": to_iso_utc(deposit.get("credited_at")),
         "status": deposit.get("status", "pending_verification"),
         "remark": deposit.get("remark", ""),
-        "created_at": deposit.get("created_at").isoformat() if deposit.get("created_at") else None,
-        "updated_at": deposit.get("updated_at").isoformat() if deposit.get("updated_at") else None,
+        "created_at": to_iso_utc(deposit.get("created_at")),
+        "updated_at": to_iso_utc(deposit.get("updated_at")),
     }
 
 

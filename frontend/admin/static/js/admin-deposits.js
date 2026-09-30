@@ -229,4 +229,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     bindFilters();
     await loadSummary();
     await loadDeposits();
+
+    // Auto-refresh deposits table and summary metrics every 5 seconds for live admin view
+    setInterval(() => {
+        if (document.visibilityState === "visible") {
+            loadSummary();
+            loadDeposits();
+        }
+    }, 5000);
 });

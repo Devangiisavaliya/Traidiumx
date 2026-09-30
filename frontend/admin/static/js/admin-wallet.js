@@ -568,7 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const withdrawalAddress = String(withdrawal?.account || withdrawal?.withdrawal_address || withdrawal?.destination || "").trim();
             const withdrawalAddressLabel = withdrawalAddress || "-";
             const isValidAddress = isApprove ? validateAddress(withdrawalAddress, withdrawal?.network) : true;
-            const displayPayoutReference = defaultPayoutReference || (isApprove && isValidAddress ? withdrawalAddress : "");
+            const displayPayoutReference = defaultPayoutReference || "";
             
             const modal = document.createElement("div");
             modal.id = "txWithdrawalDecisionModal";
@@ -578,10 +578,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <div class="tx-withdrawal-modal-top">
                             <div class="tx-withdrawal-modal-icon ${isApprove ? "approve" : "reject"}">${isApprove ? "✓" : "!"}</div>
                             <div>
-                                <h3 class="tx-withdrawal-modal-title">${isApprove ? "Approve Withdrawal?" : "Reject Withdrawal?"}</h3>
+                                <h3 class="tx-withdrawal-modal-title">${isApprove ? "Approve & Payout Withdrawal?" : "Reject Withdrawal?"}</h3>
                                 <p class="tx-withdrawal-modal-message">
                                     ${isApprove
-                                        ? "This will finally debit the locked withdrawal amount from the user's wallet."
+                                        ? "This will broadcast on-chain payout to the user's wallet and debit the locked balance."
                                         : "This will release the locked amount back to the user's available wallet balance."}
                                 </p>
                             </div>
@@ -596,12 +596,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                         ${isApprove ? `
                             <div class="tx-withdrawal-modal-address">
                                 <div class="tx-withdrawal-modal-address-head">
-                                    <span>User Withdrawal Address</span>
+                                    <span>User Withdrawal Destination</span>
                                     <button type="button" class="tx-withdrawal-modal-copy" data-copy="${api.escapeHtml(withdrawalAddressLabel)}">Copy Address</button>
                                 </div>
-                                <div class="tx-withdrawal-modal-address-value" title="${api.escapeHtml(withdrawalAddressLabel)}">${api.escapeHtml(withdrawalAddressLabel)}</div>
+                                <div class="tx-withdrawal-modal-address-value font-mono font-bold text-cyan-300" title="${api.escapeHtml(withdrawalAddressLabel)}">${api.escapeHtml(withdrawalAddressLabel)}</div>
                                 <div id="txWithdrawalCopyStatus" class="tx-withdrawal-copy-status">Address copied successfully.</div>
-                                <div class="tx-withdrawal-modal-address-note">Send payout only to this user address on ${api.escapeHtml(withdrawal?.network || "selected")} network. After sending, paste payout TX hash below.</div>
+                                <div class="tx-withdrawal-modal-address-note">⚡ Automated On-Chain Hot Wallet payout is active. Leaving TXID empty will auto-broadcast transfer on ${api.escapeHtml(withdrawal?.network || "selected")} network.</div>
                                 ${!isValidAddress ? `
                                 <div id="txWithdrawalAddressWarning" style="color: #b91c1c; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); border-radius: 8px; padding: 10px 12px; font-size: 12px; font-weight: bold; margin-top: 8px; display: block; text-align: left; line-height: 1.5;">
                                     ⚠️ Warning: Invalid ${api.escapeHtml(withdrawal?.network || "selected")} address format!
@@ -609,10 +609,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </div>
                             <div class="tx-withdrawal-modal-field">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                    <label class="tx-withdrawal-modal-label" style="margin-bottom: 0;">Payout TX hash required</label>
+                                    <label class="tx-withdrawal-modal-label" style="margin-bottom: 0;">Payout TX Hash / Mode</label>
                                     <button type="button" id="txWithdrawalMetaMaskBtn" class="tx-withdrawal-modal-copy" style="background: #eab308; color: #000; border-color: #eab308; display: none; font-size: 11px; padding: 4px 8px;">Payout via MetaMask</button>
                                 </div>
-                                <input id="txWithdrawalPayoutInput" class="tx-withdrawal-modal-input" value="${api.escapeHtml(displayPayoutReference)}" placeholder="Paste payout transaction hash / TXID after payout" />
+                                <input id="txWithdrawalPayoutInput" class="tx-withdrawal-modal-input" value="${api.escapeHtml(displayPayoutReference)}" placeholder="Leave empty for Auto On-Chain Payout from Hot Wallet, or paste TXID" />
                                 <div id="txWithdrawalMetaMaskStatus" style="display: none; font-size: 11px; font-weight: bold; color: #10b981; margin-top: 4px; line-height: 1.3;"></div>
                             </div>
                         ` : ""}
@@ -853,15 +853,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const reason = String(reasonInput?.value || "").trim();
                 const payoutReference = String(payoutInput?.value || "").trim();
                 const errorBox = modal.querySelector("#txWithdrawalModalError");
-
-                if (isApprove && !payoutReference) {
-                    if (errorBox) {
-                        errorBox.textContent = "Payout transaction hash / TXID is required for approval.";
-                        errorBox.style.display = "block";
-                    }
-                    payoutInput?.focus();
-                    return;
-                }
 
                 if (!isApprove && !reason) {
                     if (errorBox) {
@@ -1192,7 +1183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setDecisionBusy(id, action, true);
         try {
             const body = action === "approve"
-                ? { remark: reason, payout_reference: payoutReference, tx_hash: payoutReference }
+                ? { remark: reason, payout_reference: payoutReference, tx_hash: payoutReference, auto_payout: !payoutReference }
                 : { reason };
             const response = await api.request(`/withdrawals/${encodeURIComponent(id)}/${action}`, { method: "POST", body });
             const doneMessage = response?.withdrawal?.user_status_message || (action === "approve"

@@ -291,10 +291,11 @@ def get_wallet_balance(user_id):
     
     mt5_data = None
     try:
-        from services.mt5_service import get_user_mt5_status
-        mt5_res = get_user_mt5_status(user_id)
-        if mt5_res.get("success"):
-            mt5_data = mt5_res.get("data")
+        from models.mt5_account_model import find_mt5_account_by_user_id
+        from services.mt5_service import format_mt5_account
+        mt5_acc = find_mt5_account_by_user_id(user_id)
+        if mt5_acc:
+            mt5_data = format_mt5_account(mt5_acc)
     except Exception as err:
         print(f"MT5 balance attachment notice: {err}")
 
@@ -715,7 +716,16 @@ def _atomic_update_wallet(wallet_id, filter_extra, inc_data, currency=None):
     for key, val in inc_data.items():
         if key.startswith("trading_wallet."):
             sub_key = key.replace("trading_wallet.", f"trading_wallet_{bucket_suffix}.")
-            extra_inc[sub_key] = val
+            if sub_key not in inc_data:
+                extra_inc[sub_key] = val
+        elif key.startswith(f"main_wallet_{bucket_suffix}."):
+            sub_key = key.replace(f"main_wallet_{bucket_suffix}.", "main_wallet.")
+            if sub_key not in inc_data:
+                extra_inc[sub_key] = val
+        elif key.startswith("main_wallet."):
+            sub_key = key.replace("main_wallet.", f"main_wallet_{bucket_suffix}.")
+            if sub_key not in inc_data:
+                extra_inc[sub_key] = val
     inc_data.update(extra_inc)
 
     return get_wallets_collection().find_one_and_update(
@@ -1334,17 +1344,22 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
         currency=currency if direction == "main_to_trading" else "USDT"
     )
 
-    plan_profile = None
     try:
-        from services.trading_plan_service import reconcile_user_plan
-        plan_profile = (reconcile_user_plan(user_id, send_notice=True).get("data") or None)
+        import threading
+        def _async_reconcile():
+            try:
+                from services.trading_plan_service import reconcile_user_plan
+                reconcile_user_plan(user_id, send_notice=True)
+            except Exception as error:
+                print("PLAN RECONCILE AFTER TRANSFER ERROR:", error)
+        threading.Thread(target=_async_reconcile, daemon=True).start()
     except Exception as error:
-        print("PLAN RECONCILE AFTER TRANSFER ERROR:", error)
+        print("ASYNC THREAD ERROR:", error)
 
     return {
         "success": True,
         "message": "Wallet transfer completed successfully.",
-        "data": {"wallet": format_wallet(updated_wallet), "trading_profile": plan_profile},
+        "data": {"wallet": format_wallet(updated_wallet)},
         "status_code": 200,
     }
 

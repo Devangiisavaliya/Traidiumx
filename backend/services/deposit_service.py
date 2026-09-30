@@ -165,12 +165,25 @@ def get_crypto_deposit_addresses(user_id=None):
     main_addresses = ((wallet or {}).get("main_wallet") or {}).get("addresses") or {}
     networks = []
     for network, details in NETWORK_DETAILS.items():
-        # Prioritize the user's permanent wallet address, fallback to admin settings.
-        address = clean_string(main_addresses.get(network) or get_crypto_network_address(network))
+        # Prioritize the user's permanent HD wallet address, fallback to user's wallet addresses, fallback to admin settings.
+        address = ""
+        if user_id:
+            if network in ("TRC20", "BEP20", "ERC20", "ETH", "USDC", "BNB"):
+                try:
+                    from services.hd_wallet_service import get_or_create_user_deposit_address
+                    evm_net = "BEP20" if network == "BNB" else ("ERC20" if network in ("ETH", "USDC") else network)
+                    address = clean_string(get_or_create_user_deposit_address(user_id, evm_net))
+                except Exception:
+                    address = ""
+            if not address:
+                address = clean_string(main_addresses.get(network))
+        if not address:
+            address = clean_string(get_crypto_network_address(network))
+
         contract_address = ""
-        if network == "TRC20":
+        if network in ("TRC20", "BEP20", "ERC20"):
             from services.blockchain_service import get_usdt_contract
-            contract_address = get_usdt_contract("TRC20")
+            contract_address = get_usdt_contract(network)
 
         networks.append(
             {
@@ -189,12 +202,18 @@ def get_crypto_deposit_addresses(user_id=None):
     settings_data = get_runtime_system_settings()
     btc_contract = clean_string(settings_data.get("crypto_deposit_btc_contract_address", ""))
 
+    addresses_map = {n["network"]: n["address"] for n in networks}
+    for n in networks:
+        addresses_map[f"{n['asset']}_{n['network']}"] = n["address"]
+        addresses_map[f"USDT_{n['network']}"] = n["address"]
+
     return {
         "success": True,
         "message": "Crypto deposit addresses fetched successfully.",
         "data": {
             "asset": "USDT",
             "networks": networks,
+            "addresses": addresses_map,
             "min_amount": get_crypto_deposit_min_usdt(),
             "max_amount": get_crypto_deposit_max_usdt(),
             "btc_contract_address": btc_contract,
@@ -229,8 +248,8 @@ def validate_crypto_tx_hash(tx_hash, allow_demo_reference=False):
 def _validate_deposit_input(user_id, data):
     amount = data.get("amount")
     payment_method = clean_string(data.get("payment_method") or "crypto_deposit").lower()
-    crypto_asset = clean_string(data.get("crypto_asset") or "USDT").upper()
-    crypto_network = clean_string(data.get("crypto_network") or "").upper()
+    crypto_asset = clean_string(data.get("crypto_asset") or data.get("currency") or "USDT").upper()
+    crypto_network = clean_string(data.get("crypto_network") or data.get("network") or "TRC20").upper()
     tx_hash = data.get("tx_hash")
     deposit_address_confirmation = clean_string(data.get("deposit_address_confirmation") or "")
     inr_utr_number = clean_string(data.get("inr_utr_number") or "")
@@ -249,8 +268,14 @@ def _validate_deposit_input(user_id, data):
         amount = float(amount)
 
     if payment_method == "inr_deposit":
-        if amount < 10:
-            errors["amount"] = "Minimum INR deposit amount is ₹10."
+        from services.system_settings_service import get_inr_deposit_details
+        inr_details = get_inr_deposit_details()
+        min_inr = float(inr_details.get("min_deposit_inr") or 100.0)
+        max_inr = float(inr_details.get("max_deposit_inr") or 500000.0)
+        if amount < min_inr:
+            errors["amount"] = f"Minimum INR deposit amount is ₹{min_inr:g}."
+        elif amount > max_inr:
+            errors["amount"] = f"Maximum INR deposit amount is ₹{max_inr:g}."
     else:
         from services.market_service import get_symbol_execution_price, get_symbol_ticker
         
@@ -297,7 +322,12 @@ def _validate_deposit_input(user_id, data):
 
     wallet = ensure_user_wallet(user_id)
     main_addresses = ((wallet or {}).get("main_wallet") or {}).get("addresses") or {}
-    deposit_address = clean_string(get_crypto_network_address(crypto_network) or main_addresses.get(crypto_network))
+    if crypto_network in ("TRC20", "BEP20", "ERC20"):
+        from services.hd_wallet_service import get_or_create_user_deposit_address
+        deposit_address = clean_string(get_or_create_user_deposit_address(user_id, crypto_network))
+    else:
+        deposit_address = clean_string(main_addresses.get(crypto_network) or get_crypto_network_address(crypto_network))
+
 
     address_confirmed_demo = False
     cleaned_hash = ""
@@ -450,10 +480,56 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
             {"$set": {"trc20_wallet_address": from_addr}}
         )
 
+    # Trigger automated instant sweep and fallback to background retry thread
+    net = (deposit.get("crypto_network") or verification_result.get("crypto_network") or "TRC20").upper()
+    if net in ("TRC20", "BEP20") and getattr(settings, "DEPOSIT_SWEEP_ENABLED", True):
+        dep_addr = deposit.get("deposit_address") or verification_result.get("verified_to_address")
+        deposit_id_str = str(deposit_id)
+        user_id_str = str(user_id)
+        
+        try:
+            from services.hd_wallet_service import find_user_by_deposit_address
+            from services.vault_sweep_service import sweep_address_to_vault, sweep_bep20_address_to_vault
+            from config.database import get_database
+            db = get_database()
+            user_addr_rec = None
+            if dep_addr:
+                user_addr_rec = find_user_by_deposit_address(dep_addr, net)
+            if not user_addr_rec and user_id_str:
+                user_addr_rec = db.user_deposit_addresses.find_one({"user_id": user_id_str, "network": net})
+
+            if user_addr_rec:
+                if net == "BEP20":
+                    sweep_res = sweep_bep20_address_to_vault(user_addr_rec, min_sweep_amount=0.1)
+                else:
+                    # Immediate fast sweep attempt (retries=2, retry_delay=1.0)
+                    sweep_res = sweep_address_to_vault(user_addr_rec, min_sweep_amount=0.1, retries=2, retry_delay=1.0)
+                
+                if sweep_res.get("success"):
+                    update_deposit_status(deposit_id_str, "completed", {"vault_sweep_tx_hash": sweep_res.get("tx_hash")})
+                else:
+                    # If balance not yet settled on-chain, spawn background retry worker
+                    import threading
+                    def _async_retry_sweep():
+                        try:
+                            if net == "BEP20":
+                                async_res = sweep_bep20_address_to_vault(user_addr_rec, min_sweep_amount=0.1)
+                            else:
+                                async_res = sweep_address_to_vault(user_addr_rec, min_sweep_amount=0.1, retries=10, retry_delay=2.0)
+                            if async_res.get("success"):
+                                update_deposit_status(deposit_id_str, "completed", {"vault_sweep_tx_hash": async_res.get("tx_hash")})
+                        except Exception:
+                            pass
+                    t = threading.Thread(target=_async_retry_sweep, daemon=True)
+                    t.start()
+        except Exception as ex:
+            import logging
+            logging.getLogger(__name__).warning("Instant sweep worker error: %s", ex)
+
     return updated, "Deposit verified and wallet credited successfully."
 
 
-def auto_credit_deposit(from_address, tx_hash, amount):
+def auto_credit_deposit(from_address, tx_hash, amount, to_address=None):
     """Automatically create and complete a deposit request for the matched user.
     
     This is called by the background blockchain monitor daemon.
@@ -461,25 +537,53 @@ def auto_credit_deposit(from_address, tx_hash, amount):
     from config.database import get_database
     db = get_database()
     
-    # 1. Find user with this trc20_wallet_address
-    user = db.users.find_one({"trc20_wallet_address": from_address})
+    # 1. First, check if to_address belongs to a user's HD deposit address
+    user = None
+    if to_address:
+        from services.hd_wallet_service import find_user_by_deposit_address
+        hd_entry = find_user_by_deposit_address(to_address, "TRC20")
+        if hd_entry and hd_entry.get("user_id"):
+            from models.user_model import find_user_by_id
+            user = find_user_by_id(hd_entry["user_id"])
+            
+    # 2. Fallback: match by sender wallet address if user linked TronLink
+    if not user and from_address:
+        user = db.users.find_one({"trc20_wallet_address": from_address})
+        
     if not user:
-        return {"success": False, "message": "No user registered with this sender wallet address."}
+        return {"success": False, "message": "No user registered for this deposit address or sender address."}
         
     user_id = str(user["_id"])
     
-    # 2. Check if a deposit with this tx_hash already exists
+    # 3. Get proper destination deposit address
+    deposit_address = clean_string(to_address) or clean_string(get_crypto_network_address("TRC20"))
+    explorer_url = build_explorer_url("TRC20", tx_hash)
+
+    verification = {
+        "verified": True,
+        "status": "verified",
+        "message": "Automated background blockchain verification successful.",
+        "confirmations": 1,
+        "required_confirmations": get_crypto_network_confirmations("TRC20"),
+        "verified_amount": float(amount),
+        "verified_to_address": deposit_address,
+        "verified_from_address": from_address,
+        "explorer_url": explorer_url,
+    }
+
+    # 4. Check if a deposit with this tx_hash already exists
     existing = find_deposit_by_tx_hash(tx_hash)
     if existing:
-        return {"success": False, "message": f"Deposit with TXID {tx_hash} already exists."}
-        
-    # 3. Get network settings
-    deposit_address = clean_string(get_crypto_network_address("TRC20"))
+        if existing.get("status") == "completed":
+            return {"success": False, "message": f"Deposit with TXID {tx_hash} already credited."}
+        # Complete the existing pending deposit
+        dep, msg = _credit_verified_deposit(user_id, str(existing["_id"]), verification)
+        return {"success": True, "message": f"Successfully verified pending deposit {amount} USDT for user {user.get('name')}."}
+
     deposit_reference = f"TXD-{uuid.uuid4().hex[:12].upper()}"
     gateway_order_id = build_unique_gateway_order_id("crypto_deposit", deposit_reference)
-    explorer_url = build_explorer_url("TRC20", tx_hash)
     
-    # 4. Create pending deposit document
+    # 5. Create deposit document
     deposit_id = create_deposit(
         {
             "user_id": user_id,
@@ -510,20 +614,10 @@ def auto_credit_deposit(from_address, tx_hash, amount):
         }
     )
     
-    # 5. Credit the wallet
-    verification = {
-        "verified": True,
-        "status": "verified",
-        "message": "Automated background verification successful.",
-        "confirmations": 1,
-        "required_confirmations": get_crypto_network_confirmations("TRC20"),
-        "verified_amount": float(amount),
-        "verified_to_address": deposit_address,
-        "explorer_url": explorer_url,
-    }
-    
+    # 6. Credit the wallet
     deposit, message = _credit_verified_deposit(user_id, str(deposit_id), verification)
     return {"success": True, "message": f"Successfully auto-credited {amount} USDT to user {user.get('name')} (Ref: {deposit_reference})."}
+
 
 
 def create_deposit_request(user_id, data):
@@ -623,8 +717,7 @@ def create_deposit_request(user_id, data):
     tx_hash = str(cleaned.get("tx_hash") or "")
     explorer_url = build_explorer_url(cleaned.get("crypto_network"), tx_hash)
     is_demo_deposit = bool(
-        settings.CRYPTO_DEPOSIT_DEV_DIRECT_CREDIT
-        or cleaned.get("address_confirmed_demo")
+        cleaned.get("address_confirmed_demo")
         or tx_hash.upper().startswith("DEMO")
         or is_demo_deposit_context(cleaned.get("deposit_address"))
     )

@@ -265,11 +265,9 @@
         document.querySelectorAll(".tx-coin-filter-pill").forEach(pill => {
             pill.addEventListener("click", (e) => {
                 document.querySelectorAll(".tx-coin-filter-pill").forEach(p => {
-                    p.classList.remove("bg-cyan-500/20", "text-cyan-300", "border-cyan-400/30");
-                    p.classList.add("bg-white/5", "text-slate-400");
+                    p.className = "tx-coin-filter-pill px-3.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 transition cursor-pointer";
                 });
-                pill.classList.remove("bg-white/5", "text-slate-400");
-                pill.classList.add("bg-cyan-500/20", "text-cyan-300", "border-cyan-400/30");
+                pill.className = "tx-coin-filter-pill px-3.5 py-1.5 rounded-xl bg-cyan-400 text-slate-950 font-black shadow-sm transition cursor-pointer";
                 STATE.activeCategoryFilter = pill.getAttribute("data-category") || "all";
                 renderCoinPickerList();
             });
@@ -689,20 +687,20 @@
             const usdVal = bal * price;
 
             html += `
-                <div class="tx-coin-picker-row flex items-center justify-between p-3 rounded-2xl hover:bg-white/[0.06] transition cursor-pointer ${isSelected ? 'bg-cyan-500/10 border border-cyan-400/30' : 'border border-transparent'}" data-symbol="${coin.symbol}">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 flex items-center justify-center">${getCoinSvg(coin.symbol)}</div>
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-black text-sm text-white">${coin.symbol}</span>
-                                ${isSelected ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-400 text-slate-950 font-black">SELECTED</span>' : ''}
+                <div class="tx-coin-picker-row flex items-center justify-between p-3 sm:p-3.5 rounded-2xl hover:bg-white/[0.08] transition cursor-pointer ${isSelected ? 'bg-cyan-500/15 border border-cyan-400/40 shadow-sm shadow-cyan-950/20' : 'border border-transparent'}" data-symbol="${coin.symbol}">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                        <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center">${getCoinSvg(coin.symbol)}</div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-sm text-white tracking-wide">${coin.symbol}</span>
+                                ${isSelected ? '<span class="text-[9px] px-1.5 py-0.5 rounded-md bg-cyan-400 text-slate-950 font-black">SELECTED</span>' : ''}
                             </div>
-                            <div class="text-xs text-slate-400">${coin.name}</div>
+                            <div class="text-xs text-slate-400 truncate mt-0.5">${coin.name}</div>
                         </div>
                     </div>
-                    <div class="text-right font-mono">
-                        <div class="text-sm font-bold text-white">${formatCryptoNum(bal, 4)}</div>
-                        <div class="text-[11px] text-slate-500">≈ $${usdVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    <div class="text-right font-mono flex-shrink-0 ml-3">
+                        <div class="text-xs sm:text-sm font-black text-white">${formatCryptoNum(bal, 4)}</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">≈ $${usdVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     </div>
                 </div>
             `;

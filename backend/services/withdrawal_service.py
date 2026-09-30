@@ -150,9 +150,9 @@ def create_withdrawal_request(user_id, data):
 
     amount = data.get("amount")
     withdrawal_method = clean_string(data.get("withdrawal_method") or "crypto_withdrawal").lower()
-    crypto_asset = clean_string(data.get("crypto_asset") or "").upper()
-    crypto_network = clean_string(data.get("crypto_network") or "").upper()
-    withdrawal_address = clean_string(data.get("withdrawal_address") or data.get("crypto_address") or "")
+    crypto_asset = clean_string(data.get("crypto_asset") or data.get("currency") or data.get("asset") or "USDT").upper()
+    crypto_network = clean_string(data.get("crypto_network") or data.get("network") or "BEP20").upper()
+    withdrawal_address = clean_string(data.get("withdrawal_address") or data.get("crypto_address") or data.get("address") or "")
     destination_tag = sanitize_text(clean_string(data.get("destination_tag") or data.get("memo") or ""))
 
     if withdrawal_method == "inr_withdrawal" or crypto_asset == "INR":

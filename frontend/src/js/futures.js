@@ -126,7 +126,13 @@ const state = {
     interval: "1m",
     side: "BUY",
     orderType: "MARKET",
-    marginMode: "isolated",
+    marginMode: (() => {
+        try {
+            return localStorage.getItem("traidiumx_futures_margin_mode") || "isolated";
+        } catch (_) {
+            return "isolated";
+        }
+    })(),
 
     currentPrice: 0,
     previousPrice: 0,
@@ -372,14 +378,14 @@ function syncLeverageOptions(symbol = state.currentSymbol) {
 
     const maxLeverage = getMaxLeverageForPair(symbol);
     const allowedValues = [1, 2, 3, 5, 10, 20, 25, 50, 75, 100, 125, 150, 200, 250, 500, 1000].filter((value) => value <= maxLeverage);
-    const savedLeverage = Number(localStorage.getItem("tx_futures_leverage") || 100);
-    const currentValue = Number(elements.leverageSelect.value || savedLeverage || 100);
+    const savedLeverage = Number(localStorage.getItem("tx_futures_leverage") || 500);
+    const currentValue = Number(elements.leverageSelect.value || savedLeverage || 500);
 
     elements.leverageSelect.innerHTML = allowedValues.map((value) => {
         return `<option value="${value}">${value}x</option>`;
     }).join("");
 
-    let selectedValue = allowedValues.includes(currentValue) ? currentValue : 100;
+    let selectedValue = allowedValues.includes(currentValue) ? currentValue : 500;
     if (!allowedValues.includes(selectedValue)) {
         selectedValue = allowedValues[allowedValues.length - 1];
     }
@@ -2512,7 +2518,13 @@ function txUpdateFuturesWalletModalBalances() {
     const nodes = txGetFuturesWalletModalNodes();
     const wallet = getWallet();
     const rawWallet = TX_BACKEND_FUTURES.wallet || {};
-    const pnl = getPositions().reduce((total, position) => total + calculatePositionPnl(position), 0);
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
+    const selectedPositions = getPositions().filter(p => {
+        const posCurr = String(p.currency || "USDT").toUpperCase();
+        return isINR ? posCurr === "INR" : (posCurr === "USDT" || posCurr === "USD");
+    });
+    const pnl = selectedPositions.reduce((total, position) => total + calculatePositionPnl(position), 0);
     
     let mainCurrency = localStorage.getItem("tx_navbar_currency") || "USDT";
     
@@ -3303,11 +3315,11 @@ function getQuantity() {
 }
 
 function getLeverage() {
-    const selectedLeverage = Number(elements.leverageSelect?.value || 100);
+    const selectedLeverage = Number(elements.leverageSelect?.value || 500);
     const maxLeverage = getMaxLeverageForPair();
 
     if (!Number.isFinite(selectedLeverage) || selectedLeverage < 1) {
-        return 100;
+        return 500;
     }
 
     return Math.min(selectedLeverage, maxLeverage);
@@ -4064,6 +4076,72 @@ function applyPercent(percent) {
     }
     txUpdateEstimatedMargin();
 }
+
+function txGetSymbolOpenPosition(sym) {
+    const symbol = normalizeSymbol(sym || state.currentSymbol);
+    const positions = (typeof TX_BACKEND_FUTURES !== "undefined" && Array.isArray(TX_BACKEND_FUTURES.positions)) ? TX_BACKEND_FUTURES.positions : [];
+    return positions.find((p) => normalizeSymbol(p.symbol) === symbol && (p.status === "open" || !p.status));
+}
+
+function txGetSymbolMarginMode(sym) {
+    const symbol = normalizeSymbol(sym || state.currentSymbol);
+    const openPos = txGetSymbolOpenPosition(symbol);
+    if (openPos && (openPos.margin_mode || openPos.marginMode)) {
+        return String(openPos.margin_mode || openPos.marginMode).toLowerCase() === "cross" ? "cross" : "isolated";
+    }
+    try {
+        const savedSymbolMode = localStorage.getItem(`traidiumx_futures_margin_mode_${symbol}`);
+        if (savedSymbolMode && (savedSymbolMode === "cross" || savedSymbolMode === "isolated")) {
+            return savedSymbolMode;
+        }
+        const globalMode = localStorage.getItem("traidiumx_futures_margin_mode");
+        if (globalMode && (globalMode === "cross" || globalMode === "isolated")) {
+            return globalMode;
+        }
+    } catch (_) {}
+    return "isolated";
+}
+
+function txApplyMarginMode(val, sym = state.currentSymbol, force = false) {
+    const symbol = normalizeSymbol(sym || state.currentSymbol);
+    const targetMode = val === "cross" ? "cross" : "isolated";
+
+    if (!force) {
+        const openPos = txGetSymbolOpenPosition(symbol);
+        if (openPos) {
+            const currentPosMode = String(openPos.margin_mode || openPos.marginMode || "isolated").toLowerCase();
+            if (targetMode !== currentPosMode) {
+                if (typeof showOrderMessage === "function") {
+                    showOrderMessage(`Cannot switch margin mode while you have an open position in ${txFormatSymbol(symbol)}. Please close the position first.`, "error");
+                }
+                return false;
+            }
+        }
+    }
+
+    state.marginMode = targetMode;
+    try {
+        localStorage.setItem(`traidiumx_futures_margin_mode_${symbol}`, targetMode);
+        localStorage.setItem("traidiumx_futures_margin_mode", targetMode);
+    } catch (_) {}
+
+    const marginModeBtn = document.getElementById("marginModeBtn");
+    const marginModeBtnText = document.getElementById("marginModeBtnText");
+    if (marginModeBtnText && marginModeBtn) {
+        if (state.marginMode === "isolated") {
+            marginModeBtnText.textContent = "Isolated Margin";
+            marginModeBtn.style.setProperty("color", "#22d3ee", "important");
+            marginModeBtn.style.setProperty("border-color", "rgba(34, 211, 238, 0.2)", "important");
+        } else {
+            marginModeBtnText.textContent = "Cross Margin";
+            marginModeBtn.style.setProperty("color", "#fbbf24", "important");
+            marginModeBtn.style.setProperty("border-color", "rgba(251, 191, 36, 0.2)", "important");
+        }
+    }
+    txUpdateEstimatedMargin();
+    return true;
+}
+
 function changePair(symbol) {
     const cleanSymbol = normalizeSymbol(symbol);
 
@@ -4081,6 +4159,9 @@ function changePair(symbol) {
     state.orderBook = { asks: [], bids: [] };
 
     saveSelectedSymbol(cleanSymbol);
+
+    // Sync margin mode for the selected symbol
+    txApplyMarginMode(txGetSymbolMarginMode(cleanSymbol), cleanSymbol, true);
 
     const pair = getPair(cleanSymbol);
     if (pair && elements.quantityInput) {
@@ -4186,7 +4267,7 @@ function txUpdateEstimatedMargin() {
     const quantity = Number(elements.quantityInput ? elements.quantityInput.value : 0);
 
     // Get leverage
-    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 100);
+    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 500);
 
     // Calculate estimated margin
     let estMargin = 0;
@@ -4347,6 +4428,9 @@ function initEvents() {
     const marginModeBtnText = document.getElementById("marginModeBtnText");
 
     if (marginModeBtn && marginModeMenu && marginModeBtnText) {
+        // Sync button text & styling with the active margin mode for the initial symbol
+        txApplyMarginMode(txGetSymbolMarginMode(state.currentSymbol), state.currentSymbol, true);
+
         marginModeBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             marginModeMenu.classList.toggle("hidden");
@@ -4360,20 +4444,8 @@ function initEvents() {
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const val = btn.getAttribute("data-value");
-                state.marginMode = val;
-
-                if (val === "isolated") {
-                    marginModeBtnText.textContent = "Isolated Margin";
-                    marginModeBtn.style.setProperty("color", "#22d3ee", "important");
-                    marginModeBtn.style.setProperty("border-color", "rgba(34, 211, 238, 0.2)", "important");
-                } else {
-                    marginModeBtnText.textContent = "Cross Margin";
-                    marginModeBtn.style.setProperty("color", "#fbbf24", "important");
-                    marginModeBtn.style.setProperty("border-color", "rgba(251, 191, 36, 0.2)", "important");
-                }
-
+                txApplyMarginMode(val, state.currentSymbol, false);
                 marginModeMenu.classList.add("hidden");
-                txUpdateEstimatedMargin();
             });
         });
     }
@@ -6142,6 +6214,26 @@ function txSafeCssId(value) {
     return text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
+function txGetActiveCurrency() {
+    return String(localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+}
+
+function txGetActivePositions() {
+    return TX_BACKEND_FUTURES.positions || [];
+}
+
+function txGetActiveOpenOrders() {
+    return TX_BACKEND_FUTURES.openOrders || [];
+}
+
+function txGetActiveOrders() {
+    return TX_BACKEND_FUTURES.orders || [];
+}
+
+function txGetActiveTrades() {
+    return TX_BACKEND_FUTURES.trades || [];
+}
+
 function txBuildPositionRowHtml(position) {
     const positionId = txGetId(position);
     const symbol = position.symbol;
@@ -6157,11 +6249,13 @@ function txBuildPositionRowHtml(position) {
         position.liquidation_price ?? position.liquidationPrice ?? position.liq_price ?? position.liqPrice,
         0
     ) || txEstimateLiquidationPrice(entryPrice || markPrice, side, leverage);
-    const rawPnl = calculatePositionPnl(position);
+    const pnl = calculatePositionPnl(position);
 
-    // Futures trading margin and P&L are strictly in USD
-    const marginAmount = rawMargin;
-    const pnl = rawPnl; // Always in USD/USDT
+    const posCurrency = String(position.currency || "USDT").toUpperCase();
+    const isINR = posCurrency === "INR";
+    const currBadge = isINR
+        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
+        : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`;
 
     const pnlColorStyle = getPnlColorStyle(pnl);
     const pnlText = formatPnlValue(pnl, "USD");
@@ -6176,13 +6270,14 @@ function txBuildPositionRowHtml(position) {
     const tpValText = takeProfit > 0 ? formatNumber(takeProfit) : "-";
     const slValText = stopLoss > 0 ? formatNumber(stopLoss) : "-";
 
-    const marginDisplay = `${formatNumber(marginAmount, 2)}`;
+    const marginDisplay = `${formatNumber(rawMargin, 2)}`;
 
     return `
         <tr data-position-row="${txEscapeHtml(positionId)}">
             <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
                 <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                     <span>${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                    ${currBadge}
                 </div>
             </td>
             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(side)}">${txEscapeHtml(displaySide)}</td>
@@ -6190,7 +6285,7 @@ function txBuildPositionRowHtml(position) {
             <td class="rt-desktop-only" data-label="Avg" data-mobile-field="entry">${formatNumber(entryPrice, entryPrice < 1 ? 4 : 2)}</td>
             <td class="rt-desktop-only" data-label="LTP" data-mobile-field="mark" data-live-position-mark="${txEscapeHtml(positionId)}">${txFormatFastPrice(markPrice)}</td>
             <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${marginDisplay}</td>
-            <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x<br/><span class="text-[10px] text-slate-500 uppercase font-black">${txEscapeHtml(position.margin_mode || "isolated")}</span></td>
+            <td class="rt-desktop-only" data-label="Lev." data-mobile-field="leverage">${formatNumber(leverage, 0)}x<br/><span class="text-[10px] text-slate-500 uppercase font-black">${txEscapeHtml(position.margin_mode || position.marginMode || state.marginMode || "isolated")}</span></td>
             <td class="rt-desktop-only" data-label="Liq. Price" data-mobile-field="liquidation">${liquidationPrice > 0 ? formatNumber(liquidationPrice, liquidationPrice < 1 ? 4 : 2) : "--"}</td>
             <td class="rt-desktop-only" data-label="TP / SL" data-mobile-field="tp_sl">${tpText} / ${slText}</td>
             <td class="rt-desktop-only" data-label="P&L" data-mobile-field="pnl" ${pnlColorStyle} data-live-position-pnl="${txEscapeHtml(positionId)}">${pnlText}</td>
@@ -6206,6 +6301,7 @@ function txBuildPositionRowHtml(position) {
                     <div class="flex justify-between items-center mb-1.5">
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(symbol))}</span>
+                            ${currBadge}
                             <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(side)}">${displaySide} ${leverage}x</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -6249,7 +6345,7 @@ function txWirePositionRow(row) {
 
 function txUpdatePositionsDomCount() {
     if (!elements.terminalTable || state.activeBottomTab !== "positions") return;
-    const count = (TX_BACKEND_FUTURES.positions || []).length;
+    const count = txGetActivePositions().length;
     const subtitle = elements.terminalTable.querySelector(".rt-position-action-subtitle");
     if (subtitle) {
         subtitle.textContent = `${count} active position(s) · Live prices keep updating for every pair.`;
@@ -7125,10 +7221,10 @@ function txFormatFastPrice(price) {
     return formatNumber(numeric, numeric < 1 ? 6 : 2);
 }
 
-function txApplyPnlCell(cell, pnl, currency = "USDT") {
+function txApplyPnlCell(cell, pnl, currency = "USD") {
     if (!cell) return;
     const value = txToNumber(pnl, 0);
-    cell.textContent = formatPnlValue(value, currency === "INR" ? "INR" : "USD");
+    cell.textContent = formatPnlValue(value, "USD");
     cell.style.color = value >= 0 ? "#22c55e" : "#ff6b6b";
 }
 
@@ -7149,10 +7245,7 @@ function txUpdateVisibleRowsInPlace() {
         const livePrice = txGetLivePriceForSymbol(symbol, backendMarkPrice || entryPrice);
         const rawPnl = calculatePositionPnl(position);
 
-        // Detect currency of the position
-        const posCurrency = String(position.currency || "USDT").toUpperCase();
-        const rate = posCurrency === "INR" ? (TX_FUTURES_USDT_RATE || 88.50) : 1.0;
-        const pnl = rawPnl; // Always in USD/USDT
+        const pnl = rawPnl;
 
         const markCells = elements.terminalTable.querySelectorAll(`[data-live-position-mark="${txSafeCssId(positionId)}"]`);
         markCells.forEach(cell => {
@@ -7452,22 +7545,35 @@ async function refreshBackendFuturesData(force = false) {
         }
 
         if (positionsResult.status === "fulfilled") {
+            const now = Date.now();
+            if (!TX_BACKEND_FUTURES.recentPositions) TX_BACKEND_FUTURES.recentPositions = {};
+            Object.keys(TX_BACKEND_FUTURES.recentPositions).forEach((k) => {
+                if (now - txToNumber(TX_BACKEND_FUTURES.recentPositions[k]?.timestamp, 0) > 6000) {
+                    delete TX_BACKEND_FUTURES.recentPositions[k];
+                }
+            });
+
             const optimisticPositions = (TX_BACKEND_FUTURES.positions || []).filter((position) => {
                 return txIsLocalOptimisticPosition(position);
             });
+            const recentSavedPositions = Object.values(TX_BACKEND_FUTURES.recentPositions).map((entry) => entry.position);
+
             const serverPositions = (positionsResult.value.data.positions || []).map((position) => {
                 return txEnrichPositionWithTpSl(position);
             }).filter((position) => !txIsPendingClose(txGetId(position)));
 
-            TX_BACKEND_FUTURES.positions = TX_BACKEND_FUTURES.pendingCloseAll
-                ? []
-                : [
-                    ...optimisticPositions.filter((position) => !txIsPendingClose(txGetId(position))),
-                    ...serverPositions.filter((serverPosition) => {
-                        const id = txGetId(serverPosition);
-                        return !optimisticPositions.some((localPosition) => txGetId(localPosition) === id);
-                    })
-                ];
+            const mergedPositions = [];
+            const seenIds = new Set();
+
+            [...optimisticPositions, ...recentSavedPositions, ...serverPositions].forEach((pos) => {
+                const id = txGetId(pos);
+                if (!id || seenIds.has(id)) return;
+                if (txIsPendingClose(id)) return;
+                seenIds.add(id);
+                mergedPositions.push(pos);
+            });
+
+            TX_BACKEND_FUTURES.positions = TX_BACKEND_FUTURES.pendingCloseAll ? [] : mergedPositions;
 
             try {
                 const token = localStorage.getItem("traidiumx_auth_token") || "guest";
@@ -7548,6 +7654,7 @@ function goToFuturesWalletAction(action = "deposit") {
         }
         const depositModal = document.getElementById("txDepositChoiceModal");
         if (depositModal) {
+            depositModal.style.setProperty("display", "flex", "important");
             depositModal.classList.remove("hidden");
             depositModal.classList.add("flex");
             return;
@@ -7608,45 +7715,32 @@ function updateWalletUI() {
 
     const wallet = getWallet();
     const pnlSummary = TX_BACKEND_FUTURES.pnlSummary || {};
-    const livePositions = TX_BACKEND_FUTURES.positions || [];
+    const allPositions = txGetActivePositions();
+    const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const isINR = activeCurrency === "INR";
 
-    // All Futures trading positions belong to USD trading wallet
-    const filteredPositions = livePositions;
+    // Filter positions belonging to the selected trading currency (INR vs USD)
+    const selectedPositions = allPositions.filter((pos) => {
+        const posCurr = String(pos.currency || "USDT").toUpperCase();
+        return isINR ? posCurr === "INR" : (posCurr === "USDT" || posCurr === "USD");
+    });
 
-    const liveUnrealizedPnl = filteredPositions.reduce((total, position) => {
+    const selectedUnrealizedPnl = selectedPositions.reduce((total, position) => {
         return total + calculatePositionPnl(position);
     }, 0);
-    const unrealizedPnl = filteredPositions.length
-        ? liveUnrealizedPnl
-        : 0;
+    const unrealizedPnl = selectedUnrealizedPnl;
 
-    // Calculate Overall P&L (USDT + INR combined) for the right-side Overall Profit / Loss card
-    const overallLiveUnrealizedPnl = livePositions.reduce((total, position) => {
+    const overallUnrealizedPnl = allPositions.reduce((total, position) => {
         return total + calculatePositionPnl(position);
     }, 0);
-    const overallUnrealizedPnl = livePositions.length
-        ? overallLiveUnrealizedPnl
-        : txToNumber(pnlSummary.total_unrealized_pnl, 0);
 
-    const usedMargin = filteredPositions.length
-        ? filteredPositions.reduce((total, position) => total + txToNumber(position.margin_amount, 0), 0)
+    const usedMargin = selectedPositions.length
+        ? selectedPositions.reduce((total, position) => total + txToNumber(position.margin_amount, 0), 0)
         : 0;
 
-    const overallPnlBreakdown = txGetOverallPnlBreakdown(livePositions);
-    const overallTotalProfit = livePositions.length
-        ? overallPnlBreakdown.totalProfit
-        : Math.max(overallUnrealizedPnl, 0);
-    const overallTotalLoss = livePositions.length
-        ? overallPnlBreakdown.totalLoss
-        : Math.max(Math.abs(Math.min(overallUnrealizedPnl, 0)), 0);
-
-    const filteredPnlBreakdown = txGetOverallPnlBreakdown(filteredPositions);
-    const filteredTotalProfit = filteredPositions.length
-        ? filteredPnlBreakdown.totalProfit
-        : Math.max(unrealizedPnl, 0);
-    const filteredTotalLoss = filteredPositions.length
-        ? filteredPnlBreakdown.totalLoss
-        : Math.max(Math.abs(Math.min(unrealizedPnl, 0)), 0);
+    const filteredPnlBreakdown = txGetOverallPnlBreakdown(selectedPositions);
+    const filteredTotalProfit = filteredPnlBreakdown.totalProfit;
+    const filteredTotalLoss = filteredPnlBreakdown.totalLoss;
 
     if (elements.walletAvailable) {
         elements.walletAvailable.textContent = `${formatNumber(wallet.available, 2)} USD`;
@@ -7827,19 +7921,18 @@ function calculatePositionPnl(position) {
         return txToNumber(position.unrealized_pnl, 0);
     }
 
+    let diff = 0;
     if (side === "long" || side === "buy") {
-        return (current - entry) * qty;
+        diff = (current - entry) * qty;
+    } else if (side === "short" || side === "sell") {
+        diff = (entry - current) * qty;
     }
 
-    if (side === "short" || side === "sell") {
-        return (entry - current) * qty;
-    }
-
-    return txToNumber(position.unrealized_pnl, 0);
+    return diff;
 }
 
 function txGetOverallPnlBreakdown(customPositions) {
-    const positions = customPositions || TX_BACKEND_FUTURES.positions || [];
+    const positions = customPositions || txGetActivePositions();
     let totalProfit = 0;
     let totalLoss = 0;
     let netPnl = 0;
@@ -7849,17 +7942,20 @@ function txGetOverallPnlBreakdown(customPositions) {
         if (!Number.isFinite(pnl)) return;
 
         netPnl += pnl;
-        if (pnl > 0) {
-            totalProfit += pnl;
-        } else if (pnl < 0) {
-            totalLoss += Math.abs(pnl);
-        }
+        if (pnl > 0) totalProfit += pnl;
+        else if (pnl < 0) totalLoss += Math.abs(pnl);
     });
 
     return {
         totalProfit,
         totalLoss,
-        netPnl
+        netPnl,
+        totalProfitUsdt: totalProfit,
+        totalLossUsdt: totalLoss,
+        netPnlUsdt: netPnl,
+        totalProfitInr: totalProfit,
+        totalLossInr: totalLoss,
+        netPnlInr: netPnl
     };
 }
 
@@ -7912,6 +8008,7 @@ function placeOrderPayload() {
     const orderType = String(state.orderType || "MARKET").toLowerCase();
 
     const livePrice = Number(state.currentPrice || elements.markPrice?.textContent?.replace(/[^0-9.]/g, "") || 0);
+    const activeCurrency = String(localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
 
     const payload = {
         symbol: state.currentSymbol,
@@ -7920,6 +8017,7 @@ function placeOrderPayload() {
         quantity: qty,
         leverage: leverage,
         margin_mode: state.marginMode || "isolated",
+        currency: activeCurrency === "INR" ? "INR" : "USDT",
         reduce_only: false,
         has_tp_sl: tpSlEnabled,
         current_price: livePrice > 0 ? livePrice : undefined
@@ -8222,7 +8320,10 @@ function txBuildOptimisticOrder(payload = {}) {
         : txToNumber(payload.limit_price || state.currentPrice, 0);
     const qty = txToNumber(payload.quantity, 0);
     const leverage = txToNumber(payload.leverage, 1);
-    const margin = price > 0 && qty > 0 && leverage > 0 ? (price * qty) / leverage : 0;
+    const posCurrency = String(payload.currency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const baseMargin = price > 0 && qty > 0 && leverage > 0 ? (price * qty) / leverage : 0;
+    const margin = baseMargin;
+    const marginMode = payload.margin_mode || state.marginMode || "isolated";
 
     return {
         id,
@@ -8239,13 +8340,15 @@ function txBuildOptimisticOrder(payload = {}) {
         mark_price: txToNumber(state.currentPrice, price),
         margin_amount: margin,
         leverage,
+        margin_mode: marginMode,
+        marginMode: marginMode,
         take_profit: txToNumber(payload.take_profit, 0) || null,
         stop_loss: txToNumber(payload.stop_loss, 0) || null,
         has_tp_sl: Boolean(payload.has_tp_sl && (txToNumber(payload.take_profit, 0) || txToNumber(payload.stop_loss, 0))),
         status: orderType === "market" ? "filled" : "open",
         created_at: nowIso,
         createdAt: nowIso,
-        currency: "USDT",
+        currency: posCurrency === "INR" ? "INR" : "USDT",
         __optimistic: true
     };
 }
@@ -8300,7 +8403,10 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
 
     const qty = txToNumber(payload.quantity ?? order?.quantity, 0);
     const leverage = txToNumber(payload.leverage ?? order?.leverage, 1);
-    const margin = txToNumber(order?.margin_amount, price > 0 && qty > 0 && leverage > 0 ? (price * qty) / leverage : 0);
+    const posCurrency = String(payload.currency || order?.currency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const baseMargin = price > 0 && qty > 0 && leverage > 0 ? (price * qty) / leverage : 0;
+    const margin = txToNumber(order?.margin_amount, baseMargin);
+    const marginMode = payload.margin_mode || order?.margin_mode || state.marginMode || "isolated";
 
     return {
         id,
@@ -8317,6 +8423,8 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
         margin_amount: margin,
         margin,
         leverage,
+        margin_mode: marginMode,
+        marginMode: marginMode,
         liquidation_price: txEstimateLiquidationPrice(price, payload.side || state.side, leverage),
         liquidationPrice: txEstimateLiquidationPrice(price, payload.side || state.side, leverage),
         liq_price: txEstimateLiquidationPrice(price, payload.side || state.side, leverage),
@@ -8329,7 +8437,7 @@ function txBuildOptimisticPosition(payload = {}, order = null) {
         status: "open",
         opened_at: nowIso,
         created_at: nowIso,
-        currency: "USDT",
+        currency: posCurrency === "INR" ? "INR" : "USDT",
         __optimistic: true
     };
 }
@@ -8476,6 +8584,9 @@ function txResolveOptimisticOrder(response, payload = {}, optimistic = {}) {
     const backendPosition = data.position || null;
     const backendPositionId = txGetId(backendPosition);
 
+    TX_BACKEND_FUTURES.lastOrderActionAt = Date.now();
+    TX_BACKEND_FUTURES.suppressAutoRefreshUntil = Date.now() + 2500;
+
     TX_BACKEND_FUTURES.orders = txRemoveCacheItem(TX_BACKEND_FUTURES.orders || [], optimistic.orderId);
     TX_BACKEND_FUTURES.openOrders = txRemoveCacheItem(TX_BACKEND_FUTURES.openOrders || [], optimistic.orderId);
     if (optimistic.positionId) {
@@ -8497,6 +8608,13 @@ function txResolveOptimisticOrder(response, payload = {}, optimistic = {}) {
 
     if (response?.data?.position) {
         response.data.position = txEnrichPositionWithTpSl(response.data.position, payload, optimistic.positionId);
+        if (backendPositionId) {
+            if (!TX_BACKEND_FUTURES.recentPositions) TX_BACKEND_FUTURES.recentPositions = {};
+            TX_BACKEND_FUTURES.recentPositions[backendPositionId] = {
+                position: response.data.position,
+                timestamp: Date.now()
+            };
+        }
     }
 
     txApplyImmediateOrderResponse(response, payload);
@@ -8511,6 +8629,10 @@ function txApplyOptimisticClose(positionId) {
     const snapshot = txCloneFuturesState();
     const position = (TX_BACKEND_FUTURES.positions || []).find((item) => txGetId(item) === String(positionId));
 
+    if (TX_BACKEND_FUTURES.recentPositions && TX_BACKEND_FUTURES.recentPositions[String(positionId)]) {
+        delete TX_BACKEND_FUTURES.recentPositions[String(positionId)];
+    }
+
     txBeginOptimisticAction();
     txApplyOptimisticWalletClose(position);
     const removedDirectly = txRemovePositionRowImmediately(positionId);
@@ -8524,6 +8646,10 @@ function txApplyOptimisticClose(positionId) {
 function txApplyOptimisticCloseAll(positions = []) {
     const snapshot = txCloneFuturesState();
     const ids = positions.map((position) => txGetId(position)).filter(Boolean);
+
+    if (TX_BACKEND_FUTURES.recentPositions) {
+        TX_BACKEND_FUTURES.recentPositions = {};
+    }
 
     txBeginOptimisticAction();
     txApplyOptimisticWalletCloseMany(positions);
@@ -8566,6 +8692,10 @@ function txConsumePendingLocalClose(positionId) {
 
 function txApplyCloseResponseToCache(response, positionId) {
     const data = response?.data || {};
+
+    if (TX_BACKEND_FUTURES.recentPositions && TX_BACKEND_FUTURES.recentPositions[String(positionId)]) {
+        delete TX_BACKEND_FUTURES.recentPositions[String(positionId)];
+    }
 
     if (data.wallet) {
         TX_BACKEND_FUTURES.wallet = data.wallet;
@@ -8753,7 +8883,7 @@ function renderActiveBackendTableFromCache() {
 }
 
 function renderPositionsTable() {
-    const positions = TX_BACKEND_FUTURES.positions || [];
+    const positions = txGetActivePositions();
 
     if (!positions.length) {
         elements.terminalTable.innerHTML = `<div class="rt-empty-table">No open positions from backend.</div>`;
@@ -8801,7 +8931,7 @@ function renderPositionsTable() {
 }
 
 function renderOpenOrdersTable() {
-    const orders = TX_BACKEND_FUTURES.openOrders || [];
+    const orders = txGetActiveOpenOrders();
 
     if (!orders.length) {
         elements.terminalTable.innerHTML = `<div class="rt-empty-table">No open orders from backend.</div>`;
@@ -8831,16 +8961,26 @@ function renderOpenOrdersTable() {
                     const orderPrice = txToNumber(order.limit_price ?? order.average_fill_price ?? order.estimated_price ?? order.price, 0);
                     const backendMark = txToNumber(order.mark_price ?? order.current_price, 0);
                     const markPrice = txGetLivePriceForSymbol(order.symbol, backendMark || orderPrice);
+                    const isINR = String(order.currency || "USDT").toUpperCase() === "INR";
+                    const currBadge = isINR
+                        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
+                        : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`;
+
                     return `
                         <tr>
                             <td class="rt-desktop-only" data-label="Order Ref" data-mobile-field="reference">${txEscapeHtml(order.order_reference || orderId)}</td>
-                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">${txEscapeHtml(txFormatSymbol(order.symbol))}</td>
+                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
+                                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                    <span>${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                    ${currBadge}
+                                </div>
+                            </td>
                             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))}</td>
                             <td class="rt-desktop-only" data-label="Type" data-mobile-field="type">${txEscapeHtml(String(order.order_type || "--").toUpperCase())}</td>
                             <td class="rt-desktop-only" data-label="Order Price" data-mobile-field="price">${orderPrice > 0 ? formatNumber(orderPrice) : "Market"}</td>
                             <td class="rt-desktop-only" data-label="Mark" data-mobile-field="mark" data-live-order-mark="${txEscapeHtml(orderId)}">${txFormatFastPrice(markPrice)}</td>
                             <td class="rt-desktop-only" data-label="Qty" data-mobile-field="qty">${formatQty(order.quantity)}</td>
-                            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${formatNumber(order.margin_amount)} USDT</td>
+                            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${formatNumber(order.margin_amount)}</td>
                             <td class="rt-desktop-only" data-label="Status" data-mobile-field="status" class="${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</td>
                             <td class="rt-desktop-only" data-label="Action" data-mobile-field="action" class="flex gap-2">
                                 <button class="rt-table-action danger" type="button" data-cancel-order="${txEscapeHtml(orderId)}">Cancel</button>
@@ -8852,6 +8992,7 @@ function renderOpenOrdersTable() {
                                     <div class="flex justify-between items-center mb-1">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                            ${currBadge}
                                             <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))} · ${txEscapeHtml(String(order.order_type || "LIMIT").toUpperCase())}</span>
                                         </div>
                                         <div class="flex items-center gap-2">
@@ -8936,7 +9077,7 @@ function txRenderPaginationControls(container, totalItems, itemsPerPage, current
 }
 
 function renderOrderHistoryTable() {
-    const orders = TX_BACKEND_FUTURES.orders || [];
+    const orders = txGetActiveOrders();
 
     if (!orders.length) {
         elements.terminalTable.innerHTML = `<div class="rt-empty-table">No backend order history.</div>`;
@@ -8980,16 +9121,25 @@ function renderOrderHistoryTable() {
                 ${paginatedOrders.map((order) => {
                     const status = String(order.status || "filled").toLowerCase();
                     const price = txToNumber(order.limit_price ?? order.average_fill_price ?? order.estimated_price ?? order.price, 0);
+                    const isINR = String(order.currency || "USDT").toUpperCase() === "INR";
+                    const currBadge = isINR
+                        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
+                        : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`;
 
                     return `
                         <tr>
                             <td class="rt-desktop-only" data-label="Order Ref" data-mobile-field="reference">${txEscapeHtml(order.order_reference || txGetId(order))}</td>
-                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">${txEscapeHtml(txFormatSymbol(order.symbol))}</td>
+                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
+                                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                    <span>${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                    ${currBadge}
+                                </div>
+                            </td>
                             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))}</td>
                             <td class="rt-desktop-only" data-label="Type" data-mobile-field="type">${txEscapeHtml(String(order.order_type || "--").toUpperCase())}</td>
                             <td class="rt-desktop-only" data-label="Price" data-mobile-field="price">${price > 0 ? formatNumber(price) : "Market"}</td>
                             <td class="rt-desktop-only" data-label="Qty" data-mobile-field="qty">${formatQty(order.quantity)}</td>
-                            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${formatNumber(order.margin_amount)} USDT</td>
+                            <td class="rt-desktop-only" data-label="Margin" data-mobile-field="margin">${formatNumber(order.margin_amount)}</td>
                             <td class="rt-desktop-only" data-label="Status" data-mobile-field="status" class="${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</td>
                             <td class="rt-desktop-only" data-label="Time" data-mobile-field="time">${txFormatDateTime(order.created_at || order.createdAt)}</td>
                             
@@ -8999,6 +9149,7 @@ function renderOrderHistoryTable() {
                                     <div class="flex justify-between items-center mb-1">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(order.symbol))}</span>
+                                            ${currBadge}
                                             <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(order.side)}">${txEscapeHtml(txFormatSide(order.side))} · ${txEscapeHtml(String(order.order_type || "--").toUpperCase())}</span>
                                         </div>
                                         <span class="text-[11px] font-black ${txStatusClass(status)}">${txEscapeHtml(String(status).toUpperCase())}</span>
@@ -9027,7 +9178,7 @@ function renderOrderHistoryTable() {
 }
 
 function renderTradeHistoryTable() {
-    const trades = TX_BACKEND_FUTURES.trades || [];
+    const trades = txGetActiveTrades();
 
     if (!trades.length) {
         elements.terminalTable.innerHTML = `<div class="rt-empty-table">No backend trade history.</div>`;
@@ -9072,12 +9223,21 @@ function renderTradeHistoryTable() {
                     const pnl = txToNumber(trade.realized_pnl, 0);
                     const pnlColorStyle = getPnlColorStyle(pnl);
                     const pnlText = formatPnlValue(pnl);
+                    const isINR = String(trade.currency || "USDT").toUpperCase() === "INR";
+                    const currBadge = isINR
+                        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
+                        : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`;
 
                     return `
                         <tr>
                             <td class="rt-desktop-only" data-label="Trade Ref" data-mobile-field="reference">${txEscapeHtml(trade.trade_reference || txGetId(trade))}</td>
                             <td class="rt-desktop-only" data-label="Type" data-mobile-field="type">${txEscapeHtml(String(trade.trade_type || "--").toUpperCase())}</td>
-                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">${txEscapeHtml(txFormatSymbol(trade.symbol))}</td>
+                            <td class="rt-desktop-only" data-label="Pair" data-mobile-field="pair">
+                                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                    <span>${txEscapeHtml(txFormatSymbol(trade.symbol))}</span>
+                                    ${currBadge}
+                                </div>
+                            </td>
                             <td class="rt-desktop-only" data-label="Side" data-mobile-field="side" class="${txSideClass(trade.side)}">${txEscapeHtml(txFormatSide(trade.side))}</td>
                             <td class="rt-desktop-only" data-label="Price" data-mobile-field="price">${formatNumber(trade.price)}</td>
                             <td class="rt-desktop-only" data-label="Qty" data-mobile-field="qty">${formatQty(trade.quantity)}</td>
@@ -9091,6 +9251,7 @@ function renderTradeHistoryTable() {
                                     <div class="flex justify-between items-center mb-1">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="text-xs font-black text-white">${txEscapeHtml(txFormatSymbol(trade.symbol))}</span>
+                                            ${currBadge}
                                             <span class="text-[9.5px] font-black px-1.5 py-0.2 rounded bg-slate-900 border border-slate-800/80 ${txSideClass(trade.side)}">${txEscapeHtml(txFormatSide(trade.side))} · ${txEscapeHtml(String(trade.trade_type || "TRADE").toUpperCase())}</span>
                                         </div>
                                         <span class="text-xs font-black" ${pnlColorStyle}>${pnlText}</span>
@@ -9100,7 +9261,7 @@ function renderTradeHistoryTable() {
                                     <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 bg-slate-950/40 px-2 py-1 rounded-md border border-slate-800/40">
                                         <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">QTY</span><span class="font-mono text-white font-bold">${formatQty(trade.quantity)}</span></div>
                                         <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">PRICE</span><span class="font-mono text-white font-bold">${formatNumber(trade.price)}</span></div>
-                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">FEE</span><span class="font-mono text-slate-300 font-bold">${formatNumber(trade.fee_amount)}</span></div>
+                                        <div><span class="text-slate-500 text-[8.5px] font-bold mr-1">FEE</span><span class="font-mono text-white font-bold">${formatNumber(trade.fee_amount)}</span></div>
                                         <div class="text-[8.5px] text-slate-500 font-mono border-l border-slate-800 pl-1.5">#${txEscapeHtml(trade.trade_reference || txGetId(trade)).substring(0, 6)}</div>
                                     </div>
                                 </div>
@@ -10011,6 +10172,16 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     };
 
     let txSubAccountsLocalCache = [];
+    try {
+        const cachedSubsStr = localStorage.getItem("traidiumx_cached_sub_accounts");
+        if (cachedSubsStr) {
+            const parsed = JSON.parse(cachedSubsStr);
+            if (Array.isArray(parsed) && parsed.length) {
+                txSubAccountsLocalCache = parsed;
+            }
+        }
+    } catch (_) {}
+
     let txCustomAccountDropdownInitialized = false;
     let txCustomAccountCloseTimer = null;
 
@@ -10150,7 +10321,6 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             }
         }
 
-
         listEl.innerHTML = allAccounts.map(acc => {
             const isSelected = String(acc.id) === String(activeSubId);
             const isDemo = !!acc.is_demo;
@@ -10181,6 +10351,55 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         });
     }
 
+    function txPopulateSubAccountSelectors(subAccounts = [], activeSubId = "main") {
+        const selector = document.getElementById("tradingAccountSelector");
+        if (selector) {
+            selector.innerHTML = `<option value="main">Main Trading Account</option>`;
+            subAccounts.forEach(sub => {
+                const opt = document.createElement("option");
+                const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                opt.value = sub.id;
+                opt.textContent = isDemo ? `${sub.name} (Demo)` : sub.name;
+                selector.appendChild(opt);
+            });
+            const createOpt = document.createElement("option");
+            createOpt.value = "__create_new__";
+            createOpt.textContent = "+ Create Sub Account";
+            selector.appendChild(createOpt);
+            selector.value = activeSubId || "main";
+        }
+
+        txRenderCustomAccountDropdown(subAccounts, activeSubId || "main");
+
+        const mobSelector = document.getElementById("tradingAccountSelectorMobile");
+        if (mobSelector) {
+            mobSelector.innerHTML = `<option value="main">Main Account (Real)</option>`;
+            subAccounts.forEach(sub => {
+                const opt = document.createElement("option");
+                const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                opt.value = sub.id;
+                opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
+                mobSelector.appendChild(opt);
+            });
+            const mobCreateOpt = document.createElement("option");
+            mobCreateOpt.value = "__create_new__";
+            mobCreateOpt.textContent = "+ Create Sub Account";
+            mobSelector.appendChild(mobCreateOpt);
+            mobSelector.value = activeSubId || "main";
+        }
+
+        const transferSelect = document.getElementById("subTransferAccount");
+        if (transferSelect) {
+            transferSelect.innerHTML = `<option value="main">Main Trading Account</option>`;
+            subAccounts.forEach(sub => {
+                const opt = document.createElement("option");
+                opt.value = sub.id;
+                opt.textContent = sub.name;
+                transferSelect.appendChild(opt);
+            });
+        }
+    }
+
     function txInitCustomAccountDropdown() {
         if (txCustomAccountDropdownInitialized) return;
         txCustomAccountDropdownInitialized = true;
@@ -10191,6 +10410,10 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         const dropdownRoot = document.getElementById("txCustomAccountDropdown");
 
         if (!trigger || !menu) return;
+
+        // Immediately render with cached subaccounts (0ms latency)
+        const initialActiveSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+        txRenderCustomAccountDropdown(txSubAccountsLocalCache || [], initialActiveSubId);
 
         if (dropdownRoot && !dropdownRoot.__txHoverBound) {
             dropdownRoot.__txHoverBound = true;
@@ -10247,8 +10470,16 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
     async function txInitSubAccountsAndSelector() {
         if (!isLoggedIn()) return;
         txInitCustomAccountDropdown();
-        // Fetch live USDT rate on init
         txFetchFuturesUsdtRate();
+
+        let activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+
+        // 1. Instant 0ms cache population
+        if (Array.isArray(txSubAccountsLocalCache) && txSubAccountsLocalCache.length) {
+            txPopulateSubAccountSelectors(txSubAccountsLocalCache, activeSubId);
+        }
+
+        // 2. Fetch fresh sub accounts in background
         try {
             const selector = document.getElementById("tradingAccountSelector");
             if (!selector) return;
@@ -10256,58 +10487,12 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             const response = await apiRequest("/user/sub-accounts");
             const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
             txSubAccountsLocalCache = subAccounts;
-            
-            selector.innerHTML = `<option value="main">Main Trading Account</option>`;
-            subAccounts.forEach(sub => {
-                const opt = document.createElement("option");
-                const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
-                opt.value = sub.id;
-                opt.textContent = isDemo ? `${sub.name} (Demo)` : sub.name;
-                selector.appendChild(opt);
-            });
-            const createOpt = document.createElement("option");
-            createOpt.value = "__create_new__";
-            createOpt.textContent = "+ Create Sub Account";
-            selector.appendChild(createOpt);
-            
-            let activeSubId = localStorage.getItem("traidiumx_active_user_id");
-            if (activeSubId) {
-                selector.value = activeSubId;
-            } else {
-                selector.value = "main";
-            }
+            try {
+                localStorage.setItem("traidiumx_cached_sub_accounts", JSON.stringify(subAccounts));
+            } catch (_) {}
 
-            // Render custom sleek dropdown
-            txRenderCustomAccountDropdown(subAccounts, activeSubId || "main");
-
-            const mobSelector = document.getElementById("tradingAccountSelectorMobile");
-            if (mobSelector) {
-                mobSelector.innerHTML = `<option value="main">Main Account (Real)</option>`;
-                subAccounts.forEach(sub => {
-                    const opt = document.createElement("option");
-                    const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
-                    opt.value = sub.id;
-                    opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
-                    mobSelector.appendChild(opt);
-                });
-                const mobCreateOpt = document.createElement("option");
-                mobCreateOpt.value = "__create_new__";
-                mobCreateOpt.textContent = "+ Create Sub Account";
-                mobSelector.appendChild(mobCreateOpt);
-
-                mobSelector.value = activeSubId || "main";
-            }
-
-            const transferSelect = document.getElementById("subTransferAccount");
-            if (transferSelect) {
-                transferSelect.innerHTML = `<option value="main">Main Trading Account</option>`;
-                subAccounts.forEach(sub => {
-                    const opt = document.createElement("option");
-                    opt.value = sub.id;
-                    opt.textContent = sub.name;
-                    transferSelect.appendChild(opt);
-                });
-            }
+            activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+            txPopulateSubAccountSelectors(subAccounts, activeSubId);
         } catch (e) {
             console.error("Failed to load sub accounts:", e);
         }
@@ -10459,7 +10644,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             });
         }
 
-        const handleSubAccountSelectorChange = (e) => {
+        const handleSubAccountSelectorChange = async (e) => {
             const val = e.target.value;
             if (val === "__create_new__") {
                 const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
@@ -10468,16 +10653,33 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 return;
             }
 
+            let selectedName = "Main Trading Account";
             if (val === "main") {
                 localStorage.removeItem("traidiumx_active_user_id");
                 localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
             } else {
-                const selectedSub = txSubAccountsLocalCache.find(s => s.id === val);
-                const selectedName = selectedSub ? selectedSub.name : "Sub Account";
+                const selectedSub = (txSubAccountsLocalCache || []).find(s => String(s.id) === String(val));
+                selectedName = selectedSub ? selectedSub.name : "Sub Account";
                 localStorage.setItem("traidiumx_active_user_id", val);
                 localStorage.setItem("traidiumx_active_user_name", selectedName);
             }
-            window.location.reload();
+
+            const selector = document.getElementById("tradingAccountSelector");
+            if (selector) selector.value = val;
+            const mobSelector = document.getElementById("tradingAccountSelectorMobile");
+            if (mobSelector) mobSelector.value = val;
+
+            // Instantly 0ms update custom dropdown UI & demo flags
+            txRenderCustomAccountDropdown(txSubAccountsLocalCache || [], val);
+
+            // Instantly sync backend futures balances & data for the selected account
+            TX_BACKEND_FUTURES.walletLoaded = false;
+            await refreshBackendFuturesData(true);
+            updateWalletUI();
+            txUpdateFuturesWalletModalBalances();
+
+            window.dispatchEvent(new CustomEvent("traidiumx:account-changed", { detail: { accountId: val, accountName: selectedName } }));
+            window.dispatchEvent(new CustomEvent("traidiumx:wallet-sync"));
         };
 
         const selector = document.getElementById("tradingAccountSelector");
