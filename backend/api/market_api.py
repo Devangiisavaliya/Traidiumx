@@ -127,3 +127,50 @@ def trades(symbol):
         errors=result["errors"],
         status_code=result["status_code"]
     )
+
+
+@market_api.get("/research")
+def market_research():
+    from services.market_research_service import get_live_market_research_articles
+    articles = get_live_market_research_articles()
+    return success_response(
+        message="Live market research articles fetched successfully.",
+        data={"articles": articles}
+    )
+
+
+@market_api.get("/research/<article_id>")
+def market_research_detail(article_id):
+    from services.market_research_service import get_market_research_by_id
+    article = get_market_research_by_id(article_id)
+    if not article:
+        return error_response(
+            message="Research article not found.",
+            status_code=404
+        )
+    return success_response(
+        message="Research article fetched successfully.",
+        data={"article": article}
+    )
+
+
+@market_api.get("/news")
+def market_news():
+    from services.market_news_service import get_live_market_news
+    news_items = get_live_market_news()
+    return success_response(
+        message="Live market news fetched successfully.",
+        data={"news": news_items}
+    )
+
+
+@market_api.get("/events")
+def market_events():
+    from services.market_events_service import get_live_upcoming_events
+    events = get_live_upcoming_events()
+    return success_response(
+        message="Live upcoming events fetched successfully.",
+        data={"events": events}
+    )
+
+

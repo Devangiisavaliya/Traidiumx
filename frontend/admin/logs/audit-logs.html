@@ -15,6 +15,62 @@
 <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <title>Audit Logs | TraidiumX Admin</title>
+
+<style>
+    /* Audit table responsive styling - no horizontal scrollbar on standard desktop, full description */
+    body[data-admin-page="audit"] .admin-content,
+    body[data-admin-page="audit"] .table-wrap {
+        overflow-x: hidden !important;
+    }
+
+    body[data-admin-page="audit"] .audit-table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed;
+    }
+
+    body[data-admin-page="audit"] .audit-table th,
+    body[data-admin-page="audit"] .audit-table td {
+        padding: 12px 8px !important;
+        vertical-align: middle;
+        font-size: 12px !important;
+        line-height: 1.35;
+    }
+
+    body[data-admin-page="audit"] .audit-table th:nth-child(1),
+    body[data-admin-page="audit"] .audit-table td:nth-child(1) { width: 9%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(2),
+    body[data-admin-page="audit"] .audit-table td:nth-child(2) { width: 9%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(3),
+    body[data-admin-page="audit"] .audit-table td:nth-child(3) { width: 10%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(4),
+    body[data-admin-page="audit"] .audit-table td:nth-child(4) { width: 8%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(5),
+    body[data-admin-page="audit"] .audit-table td:nth-child(5) { width: 6%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(6),
+    body[data-admin-page="audit"] .audit-table td:nth-child(6) { width: 8%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(7),
+    body[data-admin-page="audit"] .audit-table td:nth-child(7) { width: 6%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(8),
+    body[data-admin-page="audit"] .audit-table td:nth-child(8) { width: 7%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(9),
+    body[data-admin-page="audit"] .audit-table td:nth-child(9) { width: 9%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(10),
+    body[data-admin-page="audit"] .audit-table td:nth-child(10) { width: 16%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(11),
+    body[data-admin-page="audit"] .audit-table td:nth-child(11) { width: 7%; }
+    body[data-admin-page="audit"] .audit-table th:nth-child(12),
+    body[data-admin-page="audit"] .audit-table td:nth-child(12) { width: 5%; text-align: right; }
+
+    @media (max-width: 1400px) {
+        body[data-admin-page="audit"] .table-wrap {
+            overflow-x: auto !important;
+        }
+        body[data-admin-page="audit"] .audit-table {
+            min-width: 1200px !important;
+        }
+    }
+</style>
 </head>
 <body data-admin-page="audit" data-page-title="Audit Logs" data-page-subtitle="Track admin actions and compliance history.">
     <div class="admin-shell">
@@ -182,9 +238,9 @@
 
         <form
             id="auditFilterForm"
-            class="grid gap-3 md:grid-cols-2 xl:grid-cols-8">
+            class="grid gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9">
 
-            <div class="xl:col-span-2">
+            <div class="xl:col-span-3">
 
                 <label class="mb-1 block text-xs font-black uppercase tracking-wide text-slate-400">
                     Search
@@ -263,10 +319,10 @@
 
             </div>
 
-            <div class="flex items-end gap-2 xl:col-span-8">
+            <div class="flex items-end gap-2 md:col-span-2 xl:col-span-2">
 
                 <button
-                    class="admin-btn admin-btn-primary"
+                    class="admin-btn admin-btn-primary flex-1 w-full whitespace-nowrap justify-center text-center"
                     type="submit">
 
                     Apply Filters
@@ -276,7 +332,7 @@
                 <button
                     id="auditResetBtn"
                     type="button"
-                    class="admin-btn">
+                    class="admin-btn flex-1 w-full whitespace-nowrap justify-center text-center">
 
                     Reset
 
@@ -330,9 +386,9 @@
 
     </div>
 
-    <div class="table-wrap overflow-x-auto">
+    <div class="table-wrap">
 
-        <table class="admin-table admin-table-wide min-w-[1700px]">
+        <table class="admin-table audit-table">
 
             <thead>
 
@@ -511,11 +567,11 @@
         </section>
     </div>
 
-<script src="/admin/static/js/admin-config.js"></script>
-<script src="/admin/static/js/admin-api.js"></script>
-<script src="/admin/static/js/admin-data.js"></script>
-<script src="/admin/static/js/admin-layout.js"></script>
-<script src="/admin/static/js/admin-logs.js?v=2"></script>
+<script src="/admin/static/js/admin-config.js?v=20261005"></script>
+<script src="/admin/static/js/admin-api.js?v=20261005"></script>
+<script src="/admin/static/js/admin-data.js?v=20261005"></script>
+<script src="/admin/static/js/admin-layout.js?v=20261005"></script>
+<script src="/admin/static/js/admin-logs.js?v=20261013_2"></script>
 
 </body>
 </html>

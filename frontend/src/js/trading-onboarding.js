@@ -11,6 +11,8 @@
         accountMode: "real",
         loading: false,
         onboardingCompleted: false,
+        subAccounts: [],
+        showExisting: false,
     };
 
     function esc(value) {
@@ -42,17 +44,19 @@
                 align-items: center !important;
                 justify-content: center !important;
                 padding: 16px !important;
-                background-color: rgba(2, 6, 23, 0.90) !important;
-                backdrop-filter: blur(14px) !important;
-                -webkit-backdrop-filter: blur(14px) !important;
+                background-color: rgba(0, 0, 0, 0.85) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                overflow: hidden !important;
             }
             .tx-ob-overlay.hidden { display: none !important; }
             .tx-ob-card {
                 width: 100% !important;
                 max-width: 860px !important;
                 max-height: 90vh !important;
+                height: auto !important;
                 background-color: #0c1220 !important;
-                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                border: 1px solid rgba(51, 65, 85, 0.8) !important;
                 border-radius: 24px !important;
                 box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(34, 211, 238, 0.1) !important;
                 display: flex !important;
@@ -67,7 +71,7 @@
             }
             .tx-ob-header {
                 background-color: #080d1a !important;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
                 padding: 16px 24px !important;
                 display: flex !important;
                 align-items: center !important;
@@ -77,22 +81,35 @@
             .tx-ob-body {
                 background-color: #0c1220 !important;
                 flex: 1 1 auto !important;
+                min-height: 0 !important;
                 overflow-y: auto !important;
+                overscroll-behavior: contain !important;
+                -webkit-overflow-scrolling: touch !important;
                 padding: 24px !important;
                 display: flex !important;
                 flex-direction: column !important;
                 gap: 20px !important;
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
+                scrollbar-width: thin !important;
+                scrollbar-color: rgba(34, 211, 238, 0.4) rgba(15, 23, 42, 0.6) !important;
             }
             .tx-ob-body::-webkit-scrollbar {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
+                width: 6px !important;
+                display: block !important;
+            }
+            .tx-ob-body::-webkit-scrollbar-track {
+                background: rgba(15, 23, 42, 0.6) !important;
+                border-radius: 9999px !important;
+            }
+            .tx-ob-body::-webkit-scrollbar-thumb {
+                background: rgba(34, 211, 238, 0.4) !important;
+                border-radius: 9999px !important;
+            }
+            .tx-ob-body::-webkit-scrollbar-thumb:hover {
+                background: rgba(34, 211, 238, 0.7) !important;
             }
             .tx-ob-footer {
                 background-color: #080d1a !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
                 padding: 16px 24px !important;
                 display: flex !important;
                 align-items: center !important;
@@ -112,31 +129,23 @@
                 user-select: none !important;
             }
             .tx-ob-plan-active {
-                background-color: #08172c !important;
+                background-color: #081526 !important;
                 border: 2px solid #22d3ee !important;
-                box-shadow: 0 0 24px rgba(34, 211, 238, 0.15) !important;
+                box-shadow: 0 0 20px rgba(34, 211, 238, 0.12) !important;
             }
             .tx-ob-plan-inactive {
                 background-color: #090e1a !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid #1e293b !important;
             }
             .tx-ob-plan-inactive:hover {
-                border-color: rgba(255, 255, 255, 0.18) !important;
-            }
-            .tx-ob-card-table {
-                background-color: #050914 !important;
-                border: 1px solid rgba(255, 255, 255, 0.06) !important;
-                border-radius: 12px !important;
-                padding: 10px !important;
-                margin-top: 12px !important;
-                font-size: 10px !important;
+                border-color: #334155 !important;
             }
             .tx-ob-input {
                 width: 100% !important;
                 background-color: #070c18 !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border: 1px solid #1e293b !important;
                 border-radius: 12px !important;
-                padding: 10px 14px !important;
+                padding: 10px 16px !important;
                 font-size: 13px !important;
                 font-weight: 600 !important;
                 color: #ffffff !important;
@@ -145,7 +154,6 @@
             }
             .tx-ob-input:focus {
                 border-color: #22d3ee !important;
-                box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.15) !important;
             }
         `;
         document.head.appendChild(style);
@@ -190,17 +198,19 @@
         const plans = data.plans || [];
         const isDemo = state.accountMode === "demo";
         const isMT5 = state.selectedPlatform === "mt5";
+        const subAccounts = state.subAccounts || [];
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id");
 
-        // Extract plan live values
+        // Plan live values
         const basicObj = plans.find(p => p.key === "basic") || { minimum_balance: 0, spread_value: 18 };
-        const stdObj = plans.find(p => p.key === "standard") || { minimum_balance: 2000, spread_value: 12 };
-        const advObj = plans.find(p => p.key === "advanced") || { minimum_balance: 5000, spread_value: 5 };
+        const stdObj = plans.find(p => p.key === "standard") || { minimum_balance: 5000, spread_value: 12 };
+        const advObj = plans.find(p => p.key === "advanced") || { minimum_balance: 500000, spread_value: 5 };
 
         root().innerHTML = `
-            <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Create trading account">
-                <div class="tx-ob-card">
+            <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Create new account" data-lenis-prevent="true">
+                <div class="tx-ob-card" data-lenis-prevent="true">
                     
-                    <!-- Header -->
+                    <!-- Modal Header -->
                     <div class="tx-ob-header">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 shrink-0">
@@ -216,10 +226,10 @@
                         </button>
                     </div>
 
-                    <!-- Body -->
-                    <div class="tx-ob-body custom-scrollbar">
+                    <!-- Modal Scrollable Body -->
+                    <div id="txObBody" class="tx-ob-body" data-lenis-prevent="true">
                         
-                        <!-- 1. Real / Demo Selector -->
+                        <!-- 1. Select a trading platform (Real / Demo Mode Toggle) -->
                         <div>
                             <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300 mb-2">
                                 <span>1. Select a trading platform</span>
@@ -235,12 +245,13 @@
                             </div>
                         </div>
 
-                        <!-- 2. Platform Selector (Real Mode) -->
+                        <!-- 2. Select platform -->
                         <div id="txObPlatformSection" class="${isDemo ? 'hidden' : ''}">
                             <div class="text-xs font-bold text-slate-300 mb-2">
                                 2. Select platform
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                
                                 <!-- TraidiumX 2.0 Card -->
                                 <div id="txObPlatPx" class="relative rounded-2xl p-4 transition cursor-pointer flex items-center justify-between ${!isMT5 ? 'border-2 border-cyan-400 bg-[#081526] shadow-[0_0_20px_rgba(34,211,238,0.12)]' : 'border border-slate-800 bg-[#090e1a] opacity-80 hover:opacity-100'}">
                                     <div class="flex items-center gap-3.5 min-w-0 pr-2">
@@ -250,7 +261,7 @@
                                         <div class="min-w-0">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-black text-white text-sm">TraidiumX 2.0</span>
-                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Active</span>
+                                                <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ACTIVE</span>
                                             </div>
                                             <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Trade crypto futures and options with advanced tools, low fees and high performance.</p>
                                         </div>
@@ -284,17 +295,17 @@
                         <!-- Account Name -->
                         <div>
                             <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
-                            <input id="txObAccountNameInput" type="text" value="${isDemo ? 'Demo Account' : 'Main Trading Account'}" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="tx-ob-input" />
+                            <input id="txObAccountNameInput" type="text" placeholder="Account Name (e.g. Scalping Strategy, Trading Sub 1)" class="tx-ob-input" />
                         </div>
 
-                        <!-- 3. Plan Selection (Real Mode) -->
+                        <!-- 3. Select account type (Real Mode) -->
                         <div id="txObRealPlanSection" class="${isDemo ? 'hidden' : ''} space-y-2.5">
                             <div class="text-xs font-bold text-slate-300 mb-2">
                                 3. Select account type
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                                 
-                                <!-- Basic Plan -->
+                                <!-- Basic Plan Card -->
                                 <div data-ob-plan="basic" class="tx-ob-plan-card ${state.selectedPlan === 'basic' ? 'tx-ob-plan-active' : 'tx-ob-plan-inactive'}">
                                     <div class="space-y-3">
                                         <div class="flex items-start justify-between gap-2">
@@ -310,11 +321,11 @@
                                         </div>
                                         <p class="text-[11px] leading-tight text-slate-400">Standard trading conditions ideal for beginners and casual traders.</p>
                                         
-                                        <!-- Key Metrics Box (Real Live Data) -->
+                                        <!-- Key Metrics Box -->
                                         <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
                                             <div class="flex items-center justify-between text-slate-300">
                                                 <span class="text-slate-400 font-medium">Crypto Spread</span>
-                                                <span class="font-bold text-emerald-400">${basicObj.spread_type === 'percentage' ? `${basicObj.spread_value}% Spread` : `Fixed ${basicObj.spread_value || 18} USDT`}</span>
+                                                <span class="font-bold text-emerald-400">Fixed 18 USDT</span>
                                             </div>
                                             <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
                                                 <span class="text-slate-400 font-medium">Max Leverage</span>
@@ -334,12 +345,12 @@
 
                                     <div class="mt-4 pt-3 border-t border-white/5">
                                         <div class="w-full py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-black text-center tracking-wide">
-                                            ${Number(basicObj.minimum_balance || 0) === 0 ? 'MIN $0.00' : `MIN $${money(basicObj.minimum_balance)}`}
+                                            MIN $0.00
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Standard Plan -->
+                                <!-- Standard Plan Card -->
                                 <div data-ob-plan="standard" class="tx-ob-plan-card ${state.selectedPlan === 'standard' ? 'tx-ob-plan-active' : 'tx-ob-plan-inactive'}">
                                     <div class="space-y-3">
                                         <div class="flex items-start justify-between gap-2">
@@ -350,7 +361,7 @@
                                                 <div class="min-w-0">
                                                     <div class="flex items-center gap-1.5">
                                                         <h4 class="text-sm font-black text-white">Standard</h4>
-                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">Popular</span>
+                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">POPULAR</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -360,11 +371,11 @@
                                         </div>
                                         <p class="text-[11px] leading-tight text-slate-400">Optimized tighter spreads and enhanced execution for active traders.</p>
                                         
-                                        <!-- Key Metrics Box (Real Live Data) -->
+                                        <!-- Key Metrics Box -->
                                         <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
                                             <div class="flex items-center justify-between text-slate-300">
                                                 <span class="text-slate-400 font-medium">Crypto Spread</span>
-                                                <span class="font-bold text-blue-400">${stdObj.spread_type === 'percentage' ? `${stdObj.spread_value}% Spread` : `Fixed ${stdObj.spread_value || 12} USDT`}</span>
+                                                <span class="font-bold text-blue-400">Fixed 12 USDT</span>
                                             </div>
                                             <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
                                                 <span class="text-slate-400 font-medium">Max Leverage</span>
@@ -384,12 +395,12 @@
 
                                     <div class="mt-4 pt-3 border-t border-white/5">
                                         <div class="w-full py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/40 text-xs font-black text-center tracking-wide">
-                                            MIN $${money(stdObj.minimum_balance || 2000)}
+                                            MIN $5,000.00
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Advanced Plan -->
+                                <!-- Advanced Plan Card -->
                                 <div data-ob-plan="advanced" class="tx-ob-plan-card ${state.selectedPlan === 'advanced' ? 'tx-ob-plan-active' : 'tx-ob-plan-inactive'}">
                                     <div class="space-y-3">
                                         <div class="flex items-start justify-between gap-2">
@@ -400,7 +411,7 @@
                                                 <div class="min-w-0">
                                                     <div class="flex items-center gap-1.5">
                                                         <h4 class="text-sm font-black text-white">Advanced</h4>
-                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Pro</span>
+                                                        <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP PRO</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -410,11 +421,11 @@
                                         </div>
                                         <p class="text-[11px] leading-tight text-slate-400">Institutional VIP conditions with lowest spreads for high-volume traders.</p>
                                         
-                                        <!-- Key Metrics Box (Real Live Data) -->
+                                        <!-- Key Metrics Box -->
                                         <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
                                             <div class="flex items-center justify-between text-slate-300">
                                                 <span class="text-slate-400 font-medium">Crypto Spread</span>
-                                                <span class="font-bold text-purple-400">${advObj.spread_type === 'percentage' ? `${advObj.spread_value}% Spread` : `Fixed ${advObj.spread_value || 5} USDT`}</span>
+                                                <span class="font-bold text-purple-400">Fixed 5 USDT</span>
                                             </div>
                                             <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
                                                 <span class="text-slate-400 font-medium">Max Leverage</span>
@@ -434,7 +445,7 @@
 
                                     <div class="mt-4 pt-3 border-t border-white/5">
                                         <div class="w-full py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-black text-center tracking-wide">
-                                            MIN $${money(advObj.minimum_balance || 5000)}
+                                            MIN $500,000.00
                                         </div>
                                     </div>
                                 </div>
@@ -457,12 +468,47 @@
                             </div>
                         </div>
 
+                        <!-- 5. Collapsible Existing Sub-Accounts Section -->
+                        <div class="border-t border-white/10 pt-3">
+                            <button type="button" id="txObExistingToggle" class="flex items-center justify-between w-full text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
+                                <span class="flex items-center gap-2">
+                                    <span>Your Existing Accounts</span>
+                                    <span id="txObExistingCountBadge" class="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-cyan-300 font-black">${subAccounts.length}</span>
+                                </span>
+                                <span id="txObExistingArrow" class="text-xs transition-transform duration-200 ${state.showExisting ? 'rotate-180' : ''}">▼</span>
+                            </button>
+                            <div id="txObExistingList" class="${state.showExisting ? '' : 'hidden'} mt-3 max-h-[220px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                ${subAccounts.length === 0 ? `
+                                    <p class="text-xs text-slate-500 font-semibold py-1">No existing accounts found.</p>
+                                ` : subAccounts.map(acc => {
+                                    const isCurrent = String(acc.id) === String(activeSubId);
+                                    const isAccDemo = acc.is_demo || acc.account_mode === "demo" || acc.plan === "demo";
+                                    return `
+                                        <div class="flex items-center justify-between p-2.5 rounded-xl ${isCurrent ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-[#050914] border border-slate-800/60'} hover:border-slate-700 transition">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase ${isAccDemo ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">${isAccDemo ? 'Demo' : 'Real'}</span>
+                                                <span class="font-bold text-xs text-white truncate">${esc(acc.name || 'Account #' + acc.id)}</span>
+                                                <span class="text-[10px] text-slate-400 uppercase font-semibold">(${esc(acc.platform || 'TraidiumX')} · ${esc(acc.plan || 'Basic')})</span>
+                                            </div>
+                                            <div>
+                                                ${isCurrent ? `
+                                                    <span class="text-[10px] font-black text-cyan-400 px-2 py-0.5 bg-cyan-500/10 rounded-full border border-cyan-500/20">Active</span>
+                                                ` : `
+                                                    <button type="button" data-ob-switch-id="${acc.id}" data-ob-switch-name="${esc(acc.name)}" class="px-3 py-1 rounded-lg text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition cursor-pointer border border-slate-700">Switch</button>
+                                                `}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join("")}
+                            </div>
+                        </div>
+
                         <!-- Feedback Message -->
                         <div id="txObMessage" class="hidden text-xs font-bold p-3 rounded-xl border"></div>
 
                     </div>
 
-                    <!-- Footer -->
+                    <!-- Modal Footer -->
                     <div class="tx-ob-footer">
                         <div class="flex items-center gap-2 text-xs text-slate-400 text-center sm:text-left">
                             <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -485,6 +531,17 @@
     }
 
     function bindEvents() {
+        // Prevent event trapping and enable smooth scrolling
+        const bodyEl = document.getElementById("txObBody");
+        if (bodyEl) {
+            bodyEl.addEventListener("wheel", (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+            bodyEl.addEventListener("touchmove", (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+        }
+
         // Close buttons
         document.getElementById("txObClose")?.addEventListener("click", hide);
         document.getElementById("txObBottomClose")?.addEventListener("click", hide);
@@ -514,6 +571,32 @@
             card.addEventListener("click", () => {
                 state.selectedPlan = card.getAttribute("data-ob-plan") || "basic";
                 renderModal();
+            });
+        });
+
+        // Existing accounts drawer toggle
+        document.getElementById("txObExistingToggle")?.addEventListener("click", () => {
+            state.showExisting = !state.showExisting;
+            const listEl = document.getElementById("txObExistingList");
+            const arrowEl = document.getElementById("txObExistingArrow");
+            if (listEl) listEl.classList.toggle("hidden", !state.showExisting);
+            if (arrowEl) arrowEl.classList.toggle("rotate-180", state.showExisting);
+        });
+
+        // Switch existing account
+        document.querySelectorAll("[data-ob-switch-id]").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const subId = btn.getAttribute("data-ob-switch-id");
+                const subName = btn.getAttribute("data-ob-switch-name") || "Account";
+                if (subId) {
+                    localStorage.setItem("traidiumx_active_user_id", subId);
+                    localStorage.setItem("traidiumx_active_user_name", subName);
+                    window.dispatchEvent(new CustomEvent("traidiumx:notifications-sync"));
+                    hide();
+                    if (window.location.pathname.includes("profile.html") || window.location.pathname.includes("wallet.html") || window.location.pathname.includes("futures.html")) {
+                        window.location.reload();
+                    }
+                }
             });
         });
 
@@ -553,7 +636,11 @@
                         localStorage.setItem("traidiumx_active_user_name", demoResp.data.name || "Demo Account");
                     }
                     hide();
-                    window.location.href = resolveAppPath("src/pages/futures.html");
+                    if (window.location.pathname.includes("profile.html")) {
+                        window.location.reload();
+                    } else {
+                        window.location.href = resolveAppPath("src/pages/futures.html");
+                    }
                     return;
                 }
 
@@ -562,7 +649,7 @@
                 const planResp = await apiRequest("/onboarding/plan", { method: "POST", body: JSON.stringify({ plan: state.selectedPlan }) });
                 
                 // Create sub-account record
-                await apiRequest("/user/sub-accounts", {
+                const subResp = await apiRequest("/user/sub-accounts", {
                     method: "POST",
                     body: JSON.stringify({
                         name: nameVal,
@@ -571,7 +658,12 @@
                         platform: state.selectedPlatform,
                         is_demo: false
                     })
-                }).catch(() => {});
+                }).catch(() => null);
+
+                if (subResp?.data?.id) {
+                    localStorage.setItem("traidiumx_active_user_id", subResp.data.id);
+                    localStorage.setItem("traidiumx_active_user_name", subResp.data.name || nameVal);
+                }
 
                 state.data = planResp.data || state.data;
                 setUserCache(state.data);
@@ -579,8 +671,8 @@
 
                 if (state.selectedPlatform === "mt5") {
                     root().innerHTML = `
-                        <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Trading account setup">
-                            <div class="tx-ob-card" style="max-width: 500px; text-align: center; padding: 32px; border: 1px solid rgba(34,211,238,0.2); background: #0f172a; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                        <div class="tx-ob-overlay" role="dialog" aria-modal="true" aria-label="Trading account setup" data-lenis-prevent="true">
+                            <div class="tx-ob-card" style="max-width: 500px; text-align: center; padding: 32px; border: 1px solid rgba(34,211,238,0.2); background: #0f172a; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);" data-lenis-prevent="true">
                                 <div style="display: inline-flex; height: 64px; width: 64px; align-items: center; justify-content: center; border-radius: 9999px; background: rgba(34,211,238,0.1); color: #22d3ee; margin-bottom: 24px;">
                                     <svg style="height: 32px; width: 32px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
@@ -599,11 +691,19 @@
                     
                     document.getElementById("txObGotIt")?.addEventListener("click", () => {
                         hide();
-                        window.location.href = resolveAppPath("src/pages/trading-account.html");
+                        if (window.location.pathname.includes("profile.html")) {
+                            window.location.reload();
+                        } else {
+                            window.location.href = resolveAppPath("src/pages/trading-account.html");
+                        }
                     });
                 } else {
                     hide();
-                    window.location.href = resolveAppPath("src/pages/futures.html");
+                    if (window.location.pathname.includes("profile.html")) {
+                        window.location.reload();
+                    } else {
+                        window.location.href = resolveAppPath("src/pages/futures.html");
+                    }
                 }
             } catch (err) {
                 if (msgEl) {
@@ -624,16 +724,10 @@
             state.selectedPlan = state.data.preferred_plan || "basic";
 
             if (forceOpen || !state.data.onboarding_complete) {
-                // Fetch dynamic live plans from backend
-                const configResp = await apiRequest("/onboarding/config").catch(() => null);
-                if (configResp?.data?.settings?.plans) {
-                    const pObj = configResp.data.settings.plans;
-                    state.data.plans = [
-                        pObj.basic || { key: "basic", name: "Basic", minimum_balance: 0, spread_value: 18 },
-                        pObj.standard || { key: "standard", name: "Standard", minimum_balance: 2000, spread_value: 12 },
-                        pObj.advanced || { key: "advanced", name: "Advanced", minimum_balance: 5000, spread_value: 5 },
-                    ];
-                }
+                // Fetch sub-accounts for the accordion
+                const subResp = await apiRequest("/user/sub-accounts").catch(() => null);
+                state.subAccounts = subResp?.data || [];
+
                 renderModal();
             } else {
                 hide();
@@ -643,7 +737,17 @@
         }
     }
 
-    window.openTradingAccountSetup = (startFromBeginning = false) => loadStatus(true);
+    window.openTradingAccountSetup = (startFromBeginning = false) => {
+        if (typeof openNavbarCreateSubModal === "function") {
+            openNavbarCreateSubModal();
+            return;
+        }
+        if (typeof navigateToProfileRoute === "function") {
+            navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
+            return;
+        }
+        window.location.href = (typeof resolveAppPath === "function" ? resolveAppPath("src/pages/wallet.html#sub-accounts") : "./wallet.html#sub-accounts");
+    };
 
     function start() {
         if (typeof isLoggedIn === "function" && isLoggedIn()) loadStatus(false);

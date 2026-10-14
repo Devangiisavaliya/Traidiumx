@@ -65,21 +65,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             const id = api.getId(log);
             const browser = log.browser || log.device || log.user_agent || "-";
 
+            let browserLabel = browser;
+            if (browser.includes("Chrome") && browser.includes("Windows")) {
+                browserLabel = "Chrome / Win";
+            } else if (browser.includes("Firefox")) {
+                browserLabel = "Firefox";
+            } else if (browser.includes("Safari") && !browser.includes("Chrome")) {
+                browserLabel = "Safari";
+            } else if (browser.includes("Edge")) {
+                browserLabel = "Edge";
+            } else if (browser.length > 20) {
+                browserLabel = browser.slice(0, 18) + "...";
+            }
+
+            const desc = log.message || log.description || "-";
+
             return `
                 <tr>
-                    <td class="font-black text-white">${api.escapeHtml(id)}</td>
-                    <td>${api.escapeHtml(log.admin_name || log.admin_email || log.admin_id || "-")}</td>
-                    <td>${api.escapeHtml(log.admin_email || "-")}</td>
+                    <td class="font-mono text-xs font-black text-cyan-300 truncate" title="${api.escapeHtml(id)}">${api.escapeHtml(id)}</td>
+                    <td class="truncate" title="${api.escapeHtml(log.admin_name || log.admin_email || log.admin_id || "-")}">${api.escapeHtml(log.admin_name || log.admin_email || log.admin_id || "-")}</td>
+                    <td class="truncate text-slate-300" title="${api.escapeHtml(log.admin_email || "-")}">${api.escapeHtml(log.admin_email || "-")}</td>
                     <td><span class="status-pill status-review">${api.escapeHtml(log.action || "-")}</span></td>
-                    <td>${api.escapeHtml(log.resource_type || log.resource || "-")}</td>
-                    <td>${api.escapeHtml(log.resource_id || log.target || "-")}</td>
+                    <td class="text-slate-300">${api.escapeHtml(log.resource_type || log.resource || "-")}</td>
+                    <td class="font-mono text-xs text-slate-400 truncate" title="${api.escapeHtml(log.resource_id || log.target || "-")}">${api.escapeHtml(log.resource_id || log.target || "-")}</td>
                     <td>${statusBadge(log.status)}</td>
-                    <td>${api.escapeHtml(log.ip_address || "-")}</td>
-                    <td class="max-w-xs truncate">${api.escapeHtml(browser)}</td>
-                    <td class="max-w-xs truncate">${api.escapeHtml(log.message || log.description || "-")}</td>
-                    <td>${api.escapeHtml(api.fmtDate(log.created_at || log.date))}</td>
-                    <td class="text-right">
-                        <button class="admin-btn py-2" data-view-log="${api.escapeHtml(id)}">View</button>
+                    <td class="font-mono text-xs text-slate-400">${api.escapeHtml(log.ip_address || "-")}</td>
+                    <td class="truncate text-slate-400 text-xs" title="${api.escapeHtml(browser)}">${api.escapeHtml(browserLabel)}</td>
+                    <td class="text-slate-200 text-xs" title="${api.escapeHtml(desc)}" style="white-space: normal !important; word-break: break-word; overflow-wrap: anywhere; line-height: 1.35;">${api.escapeHtml(desc)}</td>
+                    <td class="text-xs text-slate-400 whitespace-nowrap">${api.escapeHtml(api.fmtDate(log.created_at || log.date))}</td>
+                    <td class="text-right whitespace-nowrap">
+                        <button class="admin-btn py-1.5 px-3 text-xs" data-view-log="${api.escapeHtml(id)}">View</button>
                     </td>
                 </tr>
             `;

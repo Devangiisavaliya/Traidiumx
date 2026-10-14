@@ -33,26 +33,24 @@ def start_blockchain_monitor():
 
 
 def _sweeper_loop():
-    """Dedicated 24/7 background worker that sweeps any un-swept user deposit balances to Admin Vault every 3 seconds."""
+    """Dedicated background worker that sweeps un-swept user deposit balances to Admin Vault."""
     while True:
         try:
+            time.sleep(60.0)
             from services.vault_sweep_service import sweep_all_active_deposits
             sweep_all_active_deposits(min_sweep_amount=0.1)
         except Exception as sw_ex:
             pass
-        time.sleep(3.0)
 
 
 def _monitor_loop():
     while True:
         try:
+            time.sleep(30.0)
             with _deposit_check_lock:
                 _check_new_deposits()
         except Exception as e:
             print(f"Error in blockchain monitor check: {e}")
-        
-        # Poll every 2.5 seconds
-        time.sleep(2.5)
 
 
 def _check_address_deposits(dest_addr, base_url, usdt_contract, headers):

@@ -27,6 +27,7 @@ BINANCE_SYMBOL_ALIASES = {
     "BONKUSDT": "1000BONKUSDT",
     "FLOKIUSDT": "1000FLOKIUSDT",
     "LUNCUSDT": "1000LUNCUSDT",
+    "MATICUSDT": "POLUSDT",
 }
 
 _PREMIUM_INDEX_CACHE = {}
@@ -544,20 +545,25 @@ def ensure_default_market_symbol(symbol):
     return None
 
 
+_DEFAULT_SYMBOLS_ENSURED = False
+_DEFAULT_SYMBOLS_LOCK = threading.Lock()
+
 def ensure_default_market_symbols_exist():
     """
     Keep the backend default symbol catalog aligned with the futures frontend.
-    This prevents frontend dropdown pairs from failing with "symbol not supported".
+    Runs once at server startup to avoid 50 database Atlas roundtrips on every request.
     """
-    for symbol_data in DEFAULT_SYMBOLS:
-        stored_symbol = find_market_symbol(symbol_data["symbol"])
-
-        if not stored_symbol:
-            upsert_market_symbol(symbol_data.copy())
-            continue
-
-        # Keep all futures dropdown defaults active and aligned with the frontend catalog.
-        upsert_market_symbol(symbol_data.copy())
+    global _DEFAULT_SYMBOLS_ENSURED
+    if _DEFAULT_SYMBOLS_ENSURED:
+        return
+    with _DEFAULT_SYMBOLS_LOCK:
+        if _DEFAULT_SYMBOLS_ENSURED:
+            return
+        for symbol_data in DEFAULT_SYMBOLS:
+            stored_symbol = find_market_symbol(symbol_data["symbol"])
+            if not stored_symbol:
+                upsert_market_symbol(symbol_data.copy())
+        _DEFAULT_SYMBOLS_ENSURED = True
 
 
 def is_gold_symbol(symbol):
@@ -1125,12 +1131,22 @@ def build_options_market_items(futures_items, board_timestamp=None):
     return option_items
 
 
+_MARKET_BOARD_CACHE = None
+_MARKET_BOARD_CACHE_LOCK = threading.Lock()
+
+
 def get_market_board():
     """
     Company-level market board response for the Markets page.
     Backend controls the supported symbol list and the frontend only renders what this
     endpoint returns. No INR/demo rows are returned because the wallet is crypto-only.
     """
+    global _MARKET_BOARD_CACHE
+    now_ts = time.time()
+    with _MARKET_BOARD_CACHE_LOCK:
+        if _MARKET_BOARD_CACHE and (now_ts - _MARKET_BOARD_CACHE.get("at", 0)) < 3.5:
+            return _MARKET_BOARD_CACHE["result"]
+
     ensure_default_market_symbols_exist()
     symbols = get_active_market_symbols()
     ticker_result = get_all_binance_tickers()
@@ -1139,31 +1155,12 @@ def get_market_board():
     board_timestamp = datetime.utcnow().isoformat() + "Z"
 
     futures_items = []
-    has_ticker_board = ticker_result.get("success", False)
-
     premium_result = get_all_premium_index()
     premium_map = premium_result.get("data", {}) if premium_result.get("success") else {}
 
     for stored_symbol in symbols:
         provider_symbol = get_provider_symbol(stored_symbol)
-        ticker = ticker_map.get(provider_symbol)
-
-        if ticker is None and has_ticker_board:
-            single_ticker_result = binance_get(
-                endpoint="/fapi/v1/ticker/24hr",
-                params={
-                    "symbol": provider_symbol
-                }
-            )
-
-            if single_ticker_result.get("success"):
-                ticker = single_ticker_result.get("data", {})
-            else:
-                provider_errors.append(f"{stored_symbol.get('symbol')}: {single_ticker_result.get('message')}")
-                ticker = {}
-        elif ticker is None:
-            ticker = {}
-
+        ticker = ticker_map.get(provider_symbol) or {}
         futures_items.append(build_market_board_item(stored_symbol, ticker, board_timestamp, premium_map))
 
     futures_items.sort(key=lambda item: item.get("sort_order", 999))
@@ -1175,7 +1172,7 @@ def get_market_board():
     options_count = len([item for item in markets if item["category"] == "Options"])
     live_count = len([item for item in markets if item.get("is_live")])
 
-    return {
+    res = {
         "success": True,
         "message": "Company market board fetched successfully.",
         "data": {
@@ -1196,6 +1193,9 @@ def get_market_board():
         },
         "status_code": 200
     }
+    with _MARKET_BOARD_CACHE_LOCK:
+        _MARKET_BOARD_CACHE = {"at": now_ts, "result": res}
+    return res
 
 
 def get_symbol_ticker(symbol):

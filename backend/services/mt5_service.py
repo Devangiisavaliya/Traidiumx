@@ -630,7 +630,9 @@ def start_mt5_sync_worker():
     def _sync_loop():
         while True:
             try:
-                time.sleep(5)
+                time.sleep(60)
+                if not getattr(settings, "METAAPI_TOKEN", ""):
+                    continue
                 db = get_database()
                 active_accounts = list(db.mt5_accounts.find({"status": {"$in": ["connected", "active", "connection_pending"]}}))
                 for acc in active_accounts:
@@ -639,7 +641,7 @@ def start_mt5_sync_worker():
                         refresh_mt5_balance(str(u_id))
             except Exception as e:
                 print(f"MT5 background sync error: {e}")
-                time.sleep(10)
+                time.sleep(30)
 
     thread = threading.Thread(target=_sync_loop, daemon=True, name="MT5LiveSyncWorker")
     thread.start()

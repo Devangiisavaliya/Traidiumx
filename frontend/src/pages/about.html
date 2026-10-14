@@ -19,7 +19,7 @@
     <title>About Us | TraidiumX</title>
 
     <link rel="stylesheet" href="../../dist/output.css" />
-    <link rel="stylesheet" href="../css/custom.css" />
+    <link rel="stylesheet" href="../css/custom.css?v=17" />
     <link rel="stylesheet" href="../css/animations.css" />
     <link rel="stylesheet" href="../css/responsive.css" />
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
@@ -55,20 +55,15 @@
 
         <!-- HERO -->
         <section class="tx-scroll-reveal relative">
-            <div class="absolute inset-0 -z-10">
-                <div class="absolute left-0 top-0 h-96 w-96 rounded-full bg-cyan-500/20 blur-[120px]"></div>
-                <div class="absolute right-0 top-36 h-96 w-96 rounded-full bg-blue-600/20 blur-[120px]"></div>
-                <div class="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[150px]"></div>
+            <div class="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+                <div class="absolute -left-20 -top-20 h-[500px] w-[500px] rounded-full bg-cyan-500/15 blur-[150px]"></div>
+                <div class="absolute -right-20 top-20 h-[500px] w-[500px] rounded-full bg-blue-600/15 blur-[150px]"></div>
+                <div class="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[160px]"></div>
             </div>
 
             <div class="mx-auto grid min-h-[82vh] max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
 
                 <div class="tx-fade-up">
-                    <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-bold text-cyan-300">
-                        <span class="h-2 w-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50"></span>
-                        Built in India
-                    </div>
-
                     <h1 class="max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
                         Home to India’s crypto-native traders.
                     </h1>
@@ -95,8 +90,8 @@
                         </div>
 
                         <div class="about-main-stat">
-                            <h3>4.5★</h3>
-                            <p>App & Play Store</p>
+                            <h3><span class="about-counter" data-count="50">0</span>K+</h3>
+                            <p>Active Traders</p>
                         </div>
 
                         <div class="about-main-stat">
@@ -119,18 +114,18 @@
                             </div>
 
                             <div class="about-orbit about-orbit-one">
-                                <span>BTC</span>
-                                <span class="coin-bottom">XRP</span>
+                                <span><strong class="text-amber-400 font-black">₿</strong> BTC</span>
+                                <span class="coin-bottom"><strong class="text-sky-400 font-black">✕</strong> XRP</span>
                             </div>
 
                             <div class="about-orbit about-orbit-two">
-                                <span>ETH</span>
-                                <span class="coin-bottom">ADA</span>
+                                <span><strong class="text-cyan-400 font-black">Ξ</strong> ETH</span>
+                                <span class="coin-bottom"><strong class="text-blue-400 font-black">₳</strong> ADA</span>
                             </div>
 
                             <div class="about-orbit about-orbit-three">
-                                <span>SOL</span>
-                                <span class="coin-bottom">DOGE</span>
+                                <span><strong class="text-purple-400 font-black">◎</strong> SOL</span>
+                                <span class="coin-bottom"><strong class="text-amber-300 font-black">Ð</strong> DOGE</span>
                             </div>
                         </div>
 
@@ -404,7 +399,7 @@
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js"></script>
     <script src="../js/auth-state.js?v=79"></script>
-    <script src="../js/about.js"></script>
+    <script src="../js/about.js?v=12"></script>
     <script src="../js/responsive.js"></script>
     <script src="../js/lenis.min.js"></script>
     <script>

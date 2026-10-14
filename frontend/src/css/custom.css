@@ -2026,47 +2026,102 @@ details[open] {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(34, 211, 238, 0.28);
-    border-radius: 999px;
+    border: 1px dashed rgba(34, 211, 238, 0.35);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .about-orbit span {
     position: absolute;
-    top: -16px;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     border-radius: 999px;
-    background: rgba(34, 211, 238, 0.12);
-    padding: 5px 10px;
-    color: #67e8f9;
+    background: rgba(8, 17, 33, 0.92);
+    border: 1px solid rgba(34, 211, 238, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7), 0 0 12px rgba(34, 211, 238, 0.25);
+    padding: 4px 11px;
+    color: #e0f2fe;
     font-size: 11px;
-    font-weight: 950;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.about-orbit span.coin-bottom {
+    top: auto;
+    bottom: -15px;
 }
 
 .about-orbit-one {
-    height: 160px;
-    width: 160px;
-    animation: aboutOrbit 8s linear infinite;
+    height: 170px;
+    width: 170px;
+    animation: aboutOrbitCW 14s linear infinite;
+}
+
+.about-orbit-one > span {
+    animation: aboutOrbitCounterCW 14s linear infinite;
 }
 
 .about-orbit-two {
     height: 230px;
     width: 230px;
-    animation: aboutOrbit 12s linear infinite reverse;
+    animation: aboutOrbitCCW 19s linear infinite;
+}
+
+.about-orbit-two > span {
+    animation: aboutOrbitCounterCCW 19s linear infinite;
 }
 
 .about-orbit-three {
     height: 290px;
     width: 290px;
-    animation: aboutOrbit 16s linear infinite;
+    animation: aboutOrbitCW 25s linear infinite;
 }
 
-@keyframes aboutOrbit {
-    from {
-        transform: rotate(0deg) scaleX(1.24);
-    }
+.about-orbit-three > span {
+    animation: aboutOrbitCounterCW 25s linear infinite;
+}
 
+@keyframes aboutOrbitCW {
+    from {
+        transform: rotate(0deg);
+    }
     to {
-        transform: rotate(360deg) scaleX(1.24);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes aboutOrbitCCW {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes aboutOrbitCounterCW {
+    from {
+        transform: translateX(-50%) rotate(0deg);
+    }
+    to {
+        transform: translateX(-50%) rotate(-360deg);
+    }
+}
+
+@keyframes aboutOrbitCounterCCW {
+    from {
+        transform: translateX(-50%) rotate(0deg);
+    }
+    to {
+        transform: translateX(-50%) rotate(360deg);
     }
 }
 
@@ -10113,9 +10168,6 @@ div:has(> #txDepositSecurityNote) {
     background: rgba(34, 211, 238, 0.12) !important;
     color: #22d3ee !important;
     box-shadow: 0 0 12px rgba(34, 211, 238, 0.25) !important;
-}
-    font-weight: 900 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 .tx-nexus-stepper {

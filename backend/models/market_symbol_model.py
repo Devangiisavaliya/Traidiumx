@@ -31,12 +31,25 @@ def upsert_market_symbol(symbol_data):
     })
 
 
-def get_active_market_symbols():
-    symbols = get_market_symbols_collection().find({
-        "is_active": True
-    }).sort("sort_order", 1)
+import time
+import threading
 
-    return list(symbols)
+_ACTIVE_SYMBOLS_CACHE = None
+_ACTIVE_SYMBOLS_CACHE_TIME = 0.0
+_ACTIVE_SYMBOLS_LOCK = threading.Lock()
+
+def get_active_market_symbols():
+    global _ACTIVE_SYMBOLS_CACHE, _ACTIVE_SYMBOLS_CACHE_TIME
+    now = time.time()
+    with _ACTIVE_SYMBOLS_LOCK:
+        if _ACTIVE_SYMBOLS_CACHE is not None and (now - _ACTIVE_SYMBOLS_CACHE_TIME) < 30.0:
+            return list(_ACTIVE_SYMBOLS_CACHE)
+        symbols = list(get_market_symbols_collection().find({
+            "is_active": True
+        }).sort("sort_order", 1))
+        _ACTIVE_SYMBOLS_CACHE = symbols
+        _ACTIVE_SYMBOLS_CACHE_TIME = now
+        return list(symbols)
 
 
 def find_market_symbol(symbol):

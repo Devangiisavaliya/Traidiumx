@@ -11,6 +11,28 @@ def get_admin_audit_logs_collection():
     return get_database().admin_audit_logs
 
 
+import time as time_module
+
+_SUMMARY_CACHE = {
+    "data": None,
+    "expires_at": 0,
+}
+
+_FILTERS_CACHE = {
+    "data": None,
+    "expires_at": 0,
+}
+
+
+def invalidate_audit_cache(status="success"):
+    _FILTERS_CACHE["expires_at"] = 0
+    if _SUMMARY_CACHE["data"]:
+        _SUMMARY_CACHE["data"]["total"] = _SUMMARY_CACHE["data"].get("total", 0) + 1
+        _SUMMARY_CACHE["data"]["today"] = _SUMMARY_CACHE["data"].get("today", 0) + 1
+        if status in ["failed", "failure", "error"]:
+            _SUMMARY_CACHE["data"]["failed"] = _SUMMARY_CACHE["data"].get("failed", 0) + 1
+
+
 def create_admin_audit_log(
     admin_id=None,
     admin_email="",
@@ -36,6 +58,7 @@ def create_admin_audit_log(
     }
 
     result = get_admin_audit_logs_collection().insert_one(log_data)
+    invalidate_audit_cache(status)
     return result.inserted_id
 
 
@@ -123,6 +146,10 @@ def _build_audit_query(
 
 
 def _summary(collection):
+    now = time_module.time()
+    if _SUMMARY_CACHE["data"] and now < _SUMMARY_CACHE["expires_at"]:
+        return _SUMMARY_CACHE["data"]
+
     today_start = datetime.combine(datetime.utcnow().date(), time.min)
     today_end = today_start + timedelta(days=1)
 
@@ -136,7 +163,7 @@ def _summary(collection):
         "$options": "i",
     }
 
-    return {
+    data = {
         "total": collection.count_documents({}),
         "today": collection.count_documents(
             {"created_at": {"$gte": today_start, "$lt": today_end}}
@@ -154,6 +181,27 @@ def _summary(collection):
             {"$or": [{"action": critical_regex}, {"resource_type": critical_regex}]}
         ),
     }
+
+    _SUMMARY_CACHE["data"] = data
+    _SUMMARY_CACHE["expires_at"] = now + 300
+    return data
+
+
+def _filters(collection):
+    now = time_module.time()
+    if _FILTERS_CACHE["data"] and now < _FILTERS_CACHE["expires_at"]:
+        return _FILTERS_CACHE["data"]
+
+    actions = sorted([item for item in collection.distinct("action") if item])
+    resource_types = sorted([item for item in collection.distinct("resource_type") if item])
+
+    data = {
+        "actions": actions,
+        "resource_types": resource_types,
+    }
+    _FILTERS_CACHE["data"] = data
+    _FILTERS_CACHE["expires_at"] = now + 600
+    return data
 
 
 def list_admin_audit_logs(
@@ -182,7 +230,8 @@ def list_admin_audit_logs(
         date_to=date_to,
     )
 
-    total = collection.count_documents(query)
+    summary_data = _summary(collection)
+    total = summary_data.get("total", 0) if not query else collection.count_documents(query)
     pages = (total + limit - 1) // limit if limit else 1
 
     logs = list(
@@ -192,16 +241,10 @@ def list_admin_audit_logs(
         .limit(limit)
     )
 
-    actions = sorted([item for item in collection.distinct("action") if item])
-    resource_types = sorted([item for item in collection.distinct("resource_type") if item])
-
     return {
         "logs": serialize_documents(logs),
-        "summary": _summary(collection),
-        "filters": {
-            "actions": actions,
-            "resource_types": resource_types,
-        },
+        "summary": summary_data,
+        "filters": _filters(collection),
         "pagination": {
             "page": page,
             "limit": limit,

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>How to Deposit Funds? | TraidiumX Help Center</title>
+
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
+
+    <!-- Tailwind Output CSS -->
+    <link rel="stylesheet" href="../../dist/output.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/custom.css?v=60" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Lenis Smooth Scroll Configuration */
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
+        .tx-step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 900;
+            background: rgba(34, 211, 238, 0.15);
+            color: #67e8f9;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Buttery Smooth Accordion Animation */
+        .tx-accordion-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, border-color 0.3s ease;
+            opacity: 0;
+            border-top: 1px solid transparent;
+        }
+
+        .tx-accordion-wrapper.is-open {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .tx-accordion-inner {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .tx-toggle-btn {
+            background: transparent !important;
+            border: none !important;
+            color: #22d3ee !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .tx-toggle-btn:hover {
+            color: #67e8f9 !important;
+        }
+
+        .tx-toggle-arrow {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #22d3ee !important;
+        }
+
+        .tx-toggle-btn.is-active .tx-toggle-arrow {
+            transform: rotate(90deg);
+        }
+
+        .tx-toggle-btn.is-active {
+            background: transparent !important;
+            border: none !important;
+            color: #22d3ee !important;
+            box-shadow: none !important;
+        }
+
+        /* High-visibility Action CTA Buttons */
+        .tx-action-btn-cyan {
+            background: #22d3ee !important;
+            color: #020617 !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 18px rgba(34, 211, 238, 0.35) !important;
+            border: 1px solid rgba(34, 211, 238, 0.5) !important;
+        }
+        .tx-action-btn-cyan:hover {
+            background: #67e8f9 !important;
+            box-shadow: 0 6px 24px rgba(34, 211, 238, 0.6) !important;
+            transform: translateY(-1px);
+        }
+
+        .tx-action-btn-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+            color: #020617 !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35) !important;
+            border: 1px solid rgba(52, 211, 153, 0.4) !important;
+        }
+        .tx-action-btn-emerald:hover {
+            background: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%) !important;
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Generous Spacing Overrides to Prevent Elements Touching */
+        .tx-guide-block {
+            margin-top: 2rem !important;
+        }
+
+        .tx-kyc-callout {
+            margin: 2.25rem 0 !important;
+        }
+
+        .tx-guide-section {
+            margin-top: 3.25rem !important;
+        }
+
+        .tx-card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .tx-page-main {
+            padding-bottom: 7.5rem !important;
+        }
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-black" data-page="help">
+
+    <!-- Ambient Glowing Background -->
+    <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div class="absolute -left-20 top-10 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[150px]"></div>
+        <div class="absolute -right-20 top-40 h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-[150px]"></div>
+        <div class="absolute left-1/3 bottom-10 h-[400px] w-[400px] rounded-full bg-emerald-500/08 blur-[150px]"></div>
+    </div>
+
+    <!-- Reusable Navbar Component -->
+    <div data-component="navbar"></div>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 overflow-hidden pt-32 sm:pt-36 tx-page-main">
+        <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+
+            <!-- Top Back Link -->
+            <div class="mb-8">
+                <a href="./wallet.html" onclick="if(window.history.length > 1){window.history.back(); return false;}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer group">
+                    <span class="group-hover:-translate-x-1 transition-transform duration-200">←</span>
+                    <span>Back to Wallet</span>
+                </a>
+            </div>
+
+            <!-- Main Article Card -->
+            <article>
+                
+                <!-- Title & Meta Header -->
+                <div class="space-y-3">
+                    <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                        How to deposit funds?
+                    </h1>
+                    <div class="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-400 pt-1">
+                        <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            100% Free &amp; Instant Credit
+                        </span>
+                        <span class="text-slate-600">•</span>
+                        <span>0% Deposit Fees</span>
+                    </div>
+                </div>
+
+                <div class="h-px bg-white/10 w-full" style="margin: 2.25rem 0 !important;"></div>
+
+                <!-- Intro Description with clear line separation -->
+                <div class="text-slate-300 text-sm sm:text-base leading-relaxed" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <p>
+                        At <strong class="text-white font-bold">TraidiumX</strong>, we provide institutional-grade security and ultra-fast deposit channels. You can deposit funds using <strong class="text-amber-300 font-semibold">Cryptocurrency</strong> (USDT, BTC, ETH, SOL, BNB) or <strong class="text-emerald-300 font-semibold">Fiat Money</strong> (INR via instant UPI, Net Banking, and Bank Transfer).
+                    </p>
+                    <p>
+                        All deposits are credited with <strong class="text-white font-semibold">0% processing fee</strong> directly to your <strong class="text-cyan-300 font-semibold">TraidiumX Main Wallet</strong>. From there, you can instantly allocate funds to your Futures, Options, MT5, or Sub-Accounts with zero transfer fees.
+                    </p>
+                </div>
+
+                <!-- KYC Callout Box with generous vertical space -->
+                <div class="tx-kyc-callout rounded-2xl border border-cyan-400/40 bg-gradient-to-r from-cyan-950/35 via-[#071322]/90 to-blue-950/25 p-4 sm:p-5 backdrop-blur-xl shadow-[0_0_20px_rgba(34,211,238,0.12)] flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-400/15 border border-cyan-400/40 flex items-center justify-center shrink-0 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.25)]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="text-xs sm:text-sm text-slate-200 leading-relaxed pt-0.5">
+                        <strong class="text-white font-bold">Quick Verification Tip:</strong> For higher limits and seamless INR withdrawals, please complete your basic KYC identity verification in 
+                        <a href="./kyc.html" class="font-bold text-cyan-300 underline hover:text-cyan-200 transition">
+                            Profile &rarr; Verification
+                        </a>. It only takes under 2 minutes.
+                    </div>
+                </div>
+
+                <!-- Deposit Methods Section -->
+                <div class="tx-guide-section">
+                    <h2 class="text-lg sm:text-2xl font-black text-white flex items-center gap-2">
+                        <span>Select a Deposit Method:</span>
+                    </h2>
+
+                    <div class="tx-card-stack">
+                        <!-- Option 1: Crypto -->
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/90 overflow-hidden shadow-xl transition hover:border-amber-500/30">
+                            <div class="p-6 sm:p-7">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg font-black shrink-0 shadow-inner">
+                                            ₿
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-base sm:text-lg font-black text-white">Deposit Crypto (USDT, BTC, ETH, SOL)</h3>
+                                            <p class="text-xs sm:text-sm text-slate-400 font-medium">TRC20, BEP20, ERC20, Polygon &amp; Solana Networks</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="toggleDepositSteps('cryptoSteps', this)" class="tx-toggle-btn inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer shrink-0 whitespace-nowrap">
+                                        <span class="tx-toggle-text whitespace-nowrap">Show steps</span>
+                                        <span class="tx-toggle-arrow font-mono text-sm">›</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Crypto Steps (Collapsible with Smooth Animation) -->
+                            <div id="cryptoSteps" class="tx-accordion-wrapper bg-white/[0.015]">
+                                <div class="tx-accordion-inner">
+                                    <div class="px-6 sm:px-7 pb-7 pt-4 space-y-4">
+                                        <div class="space-y-3.5 text-xs sm:text-sm text-slate-300 pl-1">
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">1</span>
+                                                <p class="leading-relaxed">Go to your <a href="./wallet.html" class="text-cyan-300 font-bold hover:underline">TraidiumX Wallet</a> and click the <strong class="text-white">Deposit</strong> button.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">2</span>
+                                                <p class="leading-relaxed">Select <strong class="text-white">Crypto Deposit</strong> and choose your coin (e.g., <strong class="text-emerald-400">USDT</strong>, BTC, ETH).</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">3</span>
+                                                <p class="leading-relaxed">Select your preferred network (e.g., <strong class="text-amber-400">TRC20, BEP20, ERC20</strong>). Make sure the network matches your sender wallet.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">4</span>
+                                                <p class="leading-relaxed">Copy your personal deposit wallet address or scan the dynamic QR code with Binance, Trust Wallet, MetaMask, or any exchange.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">5</span>
+                                                <p class="leading-relaxed">Confirm the withdrawal from your external wallet. Your TraidiumX Main Wallet will be automatically credited within 1-3 network confirmations.</p>
+                                            </div>
+                                        </div>
+                                        <div class="pt-3 pl-1 flex items-center gap-3">
+                                            <a href="./wallet.html" class="tx-action-btn-cyan inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95">
+                                                <span>Go to Deposit Crypto</span>
+                                                <span>&rarr;</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2: INR / Fiat -->
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/90 overflow-hidden shadow-xl transition hover:border-emerald-500/30">
+                            <div class="p-6 sm:p-7">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg font-black shrink-0 shadow-inner">
+                                            ₹
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-base sm:text-lg font-black text-white">Deposit Money (INR via UPI &amp; Bank Transfer)</h3>
+                                            <p class="text-xs sm:text-sm text-slate-400 font-medium">GPay, PhonePe, Paytm, BHIM, IMPS &amp; Net Banking</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="toggleDepositSteps('fiatSteps', this)" class="tx-toggle-btn inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer shrink-0 whitespace-nowrap">
+                                        <span class="tx-toggle-text whitespace-nowrap">Show steps</span>
+                                        <span class="tx-toggle-arrow font-mono text-sm">›</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Fiat Steps (Collapsible with Smooth Animation) -->
+                            <div id="fiatSteps" class="tx-accordion-wrapper bg-white/[0.015]">
+                                <div class="tx-accordion-inner">
+                                    <div class="px-6 sm:px-7 pb-7 pt-4 space-y-4">
+                                        <div class="space-y-3.5 text-xs sm:text-sm text-slate-300 pl-1">
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">1</span>
+                                                <p class="leading-relaxed">Go to <a href="./wallet.html" class="text-cyan-300 font-bold hover:underline">TraidiumX Wallet</a> and click <strong class="text-white">Deposit &rarr; Deposit Money (INR)</strong>.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">2</span>
+                                                <p class="leading-relaxed">Enter the amount in INR (e.g. ₹1,000 to ₹5,000,000). The live USD conversion rate is calculated with <strong class="text-emerald-400">0% conversion markup</strong>.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">3</span>
+                                                <p class="leading-relaxed">Choose <strong class="text-white">Instant UPI QR</strong> or <strong class="text-white">Bank IMPS / RTGS</strong>. Open Google Pay, PhonePe, or Paytm and complete the payment.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">4</span>
+                                                <p class="leading-relaxed">Enter the 12-digit <strong class="text-cyan-300">UTR / Transaction Reference Number</strong> in the verification box and click Submit.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">5</span>
+                                                <p class="leading-relaxed">Our automated reconciliation engine verifies the UTR and credits your wallet in 30-60 seconds.</p>
+                                            </div>
+                                        </div>
+                                        <div class="pt-3 pl-1 flex items-center gap-3">
+                                            <a href="./wallet.html" class="tx-action-btn-emerald inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95">
+                                                <span>Go to Deposit INR</span>
+                                                <span>&rarr;</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 3: Internal Transfers -->
+                        <div class="rounded-3xl border border-white/10 bg-[#07111f]/90 overflow-hidden shadow-xl transition hover:border-cyan-500/30">
+                            <div class="p-6 sm:p-7">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg font-black shrink-0 shadow-inner">
+                                            ⇄
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="text-base sm:text-lg font-black text-white">Internal Transfer to Trading Accounts</h3>
+                                            <p class="text-xs sm:text-sm text-slate-400 font-medium">Instant 0-Fee transfer between Main Wallet, Futures, MT5 &amp; Sub-Accounts</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="toggleDepositSteps('transferSteps', this)" class="tx-toggle-btn inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer shrink-0 whitespace-nowrap">
+                                        <span class="tx-toggle-text whitespace-nowrap">Show steps</span>
+                                        <span class="tx-toggle-arrow font-mono text-sm">›</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Transfer Steps (Collapsible with Smooth Animation) -->
+                            <div id="transferSteps" class="tx-accordion-wrapper bg-white/[0.015]">
+                                <div class="tx-accordion-inner">
+                                    <div class="px-6 sm:px-7 pb-7 pt-4 space-y-4">
+                                        <div class="space-y-3.5 text-xs sm:text-sm text-slate-300 pl-1">
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">1</span>
+                                                <p class="leading-relaxed">Click on the <strong class="text-white">Transfer</strong> button on your wallet overview.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">2</span>
+                                                <p class="leading-relaxed">Select the source account (e.g. <strong class="text-cyan-300">Main Wallet</strong>) and the destination account (e.g. <strong class="text-emerald-400">Futures Trading Account</strong> or <strong class="text-purple-300">MetaTrader 5</strong>).</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="tx-step-number">3</span>
+                                                <p class="leading-relaxed">Enter the amount and confirm. Transfers are processed in 0 seconds with zero charges.</p>
+                                            </div>
+                                        </div>
+                                        <div class="pt-3 pl-1 flex items-center gap-3">
+                                            <a href="./wallet.html" class="tx-action-btn-cyan inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition active:scale-95">
+                                                <span>Transfer Funds Now</span>
+                                                <span>&rarr;</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Important Safety Notes Box -->
+                <div class="tx-guide-section rounded-3xl border border-slate-700/60 bg-[#0c1220] p-6 sm:p-7 space-y-4 shadow-xl">
+                    <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0 shadow-inner">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </span>
+                        <span>Important Security Guidelines</span>
+                    </h3>
+                    <ul class="space-y-2.5 text-xs sm:text-sm text-slate-300">
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-2 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></span>
+                            <span class="leading-relaxed">Always double check the blockchain network (e.g., TRC20 vs ERC20) before transferring crypto.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-2 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></span>
+                            <span class="leading-relaxed">For INR deposits, always paste the exact 12-digit UTR provided by your bank app.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-2 shadow-[0_0_8px_rgba(34,211,238,0.6)]"></span>
+                            <span class="leading-relaxed"><strong class="text-cyan-400">TraidiumX staff</strong> will never ask for your account password, 2FA codes, or private keys.</span>
+                        </li>
+                    </ul>
+                </div>
+            </article>
+
+        </div>
+    </main>
+    <!-- ================= MAIN END ================= -->
+
+    <!-- Reusable Footer Component -->
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js?v=21"></script>
+    <script src="../js/auth-state.js?v=87"></script>
+    <script src="../js/responsive.js"></script>
+    <script src="../js/lenis.min.js"></script>
+
+    <script>
+        // Smooth scroll
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    smooth: true,
+                });
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+            }
+        })();
+
+        // Buttery-Smooth Accordion Toggle
+        function toggleDepositSteps(stepId, btn) {
+            const wrapper = document.getElementById(stepId);
+            if (!wrapper) return;
+            const isOpen = wrapper.classList.contains("is-open");
+            const textEl = btn.querySelector(".tx-toggle-text");
+
+            if (isOpen) {
+                wrapper.classList.remove("is-open");
+                btn.classList.remove("is-active");
+                if (textEl) textEl.textContent = "Show steps";
+            } else {
+                wrapper.classList.add("is-open");
+                btn.classList.add("is-active");
+                if (textEl) textEl.textContent = "Hide steps";
+            }
+        }
+    </script>
+</body>
+</html>

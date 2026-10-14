@@ -30,9 +30,19 @@
         }
     }
 
+    const apiBaseOrigin = (() => {
+        const { protocol, hostname, port, origin } = window.location;
+        const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
+        if (isLocalHost && port && port !== "5000") {
+            return `${protocol}//${hostname}:5000`;
+        }
+        return origin || "http://127.0.0.1:5000";
+    })();
+
     function isLoginPage() {
         const path = window.location.pathname;
         return path === loginUrl
+            || path === "/admin/login"
             || path === "/admin/register"
             || path === "/admin/forgot-password"
             || path.endsWith("/auth/login.html")
@@ -42,7 +52,10 @@
 
     function requireAuth() {
         if (!isLoginPage() && !getToken()) {
-            window.location.href = loginUrl;
+            const redirectTarget = window.location.port === "5500" 
+                ? "/frontend/admin/auth/login.html" 
+                : loginUrl;
+            window.location.href = redirectTarget;
             return false;
         }
         return true;
@@ -51,7 +64,7 @@
     function buildUrl(endpoint, params) {
         let path = String(endpoint || "");
         if (!path.startsWith("/")) path = "/" + path;
-        const url = new URL(apiBaseUrl + path, window.location.origin);
+        const url = new URL(apiBaseUrl + path, apiBaseOrigin);
         Object.entries(params || {}).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== "") {
                 url.searchParams.set(key, value);
@@ -216,8 +229,28 @@
         }
     }
 
+    function get(endpoint, params) {
+        return request(endpoint, { method: "GET", params });
+    }
+
+    function post(endpoint, body, params) {
+        return request(endpoint, { method: "POST", body, params });
+    }
+
+    function put(endpoint, body, params) {
+        return request(endpoint, { method: "PUT", body, params });
+    }
+
+    function del(endpoint, body, params) {
+        return request(endpoint, { method: "DELETE", body, params });
+    }
+
     window.TXAdminApi = {
         request,
+        get,
+        post,
+        put,
+        delete: del,
         login,
         registerAdmin,
         verifyAdminRegistrationCode,

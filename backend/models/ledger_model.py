@@ -114,6 +114,7 @@ def format_ledger_item(item, wallet_currency_cache=None):
         currency = "USDT"
 
     return {
+        "_id": str(item["_id"]),
         "id": str(item["_id"]),
         "user_id": item.get("user_id"),
         "wallet_id": item.get("wallet_id"),

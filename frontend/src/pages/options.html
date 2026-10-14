@@ -10,8 +10,37 @@
                     document.documentElement.classList.remove("tx-translating");
                 }, 850);
             }
+            try {
+                var activeId = localStorage.getItem("traidiumx_active_user_id");
+                var activeName = (localStorage.getItem("traidiumx_active_user_name") || "").toLowerCase();
+                var isMt5 = activeName.includes("mt5") || activeName.includes("cent");
+                var isDemo = activeName.includes("demo");
+                if (!isMt5 || !isDemo) {
+                    var raw = localStorage.getItem("traidiumx_cached_sub_accounts") || localStorage.getItem("tx_cached_sub_accounts");
+                    if (activeId && raw) {
+                        var subs = JSON.parse(raw);
+                        var s = subs.find(function(x) { return String(x.id || x._id) === String(activeId); });
+                        if (s) {
+                            if (s.is_demo || s.account_mode === "demo" || s.plan === "demo") isDemo = true;
+                            if (s.selected_platform === "mt5" || s.platform === "mt5" || s.is_mt5 || s.mt5_login_id || (s.plan && String(s.plan).toLowerCase().includes("cent"))) isMt5 = true;
+                        }
+                    }
+                }
+                if (isMt5 || isDemo) {
+                    document.documentElement.classList.add("tx-hide-currency-toggle");
+                }
+            } catch (e) {}
         })();
     </script>
+    <style>
+        html.tx-hide-currency-toggle #futuresHeaderCurrencyToggle,
+        html.tx-hide-currency-toggle #mobileQuickBarCurrencyToggle,
+        html.tx-hide-currency-toggle #optionsHeaderCurrencyToggle,
+        html.tx-hide-currency-toggle #optionsMobileCurrencyToggle,
+        html.tx-hide-currency-toggle .tx-currency-toggle-wrapper {
+            display: none !important;
+        }
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
@@ -24,6 +53,126 @@
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
 
     <style>
+        /* Solid Dark Compact Account Dropdown (Pill style with smooth animations) */
+        #txCustomAccountDropdown {
+            position: relative !important;
+            display: inline-block !important;
+            z-index: 99999 !important;
+        }
+
+        #txCustomAccountTrigger {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 7px !important;
+            padding: 5px 12px !important;
+            border-radius: 9999px !important;
+            background: #081224 !important;
+            border: 1px solid rgba(34, 211, 238, 0.35) !important;
+            color: #22d3ee !important;
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            cursor: pointer !important;
+            outline: none !important;
+            user-select: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+            transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+            white-space: nowrap !important;
+        }
+
+        #txCustomAccountTrigger #txCustomAccountLabel {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            color: inherit !important;
+            white-space: nowrap !important;
+        }
+
+        #txCustomAccountTrigger #txCustomAccountChevron {
+            color: #22d3ee !important;
+        }
+
+        #txCustomAccountTrigger:hover {
+            border-color: #22d3ee !important;
+            background: #0c1a36 !important;
+            box-shadow: 0 0 14px rgba(34, 211, 238, 0.3) !important;
+        }
+
+        #txCustomAccountTrigger.open {
+            background: #081730 !important;
+            border-color: #22d3ee !important;
+            color: #22d3ee !important;
+            box-shadow: 0 0 14px rgba(34, 211, 238, 0.35) !important;
+        }
+
+        #txCustomAccountTrigger.open #txCustomAccountChevron {
+            transform: rotate(180deg) !important;
+            color: #22d3ee !important;
+        }
+
+        #txCustomAccountChevron {
+            transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), color 200ms ease !important;
+        }
+
+        #txCustomAccountMenu {
+            position: absolute !important;
+            top: calc(100% + 7px) !important;
+            right: 0 !important;
+            left: auto !important;
+            width: 220px !important;
+            background: #091224 !important;
+            background-color: #091224 !important;
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            border-radius: 14px !important;
+            padding: 6px !important;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 20px rgba(34, 211, 238, 0.15) !important;
+            z-index: 999999 !important;
+            transform-origin: top right !important;
+            opacity: 0 !important;
+            transform: translateY(-8px) scale(0.96) !important;
+            filter: blur(4px) !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), filter 220ms cubic-bezier(0.16, 1, 0.3, 1), visibility 220ms !important;
+        }
+
+        #txCustomAccountMenu.open {
+            opacity: 1 !important;
+            transform: translateY(0) scale(1) !important;
+            filter: blur(0) !important;
+            pointer-events: auto !important;
+            visibility: visible !important;
+        }
+
+        .tx-custom-acc-item {
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 7px 10px !important;
+            border-radius: 8px !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #cbd5e1 !important;
+            transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+            cursor: pointer !important;
+            border: none !important;
+            background: transparent !important;
+        }
+
+        .tx-custom-acc-item:hover {
+            transform: translateX(3px) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #ffffff !important;
+        }
+
+        .tx-custom-acc-item.active {
+            background: rgba(34, 211, 238, 0.14) !important;
+            color: #22d3ee !important;
+            font-weight: 700 !important;
+        }
+
         /* Options page only: hide bottom horizontal scrollbar line without changing existing data/UI */
         body[data-page="options"] .os-chain-scroll,
         body[data-page="options"] .os-table-scroll,
@@ -2029,8 +2178,8 @@
 
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
-    <script src="../js/auth-state.js?v=79"></script>
-    <script src="../js/options.js?v=77"></script>
+    <script src="../js/auth-state.js?v=88"></script>
+    <script src="../js/options.js?v=101"></script>
     <script src="../js/responsive.js"></script>
 </body>
 </html>

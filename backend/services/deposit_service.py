@@ -260,6 +260,13 @@ def _validate_deposit_input(user_id, data):
         crypto_asset = "INR"
         crypto_network = "UPI/BANK"
 
+        from config.database import get_database
+        from bson import ObjectId
+        db = get_database()
+        user_doc = db.users.find_one({"_id": ObjectId(str(user_id))}) if ObjectId.is_valid(str(user_id)) else None
+        if user_doc and (user_doc.get("selected_platform") == "mt5" or user_doc.get("platform") == "mt5" or "cent" in str(user_doc.get("plan", "")).lower()):
+            errors["account"] = "MetaTrader 5 accounts only support USDT deposits. Please deposit INR to your TraidiumX Main Wallet."
+
     is_valid_amount, amount_error = validate_positive_number(amount, "Amount")
     if not is_valid_amount:
         errors["amount"] = amount_error
@@ -320,11 +327,15 @@ def _validate_deposit_input(user_id, data):
         if crypto_network not in SUPPORTED_CRYPTO_NETWORKS:
             errors["crypto_network"] = f"Network must be one of: {', '.join(SUPPORTED_CRYPTO_NETWORKS)}."
 
-    wallet = ensure_user_wallet(user_id)
+    from models.user_model import find_user_by_id
+    user_doc = find_user_by_id(user_id) or {}
+    parent_user_id = str(user_doc.get("parent_user_id") or user_id)
+
+    wallet = ensure_user_wallet(parent_user_id)
     main_addresses = ((wallet or {}).get("main_wallet") or {}).get("addresses") or {}
     if crypto_network in ("TRC20", "BEP20", "ERC20"):
         from services.hd_wallet_service import get_or_create_user_deposit_address
-        deposit_address = clean_string(get_or_create_user_deposit_address(user_id, crypto_network))
+        deposit_address = clean_string(get_or_create_user_deposit_address(parent_user_id, crypto_network))
     else:
         deposit_address = clean_string(main_addresses.get(crypto_network) or get_crypto_network_address(crypto_network))
 
@@ -407,6 +418,44 @@ def _credit_verified_deposit(user_id, deposit_id, verification_result):
     from models.user_model import find_user_by_id
     user = find_user_by_id(user_id) or {}
     platform = str(user.get("selected_platform") or user.get("trading_platform") or "").lower()
+
+    plan = str(user.get("plan") or user.get("active_plan") or "").lower()
+    is_cent = plan == "cent" or "cent" in plan or bool(user.get("is_cent")) or "cent" in str(user.get("name") or "").lower()
+
+    if is_cent:
+        wallet = credit_main_wallet(
+            user_id=user_id,
+            amount=amount,
+            transaction_type="crypto_deposit_credit",
+            reference_id=deposit_id,
+            description=f"Verified {currency} deposit credited to Cent Main Wallet ({amount * 100:g} USC) for reference {deposit.get('deposit_reference')}",
+            currency=currency,
+            platform=platform,
+        )
+        updated = update_deposit_status(
+            deposit_id,
+            "completed",
+            {
+                "platform": platform,
+                "is_cent": True,
+                "cent_balance_usc": round(amount * 100, 2),
+                "verification_status": "verified",
+                "verification_message": verification_result.get("message", f"{currency} blockchain transfer verified and credited to Cent Main Wallet ({amount * 100:g} USC)."),
+                "confirmations": verification_result.get("confirmations", 0),
+                "required_confirmations": verification_result.get("required_confirmations", get_crypto_network_confirmations(deposit.get("crypto_network"))),
+                "verified_amount": verification_result.get("verified_amount", amount),
+                "verified_to_address": verification_result.get("verified_to_address", deposit.get("deposit_address", "")),
+                "explorer_url": verification_result.get("explorer_url", build_explorer_url(deposit.get("crypto_network"), deposit.get("tx_hash"))),
+                "credited_at": now_utc(),
+                "remark": f"Blockchain verification completed. {currency} credited to Cent Main Wallet as {amount * 100:g} USC.",
+                "wallet_after_credit": {
+                    "available_balance": (wallet.get("main_wallet_usdt") or {}).get("available_balance", 0.0),
+                    "total_balance": (wallet.get("main_wallet_usdt") or {}).get("total_balance", 0.0),
+                    "cent_balance_usc": round(amount * 100, 2),
+                },
+            },
+        )
+        return updated, f"Deposit verified and credited to Cent Main Wallet as {amount * 100:g} USC."
 
     if platform == "mt5":
         from services.mt5_service import credit_mt5_deposit
@@ -668,6 +717,34 @@ def create_deposit_request(user_id, data):
         from models.user_model import find_user_by_id
         user = find_user_by_id(user_id) or {}
         platform = str(user.get("selected_platform") or user.get("trading_platform") or "").lower()
+
+        plan = str(user.get("plan") or user.get("active_plan") or "").lower()
+        is_cent = plan == "cent" or "cent" in plan or bool(user.get("is_cent")) or "cent" in str(user.get("name") or "").lower()
+
+        if is_cent:
+            from services.system_settings_service import get_usdt_inr_rate
+            usdt_inr_rate = float(get_usdt_inr_rate() or 88.50)
+            usd_amount = round(cleaned["amount"] / usdt_inr_rate, 2)
+            wallet = credit_main_wallet(
+                user_id=user_id,
+                amount=usd_amount,
+                transaction_type="inr_deposit_credit",
+                reference_id=str(deposit_id),
+                description=f"INR deposit of ₹{cleaned['amount']:g} credited to Cent Main Wallet as {usd_amount * 100:g} USC. Ref: {deposit_reference}",
+                currency="USDT",
+                platform=platform,
+            )
+            deposit = find_deposit_by_id(str(deposit_id))
+            return {
+                "success": True,
+                "message": f"INR deposit of ₹{cleaned['amount']:g} (${usd_amount:g} USD / {usd_amount * 100:g} USC) credited to Cent Main Wallet successfully.",
+                "data": {
+                    "wallet": format_wallet(wallet),
+                    "deposit": format_deposit(deposit),
+                    "reference_id": str(deposit_id),
+                },
+                "status_code": 200,
+            }
 
         if platform == "mt5":
             from services.system_settings_service import get_usdt_inr_rate

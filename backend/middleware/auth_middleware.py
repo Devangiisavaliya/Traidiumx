@@ -80,9 +80,9 @@ def _load_authenticated_user(enforce_active_status=True):
         except Exception:
             pass
 
-    # Update navbar currency if header is present
+    # Update navbar currency only when changed
     nav_curr = request.headers.get("X-Navbar-Currency")
-    if nav_curr and nav_curr in ("INR", "USDT"):
+    if nav_curr and nav_curr in ("INR", "USDT") and user.get("last_navbar_currency") != nav_curr:
         from config.database import get_database
         from bson import ObjectId
         db = get_database()

@@ -980,7 +980,7 @@ def _bucket_balance(wallet, bucket_name, field="available_balance"):
     return _money(_wallet_bucket_after(wallet, bucket_name).get(field, 0.0))
 
 
-def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, description="", currency="USDT"):
+def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, description="", currency="USDT", platform="traidiumx"):
     wallet = ensure_user_wallet(user_id)
     amount = _money(amount)
 
@@ -988,15 +988,28 @@ def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, des
         return wallet
 
     currency = str(currency or "USDT").strip().upper()
-    bucket_prefix = f"main_wallet_{currency.lower()}"
+    platform = str(platform or "traidiumx").strip().lower()
+    bucket_curr = currency.lower()
+
+    inc_data = {}
+    gen_prefix = f"main_wallet_{bucket_curr}"
+    inc_data[f"{gen_prefix}.available_balance"] = amount
+    inc_data[f"{gen_prefix}.total_balance"] = amount
+
+    if platform == "mt5":
+        bucket_prefix = f"main_wallet_mt5_{bucket_curr}"
+        inc_data[f"{bucket_prefix}.available_balance"] = amount
+        inc_data[f"{bucket_prefix}.total_balance"] = amount
+    else:
+        bucket_prefix = gen_prefix
+        tx_prefix = f"main_wallet_traidiumx_{bucket_curr}"
+        inc_data[f"{tx_prefix}.available_balance"] = amount
+        inc_data[f"{tx_prefix}.total_balance"] = amount
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
         filter_extra={},
-        inc_data={
-            f"{bucket_prefix}.available_balance": amount,
-            f"{bucket_prefix}.total_balance": amount,
-        },
+        inc_data=inc_data,
     )
 
     if not updated_wallet:
@@ -1015,7 +1028,7 @@ def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, des
         balance_before=balance_before,
         balance_after=balance_after,
         reference_id=reference_id,
-        description=description or "Main wallet credited.",
+        description=description or f"Main wallet ({platform.upper()}) credited.",
         currency=currency,
     )
 
@@ -1028,7 +1041,7 @@ def credit_main_wallet(user_id, amount, transaction_type, reference_id=None, des
     return ensure_user_wallet(user_id)
 
 
-def lock_main_wallet_amount(user_id, amount, transaction_type, reference_id=None, description="", currency=None):
+def lock_main_wallet_amount(user_id, amount, transaction_type, reference_id=None, description="", currency=None, platform="traidiumx"):
     wallet = ensure_user_wallet(user_id)
     amount = _money(amount)
 
@@ -1040,30 +1053,47 @@ def lock_main_wallet_amount(user_id, amount, transaction_type, reference_id=None
     if amount <= 0:
         return {"success": False, "message": "Amount must be greater than 0.", "wallet": wallet}
 
-    bucket_prefix = f"main_wallet_{currency.lower()}"
+    platform = str(platform or "traidiumx").strip().lower()
+    bucket_curr = currency.lower()
+
+    if platform == "mt5":
+        bucket_prefix = f"main_wallet_mt5_{bucket_curr}"
+        inc_data = {
+            f"{bucket_prefix}.available_balance": -amount,
+            f"{bucket_prefix}.locked_balance": amount,
+        }
+    else:
+        bucket_prefix = f"main_wallet_{bucket_curr}"
+        tx_prefix = f"main_wallet_traidiumx_{bucket_curr}"
+        inc_data = {
+            f"{bucket_prefix}.available_balance": -amount,
+            f"{bucket_prefix}.locked_balance": amount,
+            f"{tx_prefix}.available_balance": -amount,
+            f"{tx_prefix}.locked_balance": amount,
+        }
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],
         filter_extra={f"{bucket_prefix}.available_balance": {"$gte": amount}},
-        inc_data={
-            f"{bucket_prefix}.available_balance": -amount,
-            f"{bucket_prefix}.locked_balance": amount,
-        },
+        inc_data=inc_data,
     )
 
     if not updated_wallet:
         return {
             "success": False,
-            "message": "Insufficient main wallet balance.",
+            "message": f"Insufficient {platform.upper()} main wallet balance.",
             "wallet": ensure_user_wallet(user_id),
         }
 
     # Keep nested total exact after inc.
     main_after = _wallet_bucket_after(updated_wallet, bucket_prefix)
     total = _money(main_after.get("available_balance", 0.0) + main_after.get("locked_balance", 0.0))
+    set_data = {f"{bucket_prefix}.total_balance": total, "updated_at": now_utc()}
+    if platform != "mt5":
+        set_data[f"main_wallet_traidiumx_{bucket_curr}.total_balance"] = total
     get_wallets_collection().update_one(
         {"_id": wallet["_id"]},
-        {"$set": {f"{bucket_prefix}.total_balance": total, "updated_at": now_utc()}},
+        {"$set": set_data},
     )
 
     balance_after = _money(main_after.get("available_balance", 0.0))
@@ -1078,7 +1108,7 @@ def lock_main_wallet_amount(user_id, amount, transaction_type, reference_id=None
         balance_before=balance_before,
         balance_after=balance_after,
         reference_id=reference_id,
-        description=description or "Main wallet amount locked.",
+        description=description or f"Main wallet ({platform.upper()}) amount locked.",
         currency=currency,
     )
 
@@ -1221,23 +1251,92 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
     if amount <= 0:
         return {"success": False, "message": "Transfer amount must be greater than 0.", "errors": {"amount": "Invalid amount."}, "status_code": 422}
 
-    if direction not in {"main_to_trading", "trading_to_main"}:
-        return {"success": False, "message": "Invalid transfer direction.", "errors": {"direction": "Use main_to_trading or trading_to_main."}, "status_code": 422}
+    allowed_directions = {
+        "main_to_trading",
+        "trading_to_main",
+        "traidiumx_to_mt5",
+        "mt5_to_traidiumx",
+        "main_traidiumx_to_main_mt5",
+        "main_mt5_to_main_traidiumx",
+    }
+    if direction not in allowed_directions:
+        return {
+            "success": False,
+            "message": "Invalid transfer direction.",
+            "errors": {"direction": "Valid directions: main_to_trading, trading_to_main, traidiumx_to_mt5, mt5_to_traidiumx."},
+            "status_code": 422,
+        }
 
     currency = str(currency or "USDT").strip().upper()
-    bucket_prefix = "main_wallet_inr" if currency == "INR" else "main_wallet_usdt"
-    main_wallet = wallet.get(bucket_prefix) or {}
+    if currency == "USC":
+        bucket_curr = "usdt"
+    else:
+        bucket_curr = currency.lower()
 
     from services.system_settings_service import get_usdt_inr_rate
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
 
-    if direction == "main_to_trading":
+    if direction in {"traidiumx_to_mt5", "main_traidiumx_to_main_mt5"}:
+        tx_bucket = wallet.get(f"main_wallet_traidiumx_{bucket_curr}") or wallet.get(f"main_wallet_{bucket_curr}") or {}
+        tx_available = _money(tx_bucket.get("available_balance", 0.0))
+
+        if tx_available < amount:
+            return {
+                "success": False,
+                "message": f"Insufficient TraidiumX Main Wallet ({currency}) balance.",
+                "errors": {"amount": "Insufficient balance."},
+                "status_code": 422,
+            }
+
+        unit = "₹" if currency == "INR" else ("" if currency == "USC" else "$")
+        inc_data = {
+            f"main_wallet_{bucket_curr}.available_balance": -amount,
+            f"main_wallet_{bucket_curr}.total_balance": -amount,
+            f"main_wallet_traidiumx_{bucket_curr}.available_balance": -amount,
+            f"main_wallet_traidiumx_{bucket_curr}.total_balance": -amount,
+            f"main_wallet_mt5_{bucket_curr}.available_balance": amount,
+            f"main_wallet_mt5_{bucket_curr}.total_balance": amount,
+        }
+        description = f"Transferred {unit}{amount:g} {currency} from TraidiumX Main Wallet -> MT5 Main Wallet."
+        filter_extra = {f"main_wallet_{bucket_curr}.available_balance": {"$gte": amount}}
+        txn_type = "traidiumx_to_mt5_main_transfer"
+        source_bucket = f"main_wallet_traidiumx_{bucket_curr}"
+
+    elif direction in {"mt5_to_traidiumx", "main_mt5_to_main_traidiumx"}:
+        mt5_bucket = wallet.get(f"main_wallet_mt5_{bucket_curr}") or {}
+        mt5_available = _money(mt5_bucket.get("available_balance", 0.0))
+
+        if mt5_available < amount:
+            return {
+                "success": False,
+                "message": f"Insufficient MT5 Main Wallet ({currency}) balance.",
+                "errors": {"amount": "Insufficient balance."},
+                "status_code": 422,
+            }
+
+        unit = "₹" if currency == "INR" else ("" if currency == "USC" else "$")
+        inc_data = {
+            f"main_wallet_mt5_{bucket_curr}.available_balance": -amount,
+            f"main_wallet_mt5_{bucket_curr}.total_balance": -amount,
+            f"main_wallet_{bucket_curr}.available_balance": amount,
+            f"main_wallet_{bucket_curr}.total_balance": amount,
+            f"main_wallet_traidiumx_{bucket_curr}.available_balance": amount,
+            f"main_wallet_traidiumx_{bucket_curr}.total_balance": amount,
+        }
+        description = f"Transferred {unit}{amount:g} {currency} from MT5 Main Wallet -> TraidiumX Main Wallet."
+        filter_extra = {f"main_wallet_mt5_{bucket_curr}.available_balance": {"$gte": amount}}
+        txn_type = "mt5_to_traidiumx_main_transfer"
+        source_bucket = f"main_wallet_mt5_{bucket_curr}"
+
+    elif direction == "main_to_trading":
+        bucket_prefix = f"main_wallet_{bucket_curr}"
+        main_wallet = wallet.get(bucket_prefix) or {}
         main_available = _money(main_wallet.get("available_balance", 0.0))
 
         if main_available < amount:
             return {
                 "success": False,
-                "message": f"Insufficient Main Wallet ({currency}) balance.",
+                "message": f"Insufficient Funding Wallet ({currency}) balance.",
                 "errors": {"amount": "Insufficient balance."},
                 "status_code": 422,
             }
@@ -1246,6 +1345,8 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
             inc_data = {
                 "main_wallet_inr.available_balance": -amount,
                 "main_wallet_inr.total_balance": -amount,
+                "main_wallet_traidiumx_inr.available_balance": -amount,
+                "main_wallet_traidiumx_inr.total_balance": -amount,
                 "trading_wallet_inr.available_balance": usdt_credit,
                 "trading_wallet_inr.total_balance": usdt_credit,
                 "trading_wallet.available_balance": usdt_credit,
@@ -1254,10 +1355,26 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
                 "total_balance": usdt_credit,
             }
             description = f"Transferred ₹{amount:g} INR from Main Wallet -> Received ${usdt_credit:g} USDT in Trading Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
+        elif currency == "USC":
+            inc_data = {
+                "main_wallet_usdt.available_balance": -amount,
+                "main_wallet_usdt.total_balance": -amount,
+                "main_wallet_traidiumx_usdt.available_balance": -amount,
+                "main_wallet_traidiumx_usdt.total_balance": -amount,
+                "trading_wallet_usdt.available_balance": amount,
+                "trading_wallet_usdt.total_balance": amount,
+                "trading_wallet.available_balance": amount,
+                "trading_wallet.total_balance": amount,
+                "available_balance": amount,
+                "total_balance": amount,
+            }
+            description = f"Transferred {amount:g} USC from Funding Wallet -> Trading Account."
         else:
             inc_data = {
                 "main_wallet_usdt.available_balance": -amount,
                 "main_wallet_usdt.total_balance": -amount,
+                "main_wallet_traidiumx_usdt.available_balance": -amount,
+                "main_wallet_traidiumx_usdt.total_balance": -amount,
                 "trading_wallet_usdt.available_balance": amount,
                 "trading_wallet_usdt.total_balance": amount,
                 "trading_wallet.available_balance": amount,
@@ -1269,6 +1386,7 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
 
         filter_extra = {f"{bucket_prefix}.available_balance": {"$gte": amount}}
         txn_type = "main_to_trading_transfer"
+        source_bucket = bucket_prefix
     else:
         bucket_trading = "trading_wallet_inr" if currency == "INR" else "trading_wallet_usdt"
         trading_bucket = wallet.get(bucket_trading) or {}
@@ -1277,7 +1395,7 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
         if trading_available < amount:
             return {
                 "success": False,
-                "message": f"Insufficient Trading Wallet ({'INR' if currency == 'INR' else 'USDT'} Margin) balance.",
+                "message": f"Insufficient Trading Account ({currency}) balance.",
                 "errors": {"amount": "Insufficient balance."},
                 "status_code": 422,
             }
@@ -1291,10 +1409,26 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
                 "trading_wallet.total_balance": -amount,
                 "main_wallet_inr.available_balance": inr_credit,
                 "main_wallet_inr.total_balance": inr_credit,
+                "main_wallet_traidiumx_inr.available_balance": inr_credit,
+                "main_wallet_traidiumx_inr.total_balance": inr_credit,
                 "available_balance": -amount,
                 "total_balance": -amount,
             }
             description = f"Transferred ${amount:g} USDT from Trading Wallet -> Received ₹{inr_credit:g} INR in Main Wallet (Rate: 1 USDT = ₹{usdt_rate:g} INR)."
+        elif currency == "USC":
+            inc_data = {
+                "trading_wallet_usdt.available_balance": -amount,
+                "trading_wallet_usdt.total_balance": -amount,
+                "trading_wallet.available_balance": -amount,
+                "trading_wallet.total_balance": -amount,
+                "main_wallet_usdt.available_balance": amount,
+                "main_wallet_usdt.total_balance": amount,
+                "main_wallet_traidiumx_usdt.available_balance": amount,
+                "main_wallet_traidiumx_usdt.total_balance": amount,
+                "available_balance": -amount,
+                "total_balance": -amount,
+            }
+            description = f"Transferred {amount:g} USC from Trading Account -> Funding Wallet."
         else:
             inc_data = {
                 "trading_wallet_usdt.available_balance": -amount,
@@ -1303,13 +1437,14 @@ def transfer_between_user_wallets(user_id, amount, direction, currency="USDT"):
                 "trading_wallet.total_balance": -amount,
                 "main_wallet_usdt.available_balance": amount,
                 "main_wallet_usdt.total_balance": amount,
-                "available_balance": -amount,
-                "total_balance": -amount,
+                "main_wallet_traidiumx_usdt.available_balance": amount,
+                "main_wallet_traidiumx_usdt.total_balance": amount,
             }
             description = f"Transferred ${amount:g} USDT from Trading Wallet -> Main Wallet."
 
-        filter_extra = {f"{bucket_trading}.available_balance": {"$gte": amount}, "available_balance": {"$gte": amount}}
+        filter_extra = {f"{bucket_trading}.available_balance": {"$gte": amount}}
         txn_type = "trading_to_main_transfer"
+        source_bucket = TRADING_WALLET
 
     updated_wallet = _atomic_update_wallet(
         wallet_id=wallet["_id"],

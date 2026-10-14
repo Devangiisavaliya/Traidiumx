@@ -846,13 +846,15 @@ function tickerValueFromPayload(response) {
     if (data?.ticker) data = data.ticker;
     if (data?.data) data = data.data;
 
-    // Prioritize c (lastPrice), last_price, mark_price before p (which can be 24h priceChange in 24hr ticker REST payload)
-    const rawPrice = data.last_price ?? data.lastPrice ?? data.c ?? data.mark_price ?? data.markPrice ?? data.price ?? (data.e === "aggTrade" ? data.p : null);
-    const price = number(rawPrice, 0);
-    const change = number(data.price_change_percent ?? data.priceChangePercent ?? data.change_percent ?? data.P, 0);
-    const volume = number(data.quote_volume ?? data.quoteVolume ?? data.volume ?? data.q, 0);
+    const isAggTrade = data.e === "aggTrade" || Boolean(data.a && data.p && data.q);
 
-    return { price, change, volume };
+    // Prioritize c (lastPrice), last_price, mark_price before p (which can be 24h priceChange in 24hr ticker REST payload)
+    const rawPrice = data.last_price ?? data.lastPrice ?? data.c ?? data.mark_price ?? data.markPrice ?? data.price ?? (isAggTrade ? data.p : null);
+    const price = number(rawPrice, 0);
+    const change = isAggTrade ? 0 : number(data.price_change_percent ?? data.priceChangePercent ?? data.change_percent ?? data.P, 0);
+    const volume = isAggTrade ? 0 : number(data.quote_volume ?? data.quoteVolume ?? data.volume ?? (data.e === "24hrTicker" || !data.e ? data.q : 0), 0);
+
+    return { price, change, volume, isAggTrade };
 }
 
 async function fetchDirectBinanceTicker(symbol) {
@@ -860,6 +862,21 @@ async function fetchDirectBinanceTicker(symbol) {
 
     if (!normalizedSymbol) {
         return null;
+    }
+
+    let ticker24h = null;
+    try {
+        const response = await fetch(`${TX_OPTIONS_BINANCE_REST_BASE}/api/v3/ticker/24hr?symbol=${encodeURIComponent(normalizedSymbol)}&_=${Date.now()}`, {
+            method: "GET",
+            cache: "no-store"
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            ticker24h = tickerValueFromPayload(data);
+        }
+    } catch (error) {
+        console.warn(`Direct Binance ticker failed for ${normalizedSymbol}:`, error);
     }
 
     try {
@@ -873,35 +890,19 @@ async function fetchDirectBinanceTicker(symbol) {
             const indexPrice = number(data.indexPrice ?? data.markPrice, 0);
 
             if (Number.isFinite(indexPrice) && indexPrice > 0) {
-                return { price: indexPrice, isIndex: true, change: 0, volume: 0 };
+                return {
+                    price: indexPrice,
+                    isIndex: true,
+                    change: ticker24h ? ticker24h.change : 0,
+                    volume: ticker24h ? ticker24h.volume : 0
+                };
             }
         }
     } catch (error) {
         console.warn(`Direct Binance premium index fetch failed for ${normalizedSymbol}:`, error);
     }
 
-    try {
-        const response = await fetch(`${TX_OPTIONS_BINANCE_REST_BASE}/api/v3/ticker/24hr?symbol=${encodeURIComponent(normalizedSymbol)}&_=${Date.now()}`, {
-            method: "GET",
-            cache: "no-store"
-        });
-
-        if (!response.ok) {
-            return null;
-        }
-
-        const data = await response.json();
-        const ticker = tickerValueFromPayload(data);
-
-        if (!Number.isFinite(ticker.price) || ticker.price <= 0) {
-            return null;
-        }
-
-        return ticker;
-    } catch (error) {
-        console.warn(`Direct Binance ticker failed for ${normalizedSymbol}:`, error);
-        return null;
-    }
+    return ticker24h;
 }
 
 function cacheTicker(symbol, ticker = {}) {
@@ -911,7 +912,7 @@ function cacheTicker(symbol, ticker = {}) {
     const existing = state.liveTickers[key] || {};
     const fallback = tickerFallback[key] || underlyings[underlyingCodeFromSymbol(key)]?.fallbackPrice || 0;
     
-    const isAggTrade = ticker.e === "aggTrade" || Boolean(ticker.a || ticker.f);
+    const isAggTrade = ticker.isAggTrade || ticker.e === "aggTrade" || Boolean(ticker.a || ticker.f);
     const rawPrice = ticker.c ?? ticker.last_price ?? ticker.lastPrice ?? ticker.mark_price ?? ticker.markPrice ?? ticker.price ?? (isAggTrade ? ticker.p : null);
     
     let price = number(rawPrice, 0);
@@ -920,8 +921,25 @@ function cacheTicker(symbol, ticker = {}) {
         price = existing.price && existing.price > 0 ? existing.price : fallback;
     }
 
-    const change = number(ticker.change ?? ticker.price_change_percent ?? ticker.priceChangePercent ?? ticker.change_percent ?? ticker.P, existing.change || 0);
-    const volume = number(ticker.volume ?? ticker.quote_volume ?? ticker.quoteVolume ?? ticker.q, existing.volume || 0);
+    // In aggTrade or indexPrice, change and volume are for single trade only - preserve existing 24h stats
+    let change = existing.change || 0;
+    if (!isAggTrade && !ticker.isIndex) {
+        const rawChange = ticker.change ?? ticker.price_change_percent ?? ticker.priceChangePercent ?? ticker.change_percent ?? ticker.P;
+        if (rawChange !== undefined && rawChange !== null && rawChange !== "") {
+            change = number(rawChange, existing.change || 0);
+        }
+    }
+
+    let volume = existing.volume || 0;
+    if (!isAggTrade && !ticker.isIndex) {
+        const rawVolume = ticker.volume ?? ticker.quote_volume ?? ticker.quoteVolume ?? (ticker.e === "24hrTicker" || !ticker.e ? ticker.q : null);
+        if (rawVolume !== undefined && rawVolume !== null && rawVolume !== "") {
+            const parsed = number(rawVolume, 0);
+            if (parsed > 0) {
+                volume = parsed;
+            }
+        }
+    }
 
     state.liveTickers[key] = {
         symbol: key,
@@ -976,8 +994,12 @@ function applyUnderlyingTicker(symbol, ticker, forceRender = false) {
     const previous = number(state.underlyingPrice, config.fallbackPrice);
 
     state.underlyingPrice = targetPrice;
-    state.change24h = cached.change || state.change24h;
-    state.volume24h = cached.volume || state.volume24h;
+    if (cached.change !== undefined && (cached.change !== 0 || !state.change24h)) {
+        state.change24h = cached.change;
+    }
+    if (cached.volume && cached.volume > 0) {
+        state.volume24h = cached.volume;
+    }
 
     const now = Date.now();
     const minMove = 0.001;
@@ -2957,11 +2979,17 @@ function txIsOptionsDemoActive() {
 
 function txSyncOptionsDemoCurrencyState() {
     const isDemo = txIsOptionsDemoActive();
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const subList = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
+    const activeSub = activeSubId && activeSubId !== "main" ? subList.find(s => String(s.id) === String(activeSubId)) : null;
+    const isMt5 = Boolean(activeSub?.selected_platform === "mt5" || activeSub?.platform === "mt5" || activeSub?.is_mt5 || activeSub?.mt5_login_id || (activeSub?.plan && String(activeSub?.plan).toLowerCase().includes("cent")));
+    const shouldHide = isDemo || isMt5;
+
     const headerCurrToggle = document.getElementById("optionsHeaderCurrencyToggle");
     const mobCurrToggle = document.getElementById("optionsMobileCurrencyToggle");
 
     if (headerCurrToggle) {
-        if (isDemo) {
+        if (shouldHide) {
             headerCurrToggle.classList.add("hidden");
             headerCurrToggle.style.setProperty("display", "none", "important");
         } else {
@@ -2970,7 +2998,7 @@ function txSyncOptionsDemoCurrencyState() {
         }
     }
     if (mobCurrToggle) {
-        if (isDemo) {
+        if (shouldHide) {
             mobCurrToggle.classList.add("hidden");
             mobCurrToggle.style.setProperty("display", "none", "important");
         } else {
@@ -4468,7 +4496,13 @@ if (document.readyState === "loading") {
 }
 
 let txSubAccountsLocalCache = [];
-
+try {
+    const rawSubAccounts = localStorage.getItem("traidiumx_cached_sub_accounts");
+    if (rawSubAccounts) {
+        const parsed = JSON.parse(rawSubAccounts);
+        if (Array.isArray(parsed) && parsed.length) txSubAccountsLocalCache = parsed;
+    }
+} catch (_) {}
 
 let txCustomAccountDropdownInitialized = false;
 let txCustomAccountCloseTimer = null;
@@ -4509,41 +4543,49 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
 
     activeSubId = activeSubId || "main";
     const allAccounts = [
-        { id: "main", name: "Main Trading Account", is_demo: false, plan_name: "Real", plan_color: "emerald" },
-        ...subAccounts.map(s => ({
-            id: s.id,
-            name: s.name,
-            is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")),
-            account_mode: s.account_mode || (s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "demo" : "real"),
-            plan_name: s.plan_name || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "Demo" : "Basic"),
-            plan_color: s.plan_color || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "amber" : "cyan")
-        }))
+        { id: "main", name: "Main Trading Account", is_demo: false, is_mt5: false, plan_name: "Real", plan_color: "emerald" },
+        ...subAccounts.map(s => {
+            const isMt5 = Boolean(s.selected_platform === "mt5" || s.platform === "mt5" || s.is_mt5 || s.mt5_login_id || (s.plan && String(s.plan).toLowerCase().includes("cent")));
+            return {
+                id: s.id,
+                name: s.name,
+                is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")),
+                is_mt5: isMt5,
+                account_mode: s.account_mode || (s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "demo" : "real"),
+                plan_name: s.plan_name || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "Demo" : (isMt5 ? "MT5" : "Basic")),
+                plan_color: s.plan_color || (s.is_demo || s.plan === "demo" || (s.name && s.name.toLowerCase().includes("demo")) ? "amber" : (isMt5 ? "blue" : "cyan"))
+            };
+        })
     ];
 
     const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
     const isCurrentDemo = !!currentAcc.is_demo || (currentAcc.name && currentAcc.name.toLowerCase().includes("demo")) || String(activeSubId).toLowerCase().includes("demo");
+    const isCurrentMt5 = !!currentAcc.is_mt5;
 
     const dotEl = document.getElementById("txCustomAccountDot");
     const triggerEl = document.getElementById("txCustomAccountTrigger");
     const chevronEl = document.getElementById("txCustomAccountChevron");
 
     if (dotEl) {
-        dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]'}`;
+        dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : (isCurrentMt5 ? 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]')}`;
     }
     if (triggerEl) {
         if (isCurrentDemo) {
             triggerEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+        } else if (isCurrentMt5) {
+            triggerEl.style.borderColor = "rgba(59, 130, 246, 0.45)";
         } else {
             triggerEl.style.borderColor = "rgba(148, 163, 184, 0.25)";
         }
     }
     if (chevronEl) {
-        chevronEl.style.color = isCurrentDemo ? "#f59e0b" : "#94a3b8";
+        chevronEl.style.color = isCurrentDemo ? "#f59e0b" : (isCurrentMt5 ? "#60a5fa" : "#94a3b8");
     }
 
     labelEl.innerHTML = `
-        <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : 'text-cyan-300'}">${escapeHtml(currentAcc.name)}</span>
+        <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : (isCurrentMt5 ? 'text-blue-300' : 'text-cyan-300')}">${escapeHtml(currentAcc.name)}</span>
         ${isCurrentDemo ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30">DEMO</span>' : ''}
+        ${isCurrentMt5 ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-blue-500/20 text-blue-300 border border-blue-500/30">MT5</span>' : ''}
     `;
 
     // Update Demo Banner UI
@@ -4558,11 +4600,12 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
         }
     }
 
-    // Hide INR / USD Currency Toggle in Demo Mode (Demo is strictly USD)
+    // Hide INR / USD Currency Toggle in Demo & MT5 Mode (Strictly USD)
     const headerCurrToggle = document.getElementById("optionsHeaderCurrencyToggle");
     const mobCurrToggle = document.getElementById("optionsMobileCurrencyToggle");
+    const shouldHideCurrToggle = isCurrentDemo || isCurrentMt5;
     if (headerCurrToggle) {
-        if (isCurrentDemo) {
+        if (shouldHideCurrToggle) {
             headerCurrToggle.classList.add("hidden");
             headerCurrToggle.style.setProperty("display", "none", "important");
         } else {
@@ -4571,7 +4614,7 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
         }
     }
     if (mobCurrToggle) {
-        if (isCurrentDemo) {
+        if (shouldHideCurrToggle) {
             mobCurrToggle.classList.add("hidden");
             mobCurrToggle.style.setProperty("display", "none", "important");
         } else {
@@ -4583,12 +4626,14 @@ function txRenderCustomAccountDropdown(subAccounts = [], activeSubId = "main") {
     listEl.innerHTML = allAccounts.map(acc => {
         const isSelected = String(acc.id) === String(activeSubId);
         const isDemo = !!acc.is_demo;
+        const isMt5 = !!acc.is_mt5;
         return `
             <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''} flex items-center justify-between w-full p-2 rounded-lg text-left transition hover:bg-slate-800/60">
                 <div class="flex items-center gap-2 truncate min-w-0">
-                    <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500')}"></span>
+                    <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isMt5 ? 'bg-blue-400 shadow-[0_0_6px_#60a5fa]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500'))}"></span>
                     <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'} text-xs">${escapeHtml(acc.name)}</span>
                     ${isDemo ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-amber-500/20 text-amber-300 border-amber-500/30">DEMO</span>' : ''}
+                    ${isMt5 ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-blue-500/20 text-blue-300 border-blue-500/30">MT5</span>' : ''}
                 </div>
                 ${isSelected ? '<svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' : ''}
             </button>
@@ -4620,6 +4665,10 @@ function txInitCustomAccountDropdown() {
     const dropdownRoot = document.getElementById("txCustomAccountDropdown");
 
     if (!trigger || !menu) return;
+
+    // Immediately render with cached subaccounts (0ms latency)
+    const initialActiveSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+    txRenderCustomAccountDropdown(txSubAccountsLocalCache || [], initialActiveSubId);
 
     if (dropdownRoot && !dropdownRoot.__txHoverBound) {
         dropdownRoot.__txHoverBound = true;
@@ -4674,73 +4723,97 @@ function txInitCustomAccountDropdown() {
     });
 }
 
-async function txInitSubAccountsAndSelector() {
-    if (!isLoggedIn()) return;
-    txInitCustomAccountDropdown();
-    // Fetch live USDT rate on init
-    fetchOptionsUsdtRate();
-    try {
-        const selector = document.getElementById("tradingAccountSelector");
-        if (!selector) return;
-        
-        const response = await apiRequest("/user/sub-accounts");
-        const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
-        txSubAccountsLocalCache = subAccounts;
-        
-        selector.innerHTML = `<option value="main">Main Trading Account</option>`;
+function txPopulateSubAccountSelectors(subAccounts = [], activeSubId = "main") {
+    const selector = document.getElementById("tradingAccountSelector");
+    if (!selector) return;
+
+    selector.innerHTML = `<option value="main">Main Trading Account</option>`;
+    subAccounts.forEach(sub => {
+        const opt = document.createElement("option");
+        opt.value = sub.id;
+        opt.textContent = sub.name;
+        selector.appendChild(opt);
+    });
+
+    const createOpt = document.createElement("option");
+    createOpt.value = "create_new";
+    createOpt.textContent = "+ Create Sub Account";
+    selector.appendChild(createOpt);
+
+    let isCurrentDemo = false;
+    if (activeSubId && subAccounts.some(s => String(s.id) === String(activeSubId))) {
+        selector.value = activeSubId;
+        const sub = subAccounts.find(s => String(s.id) === String(activeSubId));
+        if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || (sub.name && sub.name.toLowerCase().includes("demo")))) {
+            isCurrentDemo = true;
+        }
+    } else {
+        selector.value = "main";
+        activeSubId = "main";
+    }
+
+    txRenderCustomAccountDropdown(subAccounts, activeSubId);
+
+    const fundsGrid = document.querySelector(".rt-pair-funds-grid");
+    const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
+    if (fundsGrid) {
+        if (isCurrentDemo) fundsGrid.classList.add("demo-mode");
+        else fundsGrid.classList.remove("demo-mode");
+    }
+    if (mainWalletItem) {
+        if (isCurrentDemo) {
+            mainWalletItem.classList.add("hidden");
+            mainWalletItem.style.display = "none";
+        } else {
+            mainWalletItem.classList.remove("hidden");
+            mainWalletItem.style.display = "";
+        }
+    }
+
+    const transferSelect = document.getElementById("subTransferAccount");
+    if (transferSelect) {
+        transferSelect.innerHTML = `<option value="main">Main Trading Account</option>`;
         subAccounts.forEach(sub => {
             const opt = document.createElement("option");
             opt.value = sub.id;
             opt.textContent = sub.name;
-            selector.appendChild(opt);
+            transferSelect.appendChild(opt);
         });
+    }
+}
 
-        const createOpt = document.createElement("option");
-        createOpt.value = "create_new";
-        createOpt.textContent = "+ Create Sub Account";
-        selector.appendChild(createOpt);
-        
-        let activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
-        let isCurrentDemo = false;
-        if (activeSubId && subAccounts.some(s => s.id === activeSubId)) {
-            selector.value = activeSubId;
-            const sub = subAccounts.find(s => s.id === activeSubId);
-            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo" || (sub.name && sub.name.toLowerCase().includes("demo")))) {
-                isCurrentDemo = true;
-            }
-        } else {
-            selector.value = "main";
-            activeSubId = "main";
-        }
-        
-        txRenderCustomAccountDropdown(subAccounts, activeSubId);
+async function txInitSubAccountsAndSelector() {
+    if (!isLoggedIn()) return;
+    txInitCustomAccountDropdown();
+    fetchOptionsUsdtRate();
 
-        const fundsGrid = document.querySelector(".rt-pair-funds-grid");
-        const mainWalletItem = document.querySelector(".rt-pair-funds-item.estimate");
-        if (fundsGrid) {
-            if (isCurrentDemo) fundsGrid.classList.add("demo-mode");
-            else fundsGrid.classList.remove("demo-mode");
-        }
-        if (mainWalletItem) {
-            if (isCurrentDemo) {
-                mainWalletItem.classList.add("hidden");
-                mainWalletItem.style.display = "none";
-            } else {
-                mainWalletItem.classList.remove("hidden");
-                mainWalletItem.style.display = "";
-            }
-        }
+    let activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
 
-        const transferSelect = document.getElementById("subTransferAccount");
-        if (transferSelect) {
-            transferSelect.innerHTML = `<option value="main">Main Trading Account</option>`;
-            subAccounts.forEach(sub => {
-                const opt = document.createElement("option");
-                opt.value = sub.id;
-                opt.textContent = sub.name;
-                transferSelect.appendChild(opt);
-            });
+    // 1. Instant 0ms cache population
+    if (Array.isArray(txSubAccountsLocalCache) && txSubAccountsLocalCache.length) {
+        txPopulateSubAccountSelectors(txSubAccountsLocalCache, activeSubId);
+    } else {
+        txRenderCustomAccountDropdown([], activeSubId);
+    }
+
+    // 2. Fetch fresh sub accounts in background
+    try {
+        const response = await apiRequest("/user/sub-accounts");
+        const allSubs = response.data || [];
+        const parentAcc = allSubs.find(sub => sub.is_parent);
+        if (parentAcc && parentAcc.wallet) {
+            try {
+                localStorage.setItem("traidiumx_cached_main_wallet", JSON.stringify(parentAcc.wallet));
+            } catch (_) {}
         }
+        const subAccounts = allSubs.filter(sub => !sub.is_parent);
+        txSubAccountsLocalCache = subAccounts;
+        try {
+            localStorage.setItem("traidiumx_cached_sub_accounts", JSON.stringify(subAccounts));
+        } catch (_) {}
+
+        activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+        txPopulateSubAccountSelectors(subAccounts, activeSubId);
         txInitOptionsDemoBalanceModal();
     } catch (e) {
         console.error("Failed to load sub accounts:", e);

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Futures trading basics | TraidiumX Guide</title>
+
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
+
+    <!-- Tailwind Output CSS -->
+    <link rel="stylesheet" href="../../dist/output.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/custom.css?v=60" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
+        /* 2-Column Responsive Layout */
+        .tx-guide-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            width: 100%;
+            margin: 0 auto;
+        }
+        @media (min-width: 1024px) {
+            .tx-guide-layout {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 3.5rem;
+            }
+        }
+
+        .tx-guide-main {
+            flex: 1 1 0%;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .tx-guide-sidebar {
+            display: none;
+            width: 240px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 130px;
+        }
+        @media (min-width: 1024px) {
+            .tx-guide-sidebar {
+                display: block;
+            }
+        }
+
+        /* TOC Active Highlight */
+        .tx-toc-link.is-active {
+            color: #22d3ee !important;
+            font-weight: 800 !important;
+            border-left: 2px solid #22d3ee !important;
+            padding-left: 0.75rem !important;
+        }
+        .tx-toc-link {
+            border-left: 2px solid transparent;
+            padding-left: 0.75rem;
+            transition: all 0.2s ease;
+            color: #94a3b8;
+            font-size: 0.8125rem;
+            display: block;
+            line-height: 1.4;
+        }
+        .tx-toc-link:hover {
+            color: #ffffff;
+        }
+
+        .tx-cta-cyan-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #22d3ee;
+            color: #020617;
+            font-size: 0.875rem;
+            font-weight: 900;
+            padding: 0.85rem 1.65rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 10px 25px -5px rgba(34, 211, 238, 0.4);
+            border: 1px solid rgba(34, 211, 238, 0.5);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .tx-cta-cyan-btn:hover {
+            background: #67e8f9;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(34, 211, 238, 0.6);
+        }
+        .tx-cta-cyan-btn:active {
+            transform: scale(0.97);
+        }
+
+        .tx-icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(34, 211, 238, 0.12);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            color: #22d3ee;
+            flex-shrink: 0;
+        }
+
+        /* Card Borders & Accent Themes */
+        .tx-card-emerald {
+            border: 1px solid rgba(16, 185, 129, 0.35) !important;
+            background: rgba(16, 185, 129, 0.08) !important;
+        }
+        .tx-card-rose {
+            border: 1px solid rgba(244, 63, 94, 0.35) !important;
+            background: rgba(244, 63, 94, 0.08) !important;
+        }
+        .tx-card-amber {
+            border: 1px solid rgba(245, 158, 11, 0.35) !important;
+            background: rgba(245, 158, 11, 0.08) !important;
+        }
+        .tx-card-cyan {
+            border: 1px solid rgba(34, 211, 238, 0.35) !important;
+            background: rgba(34, 211, 238, 0.08) !important;
+        }
+        .tx-card-dark {
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            background: rgba(7, 17, 31, 0.85) !important;
+        }
+
+        /* Robust Spacing Rules to Guarantee Separation */
+        .tx-guide-section {
+            margin-top: 3.5rem !important;
+        }
+
+        .tx-step-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 1.125rem;
+            margin-top: 1.25rem;
+        }
+
+        .tx-page-main {
+            padding-bottom: 7.5rem !important;
+        }
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white min-h-screen flex flex-col font-sans antialiased selection:bg-cyan-500 selection:text-black" data-page="help">
+
+    <!-- Ambient Glowing Background -->
+    <div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div class="absolute -left-20 top-10 h-[550px] w-[550px] rounded-full bg-cyan-500/10 blur-[160px]"></div>
+        <div class="absolute -right-20 top-40 h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-[150px]"></div>
+        <div class="absolute left-1/3 bottom-10 h-[450px] w-[450px] rounded-full bg-emerald-500/08 blur-[150px]"></div>
+    </div>
+
+    <!-- Reusable Navbar Component -->
+    <div data-component="navbar"></div>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="flex-1 pt-32 sm:pt-36 tx-page-main">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+
+            <!-- Top Back Link -->
+            <div class="mb-6">
+                <a href="./wallet.html" onclick="if(window.history.length > 1){window.history.back(); return false;}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer group">
+                    <span class="group-hover:-translate-x-1 transition-transform duration-200">←</span>
+                    <span>Back</span>
+                </a>
+            </div>
+
+            <!-- Two Column Layout: Main Content + Sticky TOC Sidebar -->
+            <div class="tx-guide-layout">
+
+                <!-- Left / Main Article Column -->
+                <article class="tx-guide-main space-y-12">
+
+                    <!-- Hero Banner Card -->
+                    <div id="section-hero" class="relative rounded-[2rem] border border-cyan-500/20 bg-gradient-to-br from-[#0c1e33] via-[#071322] to-[#030914] p-7 sm:p-9 shadow-2xl backdrop-blur-xl space-y-6">
+                        
+                        <!-- Main Heading & Subtitle -->
+                        <div class="space-y-3">
+                            <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                                Futures trading basics
+                            </h1>
+                            <p class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-medium">
+                                Learn how perpetual futures work on TraidiumX &mdash; going long or short, leverage, margin, orders and risk management.
+                            </p>
+                        </div>
+
+                        <!-- Feature Pill Badges -->
+                        <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                            <span class="px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-slate-200">
+                                Up to 150x leverage
+                            </span>
+                            <span class="px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-slate-200">
+                                USDT-M &amp; INR-M
+                            </span>
+                            <span class="px-3.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-bold text-slate-200">
+                                Crypto, metals &amp; more
+                            </span>
+                        </div>
+
+                        <!-- CTA Button -->
+                        <div class="pt-2">
+                            <a href="/src/pages/futures.html" class="tx-cta-cyan-btn">
+                                <span>Open Futures</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Section 1: What are futures? -->
+                    <section id="section-what" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">What are futures?</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            A futures contract lets you trade the <strong class="text-white">price movement</strong> of an asset without owning the underlying coin or commodity directly. TraidiumX offers <strong class="text-white">perpetual futures</strong> &mdash; contracts with no expiry date, so you can hold a position for minutes, days, or months as long as your margin supports it.
+                        </p>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Markets include major cryptocurrencies such as <strong class="text-cyan-300">BTC, ETH, SOL</strong>, high-volatility meme coins, precious metals like <strong class="text-amber-300">Gold (XAU)</strong> and Silver, plus selected global energy and stock indexes.
+                        </p>
+
+                        <!-- Highlight Features Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-3 hover:border-cyan-500/30 transition">
+                                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </div>
+                                <h3 class="text-sm font-black text-white">Perpetual Contracts</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">No expiry dates or quarterly rollover costs. Hold as long as you wish.</p>
+                            </div>
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-3 hover:border-cyan-500/30 transition">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                                <h3 class="text-sm font-black text-white">Capital Efficiency</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Control larger market positions with a fraction of initial margin.</p>
+                            </div>
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-3 hover:border-cyan-500/30 transition">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                </div>
+                                <h3 class="text-sm font-black text-white">Multi-Asset Pairs</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Trade crypto, metals, and global indices from one single balance.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 2: Long and short -->
+                    <section id="section-long-short" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Long and short</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Unlike traditional spot markets where you only make money when prices go up, futures give you the power to generate returns in both bull and bear market trends.
+                        </p>
+
+                        <!-- Long & Short 2-Card Comparison -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3">
+                            <!-- Long Card -->
+                            <div class="p-6 rounded-2xl tx-card-emerald backdrop-blur space-y-3.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-black border border-emerald-500/30">
+                                        ↗ Long (Buy)
+                                    </span>
+                                    <span class="text-xs text-emerald-400 font-bold">Bullish Bias</span>
+                                </div>
+                                <h3 class="text-base font-black text-white">Profit when price rises</h3>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    Open a Long position when you anticipate the market will climb. If the asset appreciates, your trade gains value.
+                                </p>
+                                <div class="p-4 rounded-xl bg-[#030914] border border-emerald-500/30 text-xs sm:text-sm text-slate-200 space-y-1.5 font-mono">
+                                    <div class="text-slate-400 font-sans font-medium text-xs">Example:</div>
+                                    <div>Buy BTC at <strong class="text-white font-bold">$60,000</strong> &rarr; Close at <strong class="text-emerald-300 font-bold">$63,000</strong></div>
+                                    <div class="text-emerald-400 font-bold text-sm">Result: +$3,000 profit</div>
+                                </div>
+                            </div>
+
+                            <!-- Short Card -->
+                            <div class="p-6 rounded-2xl tx-card-rose backdrop-blur space-y-3.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-500/20 text-rose-400 text-xs font-black border border-rose-500/30">
+                                        ↘ Short (Sell)
+                                    </span>
+                                    <span class="text-xs text-rose-400 font-bold">Bearish Bias</span>
+                                </div>
+                                <h3 class="text-base font-black text-white">Profit when price falls</h3>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    Open a Short position when you anticipate prices will drop. If the asset declines, your trade gains value.
+                                </p>
+                                <div class="p-4 rounded-xl bg-[#030914] border border-rose-500/30 text-xs sm:text-sm text-slate-200 space-y-1.5 font-mono">
+                                    <div class="text-slate-400 font-sans font-medium text-xs">Example:</div>
+                                    <div>Sell BTC at <strong class="text-white font-bold">$60,000</strong> &rarr; Close at <strong class="text-emerald-300 font-bold">$57,000</strong></div>
+                                    <div class="text-emerald-400 font-bold text-sm">Result: +$3,000 profit</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 3: Leverage and margin -->
+                    <section id="section-leverage" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Leverage and margin</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            <strong class="text-white">Margin</strong> is the collateral amount allocated from your wallet to support an open position. <strong class="text-white">Leverage</strong> acts as a multiplier on your purchasing power, allowing you to open a position much larger than your allocated margin.
+                        </p>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            For instance, with <strong class="text-cyan-300 font-bold">100 USDT margin</strong> at <strong class="text-cyan-400 font-bold">10x leverage</strong>, you control a <strong class="text-white font-bold">1,000 USDT</strong> market position.
+                        </p>
+
+                        <!-- Clean Responsive Leverage Comparison Table -->
+                        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-[#07111f]/90 shadow-xl my-4">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                                <thead>
+                                    <tr class="border-b border-white/10 bg-white/[0.04] text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+                                        <th class="py-4 px-4 sm:px-6">Margin</th>
+                                        <th class="py-4 px-4 sm:px-6">Leverage</th>
+                                        <th class="py-4 px-4 sm:px-6">Position Size</th>
+                                        <th class="py-4 px-4 sm:px-6">1% Price Move</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5 font-mono">
+                                    <tr class="hover:bg-white/[0.02] transition">
+                                        <td class="py-4 px-4 sm:px-6 text-white font-bold">100 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-slate-300">1x (Spot equivalent)</td>
+                                        <td class="py-4 px-4 sm:px-6 text-slate-200 font-bold">100 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-slate-300">&plusmn;1 USDT (&plusmn;1%)</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/[0.02] transition bg-cyan-500/[0.06]">
+                                        <td class="py-4 px-4 sm:px-6 text-white font-bold">100 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-cyan-400 font-black">10x</td>
+                                        <td class="py-4 px-4 sm:px-6 text-cyan-300 font-black">1,000 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-cyan-300 font-bold">&plusmn;10 USDT (&plusmn;10%)</td>
+                                    </tr>
+                                    <tr class="hover:bg-white/[0.02] transition">
+                                        <td class="py-4 px-4 sm:px-6 text-white font-bold">100 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-amber-400 font-black">50x</td>
+                                        <td class="py-4 px-4 sm:px-6 text-amber-300 font-black">5,000 USDT</td>
+                                        <td class="py-4 px-4 sm:px-6 text-amber-300 font-bold">&plusmn;50 USDT (&plusmn;50%)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-amber-500/20 bg-amber-500/10 text-xs sm:text-sm text-amber-200 flex items-start gap-3">
+                            <div class="w-5 h-5 text-amber-400 shrink-0 mt-0.5">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <span><strong>Risk Notice:</strong> Higher leverage increases capital efficiency, but also amplifies loss rates. A 2% adverse market move at 50x leverage leads to liquidation if stop losses are not used.</span>
+                        </div>
+                    </section>
+
+                    <!-- Section 4: Cross vs Isolated -->
+                    <section id="section-margin-mode" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Cross vs Isolated</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            TraidiumX allows you to choose how margin is segregated for each trade:
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+                            <!-- Isolated Mode -->
+                            <div class="p-6 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-3 hover:border-cyan-500/30 transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    </div>
+                                    <h3 class="text-base font-black text-white">Isolated Margin</h3>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    Collateral is strictly restricted to this single trade. If the trade is liquidated, only the margin locked for this specific position is lost.
+                                </p>
+                                <div class="pt-2 text-xs text-cyan-300 font-bold">
+                                    ✓ Recommended for new traders and high-risk setups.
+                                </div>
+                            </div>
+
+                            <!-- Cross Mode -->
+                            <div class="p-6 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-3 hover:border-cyan-500/30 transition">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    </div>
+                                    <h3 class="text-base font-black text-white">Cross Margin</h3>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                    Your entire trading wallet balance is shared across all active open positions to prevent premature liquidation during volatile swings.
+                                </p>
+                                <div class="pt-2 text-xs text-emerald-400 font-bold">
+                                    ✓ Ideal for hedging and multi-asset position management.
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 5: Order types -->
+                    <section id="section-order-types" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Order types</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Execute your trading strategy with precision using three primary order mechanisms:
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-2.5 hover:border-cyan-500/30 transition">
+                                <span class="px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-300 text-xs font-mono font-bold">Market Order</span>
+                                <h3 class="text-sm font-black text-white">Instant Execution</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Fills immediately at the best available current market price in the order book.</p>
+                            </div>
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-2.5 hover:border-cyan-500/30 transition">
+                                <span class="px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-300 text-xs font-mono font-bold">Limit Order</span>
+                                <h3 class="text-sm font-black text-white">Price Target Entry</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Fills only when the price reaches your exact desired entry price or better.</p>
+                            </div>
+                            <div class="p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 space-y-2.5 hover:border-cyan-500/30 transition">
+                                <span class="px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 text-xs font-mono font-bold">Stop-Limit</span>
+                                <h3 class="text-sm font-black text-white">Trigger Based</h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">Triggers a limit order automatically when market crosses your trigger threshold.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 6: Take profit & stop loss -->
+                    <section id="section-tpsl" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Take profit &amp; stop loss</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Professional risk management is essential. TraidiumX lets you configure automated <strong class="text-emerald-400">Take Profit (TP)</strong> and <strong class="text-rose-400">Stop Loss (SL)</strong> orders directly before opening or at any time during an active trade.
+                        </p>
+
+                        <div class="p-6 rounded-2xl tx-card-dark space-y-4 mt-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="p-4 rounded-xl tx-card-emerald space-y-1.5">
+                                    <div class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Take Profit (TP)</div>
+                                    <div class="text-sm font-bold text-white">Lock in gains automatically</div>
+                                    <p class="text-xs text-slate-300">Closes the trade once your profit target is reached, preventing gains from reversing.</p>
+                                </div>
+                                <div class="p-4 rounded-xl tx-card-rose space-y-1.5">
+                                    <div class="text-xs font-bold text-rose-400 uppercase tracking-wider">Stop Loss (SL)</div>
+                                    <div class="text-sm font-bold text-white">Cap maximum loss</div>
+                                    <p class="text-xs text-slate-300">Exits the trade automatically if price moves against you, safeguarding your remaining capital.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-3.5 rounded-xl bg-cyan-500/[0.06] border border-cyan-500/20 text-xs sm:text-sm text-slate-300">
+                                <div class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                </div>
+                                <span>Pro Tip: You can also use <strong class="text-cyan-300 font-bold">Trailing Stops</strong> to track market momentum and automatically lock in profits as trends progress.</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 7: Liquidation -->
+                    <section id="section-liquidation" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Liquidation &amp; how to prevent it</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Liquidation occurs when your position's loss approaches the maintenance margin threshold. When the Mark Price hits your designated <strong class="text-rose-400">Liquidation Price</strong>, the exchange automatically closes your position to prevent account balance deficit.
+                        </p>
+
+                        <div class="p-6 rounded-2xl tx-card-rose space-y-3.5 mt-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></div>
+                                <h3 class="text-sm sm:text-base font-black text-rose-300">3 Essential Rules to avoid liquidation:</h3>
+                            </div>
+                            <ul class="space-y-3 text-xs sm:text-sm text-slate-300">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5 border border-emerald-500/30">1</span>
+                                    <span>Always set a <strong class="text-white font-bold">Stop Loss</strong> before entering high-leverage trades.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5 border border-emerald-500/30">2</span>
+                                    <span>Use lower leverage (<strong class="text-white font-bold">5x to 10x</strong>) on volatile crypto pairs to increase price buffer.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs shrink-0 mt-0.5 border border-emerald-500/30">3</span>
+                                    <span>Use <strong class="text-white font-bold">Isolated Margin</strong> so one trade cannot affect your overall wallet balance.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <!-- Section 8: Your first trade (Steps 1 to 5) -->
+                    <section id="section-steps" class="tx-guide-section space-y-4 scroll-mt-28">
+                        <div class="flex items-center gap-3">
+                            <div class="tx-icon-badge">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">Your first trade (5 steps)</h2>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+                            Follow these simple steps to place your first futures trade on TraidiumX:
+                        </p>
+
+                        <!-- Step by step cards -->
+                        <div class="tx-step-stack">
+                            <div class="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:border-cyan-500/30 transition">
+                                <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black shrink-0 border border-cyan-500/30">1</span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-black text-white">Pick a market</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Select your preferred trading pair (e.g. BTC/USDT, ETH/USDT, or Gold).</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:border-cyan-500/30 transition">
+                                <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black shrink-0 border border-cyan-500/30">2</span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-black text-white">Choose margin mode &amp; leverage</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Select Isolated or Cross margin and adjust the leverage slider (e.g., 5x &ndash; 10x).</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:border-cyan-500/30 transition">
+                                <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black shrink-0 border border-cyan-500/30">3</span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-black text-white">Enter your order details</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Choose Market or Limit order, enter position size, and configure TP/SL levels.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:border-cyan-500/30 transition">
+                                <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black shrink-0 border border-cyan-500/30">4</span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-black text-white">Open Long or Short</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Click the green <strong class="text-emerald-400">Open Long</strong> button or red <strong class="text-rose-400">Open Short</strong> button.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:border-cyan-500/30 transition">
+                                <span class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-black shrink-0 border border-cyan-500/30">5</span>
+                                <div>
+                                    <h3 class="text-sm sm:text-base font-black text-white">Manage your active position</h3>
+                                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Monitor unrealised PnL, adjust TP/SL, or close anytime from the bottom Positions table.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Links -->
+                        <div class="flex flex-wrap items-center gap-3 pt-4">
+                            <a href="/src/pages/what-is-demo-trading.html" class="px-5 py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
+                                <span>Practise with demo first</span>
+                                <span>→</span>
+                            </a>
+                            <a href="/src/pages/learn.html" class="px-5 py-3 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-white font-bold text-xs sm:text-sm transition">
+                                More in Learning Center
+                            </a>
+                        </div>
+                    </section>
+
+                </article>
+
+                <!-- Right / Sticky TOC Sidebar Column -->
+                <aside class="tx-guide-sidebar">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-3 pl-3">
+                        ON THIS PAGE
+                    </div>
+                    <nav class="space-y-3 text-xs font-semibold text-slate-400">
+                        <a href="#section-what" class="tx-toc-link">What are futures?</a>
+                        <a href="#section-long-short" class="tx-toc-link">Long and short</a>
+                        <a href="#section-leverage" class="tx-toc-link">Leverage and margin</a>
+                        <a href="#section-margin-mode" class="tx-toc-link">Cross vs Isolated</a>
+                        <a href="#section-order-types" class="tx-toc-link">Order types</a>
+                        <a href="#section-tpsl" class="tx-toc-link">Take profit &amp; stop loss</a>
+                        <a href="#section-liquidation" class="tx-toc-link">Liquidation</a>
+                        <a href="#section-steps" class="tx-toc-link">Your first trade</a>
+                    </nav>
+                </aside>
+
+            </div>
+        </div>
+    </main>
+    <!-- ================= MAIN END ================= -->
+
+    <!-- Reusable Footer Component -->
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js?v=21"></script>
+    <script src="../js/auth-state.js?v=87"></script>
+    <script src="../js/responsive.js"></script>
+    <script src="../js/lenis.min.js"></script>
+
+    <!-- Feedback Handling Script & Sticky TOC Active Highlight -->
+    <script>
+        // Smooth scroll
+        (function() {
+            if (typeof Lenis !== "undefined") {
+                const lenis = new Lenis({
+                    duration: 1.15,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: "vertical",
+                    smooth: true,
+                });
+                function raf(time) {
+                    lenis.raf(time);
+                    requestAnimationFrame(raf);
+                }
+                requestAnimationFrame(raf);
+                window.txLenis = lenis;
+            }
+        })();
+
+        // Active TOC on scroll
+        window.addEventListener("scroll", function() {
+            const sections = document.querySelectorAll("article section, #section-hero");
+            const links = document.querySelectorAll(".tx-toc-link");
+            let currentId = "section-hero";
+
+            sections.forEach(sec => {
+                const top = sec.getBoundingClientRect().top;
+                if (top <= 220) {
+                    currentId = sec.getAttribute("id");
+                }
+            });
+
+            links.forEach(link => {
+                if (link.getAttribute("href") === "#" + currentId) {
+                    link.classList.add("is-active");
+                } else {
+                    link.classList.remove("is-active");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

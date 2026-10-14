@@ -61,6 +61,7 @@
         usdtInrRate: 88.50,
         activePickerTarget: "from", // 'from' | 'to'
         activeCategoryFilter: "all",
+        lastEditedField: "from", // 'from' | 'to'
         isQuoting: false,
         isSubmitting: false,
         quoteTimeout: null
@@ -105,9 +106,22 @@
         const n = parseFloat(val);
         if (n === 0) return "0";
         if (decimals === 0) return Math.floor(n).toLocaleString();
-        if (n < 0.000001) return n.toFixed(8);
-        if (n < 1) return n.toFixed(6);
+        if (n < 0.000001) return n.toFixed(8).replace(/\.?0+$/, "");
+        if (n < 1) return n.toFixed(6).replace(/\.?0+$/, "");
         return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: decimals });
+    }
+
+    // Helper: Format Clean Decimal without scientific notation (e.g. 5.9e-7 -> 0.00000059)
+    function formatDecimalString(val, toDecimals = 8) {
+        if (val === undefined || val === null || isNaN(val)) return "";
+        const n = typeof val === "number" ? val : parseFloat(val);
+        if (n === 0) return "0";
+        const maxDec = n < 0.001 ? 8 : Math.max(toDecimals || 4, 2);
+        let str = n.toFixed(maxDec);
+        if (str.includes(".")) {
+            str = str.replace(/\.?0+$/, "");
+        }
+        return str || "0";
     }
 
     // Cache key for active user & sub-account
@@ -279,25 +293,51 @@
             STATE.fromAsset = STATE.toAsset;
             STATE.toAsset = temp;
 
-            // Reset amount
-            STATE.fromAmount = 0;
-            if (elFromInput) elFromInput.value = "";
-            if (elToOutput) elToOutput.value = "";
+            // Swap amounts if entered
+            const prevFrom = STATE.fromAmount;
+            const prevTo = STATE.toAmount;
+            if (prevTo > 0) {
+                STATE.fromAmount = prevTo;
+                STATE.lastEditedField = "from";
+                if (elFromInput) elFromInput.value = STATE.fromAmount > 0 ? STATE.fromAmount : "";
+                if (elToOutput) elToOutput.value = "";
+            } else if (prevFrom > 0) {
+                STATE.fromAmount = prevFrom;
+                STATE.lastEditedField = "from";
+                if (elFromInput) elFromInput.value = STATE.fromAmount > 0 ? STATE.fromAmount : "";
+                if (elToOutput) elToOutput.value = "";
+            } else {
+                STATE.fromAmount = 0;
+                STATE.toAmount = 0;
+                if (elFromInput) elFromInput.value = "";
+                if (elToOutput) elToOutput.value = "";
+            }
 
             updateUiDisplay();
-            requestQuote();
+            scheduleQuoteCalculation();
         });
 
-        // Input Amount Changed
+        // Input Amount Changed (From)
         elFromInput?.addEventListener("input", (e) => {
+            STATE.lastEditedField = "from";
             const val = parseFloat(e.target.value);
             STATE.fromAmount = isNaN(val) || val < 0 ? 0 : val;
             updateUsdEstimates();
             scheduleQuoteCalculation();
         });
 
+        // Input Amount Changed (To / Receive)
+        elToOutput?.addEventListener("input", (e) => {
+            STATE.lastEditedField = "to";
+            const val = parseFloat(e.target.value);
+            STATE.toAmount = isNaN(val) || val < 0 ? 0 : val;
+            updateUsdEstimates();
+            scheduleReverseQuoteCalculation();
+        });
+
         // Max Button
         elFromMaxBtn?.addEventListener("click", () => {
+            STATE.lastEditedField = "from";
             const avail = STATE.balances[STATE.fromAsset] || 0;
             if (avail > 0) {
                 STATE.fromAmount = avail;
@@ -406,28 +446,52 @@
         }
     }
 
-    // Schedule debounced quote calculation
+    // Schedule debounced quote calculation (From -> To)
     function scheduleQuoteCalculation() {
         clearTimeout(STATE.quoteTimeout);
         calculateLocalQuote();
         STATE.quoteTimeout = setTimeout(requestQuote, 350);
     }
 
+    // Schedule debounced reverse quote calculation (To -> From)
+    function scheduleReverseQuoteCalculation() {
+        clearTimeout(STATE.quoteTimeout);
+        calculateLocalReverseQuote();
+        STATE.quoteTimeout = setTimeout(requestQuote, 350);
+    }
+
     function calculateLocalQuote() {
         calculateRate();
-        const fromDecimals = ASSETS_LIST.find(a => a.symbol === STATE.fromAsset)?.decimals ?? 8;
-        const toDecimals = ASSETS_LIST.find(a => a.symbol === STATE.toAsset)?.decimals ?? 6;
+        const toDecimals = ASSETS_LIST.find(a => a.symbol === STATE.toAsset)?.decimals ?? 8;
 
         if (STATE.fromAmount > 0 && STATE.rate > 0) {
             STATE.toAmount = STATE.fromAmount * STATE.rate;
-            if (elToOutput) {
-                elToOutput.value = STATE.toAmount < 0.000001
-                    ? STATE.toAmount.toFixed(8)
-                    : STATE.toAmount.toFixed(toDecimals > 4 ? 6 : toDecimals);
+            if (elToOutput && document.activeElement !== elToOutput) {
+                elToOutput.value = formatDecimalString(STATE.toAmount, toDecimals);
             }
-        } else {
+        } else if (STATE.fromAmount === 0 && STATE.lastEditedField === "from") {
             STATE.toAmount = 0;
-            if (elToOutput) elToOutput.value = "";
+            if (elToOutput && document.activeElement !== elToOutput) elToOutput.value = "";
+        }
+
+        updateRateText();
+        updateUsdEstimates();
+        updateAlertState();
+        updateSubmitButtonState();
+    }
+
+    function calculateLocalReverseQuote() {
+        calculateRate();
+        const fromDecimals = ASSETS_LIST.find(a => a.symbol === STATE.fromAsset)?.decimals ?? 8;
+
+        if (STATE.toAmount > 0 && STATE.rate > 0) {
+            STATE.fromAmount = STATE.toAmount / STATE.rate;
+            if (elFromInput && document.activeElement !== elFromInput) {
+                elFromInput.value = formatDecimalString(STATE.fromAmount, fromDecimals);
+            }
+        } else if (STATE.toAmount === 0 && STATE.lastEditedField === "to") {
+            STATE.fromAmount = 0;
+            if (elFromInput && document.activeElement !== elFromInput) elFromInput.value = "";
         }
 
         updateRateText();
@@ -438,9 +502,16 @@
 
     // Server-side Quote request
     async function requestQuote() {
-        if (!STATE.fromAmount || STATE.fromAmount <= 0) {
-            calculateLocalQuote();
-            return;
+        if (STATE.lastEditedField === "to") {
+            if (!STATE.toAmount || STATE.toAmount <= 0) {
+                calculateLocalReverseQuote();
+                return;
+            }
+        } else {
+            if (!STATE.fromAmount || STATE.fromAmount <= 0) {
+                calculateLocalQuote();
+                return;
+            }
         }
 
         try {
@@ -460,8 +531,13 @@
             if (res && res.success && res.data) {
                 if (res.data.rate) STATE.rate = parseFloat(res.data.rate);
                 if (res.data.receive_amount !== undefined) {
-                    STATE.toAmount = parseFloat(res.data.receive_amount);
-                    if (elToOutput) elToOutput.value = STATE.toAmount.toString();
+                    if (STATE.lastEditedField === "from") {
+                        STATE.toAmount = parseFloat(res.data.receive_amount);
+                        if (elToOutput && document.activeElement !== elToOutput) {
+                            const toDecimals = ASSETS_LIST.find(a => a.symbol === STATE.toAsset)?.decimals ?? 8;
+                            elToOutput.value = formatDecimalString(STATE.toAmount, toDecimals);
+                        }
+                    }
                 }
             }
         } catch (e) {
@@ -733,7 +809,11 @@
 
         closeCoinPicker();
         updateUiDisplay();
-        requestQuote();
+        if (STATE.lastEditedField === "to") {
+            scheduleReverseQuoteCalculation();
+        } else {
+            scheduleQuoteCalculation();
+        }
     }
 
     // Exchange History Modal Handlers

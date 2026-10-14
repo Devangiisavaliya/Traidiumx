@@ -512,6 +512,9 @@ function formatPnlValue(value, currency = "USD") {
     if (currency === "INR") {
         return `${sign}₹${absFormatted}`;
     }
+    if (currency === "USC") {
+        return `${sign}${absFormatted} USC`;
+    }
     return `${sign}${absFormatted} USD`;
 }
 function formatQty(value) {
@@ -2434,6 +2437,23 @@ async function txFetchFuturesUsdtRate() {
     if (trfInput) trfInput.dispatchEvent(new Event("input"));
 }
 
+function txIsActiveAccountCent() {
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const activeSubName = (localStorage.getItem("traidiumx_active_user_name") || "").toLowerCase();
+    if (!activeSubId || activeSubId === "main") return false;
+    if (activeSubName.includes("cent")) return true;
+
+    if (typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) {
+        const currentSub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
+        if (currentSub && (currentSub.plan === "cent" || String(currentSub.plan || "").toLowerCase().includes("cent") || currentSub.is_cent)) {
+            return true;
+        }
+    }
+    const rawWallet = TX_BACKEND_FUTURES.wallet || {};
+    if (rawWallet.plan === "cent" || rawWallet.is_cent) return true;
+    return false;
+}
+
 function txOpenFuturesWalletModal(action = "transfer") {
     if (action === "deposit") {
         if (typeof window.txOpenDepositChoiceModal === "function") {
@@ -2454,8 +2474,9 @@ function txOpenFuturesWalletModal(action = "transfer") {
         modalTradingLabel.textContent = activeText;
     }
 
+    const isCent = txIsActiveAccountCent();
     const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const isINR = primaryCurrency === "INR";
+    const isINR = !isCent && primaryCurrency === "INR";
     const rateBadge = document.getElementById("futuresTransferUsdtRateBadge");
     if (rateBadge) {
         rateBadge.style.display = isINR ? "flex" : "none";
@@ -2463,7 +2484,10 @@ function txOpenFuturesWalletModal(action = "transfer") {
 
     const transferDirSelect = document.getElementById("futuresTransferDirection");
     if (transferDirSelect) {
-        if (isINR) {
+        if (isCent) {
+            transferDirSelect.options[0].textContent = `Main Wallet (USC) → ${activeText} (USC)`;
+            transferDirSelect.options[1].textContent = `${activeText} (USC) → Main Wallet (USC)`;
+        } else if (isINR) {
             transferDirSelect.options[0].textContent = `Main Wallet (INR) → ${activeText} (USD)`;
             transferDirSelect.options[1].textContent = `${activeText} (USD) → Main Wallet (INR)`;
         } else {
@@ -2518,15 +2542,16 @@ function txUpdateFuturesWalletModalBalances() {
     const nodes = txGetFuturesWalletModalNodes();
     const wallet = getWallet();
     const rawWallet = TX_BACKEND_FUTURES.wallet || {};
+    const isCent = txIsActiveAccountCent();
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const isINR = activeCurrency === "INR";
+    const isINR = !isCent && activeCurrency === "INR";
     const selectedPositions = getPositions().filter(p => {
         const posCurr = String(p.currency || "USDT").toUpperCase();
         return isINR ? posCurr === "INR" : (posCurr === "USDT" || posCurr === "USD");
     });
     const pnl = selectedPositions.reduce((total, position) => total + calculatePositionPnl(position), 0);
     
-    let mainCurrency = localStorage.getItem("tx_navbar_currency") || "USDT";
+    let mainCurrency = isCent ? "USC" : (localStorage.getItem("tx_navbar_currency") || "USDT");
     
     if (nodes.modal && !nodes.modal.classList.contains("hidden")) {
         const activePanel = nodes.modal.querySelector("[data-futures-wallet-panel]:not(.hidden)");
@@ -2545,13 +2570,18 @@ function txUpdateFuturesWalletModalBalances() {
         targetMainWallet = rawWallet.main_wallet_usdt || { available_balance: 0, locked_balance: 0, total_balance: 0, currency: "USDT" };
     }
 
-    if (nodes.tradingBalance) nodes.tradingBalance.textContent = formatFuturesUsd(txToNumber(wallet.available, 0), 2);
+    if (nodes.tradingBalance) {
+        const tradAvail = txToNumber(wallet.available, 0);
+        nodes.tradingBalance.textContent = isCent ? `${formatNumber(tradAvail * 100, 2)} USC` : formatFuturesUsd(tradAvail, 2);
+    }
     if (nodes.mainBalance) {
         const bal = txToNumber(targetMainWallet.available_balance, 0);
-        nodes.mainBalance.textContent = mainCurrency === "INR" ? `₹${bal.toFixed(2)}` : `$${bal.toFixed(2)}`;
+        nodes.mainBalance.textContent = isCent ? `${formatNumber(bal * 100, 2)} USC` : (mainCurrency === "INR" ? `₹${bal.toFixed(2)}` : `$${bal.toFixed(2)}`);
     }
     if (nodes.tradingPnl) {
-        nodes.tradingPnl.textContent = `${pnl >= 0 ? "+" : ""}${formatNumber(pnl, 2)} USDT`;
+        const dispPnl = isCent ? (pnl * 100) : pnl;
+        const pnlUnit = isCent ? "USC" : "USDT";
+        nodes.tradingPnl.textContent = `${pnl >= 0 ? "+" : ""}${formatNumber(dispPnl, 2)} ${pnlUnit}`;
         txApplyMoneyCellColor(nodes.tradingPnl, pnl);
     }
 }
@@ -2566,7 +2596,12 @@ function txSyncWalletModalCurrencyUI(nodes, primaryCurrency) {
 
 function txUpdateFuturesDepositModalUIByCurrency(currency) {
     const nodes = txGetFuturesWalletModalNodes();
-    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const subList = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
+    const activeSub = activeSubId && activeSubId !== "main" ? subList.find(s => String(s.id) === String(activeSubId)) : null;
+    const isMt5 = Boolean(activeSub?.selected_platform === "mt5" || activeSub?.platform === "mt5" || activeSub?.is_mt5 || activeSub?.mt5_login_id || (activeSub?.plan && String(activeSub?.plan).toLowerCase().includes("cent")));
+
+    const primaryCurrency = isMt5 ? "USDT" : (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.depositForm) nodes.depositForm.dataset.activeCurrency = activeCurrency;
 
@@ -2631,7 +2666,12 @@ function txUpdateFuturesDepositModalUIByCurrency(currency) {
 
 function txUpdateFuturesWithdrawalModalUIByCurrency(currency) {
     const nodes = txGetFuturesWalletModalNodes();
-    const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const subList = (typeof txSubAccountsLocalCache !== "undefined" ? txSubAccountsLocalCache : []) || [];
+    const activeSub = activeSubId && activeSubId !== "main" ? subList.find(s => String(s.id) === String(activeSubId)) : null;
+    const isMt5 = Boolean(activeSub?.selected_platform === "mt5" || activeSub?.platform === "mt5" || activeSub?.is_mt5 || activeSub?.mt5_login_id || (activeSub?.plan && String(activeSub?.plan).toLowerCase().includes("cent")));
+
+    const primaryCurrency = isMt5 ? "USDT" : (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
     const activeCurrency = primaryCurrency; // Force matching navbar currency
     if (nodes.withdrawForm) nodes.withdrawForm.dataset.activeCurrency = activeCurrency;
 
@@ -2823,14 +2863,21 @@ function txBindFuturesRealtimeConversionCalculator() {
             const val = parseFloat(trfInput.value || 0);
             const rate = TX_FUTURES_USDT_RATE || 88.50;
             const dir = trfDir?.value || "main_to_trading";
+            const isCent = txIsActiveAccountCent();
             const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-            const isINR = primaryCurrency === "INR";
+            const isINR = !isCent && primaryCurrency === "INR";
 
             if (trfLabel) {
-                trfLabel.textContent = (dir === "main_to_trading" && isINR) ? "Amount (INR / ₹)" : "Amount (USDT / $)";
+                trfLabel.textContent = isCent ? "Amount (USC)" : ((dir === "main_to_trading" && isINR) ? "Amount (INR / ₹)" : "Amount (USDT / $)");
             }
             if (val > 0) {
-                if (dir === "main_to_trading") {
+                if (isCent) {
+                    if (dir === "main_to_trading") {
+                        trfPrev.innerHTML = `${val} USC Main Wallet → <span class="text-white font-extrabold text-sm">${val} USC</span> Trading Wallet`;
+                    } else {
+                        trfPrev.innerHTML = `${val} USC Trading Wallet → <span class="text-white font-extrabold text-sm">${val} USC</span> Main Wallet`;
+                    }
+                } else if (dir === "main_to_trading") {
                     if (isINR) {
                         const usdtEq = (val / rate).toFixed(4);
                         trfPrev.innerHTML = `₹${val.toLocaleString()} INR Main Wallet → <span class="text-white font-extrabold text-sm">${usdtEq} USDT</span> Trading Wallet`;
@@ -2859,10 +2906,13 @@ function txBindFuturesRealtimeConversionCalculator() {
                 const dir = trfDir?.value || "main_to_trading";
                 const wallet = getWallet();
                 const mainWallet = txGetMainWalletBucket();
+                const isCent = txIsActiveAccountCent();
                 if (dir === "main_to_trading") {
-                    trfInput.value = txToNumber(mainWallet.available_balance, 0);
+                    const rawMain = txToNumber(mainWallet.available_balance, 0);
+                    trfInput.value = isCent ? (rawMain * 100).toFixed(2) : rawMain;
                 } else {
-                    trfInput.value = txToNumber(wallet.available, 0);
+                    const rawTrad = txToNumber(wallet.available, 0);
+                    trfInput.value = isCent ? (rawTrad * 100).toFixed(2) : rawTrad;
                 }
                 trfInput.dispatchEvent(new Event("input"));
             });
@@ -3074,15 +3124,17 @@ async function txHandleFuturesTransferSubmit(event) {
         const activeSubId = localStorage.getItem("traidiumx_active_user_id");
         let response;
         if (activeSubId) {
+            const isCent = txIsActiveAccountCent();
             const mappedDirection = direction === "main_to_trading" ? "main_to_sub" : "sub_to_main";
-            const currency = localStorage.getItem("tx_navbar_currency") || "USDT";
+            const currency = isCent ? "USC" : (localStorage.getItem("tx_navbar_currency") || "USDT");
             response = await txApiRequestWithTimeout("/wallet/transfer-sub", {
                 method: "POST",
                 body: JSON.stringify({
                     amount: amount,
                     direction: mappedDirection,
                     sub_user_id: activeSubId,
-                    currency: currency
+                    currency: currency,
+                    is_usc: isCent
                 })
             }, 5000);
         } else {
@@ -4275,8 +4327,12 @@ function txUpdateEstimatedMargin() {
         estMargin = (quantity * price) / leverage;
     }
 
+    const isCent = txIsActiveAccountCent();
+    const marginDisplayVal = isCent ? (estMargin * 100) : estMargin;
+    const marginUnit = isCent ? "USC" : "USDT";
+
     // Update the UI
-    elements.walletEstMargin.textContent = `${formatNumber(estMargin, 2)} USDT`;
+    elements.walletEstMargin.textContent = `${formatNumber(marginDisplayVal, 2)} ${marginUnit}`;
 }
 
 function initMobileFuturesDrawer() {
@@ -4479,22 +4535,53 @@ function initEvents() {
     document.getElementById("mobileWalletDepositBtn")?.addEventListener("click", () => goToFuturesWalletAction("deposit"));
     document.getElementById("mobileWalletWithdrawBtn")?.addEventListener("click", () => goToFuturesWalletAction("withdraw"));
 
+    function txGetCachedSubAccounts() {
+        if (typeof window !== "undefined" && Array.isArray(window.txSubAccountsLocalCache) && window.txSubAccountsLocalCache.length) {
+            return window.txSubAccountsLocalCache;
+        }
+        try {
+            const raw = localStorage.getItem("traidiumx_cached_sub_accounts") || localStorage.getItem("tx_cached_sub_accounts");
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length) {
+                    if (typeof window !== "undefined") window.txSubAccountsLocalCache = parsed;
+                    return parsed;
+                }
+            }
+        } catch (_) {}
+        return [];
+    }
+
     function txIsDemoAccountActive() {
         const activeSubId = document.getElementById("tradingAccountSelector")?.value || localStorage.getItem("traidiumx_active_user_id") || "main";
         if (activeSubId === "main") return false;
         if (typeof TX_BACKEND_FUTURES !== "undefined" && TX_BACKEND_FUTURES.wallet && (TX_BACKEND_FUTURES.wallet.is_demo || TX_BACKEND_FUTURES.wallet.account_mode === "demo" || TX_BACKEND_FUTURES.wallet.plan === "demo")) {
             return true;
         }
-        if (typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) {
-            const sub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
-            if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo")) {
-                return true;
-            }
+        const subs = txGetCachedSubAccounts();
+        const sub = subs.find(s => String(s.id || s._id) === String(activeSubId));
+        if (sub && (sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo")) {
+            return true;
         }
         const currentName = localStorage.getItem("traidiumx_active_user_name") || "";
         if (currentName.toLowerCase().includes("demo")) return true;
         const customLabel = document.getElementById("txCustomAccountLabel")?.textContent || "";
         if (customLabel.toLowerCase().includes("demo")) return true;
+        return false;
+    }
+
+    function txIsMt5AccountActive() {
+        const activeSubId = document.getElementById("tradingAccountSelector")?.value || localStorage.getItem("traidiumx_active_user_id") || "main";
+        if (activeSubId === "main") return false;
+        const subs = txGetCachedSubAccounts();
+        const sub = subs.find(s => String(s.id || s._id) === String(activeSubId));
+        if (sub && (sub.selected_platform === "mt5" || sub.platform === "mt5" || sub.is_mt5 || sub.mt5_login_id || (sub.plan && String(sub.plan).toLowerCase().includes("cent")))) {
+            return true;
+        }
+        const currentName = localStorage.getItem("traidiumx_active_user_name") || "";
+        if (currentName.toLowerCase().includes("mt5") || currentName.toLowerCase().includes("cent")) return true;
+        const customLabel = document.getElementById("txCustomAccountLabel")?.textContent || "";
+        if (customLabel.toLowerCase().includes("mt5") || customLabel.toLowerCase().includes("cent")) return true;
         return false;
     }
 
@@ -4504,14 +4591,15 @@ function initEvents() {
         const currBtns = mobileCurrToggleContainer.querySelectorAll("[data-currency-switch]");
 
         const syncActiveMobileCurrencyUI = () => {
-            const isDemo = txIsDemoAccountActive();
-            if (isDemo) {
+            const shouldHide = txIsDemoAccountActive() || txIsMt5AccountActive();
+            document.documentElement.classList.toggle("tx-hide-currency-toggle", shouldHide);
+            if (shouldHide) {
                 mobileCurrToggleContainer.classList.add("hidden");
-                mobileCurrToggleContainer.style.display = "none";
+                mobileCurrToggleContainer.style.setProperty("display", "none", "important");
                 return;
             } else {
                 mobileCurrToggleContainer.classList.remove("hidden");
-                mobileCurrToggleContainer.style.display = "";
+                mobileCurrToggleContainer.style.removeProperty("display");
             }
             const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             currBtns.forEach((btn) => {
@@ -4527,7 +4615,7 @@ function initEvents() {
 
         currBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
-                if (txIsDemoAccountActive()) return;
+                if (txIsDemoAccountActive() || txIsMt5AccountActive()) return;
                 const targetCurr = (btn.getAttribute("data-currency-switch") || "USDT").toUpperCase();
                 localStorage.setItem("tx_navbar_currency", targetCurr);
                 syncActiveMobileCurrencyUI();
@@ -4543,8 +4631,10 @@ function initEvents() {
 
         syncActiveMobileCurrencyUI();
         window.addEventListener("traidiumx:currency-change", syncActiveMobileCurrencyUI);
+        window.addEventListener("traidiumx:account-changed", syncActiveMobileCurrencyUI);
+        window.addEventListener("traidiumx:wallet-sync", syncActiveMobileCurrencyUI);
         window.addEventListener("storage", (e) => {
-            if (e.key === "tx_navbar_currency") {
+            if (e.key === "tx_navbar_currency" || e.key === "traidiumx_active_user_id") {
                 syncActiveMobileCurrencyUI();
             }
         });
@@ -4556,14 +4646,16 @@ function initEvents() {
         const headerCurrBtns = headerCurrToggleContainer.querySelectorAll("[data-futures-curr]");
 
         const syncActiveHeaderCurrencyUI = () => {
-            const isDemo = txIsDemoAccountActive();
-            if (isDemo) {
+            const shouldHide = txIsDemoAccountActive() || txIsMt5AccountActive();
+            document.documentElement.classList.toggle("tx-hide-currency-toggle", shouldHide);
+
+            if (shouldHide) {
                 headerCurrToggleContainer.classList.add("hidden");
-                headerCurrToggleContainer.style.display = "none";
+                headerCurrToggleContainer.style.setProperty("display", "none", "important");
                 return;
             } else {
                 headerCurrToggleContainer.classList.remove("hidden");
-                headerCurrToggleContainer.style.display = "";
+                headerCurrToggleContainer.style.removeProperty("display");
             }
             const activeCurr = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
             headerCurrBtns.forEach((btn) => {
@@ -4579,7 +4671,7 @@ function initEvents() {
 
         headerCurrBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
-                if (txIsDemoAccountActive()) return;
+                if (txIsDemoAccountActive() || txIsMt5AccountActive()) return;
                 const targetCurr = (btn.getAttribute("data-futures-curr") || "USDT").toUpperCase();
                 localStorage.setItem("tx_navbar_currency", targetCurr);
                 syncActiveHeaderCurrencyUI();
@@ -4601,8 +4693,17 @@ function initEvents() {
                 updateFuturesDashboard();
             }
         });
+        window.addEventListener("traidiumx:account-changed", () => {
+            syncActiveHeaderCurrencyUI();
+            if (typeof updateFuturesDashboard === "function") {
+                updateFuturesDashboard();
+            }
+        });
+        window.addEventListener("traidiumx:wallet-sync", () => {
+            syncActiveHeaderCurrencyUI();
+        });
         window.addEventListener("storage", (e) => {
-            if (e.key === "tx_navbar_currency") {
+            if (e.key === "tx_navbar_currency" || e.key === "traidiumx_active_user_id") {
                 syncActiveHeaderCurrencyUI();
                 if (typeof updateFuturesDashboard === "function") {
                     updateFuturesDashboard();
@@ -5933,21 +6034,34 @@ function startAllSymbolLivePriceSync() {
 ===================================================== */
 
 let cachedPositionsInit = [];
+let cachedWalletInit = null;
 try {
     const token = localStorage.getItem("traidiumx_auth_token") || "guest";
     const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "master";
     const cacheKey = "tx_cached_positions_" + token.substring(0, 15) + "_" + activeSubId;
     const raw = localStorage.getItem(cacheKey);
     if (raw) cachedPositionsInit = JSON.parse(raw);
+
+    if (activeSubId === "master" || activeSubId === "main" || !activeSubId) {
+        const rawMain = localStorage.getItem("traidiumx_cached_main_wallet");
+        if (rawMain) cachedWalletInit = JSON.parse(rawMain);
+    } else {
+        const rawSubs = localStorage.getItem("traidiumx_cached_sub_accounts");
+        if (rawSubs) {
+            const subs = JSON.parse(rawSubs);
+            const found = (subs || []).find(s => String(s.id) === String(activeSubId));
+            if (found && found.wallet) cachedWalletInit = found.wallet;
+        }
+    }
 } catch (e) {}
 
 const TX_BACKEND_FUTURES = {
-    walletLoaded: false,
+    walletLoaded: cachedWalletInit !== null,
     walletLoading: false,
     dataLoading: false,
     autoExecuteLoading: false,
     lastDataLoadAt: 0,
-    wallet: null,
+    wallet: cachedWalletInit,
     orders: [],
     openOrders: [],
     positions: cachedPositionsInit,
@@ -6251,14 +6365,17 @@ function txBuildPositionRowHtml(position) {
     ) || txEstimateLiquidationPrice(entryPrice || markPrice, side, leverage);
     const pnl = calculatePositionPnl(position);
 
+    const isCent = txIsActiveAccountCent() || String(position.currency || "").toUpperCase() === "USC";
     const posCurrency = String(position.currency || "USDT").toUpperCase();
-    const isINR = posCurrency === "INR";
-    const currBadge = isINR
-        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
-        : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`;
+    const isINR = !isCent && posCurrency === "INR";
+    const currBadge = isCent
+        ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">USC</span>`
+        : (isINR
+            ? `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">INR</span>`
+            : `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">USD</span>`);
 
     const pnlColorStyle = getPnlColorStyle(pnl);
-    const pnlText = formatPnlValue(pnl, "USD");
+    const pnlText = isCent ? formatPnlValue(pnl * 100, "USC") : formatPnlValue(pnl, "USD");
     const { takeProfit, stopLoss } = txGetTpSlNumbers(position);
     const tpText = takeProfit > 0 ? formatNumber(takeProfit) : "--";
     const slText = stopLoss > 0 ? formatNumber(stopLoss) : "--";
@@ -6266,11 +6383,11 @@ function txBuildPositionRowHtml(position) {
     const pnlPercent = rawMargin > 0 ? (pnl / rawMargin) * 100 : 0;
     const pnlPercentText = (pnlPercent >= 0 ? "+" : "") + pnlPercent.toFixed(2) + "%";
     const sign = pnl >= 0 ? "+" : "-";
-    const absPnlText = `$${Math.abs(pnl).toFixed(2)}`;
+    const absPnlText = isCent ? `${Math.abs(pnl * 100).toFixed(2)} USC` : `$${Math.abs(pnl).toFixed(2)}`;
     const tpValText = takeProfit > 0 ? formatNumber(takeProfit) : "-";
     const slValText = stopLoss > 0 ? formatNumber(stopLoss) : "-";
 
-    const marginDisplay = `${formatNumber(rawMargin, 2)}`;
+    const marginDisplay = isCent ? `${formatNumber(rawMargin * 100, 2)}` : `${formatNumber(rawMargin, 2)}`;
 
     return `
         <tr data-position-row="${txEscapeHtml(positionId)}">
@@ -7346,8 +7463,32 @@ function getWallet() {
     };
 }
 
+function txSaveCachedWalletForCurrentAccount(wallet) {
+    if (!wallet || typeof wallet !== "object") return;
+    try {
+        const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
+        if (!activeSubId || activeSubId === "main") {
+            localStorage.setItem("traidiumx_cached_main_wallet", JSON.stringify(wallet));
+        } else {
+            let subs = (typeof txSubAccountsLocalCache !== "undefined" && Array.isArray(txSubAccountsLocalCache)) ? txSubAccountsLocalCache : [];
+            if (!subs.length) {
+                const raw = localStorage.getItem("traidiumx_cached_sub_accounts");
+                if (raw) subs = JSON.parse(raw);
+            }
+            if (Array.isArray(subs)) {
+                const idx = subs.findIndex(s => String(s.id) === String(activeSubId));
+                if (idx !== -1) {
+                    subs[idx].wallet = wallet;
+                    localStorage.setItem("traidiumx_cached_sub_accounts", JSON.stringify(subs));
+                }
+            }
+        }
+    } catch (_) {}
+}
+
 function saveWallet(wallet) {
     TX_BACKEND_FUTURES.wallet = wallet;
+    txSaveCachedWalletForCurrentAccount(wallet);
 }
 
 function getPositions() {
@@ -7394,6 +7535,7 @@ async function loadBackendWalletBalance() {
         const response = await txApiRequestWithTimeout(balanceUrl, {}, 6000);
         TX_BACKEND_FUTURES.wallet = response.data.wallet || response.data || null;
         TX_BACKEND_FUTURES.walletLoaded = true;
+        txSaveCachedWalletForCurrentAccount(TX_BACKEND_FUTURES.wallet);
 
         updateWalletUI();
     } catch (error) {
@@ -7496,6 +7638,7 @@ async function refreshBackendFuturesData(force = false) {
         const walletPromise = txApiRequestWithTimeout(balanceUrl).then((res) => {
             TX_BACKEND_FUTURES.wallet = res.data.wallet || res.data || null;
             TX_BACKEND_FUTURES.walletLoaded = true;
+            txSaveCachedWalletForCurrentAccount(TX_BACKEND_FUTURES.wallet);
             updateWalletUI();
             return res;
         });
@@ -7521,6 +7664,7 @@ async function refreshBackendFuturesData(force = false) {
         if (walletResult.status === "fulfilled") {
             TX_BACKEND_FUTURES.wallet = walletResult.value.data.wallet || walletResult.value.data || null;
             TX_BACKEND_FUTURES.walletLoaded = true;
+            txSaveCachedWalletForCurrentAccount(TX_BACKEND_FUTURES.wallet);
         }
 
         if (openOrdersResult.status === "fulfilled") {
@@ -7742,28 +7886,36 @@ function updateWalletUI() {
     const filteredTotalProfit = filteredPnlBreakdown.totalProfit;
     const filteredTotalLoss = filteredPnlBreakdown.totalLoss;
 
+    const isCurrentCent = txIsActiveAccountCent();
+
     if (elements.walletAvailable) {
-        elements.walletAvailable.textContent = `${formatNumber(wallet.available, 2)} USD`;
+        elements.walletAvailable.textContent = isCurrentCent ? `${formatNumber(wallet.available * 100, 2)} USC` : `${formatNumber(wallet.available, 2)} USD`;
     }
 
     if (elements.walletUsed) {
-        elements.walletUsed.textContent = `${formatNumber(usedMargin, 2)} USD`;
+        elements.walletUsed.textContent = isCurrentCent ? `${formatNumber(usedMargin * 100, 2)} USC` : `${formatNumber(usedMargin, 2)} USD`;
     }
 
     if (elements.walletTotalProfit) {
-        elements.walletTotalProfit.textContent = `+${formatNumber(filteredTotalProfit, 2)} USD`;
+        const dispProf = isCurrentCent ? (filteredTotalProfit * 100) : filteredTotalProfit;
+        const profUnit = isCurrentCent ? "USC" : "USD";
+        elements.walletTotalProfit.textContent = `+${formatNumber(dispProf, 2)} ${profUnit}`;
         txApplyMoneyCellColor(elements.walletTotalProfit, filteredTotalProfit);
     }
 
     if (elements.walletTotalLoss) {
+        const dispLoss = isCurrentCent ? (filteredTotalLoss * 100) : filteredTotalLoss;
+        const lossUnit = isCurrentCent ? "USC" : "USD";
         elements.walletTotalLoss.textContent = filteredTotalLoss > 0
-            ? `-${formatNumber(filteredTotalLoss, 2)} USD`
-            : "0.00 USD";
+            ? `-${formatNumber(dispLoss, 2)} ${lossUnit}`
+            : `0.00 ${lossUnit}`;
         txApplyMoneyCellColor(elements.walletTotalLoss, filteredTotalLoss > 0 ? -filteredTotalLoss : 0);
     }
 
     if (elements.walletPnl) {
-        elements.walletPnl.textContent = `${overallUnrealizedPnl >= 0 ? "+" : ""}${formatNumber(overallUnrealizedPnl, 2)} USD`;
+        const dispPnl = isCurrentCent ? (overallUnrealizedPnl * 100) : overallUnrealizedPnl;
+        const pnlUnit = isCurrentCent ? "USC" : "USD";
+        elements.walletPnl.textContent = `${overallUnrealizedPnl >= 0 ? "+" : ""}${formatNumber(dispPnl, 2)} ${pnlUnit}`;
         elements.walletPnl.className = overallUnrealizedPnl >= 0
             ? "text-3xl font-black text-emerald-400"
             : "text-3xl font-black text-red-400";
@@ -7776,6 +7928,7 @@ function updateWalletUI() {
     const activeSubId = localStorage.getItem("traidiumx_active_user_id");
     const activeSubName = localStorage.getItem("traidiumx_active_user_name") || "";
     let isCurrentDemo = false;
+    let isCurrentMt5 = false;
     if (activeSubId) {
         if (activeSubName.toLowerCase().includes("demo")) {
             isCurrentDemo = true;
@@ -7787,6 +7940,9 @@ function updateWalletUI() {
             const currentSub = txSubAccountsLocalCache.find(s => String(s.id) === String(activeSubId));
             if (currentSub && (currentSub.is_demo || currentSub.account_mode === "demo" || currentSub.plan === "demo")) {
                 isCurrentDemo = true;
+            }
+            if (currentSub && (currentSub.selected_platform === "mt5" || currentSub.platform === "mt5" || currentSub.is_mt5 || currentSub.mt5_login_id || (currentSub.plan && String(currentSub.plan).toLowerCase().includes("cent")))) {
+                isCurrentMt5 = true;
             }
         }
     }
@@ -7821,41 +7977,50 @@ function updateWalletUI() {
 
     const headerCurrToggle = document.getElementById("futuresHeaderCurrencyToggle");
     const mobCurrToggle = document.getElementById("mobileQuickBarCurrencyToggle");
+    const shouldHideCurrToggle = isCurrentDemo || isCurrentMt5;
+    document.documentElement.classList.toggle("tx-hide-currency-toggle", shouldHideCurrToggle);
     if (headerCurrToggle) {
-        if (isCurrentDemo) {
+        if (shouldHideCurrToggle) {
             headerCurrToggle.classList.add("hidden");
-            headerCurrToggle.style.display = "none";
+            headerCurrToggle.style.setProperty("display", "none", "important");
         } else {
             headerCurrToggle.classList.remove("hidden");
-            headerCurrToggle.style.display = "";
+            headerCurrToggle.style.removeProperty("display");
         }
     }
     if (mobCurrToggle) {
-        if (isCurrentDemo) {
+        if (shouldHideCurrToggle) {
             mobCurrToggle.classList.add("hidden");
-            mobCurrToggle.style.display = "none";
+            mobCurrToggle.style.setProperty("display", "none", "important");
         } else {
             mobCurrToggle.classList.remove("hidden");
-            mobCurrToggle.style.display = "";
+            mobCurrToggle.style.removeProperty("display");
         }
     }
 
     if (elements.futuresTotalBalance) {
-        elements.futuresTotalBalance.textContent = formatFuturesUsd(tradingAvailableForDisplay, 2);
-        elements.futuresTotalBalance.title = "Trading Wallet available balance. Futures trades use this wallet only.";
+        elements.futuresTotalBalance.textContent = isCurrentCent ? `${formatNumber(tradingAvailableForDisplay * 100, 2)} USC` : formatFuturesUsd(tradingAvailableForDisplay, 2);
+        elements.futuresTotalBalance.title = isCurrentCent ? "MT5 Cent Trading Wallet balance in USC." : "Trading Wallet available balance. Futures trades use this wallet only.";
     }
 
     if (elements.futuresEstimatedBalance) {
-        const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-        const formatted = formatNumber(mainAvailable, 2);
-        elements.futuresEstimatedBalance.textContent = primaryCurrency === "INR" ? `₹${formatted}` : `$${formatted}`;
-        elements.futuresEstimatedBalance.title = "Main Wallet balance. Deposit/withdraw here, then transfer to Trading Wallet to trade.";
+        if (isCurrentCent) {
+            elements.futuresEstimatedBalance.textContent = `${formatNumber(mainAvailable * 100, 2)} USC`;
+            elements.futuresEstimatedBalance.title = "Main Wallet balance in USC (1 USDT = 100 USC).";
+        } else {
+            const primaryCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+            const formatted = formatNumber(mainAvailable, 2);
+            elements.futuresEstimatedBalance.textContent = primaryCurrency === "INR" ? `₹${formatted}` : `$${formatted}`;
+            elements.futuresEstimatedBalance.title = "Main Wallet balance. Deposit/withdraw here, then transfer to Trading Wallet to trade.";
+        }
         elements.futuresEstimatedBalance.classList.remove("text-red-400");
         elements.futuresEstimatedBalance.classList.add("text-cyan-300");
     }
 
     if (elements.futuresTradingPnl) {
-        elements.futuresTradingPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatNumber(unrealizedPnl, 2)} USD`;
+        const dispPnl = isCurrentCent ? (unrealizedPnl * 100) : unrealizedPnl;
+        const pnlUnit = isCurrentCent ? "USC" : "USD";
+        elements.futuresTradingPnl.textContent = `${unrealizedPnl >= 0 ? "+" : ""}${formatNumber(dispPnl, 2)} ${pnlUnit}`;
         elements.futuresTradingPnl.title = "Live P&L from open Futures positions. Close profit/loss settles back into Trading Wallet.";
         txApplyMoneyCellColor(elements.futuresTradingPnl, unrealizedPnl);
     }
@@ -7865,8 +8030,9 @@ function updateWalletUI() {
     const mobMainBal = document.getElementById("mobileWalletMainBalance");
 
     if (mobPnlDisp) {
-        const dispVal = unrealizedPnl;
-        mobPnlDisp.textContent = `P/L ${dispVal >= 0 ? "+" : ""}$${formatNumber(Math.abs(dispVal), 2)}`;
+        const dispVal = isCurrentCent ? (unrealizedPnl * 100) : unrealizedPnl;
+        const pnlUnit = isCurrentCent ? "USC" : "$";
+        mobPnlDisp.textContent = isCurrentCent ? `P/L ${dispVal >= 0 ? "+" : ""}${formatNumber(Math.abs(dispVal), 2)} USC` : `P/L ${dispVal >= 0 ? "+" : ""}$${formatNumber(Math.abs(dispVal), 2)}`;
         txApplyMoneyCellColor(mobPnlDisp, unrealizedPnl);
     }
     if (mobTradBal && elements.futuresTotalBalance) {
@@ -8366,38 +8532,67 @@ function txEstimateLiquidationPrice(entryPrice, side, leverage) {
     return Math.max(0, Number(liqPrice.toFixed(2)));
 }
 
+function txGetPipSizeForSymbol(symbol, price) {
+    const cleanSym = String(symbol || "").toUpperCase().replace(/[-_/]/g, "");
+    const explicit = {
+        "XAUUSD": 0.01,
+        "XAUUSDT": 0.01,
+        "BTCUSDT": 0.1,
+        "ETHUSDT": 0.01,
+    };
+    if (explicit[cleanSym]) {
+        return explicit[cleanSym];
+    }
+    const p = Number(price || 0);
+    if (p > 0) {
+        if (p < 0.01) return 0.000001;
+        if (p < 1.0) return 0.0001;
+        if (p < 10.0) return 0.001;
+        if (p < 100.0) return 0.01;
+        if (p < 1000.0) return 0.05;
+        return 0.1;
+    }
+    return 0.01;
+}
+
 function txBuildOptimisticPosition(payload = {}, order = null) {
     const nowIso = new Date().toISOString();
     const id = `LOCAL-POS-${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+    const symbol = payload.symbol || state.currentSymbol;
     
-    let price = txToNumber(order?.average_fill_price || order?.estimated_price || state.currentPrice || payload.limit_price, 0);
+    let price = txToNumber(order?.average_fill_price || order?.estimated_price || payload.current_price || state.currentPrice || payload.limit_price, 0);
     const side = String(payload.side || state.side || "buy").toLowerCase();
     const isBuy = side.includes("buy") || side.includes("long");
 
-    // Apply active spread to optimistic position price to prevent UI jumping
+    // Apply active spread to optimistic position price to match backend exactly
     const user = typeof getAuthUser === "function" ? getAuthUser() : null;
-    if (user && price > 0) {
-        const spreadType = user.active_spread_type || "fixed";
-        const spreadValue = Number(user.active_spread_value || user.active_spread_pips || 0);
-        if (spreadValue > 0) {
-            let adjustment = 0;
-            if (spreadType === "percentage") {
-                adjustment = price * (spreadValue / 100);
-            } else {
-                let pip = 0.01;
-                if (price < 0.01) pip = 0.000001;
-                else if (price < 1.0) pip = 0.0001;
-                else if (price < 10.0) pip = 0.001;
-                else if (price < 100.0) pip = 0.01;
-                else if (price < 1000.0) pip = 0.05;
-                else pip = 0.1;
-                adjustment = spreadValue * pip;
-            }
-            if (isBuy) {
-                price = price + adjustment;
-            } else {
-                price = price - adjustment;
-            }
+    let spreadType = user?.active_spread_type || "fixed";
+    let spreadValue = Number(user?.active_spread_value !== undefined ? user.active_spread_value : (user?.active_spread_pips || 0));
+
+    // Fallback to plan settings if user cache is not yet populated
+    if (spreadValue <= 0 && window.txPlanSettings?.basic?.spread_value) {
+        spreadValue = Number(window.txPlanSettings.basic.spread_value);
+        spreadType = window.txPlanSettings.basic.spread_type || "fixed";
+    }
+
+    if (spreadValue > 0 && price > 0) {
+        let adjustment = 0;
+        if (spreadType === "percentage") {
+            adjustment = price * (spreadValue / 100);
+        } else {
+            const pip = txGetPipSizeForSymbol(symbol, price);
+            adjustment = spreadValue * pip;
+        }
+        if (isBuy) {
+            price = price + adjustment;
+        } else {
+            price = Math.max(0, price - adjustment);
+        }
+        const cleanSym = String(symbol || "").toUpperCase().replace(/[-_/]/g, "");
+        if (cleanSym.includes("XAU") || cleanSym.includes("BTC") || cleanSym.includes("ETH") || price >= 1) {
+            price = Number(price.toFixed(2));
+        } else {
+            price = Number(price.toFixed(6));
         }
     }
 
@@ -9886,6 +10081,11 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
         if (["LIMIT", "STOP_LIMIT"].includes(orderType) && limitPrice <= 0) return showOrderMessage("Valid limit price required.", "error");
         if (["STOP_LIMIT", "STOP_MARKET"].includes(orderType) && stopPrice <= 0) return showOrderMessage("Valid stop price required.", "error");
 
+        const currentWallet = getWallet();
+        if ((currentWallet?.available || 0) <= 0) {
+            return showOrderMessage("Trading Wallet balance is required before placing order. Transfer funds from Main Wallet to Trading Wallet first.", "error");
+        }
+
         const payload = placeOrderPayload();
         const tpSlError = txValidateTpSlPayload(payload);
         if (tpSlError) return showOrderMessage(tpSlError, "error");
@@ -9895,46 +10095,40 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             const isSell = String(payload.side || state.side || "BUY").toUpperCase() === "SELL";
             const normalText = isSell ? "Sell / Short" : "Buy / Long";
 
-            // 1. Instant 0ms optimistic UI paint + instant toast
-            const optimistic = txApplyOptimisticOrder(payload);
-            showOrderMessage("Order placed and executed successfully.", "success");
-
-            // Clear inputs immediately for seamless user experience
-            if (elements.quantityInput) elements.quantityInput.value = "";
-            const checkbox = document.getElementById("tpSlCheckbox");
-            if (checkbox) checkbox.checked = false;
-            const fields = document.getElementById("tpSlFields");
-            if (fields) fields.classList.add("hidden");
-            const tpInput = document.getElementById("takeProfitInput");
-            if (tpInput) tpInput.value = "";
-            const slInput = document.getElementById("stopLossInput");
-            if (slInput) slInput.value = "";
-
             let resetTimer = null;
             if (submitBtn) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = "Executing...";
-                resetTimer = setTimeout(() => {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = normalText;
-                    }
-                    if (typeof updateSessionStatus === "function") {
-                        updateSessionStatus();
-                    }
-                }, 800);
             }
 
+            let optimistic = null;
             try {
+                // 1. Instant 0ms optimistic UI paint
+                optimistic = txApplyOptimisticOrder(payload);
+
                 const response = await txApiRequestWithTimeout("/trading/order", {
                     method: "POST",
                     body: JSON.stringify(payload)
                 }, TX_ACTION_TIMEOUT_MS);
 
                 txResolveOptimisticOrder(response, payload, optimistic);
+                showOrderMessage("Order placed and executed successfully.", "success");
                 txEndOptimisticAction();
+
+                // Clear inputs immediately for seamless user experience
+                if (elements.quantityInput) elements.quantityInput.value = "";
+                const checkbox = document.getElementById("tpSlCheckbox");
+                if (checkbox) checkbox.checked = false;
+                const fields = document.getElementById("tpSlFields");
+                if (fields) fields.classList.add("hidden");
+                const tpInput = document.getElementById("takeProfitInput");
+                if (tpInput) tpInput.value = "";
+                const slInput = document.getElementById("stopLossInput");
+                if (slInput) slInput.value = "";
             } catch (error) {
-                txRestoreFuturesState(optimistic.snapshot);
+                if (optimistic) {
+                    txRestoreFuturesState(optimistic.snapshot);
+                }
                 txEndOptimisticAction();
 
                 const errors = error?.errors || {};
@@ -10221,41 +10415,49 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
 
         activeSubId = activeSubId || "main";
         const allAccounts = [
-            { id: "main", name: "Main Trading Account", is_demo: false, plan_name: "Real", plan_color: "emerald" },
-            ...subAccounts.map(s => ({
-                id: s.id,
-                name: s.name,
-                is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo",
-                account_mode: s.account_mode || (s.plan === "demo" ? "demo" : "real"),
-                plan_name: s.plan_name || (s.is_demo || s.plan === "demo" ? "Demo" : "Basic"),
-                plan_color: s.plan_color || (s.is_demo || s.plan === "demo" ? "amber" : "cyan")
-            }))
+            { id: "main", name: "Main Trading Account", is_demo: false, is_mt5: false, plan_name: "Real", plan_color: "emerald" },
+            ...subAccounts.map(s => {
+                const isMt5 = Boolean(s.selected_platform === "mt5" || s.platform === "mt5" || s.is_mt5 || s.mt5_login_id || (s.plan && String(s.plan).toLowerCase().includes("cent")));
+                return {
+                    id: s.id,
+                    name: s.name,
+                    is_demo: s.is_demo || s.account_mode === "demo" || s.plan === "demo",
+                    is_mt5: isMt5,
+                    account_mode: s.account_mode || (s.plan === "demo" ? "demo" : "real"),
+                    plan_name: s.plan_name || (s.is_demo || s.plan === "demo" ? "Demo" : (isMt5 ? "MT5" : "Basic")),
+                    plan_color: s.plan_color || (s.is_demo || s.plan === "demo" ? "amber" : (isMt5 ? "blue" : "cyan"))
+                };
+            })
         ];
 
         const currentAcc = allAccounts.find(a => String(a.id) === String(activeSubId)) || allAccounts[0];
         const isCurrentDemo = !!currentAcc.is_demo;
+        const isCurrentMt5 = !!currentAcc.is_mt5;
 
         const dotEl = document.getElementById("txCustomAccountDot");
         const triggerEl = document.getElementById("txCustomAccountTrigger");
         const chevronEl = document.getElementById("txCustomAccountChevron");
 
         if (dotEl) {
-            dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]'}`;
+            dotEl.className = `w-2 h-2 rounded-full shrink-0 ${isCurrentDemo ? 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.9)]' : (isCurrentMt5 ? 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.9)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)]')}`;
         }
         if (triggerEl) {
             if (isCurrentDemo) {
                 triggerEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+            } else if (isCurrentMt5) {
+                triggerEl.style.borderColor = "rgba(59, 130, 246, 0.45)";
             } else {
                 triggerEl.style.borderColor = "rgba(148, 163, 184, 0.25)";
             }
         }
         if (chevronEl) {
-            chevronEl.style.color = isCurrentDemo ? "#f59e0b" : "#94a3b8";
+            chevronEl.style.color = isCurrentDemo ? "#f59e0b" : (isCurrentMt5 ? "#60a5fa" : "#94a3b8");
         }
 
         labelEl.innerHTML = `
-            <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : 'text-cyan-300'}">${escapeHtml(currentAcc.name)}</span>
+            <span class="font-bold whitespace-nowrap ${isCurrentDemo ? 'text-amber-300' : (isCurrentMt5 ? 'text-blue-300' : 'text-cyan-300')}">${escapeHtml(currentAcc.name)}</span>
             ${isCurrentDemo ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-amber-500/20 text-amber-300 border border-amber-500/30">DEMO</span>' : ''}
+            ${isCurrentMt5 ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 tracking-wide bg-blue-500/20 text-blue-300 border border-blue-500/30">MT5</span>' : ''}
         `;
 
         // Update Trading Wallet card grid mode (hide Main Wallet in Demo mode)
@@ -10299,37 +10501,41 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             }
         }
 
-        // Hide INR / USD Currency Toggle in Demo Mode (Demo is strictly USD)
+        // Hide INR / USD Currency Toggle in Demo & MT5 Mode (Strictly USD)
         const headerCurrToggle = document.getElementById("futuresHeaderCurrencyToggle");
         const mobCurrToggle = document.getElementById("mobileQuickBarCurrencyToggle");
+        const shouldHideCurrToggle = isCurrentDemo || isCurrentMt5;
+        document.documentElement.classList.toggle("tx-hide-currency-toggle", shouldHideCurrToggle);
         if (headerCurrToggle) {
-            if (isCurrentDemo) {
+            if (shouldHideCurrToggle) {
                 headerCurrToggle.classList.add("hidden");
-                headerCurrToggle.style.display = "none";
+                headerCurrToggle.style.setProperty("display", "none", "important");
             } else {
                 headerCurrToggle.classList.remove("hidden");
-                headerCurrToggle.style.display = "";
+                headerCurrToggle.style.removeProperty("display");
             }
         }
         if (mobCurrToggle) {
-            if (isCurrentDemo) {
+            if (shouldHideCurrToggle) {
                 mobCurrToggle.classList.add("hidden");
-                mobCurrToggle.style.display = "none";
+                mobCurrToggle.style.setProperty("display", "none", "important");
             } else {
                 mobCurrToggle.classList.remove("hidden");
-                mobCurrToggle.style.display = "";
+                mobCurrToggle.style.removeProperty("display");
             }
         }
 
         listEl.innerHTML = allAccounts.map(acc => {
             const isSelected = String(acc.id) === String(activeSubId);
             const isDemo = !!acc.is_demo;
+            const isMt5 = !!acc.is_mt5;
             return `
                 <button type="button" data-acc-id="${escapeHtml(String(acc.id))}" class="tx-custom-acc-item ${isSelected ? 'active' : ''} flex items-center justify-between w-full p-2 rounded-lg text-left transition hover:bg-slate-800/60">
                     <div class="flex items-center gap-2 truncate min-w-0">
-                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500')}"></span>
+                        <span class="w-1.5 h-1.5 rounded-full shrink-0 ${isDemo ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : (isMt5 ? 'bg-blue-400 shadow-[0_0_6px_#60a5fa]' : (isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#22d3ee]' : 'bg-slate-500'))}"></span>
                         <span class="truncate ${isSelected ? 'text-cyan-300 font-extrabold' : 'text-slate-200'} text-xs">${escapeHtml(acc.name)}</span>
                         ${isDemo ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-amber-500/20 text-amber-300 border-amber-500/30">DEMO</span>' : ''}
+                        ${isMt5 ? '<span class="text-[8px] font-black uppercase px-1 py-0.5 rounded border shrink-0 bg-blue-500/20 text-blue-300 border-blue-500/30">MT5</span>' : ''}
                     </div>
                     ${isSelected ? '<svg class="w-3.5 h-3.5 text-cyan-400 shrink-0 ml-2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' : ''}
                 </button>
@@ -10358,8 +10564,9 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             subAccounts.forEach(sub => {
                 const opt = document.createElement("option");
                 const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                const isMt5 = Boolean(sub.selected_platform === "mt5" || sub.platform === "mt5" || sub.is_mt5 || sub.mt5_login_id || (sub.plan && String(sub.plan).toLowerCase().includes("cent")));
                 opt.value = sub.id;
-                opt.textContent = isDemo ? `${sub.name} (Demo)` : sub.name;
+                opt.textContent = isDemo ? `${sub.name} (Demo)` : (isMt5 ? `${sub.name} (MT5)` : sub.name);
                 selector.appendChild(opt);
             });
             const createOpt = document.createElement("option");
@@ -10377,8 +10584,9 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             subAccounts.forEach(sub => {
                 const opt = document.createElement("option");
                 const isDemo = sub.is_demo || sub.account_mode === "demo" || sub.plan === "demo";
+                const isMt5 = Boolean(sub.selected_platform === "mt5" || sub.platform === "mt5" || sub.is_mt5 || sub.mt5_login_id || (sub.plan && String(sub.plan).toLowerCase().includes("cent")));
                 opt.value = sub.id;
-                opt.textContent = `${sub.name} (${isDemo ? 'Demo' : 'Real'})`;
+                opt.textContent = isDemo ? `${sub.name} (Demo)` : (isMt5 ? `${sub.name} (MT5)` : `${sub.name} (Real)`);
                 mobSelector.appendChild(opt);
             });
             const mobCreateOpt = document.createElement("option");
@@ -10485,7 +10693,14 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             if (!selector) return;
             
             const response = await apiRequest("/user/sub-accounts");
-            const subAccounts = (response.data || []).filter(sub => !sub.is_parent);
+            const allSubs = response.data || [];
+            const parentAcc = allSubs.find(sub => sub.is_parent);
+            if (parentAcc && parentAcc.wallet) {
+                try {
+                    localStorage.setItem("traidiumx_cached_main_wallet", JSON.stringify(parentAcc.wallet));
+                } catch (_) {}
+            }
+            const subAccounts = allSubs.filter(sub => !sub.is_parent);
             txSubAccountsLocalCache = subAccounts;
             try {
                 localStorage.setItem("traidiumx_cached_sub_accounts", JSON.stringify(subAccounts));
@@ -10654,14 +10869,35 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             }
 
             let selectedName = "Main Trading Account";
+            let isMt5 = false;
+            let targetCachedWallet = null;
+
             if (val === "main") {
                 localStorage.removeItem("traidiumx_active_user_id");
                 localStorage.setItem("traidiumx_active_user_name", "Main Trading Account");
+                try {
+                    const rawMain = localStorage.getItem("traidiumx_cached_main_wallet");
+                    if (rawMain) targetCachedWallet = JSON.parse(rawMain);
+                } catch (_) {}
             } else {
                 const selectedSub = (txSubAccountsLocalCache || []).find(s => String(s.id) === String(val));
                 selectedName = selectedSub ? selectedSub.name : "Sub Account";
+                isMt5 = Boolean(selectedSub?.selected_platform === "mt5" || selectedSub?.platform === "mt5" || selectedSub?.is_mt5 || selectedSub?.mt5_login_id || (selectedSub?.plan && String(selectedSub?.plan).toLowerCase().includes("cent")));
                 localStorage.setItem("traidiumx_active_user_id", val);
                 localStorage.setItem("traidiumx_active_user_name", selectedName);
+                if (selectedSub && selectedSub.wallet) {
+                    targetCachedWallet = selectedSub.wallet;
+                }
+            }
+
+            if (isMt5) {
+                document.querySelectorAll(".tx-currency-toggle-wrapper").forEach(el => el.style.setProperty("display", "none", "important"));
+            } else {
+                const currentPath = window.location.pathname.toLowerCase();
+                const isHiddenPage = currentPath.includes("futures") || currentPath.includes("wallet") || currentPath.includes("options");
+                if (!isHiddenPage) {
+                    document.querySelectorAll(".tx-currency-toggle-wrapper").forEach(el => el.style.removeProperty("display"));
+                }
             }
 
             const selector = document.getElementById("tradingAccountSelector");
@@ -10672,14 +10908,22 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
             // Instantly 0ms update custom dropdown UI & demo flags
             txRenderCustomAccountDropdown(txSubAccountsLocalCache || [], val);
 
-            // Instantly sync backend futures balances & data for the selected account
-            TX_BACKEND_FUTURES.walletLoaded = false;
-            await refreshBackendFuturesData(true);
+            // Instantly 0ms update wallet balances from cache
+            if (targetCachedWallet) {
+                TX_BACKEND_FUTURES.wallet = targetCachedWallet;
+                TX_BACKEND_FUTURES.walletLoaded = true;
+            }
             updateWalletUI();
             txUpdateFuturesWalletModalBalances();
 
             window.dispatchEvent(new CustomEvent("traidiumx:account-changed", { detail: { accountId: val, accountName: selectedName } }));
             window.dispatchEvent(new CustomEvent("traidiumx:wallet-sync"));
+
+            // Background refresh without blocking UI
+            refreshBackendFuturesData(true).then(() => {
+                updateWalletUI();
+                txUpdateFuturesWalletModalBalances();
+            }).catch(() => {});
         };
 
         const selector = document.getElementById("tradingAccountSelector");
@@ -10711,6 +10955,7 @@ document.addEventListener("DOMContentLoaded", initFuturesTerminal);
                 const settings = resp?.data?.settings;
                 const plans = settings?.plans;
                 if (!plans) return;
+                window.txPlanSettings = plans;
 
                 // Basic
                 if (plans.basic) {

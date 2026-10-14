@@ -504,14 +504,16 @@
                             <span class="text-xs text-slate-400">⌄</span>
                         </button>
 
-                        <!-- Calculated Output Amount -->
+                        <!-- Calculated / Editable Output Amount -->
                         <div class="flex-1 min-w-0">
                             <input
-                                type="text"
+                                type="number"
                                 id="txToAmountOutput"
                                 class="tx-swap-input text-cyan-300 font-mono"
                                 placeholder="0"
-                                readonly
+                                step="any"
+                                min="0"
+                                autocomplete="off"
                             />
                         </div>
                     </div>
@@ -751,8 +753,8 @@
     <!-- JavaScript Dependencies -->
     <script src="/src/js/components-loader.js"></script>
     <script src="/src/js/api-config.js"></script>
-    <script src="/src/js/auth-state.js?v=79"></script>
-    <script src="/src/js/exchange.js?v=3"></script>
+    <script src="/src/js/auth-state.js?v=88"></script>
+    <script src="/src/js/exchange.js?v=26"></script>
     <script src="/src/js/responsive.js"></script>
     <script src="/src/js/lenis.min.js"></script>
     <script>

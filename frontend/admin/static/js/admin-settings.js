@@ -1,6 +1,6 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initSettingsPage() {
     const ui = window.TXAdmin;
     const api = window.TXAdminApi;
 
@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         traidiumx_platform_enabled: document.getElementById("traidiumxPlatformEnabled"),
         mt5_platform_enabled: document.getElementById("mt5PlatformEnabled"),
         auto_restore_preferred_plan: document.getElementById("autoRestorePreferredPlan"),
+        cent_plan_spread_type: document.getElementById("centPlanSpreadType"),
+        cent_plan_spread_value: document.getElementById("centPlanSpreadValue"),
+        cent_plan_minimum_balance: document.getElementById("centPlanMinimumBalance"),
         basic_plan_spread_type: document.getElementById("basicPlanSpreadType"),
         basic_plan_spread_value: document.getElementById("basicPlanSpreadValue"),
         basic_plan_minimum_balance: document.getElementById("basicPlanMinimumBalance"),
@@ -126,15 +129,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         traidiumx_platform_enabled: true,
         mt5_platform_enabled: true,
         auto_restore_preferred_plan: true,
+        cent_plan_spread_type: "fixed",
+        cent_plan_spread_value: 18,
+        cent_plan_minimum_balance: 10,
         basic_plan_spread_type: "fixed",
         basic_plan_spread_value: 18,
         basic_plan_minimum_balance: 0,
         standard_plan_spread_type: "fixed",
         standard_plan_spread_value: 12,
-        standard_plan_minimum_balance: 2000,
+        standard_plan_minimum_balance: 5000,
         advanced_plan_spread_type: "fixed",
         advanced_plan_spread_value: 5,
-        advanced_plan_minimum_balance: 5000,
+        advanced_plan_minimum_balance: 600000,
 
         default_max_leverage: 20,
         min_order_notional: 10,
@@ -500,6 +506,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         setVal(fields.traidiumx_platform_enabled, data.traidiumx_platform_enabled, true);
         setVal(fields.mt5_platform_enabled, data.mt5_platform_enabled, true);
         setVal(fields.auto_restore_preferred_plan, data.auto_restore_preferred_plan, true);
+        setVal(fields.cent_plan_spread_type, data.cent_plan_spread_type || "fixed");
+        setVal(fields.cent_plan_spread_value, data.cent_plan_spread_value);
+        setVal(fields.cent_plan_minimum_balance, data.cent_plan_minimum_balance);
         setVal(fields.basic_plan_spread_type, data.basic_plan_spread_type || "fixed");
         setVal(fields.basic_plan_spread_value, data.basic_plan_spread_value);
         setVal(fields.basic_plan_minimum_balance, data.basic_plan_minimum_balance);
@@ -624,6 +633,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             traidiumx_platform_enabled: getVal(fields.traidiumx_platform_enabled, true),
             mt5_platform_enabled: getVal(fields.mt5_platform_enabled, true),
             auto_restore_preferred_plan: getVal(fields.auto_restore_preferred_plan, true),
+            cent_plan_spread_type: getVal(fields.cent_plan_spread_type) || "fixed",
+            cent_plan_spread_value: numberValue(fields.cent_plan_spread_value),
+            cent_plan_minimum_balance: numberValue(fields.cent_plan_minimum_balance),
             basic_plan_spread_type: getVal(fields.basic_plan_spread_type) || "fixed",
             basic_plan_spread_value: numberValue(fields.basic_plan_spread_value),
             basic_plan_minimum_balance: numberValue(fields.basic_plan_minimum_balance),
@@ -742,8 +754,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function loadLiveCryptoPricesForPlaceholders() {
         try {
             const symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT", "BNBUSDT", "USDCUSDT"];
-            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`);
-            if (!res.ok) return;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2500);
+            const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbols=${encodeURIComponent(JSON.stringify(symbols))}`, {
+                signal: controller.signal
+            }).catch(() => null);
+            clearTimeout(timeoutId);
+            if (!res || !res.ok) return;
             const prices = await res.json();
             
             const priceMap = {};
@@ -1024,4 +1041,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         loadLiveCryptoPricesForPlaceholders();
     }, 10000);
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSettingsPage);
+} else {
+    initSettingsPage();
+}

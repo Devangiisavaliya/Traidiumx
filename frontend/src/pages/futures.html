@@ -10,8 +10,37 @@
                     document.documentElement.classList.remove("tx-translating");
                 }, 850);
             }
+            try {
+                var activeId = localStorage.getItem("traidiumx_active_user_id");
+                var activeName = (localStorage.getItem("traidiumx_active_user_name") || "").toLowerCase();
+                var isMt5 = activeName.includes("mt5") || activeName.includes("cent");
+                var isDemo = activeName.includes("demo");
+                if (!isMt5 || !isDemo) {
+                    var raw = localStorage.getItem("traidiumx_cached_sub_accounts") || localStorage.getItem("tx_cached_sub_accounts");
+                    if (activeId && raw) {
+                        var subs = JSON.parse(raw);
+                        var s = subs.find(function(x) { return String(x.id || x._id) === String(activeId); });
+                        if (s) {
+                            if (s.is_demo || s.account_mode === "demo" || s.plan === "demo") isDemo = true;
+                            if (s.selected_platform === "mt5" || s.platform === "mt5" || s.is_mt5 || s.mt5_login_id || (s.plan && String(s.plan).toLowerCase().includes("cent"))) isMt5 = true;
+                        }
+                    }
+                }
+                if (isMt5 || isDemo) {
+                    document.documentElement.classList.add("tx-hide-currency-toggle");
+                }
+            } catch (e) {}
         })();
     </script>
+    <style>
+        html.tx-hide-currency-toggle #futuresHeaderCurrencyToggle,
+        html.tx-hide-currency-toggle #mobileQuickBarCurrencyToggle,
+        html.tx-hide-currency-toggle #optionsHeaderCurrencyToggle,
+        html.tx-hide-currency-toggle #optionsMobileCurrencyToggle,
+        html.tx-hide-currency-toggle .tx-currency-toggle-wrapper {
+            display: none !important;
+        }
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 

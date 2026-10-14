@@ -40,28 +40,11 @@
     function preventAdminLoginAutofill(form, emailInput, passwordInput) {
         if (!form) return;
         form.setAttribute("autocomplete", "off");
-
-        const clearLoginFields = () => {
-            const active = document.activeElement;
-            const userIsTyping = active === emailInput || active === passwordInput;
-            if (userIsTyping) return;
-            if (emailInput) emailInput.value = "";
-            if (passwordInput) passwordInput.value = "";
-        };
-
-        clearLoginFields();
-        window.setTimeout(clearLoginFields, 80);
-        window.setTimeout(clearLoginFields, 450);
     }
 
     function initAdminLogin(api) {
         const form = byId("adminLoginForm");
         if (!form || !api) return;
-
-        if (api.getToken()) {
-            window.location.href = api.dashboardUrl;
-            return;
-        }
 
         const emailInput = byId("email");
         const passwordInput = byId("password");
@@ -69,9 +52,9 @@
 
         preventAdminLoginAutofill(form, emailInput, passwordInput);
 
-
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+            event.stopPropagation();
             const email = emailInput?.value.trim();
             const password = passwordInput?.value.trim();
             const button = form.querySelector("button[type='submit']");
@@ -445,10 +428,16 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function initAll() {
         const api = window.TXAdminApi;
         initAdminLogin(api);
         initAdminRegister(api);
         initAdminForgotPassword(api);
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initAll);
+    } else {
+        initAll();
+    }
 })();

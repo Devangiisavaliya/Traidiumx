@@ -59,16 +59,21 @@ def _wallet_bucket(available=0.0, locked=0.0, wallet_type="main_wallet", address
     return bucket
 
 
-def build_demo_wallet_addresses(user_id=None):
+def build_demo_wallet_addresses(user_id=None, fast_mode=False):
     if not user_id:
         return _company_deposit_addresses()
 
-    try:
-        from services.hd_wallet_service import get_or_create_user_deposit_address
-        trc20_address = get_or_create_user_deposit_address(user_id, "TRC20")
-        bep20_address = get_or_create_user_deposit_address(user_id, "BEP20")
-        erc20_address = get_or_create_user_deposit_address(user_id, "ERC20")
-    except Exception:
+    if not fast_mode:
+        try:
+            from services.hd_wallet_service import get_or_create_user_deposit_address
+            trc20_address = get_or_create_user_deposit_address(user_id, "TRC20")
+            bep20_address = get_or_create_user_deposit_address(user_id, "BEP20")
+            erc20_address = get_or_create_user_deposit_address(user_id, "ERC20")
+        except Exception:
+            trc20_address = "TPDQ3DTMQWSg4iJ7dhKXsSAKT83jfD49GP"
+            bep20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
+            erc20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
+    else:
         trc20_address = "TPDQ3DTMQWSg4iJ7dhKXsSAKT83jfD49GP"
         bep20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
         erc20_address = "0xB2C7e9F1A4d6E8b0C3f5A7D9e1B234567890cDEF"
@@ -119,11 +124,12 @@ def get_wallets_collection():
     return db.wallets
 
 
-def create_default_wallet(user_id):
-    main_addresses = build_demo_wallet_addresses(user_id)
+def create_default_wallet(user_id, fast_mode=True):
+    main_addresses = build_demo_wallet_addresses(user_id, fast_mode=fast_mode)
     wallet = {
         "user_id": str(user_id),
         "currency": WALLET_CURRENCY,
+        "primary_currency": "USDT",
         # Top-level fields are the Trading Wallet mirror so all existing
         # futures/options services continue to use trading funds only.
         "available_balance": 0.0,
@@ -138,7 +144,8 @@ def create_default_wallet(user_id):
     }
 
     result = get_wallets_collection().insert_one(wallet)
-
+    wallet["_id"] = result.inserted_id
+    normalize_wallet_currency(wallet)
     return result.inserted_id
 
 
@@ -178,7 +185,7 @@ def normalize_wallet_currency(wallet):
     user_id = wallet.get("user_id")
     primary_currency = str(wallet.get("primary_currency") or (wallet.get("main_wallet") or {}).get("currency") or "INR").upper()
     
-    main_addresses = build_demo_wallet_addresses(user_id)
+    main_addresses = build_demo_wallet_addresses(user_id, fast_mode=True)
     
     coin_to_network = {
         "USDT": "TRC20",
@@ -197,6 +204,8 @@ def normalize_wallet_currency(wallet):
         asset_lower = asset.lower()
         main_key = f"main_wallet_{asset_lower}"
         trading_key = f"trading_wallet_{asset_lower}"
+        main_tx_key = f"main_wallet_traidiumx_{asset_lower}"
+        main_mt5_key = f"main_wallet_mt5_{asset_lower}"
 
         # Get primary address map for this asset
         asset_addresses = None
@@ -251,6 +260,58 @@ def normalize_wallet_currency(wallet):
                     "total_balance": inr_total,
                 }
                 updates[main_key] = main_bucket
+
+        # Initialize/normalize main_wallet_traidiumx_<asset>
+        tx_bucket = wallet.get(main_tx_key)
+        if not tx_bucket or not isinstance(tx_bucket, dict):
+            tx_avail = _money(main_bucket.get("available_balance", 0.0))
+            tx_locked = _money(main_bucket.get("locked_balance", 0.0))
+            updates[main_tx_key] = {
+                **_wallet_bucket(tx_avail, tx_locked, main_tx_key, asset_addresses),
+                "currency": asset,
+                "platform": "traidiumx",
+            }
+        else:
+            tx_avail = _money(tx_bucket.get("available_balance", 0.0))
+            tx_locked = _money(tx_bucket.get("locked_balance", 0.0))
+            if (
+                tx_bucket.get("currency") != asset
+                or tx_bucket.get("wallet_type") != main_tx_key
+                or _money(tx_bucket.get("total_balance", 0.0)) != _money(tx_avail + tx_locked)
+            ):
+                updates[main_tx_key] = {
+                    **_wallet_bucket(tx_avail, tx_locked, main_tx_key, asset_addresses),
+                    "currency": asset,
+                    "available_balance": tx_avail,
+                    "locked_balance": tx_locked,
+                    "total_balance": _money(tx_avail + tx_locked),
+                    "platform": "traidiumx",
+                }
+
+        # Initialize/normalize main_wallet_mt5_<asset>
+        mt5_bucket = wallet.get(main_mt5_key)
+        if not mt5_bucket or not isinstance(mt5_bucket, dict):
+            updates[main_mt5_key] = {
+                **_wallet_bucket(0.0, 0.0, main_mt5_key, asset_addresses),
+                "currency": asset,
+                "platform": "mt5",
+            }
+        else:
+            mt5_avail = _money(mt5_bucket.get("available_balance", 0.0))
+            mt5_locked = _money(mt5_bucket.get("locked_balance", 0.0))
+            if (
+                mt5_bucket.get("currency") != asset
+                or mt5_bucket.get("wallet_type") != main_mt5_key
+                or _money(mt5_bucket.get("total_balance", 0.0)) != _money(mt5_avail + mt5_locked)
+            ):
+                updates[main_mt5_key] = {
+                    **_wallet_bucket(mt5_avail, mt5_locked, main_mt5_key, asset_addresses),
+                    "currency": asset,
+                    "available_balance": mt5_avail,
+                    "locked_balance": mt5_locked,
+                    "total_balance": _money(mt5_avail + mt5_locked),
+                    "platform": "mt5",
+                }
 
         # Initialize/normalize trading_wallet_<asset>
         trading_bucket = wallet.get(trading_key)
@@ -422,12 +483,17 @@ def format_wallet(wallet):
         "withdrawal_wallet": main_wallet,
     }
 
-    # Add dynamic main and trading buckets
+    # Add dynamic main, traidiumx, mt5, and trading buckets
     SUPPORTED_ASSETS = ["INR", "USDT", "BTC", "ETH", "SOL", "USDC", "BNB", "XRP", "ADA"]
     for asset in SUPPORTED_ASSETS:
         asset_lower = asset.lower()
         formatted[f"main_wallet_{asset_lower}"] = format_wallet_bucket(wallet.get(f"main_wallet_{asset_lower}"), f"main_wallet_{asset_lower}", asset)
+        formatted[f"main_wallet_traidiumx_{asset_lower}"] = format_wallet_bucket(wallet.get(f"main_wallet_traidiumx_{asset_lower}"), f"main_wallet_traidiumx_{asset_lower}", asset)
+        formatted[f"main_wallet_mt5_{asset_lower}"] = format_wallet_bucket(wallet.get(f"main_wallet_mt5_{asset_lower}"), f"main_wallet_mt5_{asset_lower}", asset)
         formatted[f"trading_wallet_{asset_lower}"] = format_wallet_bucket(wallet.get(f"trading_wallet_{asset_lower}"), f"trading_wallet_{asset_lower}", "USDT")
+
+    formatted["main_wallet_traidiumx"] = formatted.get(f"main_wallet_traidiumx_{primary_currency.lower()}") or formatted.get("main_wallet_traidiumx_usdt")
+    formatted["main_wallet_mt5"] = formatted.get(f"main_wallet_mt5_{primary_currency.lower()}") or formatted.get("main_wallet_mt5_usdt")
 
     return formatted
 

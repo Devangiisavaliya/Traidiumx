@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+        window.tailwind = { config: { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/static/css/admin-base.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+    <title>Deleted Accounts | TraidiumX Admin</title>
+</head>
+<body data-admin-page="deleted-accounts" data-page-title="Deleted Accounts" data-page-subtitle="Audit log and permanent history of deleted main profiles and sub-trading accounts.">
+    <div class="admin-shell">
+        <aside id="adminSidebar" class="admin-sidebar"></aside>
+        <div id="adminBackdrop" class="admin-backdrop"></div>
+        <section class="admin-main">
+            <header id="adminTopbar" class="admin-topbar"></header>
+            <main class="admin-content">
+
+<section class="space-y-5">
+    <!-- Quick Stats Cards -->
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="admin-card p-5 tx-fade-up">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Total Deleted</p>
+            <h2 id="statTotalDeleted" class="mt-2 text-3xl font-black text-white">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Accounts closed in total</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Main Accounts</p>
+            <h2 id="statMainDeleted" class="mt-2 text-3xl font-black text-rose-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Full profiles wiped</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-2">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Sub-Accounts</p>
+            <h2 id="statSubDeleted" class="mt-2 text-3xl font-black text-amber-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Trading accounts deleted</p>
+        </div>
+        <div class="admin-card p-5 tx-fade-up tx-delay-3">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Closed Today</p>
+            <h2 id="statTodayDeleted" class="mt-2 text-3xl font-black text-cyan-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Deletions in last 24h</p>
+        </div>
+    </div>
+
+    <!-- Filters & Search Toolbar -->
+    <div class="admin-card p-5 tx-fade-up">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-black text-white">Account Deletion History</h2>
+                <p class="mt-1 text-sm text-slate-400">Search and audit who deleted their account, refund details, and deletion timestamps.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <select id="deletedTypeFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                    <option value="">All Account Types</option>
+                    <option value="main">Main Accounts Only</option>
+                    <option value="sub">Sub-Accounts Only</option>
+                </select>
+                <div class="relative">
+                    <input id="deletedSearch" type="search" placeholder="Search name, client ID, email..." class="w-72 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+                </div>
+                <button id="refreshBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deleted Accounts Table -->
+    <div class="admin-card p-5 tx-fade-up tx-delay-1">
+        <div class="overflow-x-auto rounded-3xl border border-white/10">
+            <table class="admin-table w-full">
+                <thead>
+                    <tr>
+                        <th class="w-[22%]">Account Details</th>
+                        <th class="w-[12%]">Type</th>
+                        <th class="w-[20%]">Parent Account</th>
+                        <th class="w-[18%]">Closing / Refund Status</th>
+                        <th class="w-[14%]">Deleted By</th>
+                        <th class="w-[14%] text-right">Deleted At</th>
+                    </tr>
+                </thead>
+                <tbody id="deletedTableBody">
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-500 font-bold">Loading deleted account logs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between pt-5 text-xs font-bold text-slate-400">
+            <div id="pageInfo">Showing 0 to 0 of 0 logs</div>
+            <div class="flex items-center gap-2">
+                <button id="prevBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>← Previous</button>
+                <button id="nextBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>Next →</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+            </main>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/admin/static/js/admin-config.js?v=20261013"></script>
+    <script src="/admin/static/js/admin-api.js?v=20261013"></script>
+    <script src="/admin/static/js/admin-layout.js?v=20261013"></script>
+    <script src="/admin/static/js/admin-deleted-accounts.js?v=20261013_4"></script>
+</body>
+</html>

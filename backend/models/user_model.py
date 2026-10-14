@@ -54,9 +54,9 @@ def find_user_by_id(user_id):
 
 
 def create_user(user_data):
-    user_data["role"] = "user"
-    user_data["kyc_status"] = "pending"
-    user_data["account_status"] = "active"
+    user_data["role"] = user_data.get("role", "user")
+    user_data["kyc_status"] = user_data.get("kyc_status", "pending")
+    user_data["account_status"] = user_data.get("account_status", "active")
     user_data["email_verified"] = bool(user_data.get("email_verified", False))
     user_data["mobile_verified"] = bool(user_data.get("mobile_verified", False))
     user_data["auth_provider"] = user_data.get("auth_provider", "password")
@@ -69,7 +69,8 @@ def create_user(user_data):
     user_data["downgrade_warnings"] = int(user_data.get("downgrade_warnings", 0) or 0)
     user_data["created_at"] = now_utc()
     user_data["updated_at"] = now_utc()
-    user_data["client_id"] = generate_unique_client_id()
+    if not user_data.get("client_id"):
+        user_data["client_id"] = generate_unique_client_id()
 
     result = get_users_collection().insert_one(user_data)
 

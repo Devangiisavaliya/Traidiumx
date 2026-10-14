@@ -1558,3 +1558,293 @@ window.txGetPrimaryBankAccount = async function () {
         return null;
     }
 };
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Change Broker Wizard (PrimeXBT Style Step-by-Step Flow)
+// ──────────────────────────────────────────────────────────────────────────────
+let cbWizardState = {
+    selectedPlatform: "traidiumx",
+    selectedPlan: "basic",
+    currentStep: 1,
+    mt5Account: null
+};
+
+window.openChangeBrokerWizard = async function () {
+    const modal = document.getElementById("txChangeBrokerWizardModal");
+    if (!modal) return;
+
+    cbWizardState.currentStep = 1;
+    cbWizardState.selectedPlatform = (profileState.user?.selected_platform || localStorage.getItem("traidiumx_selected_platform") || "traidiumx").toLowerCase();
+    cbWizardState.selectedPlan = (profileState.user?.preferred_plan || "basic").toLowerCase();
+
+    // Set badges
+    const txBadge = document.getElementById("cbTxCurrentBadge");
+    const mt5Badge = document.getElementById("cbMt5CurrentBadge");
+    if (txBadge) txBadge.classList.toggle("hidden", cbWizardState.selectedPlatform !== "traidiumx");
+    if (mt5Badge) mt5Badge.classList.toggle("hidden", cbWizardState.selectedPlatform !== "mt5");
+
+    txSelectPlatformChoice(cbWizardState.selectedPlatform);
+    txSelectPlanChoice(cbWizardState.selectedPlan);
+    txGoToStep(1);
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    // Fetch live settings configured by Admin
+    try {
+        const resp = await apiRequest("/onboarding/config");
+        const settings = resp?.data?.settings || {};
+        const plans = settings.plans || {};
+
+        // Platform toggles
+        if (settings.traidiumx_enabled === false) {
+            document.getElementById("cbPlatformCardTx")?.classList.add("opacity-50", "pointer-events-none");
+        }
+        if (settings.mt5_enabled === false) {
+            document.getElementById("cbPlatformCardMt5")?.classList.add("opacity-50", "pointer-events-none");
+        }
+
+        // Helper to format spread
+        const fmtSp = (spVal, spType) => spType === "percentage" ? `${spVal}%` : `${spVal} Pips`;
+        const fmtMin = (mVal) => Number(mVal || 0).toLocaleString("en-US");
+
+        // Update Cent Card
+        if (plans.cent) {
+            const b = document.getElementById("cbPlanBadgeCent");
+            const d = document.getElementById("cbPlanDescCent");
+            const minVal = Number(plans.cent.minimum_balance || 0);
+            if (b) b.textContent = `Micro Lots · Min $${fmtMin(minVal)} (${(minVal * 100).toLocaleString("en-US")} USC)`;
+            if (d) d.textContent = `Practice with real cents · Spread ${fmtSp(plans.cent.spread_value, plans.cent.spread_type)}`;
+        }
+
+        // Update Basic Card
+        if (plans.basic) {
+            const b = document.getElementById("cbPlanBadgeBasic");
+            const d = document.getElementById("cbPlanDescBasic");
+            const minVal = Number(plans.basic.minimum_balance || 0);
+            if (b) b.textContent = minVal === 0 ? "No Minimum" : `Min $${fmtMin(minVal)}`;
+            if (d) d.textContent = `Standard conditions · Spread ${fmtSp(plans.basic.spread_value, plans.basic.spread_type)}`;
+        }
+
+        // Update Standard Card
+        if (plans.standard) {
+            const b = document.getElementById("cbPlanBadgeStandard");
+            const d = document.getElementById("cbPlanDescStandard");
+            const minVal = Number(plans.standard.minimum_balance || 0);
+            if (b) b.textContent = `Popular · Min $${fmtMin(minVal)}`;
+            if (d) d.textContent = `Tighter spreads · Spread ${fmtSp(plans.standard.spread_value, plans.standard.spread_type)}`;
+        }
+
+        // Update Advanced Card
+        if (plans.advanced) {
+            const b = document.getElementById("cbPlanBadgeAdvanced");
+            const d = document.getElementById("cbPlanDescAdvanced");
+            const minVal = Number(plans.advanced.minimum_balance || 0);
+            if (b) b.textContent = `VIP · Min $${fmtMin(minVal)}`;
+            if (d) d.textContent = `Institutional conditions · Lowest Spread ${fmtSp(plans.advanced.spread_value, plans.advanced.spread_type)}`;
+        }
+    } catch (_) {}
+};
+
+window.closeChangeBrokerWizard = function () {
+    const modal = document.getElementById("txChangeBrokerWizardModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+};
+
+window.txSelectPlatformChoice = function (platform) {
+    cbWizardState.selectedPlatform = platform;
+    const isTx = platform === "traidiumx";
+
+    const cardTx = document.getElementById("cbPlatformCardTx");
+    const cardMt5 = document.getElementById("cbPlatformCardMt5");
+    const radioTx = document.getElementById("cbPlatformRadioTx");
+    const radioMt5 = document.getElementById("cbPlatformRadioMt5");
+    const dotTx = radioTx ? radioTx.querySelector("div") : null;
+    const dotMt5 = radioMt5 ? radioMt5.querySelector("div") : null;
+
+    if (cardTx) {
+        cardTx.style.border = isTx ? "2px solid #22d3ee" : "2px solid rgba(51, 65, 85, 0.7)";
+        cardTx.style.background = isTx ? "rgba(15, 23, 42, 0.95)" : "rgba(15, 23, 42, 0.5)";
+        cardTx.style.boxShadow = isTx ? "0 0 25px rgba(6, 182, 212, 0.2)" : "none";
+    }
+    if (cardMt5) {
+        cardMt5.style.border = !isTx ? "2px solid #22d3ee" : "2px solid rgba(51, 65, 85, 0.7)";
+        cardMt5.style.background = !isTx ? "rgba(15, 23, 42, 0.95)" : "rgba(15, 23, 42, 0.5)";
+        cardMt5.style.boxShadow = !isTx ? "0 0 25px rgba(6, 182, 212, 0.2)" : "none";
+    }
+
+    if (radioTx) radioTx.style.borderColor = isTx ? "#22d3ee" : "#475569";
+    if (radioMt5) radioMt5.style.borderColor = !isTx ? "#22d3ee" : "#475569";
+
+    if (dotTx) dotTx.classList.toggle("hidden", !isTx);
+    if (dotMt5) dotMt5.classList.toggle("hidden", isTx);
+};
+
+window.txSelectPlanChoice = function (plan) {
+    cbWizardState.selectedPlan = plan;
+    ["cent", "basic", "standard", "advanced"].forEach(p => {
+        const isSelected = p === plan;
+        const card = document.getElementById(`cbPlanCard${p.charAt(0).toUpperCase() + p.slice(1)}`);
+        const radio = document.getElementById(`cbPlanRadio${p.charAt(0).toUpperCase() + p.slice(1)}`);
+        const dot = radio ? radio.querySelector("div") : null;
+        if (card) {
+            card.style.border = isSelected ? "2px solid #22d3ee" : "2px solid rgba(51, 65, 85, 0.7)";
+            card.style.background = isSelected ? "rgba(15, 23, 42, 0.95)" : "rgba(15, 23, 42, 0.5)";
+            card.style.boxShadow = isSelected ? "0 0 25px rgba(6, 182, 212, 0.2)" : "none";
+        }
+        if (radio) radio.style.borderColor = isSelected ? "#22d3ee" : "#475569";
+        if (dot) dot.classList.toggle("hidden", !isSelected);
+    });
+};
+
+window.txGoToStep = function (step) {
+    cbWizardState.currentStep = step;
+    document.getElementById("cbStep1")?.classList.toggle("hidden", step !== 1);
+    document.getElementById("cbStep2")?.classList.toggle("hidden", step !== 2);
+    document.getElementById("cbStep3")?.classList.toggle("hidden", step !== 3);
+};
+
+window.txSubmitDirectPlatformSwitch = async function () {
+    const btn = document.getElementById("cbStep1SubmitBtn");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="inline-block animate-spin mr-2">⟳</span> Switching...`;
+    }
+
+    try {
+        await apiRequest("/onboarding/platform", {
+            method: "POST",
+            body: JSON.stringify({ platform: cbWizardState.selectedPlatform })
+        });
+
+        localStorage.setItem("traidiumx_selected_platform", cbWizardState.selectedPlatform);
+        localStorage.setItem("tx_active_platform", cbWizardState.selectedPlatform);
+
+        if (profileEl.platformText) {
+            profileEl.platformText.textContent = cbWizardState.selectedPlatform === "mt5" ? "MetaTrader 5" : "TraidiumX";
+        }
+
+        const target = cbWizardState.selectedPlatform;
+        closeChangeBrokerWizard();
+
+        if (target === "mt5") {
+            showProfileMessage("Switched to MetaTrader 5 (MT5). Active MT5 wallet connected.", "success");
+        } else {
+            showProfileMessage("Switched to TraidiumX 2.0 Web Platform. Active Web wallet connected.", "success");
+        }
+
+        if (typeof loadProfile === "function") {
+            loadProfile();
+        } else if (typeof renderProfile === "function") {
+            renderProfile();
+        }
+    } catch (err) {
+        showProfileMessage(err?.message || "Failed to switch platform.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>Switch Platform</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
+        }
+    }
+};
+
+window.txSubmitChangeBroker = async function () {
+    const btn = document.getElementById("cbSubmitBtn");
+    const errMsg = document.getElementById("cbStep2ErrorMsg");
+    if (errMsg) errMsg.classList.add("hidden");
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="inline-block animate-spin mr-2">⟳</span> Activating...`;
+    }
+
+    try {
+        // 1. Save Platform
+        await apiRequest("/onboarding/platform", {
+            method: "POST",
+            body: JSON.stringify({ platform: cbWizardState.selectedPlatform })
+        });
+
+        // 2. Save Plan
+        const planResp = await apiRequest("/onboarding/plan", {
+            method: "POST",
+            body: JSON.stringify({ plan: cbWizardState.selectedPlan })
+        });
+
+        // Update local caches & profile texts
+        localStorage.setItem("traidiumx_selected_platform", cbWizardState.selectedPlatform);
+        localStorage.setItem("tx_active_platform", cbWizardState.selectedPlatform);
+        if (profileEl.platformText) {
+            profileEl.platformText.textContent = cbWizardState.selectedPlatform === "mt5" ? "MetaTrader 5" : "TraidiumX";
+        }
+        if (profileEl.preferredPlanText) {
+            profileEl.preferredPlanText.textContent = cbWizardState.selectedPlan.charAt(0).toUpperCase() + cbWizardState.selectedPlan.slice(1);
+        }
+
+        // Fetch MT5 Account details if MT5
+        let accountId = `#${Math.floor(100000 + Math.random() * 900000)}`;
+        let serverName = "TraidiumX-Live";
+        if (cbWizardState.selectedPlatform === "mt5") {
+            try {
+                const statusResp = await apiRequest("/onboarding/status");
+                const mt5Data = statusResp?.data?.mt5?.account || {};
+                if (mt5Data.login_id) accountId = `#${mt5Data.login_id}`;
+                if (mt5Data.server) serverName = mt5Data.server;
+            } catch (_) {}
+        }
+
+        // Render Step 3 Success Card (PrimeXBT Style)
+        const isMt5 = cbWizardState.selectedPlatform === "mt5";
+        const titleEl = document.getElementById("cbSuccessTitle");
+        const platEl = document.getElementById("cbSuccessPlatform");
+        const accIdEl = document.getElementById("cbSuccessAccountId");
+        const srvEl = document.getElementById("cbSuccessServer");
+        const srvRow = document.getElementById("cbServerRow");
+        const planEl = document.getElementById("cbSuccessAccountType");
+        const mt5Dl = document.getElementById("cbMt5DownloadSection");
+
+        if (titleEl) titleEl.textContent = isMt5 ? "MetaTrader 5 account created!" : "TraidiumX 2.0 Account Activated!";
+        if (platEl) platEl.textContent = isMt5 ? "MetaTrader 5" : "TraidiumX 2.0";
+        if (accIdEl) accIdEl.textContent = isMt5 ? accountId : (profileState.user?.client_id || "#TX-USER");
+        if (srvEl) srvEl.textContent = serverName;
+        if (srvRow) srvRow.classList.toggle("hidden", !isMt5);
+        if (planEl) planEl.textContent = cbWizardState.selectedPlan.charAt(0).toUpperCase() + cbWizardState.selectedPlan.slice(1);
+        if (mt5Dl) mt5Dl.classList.toggle("hidden", !isMt5);
+
+        txGoToStep(3);
+
+    } catch (err) {
+        if (errMsg) {
+            errMsg.textContent = err?.message || "Failed to switch broker platform. Please try again.";
+            errMsg.classList.remove("hidden");
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>Create & Activate Account</span>`;
+        }
+    }
+};
+
+window.txCopyText = function (elemId) {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    const text = el.textContent.replace("#", "").trim();
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = el.textContent;
+        el.textContent = "Copied! ✓";
+        setTimeout(() => { el.textContent = orig; }, 1500);
+    });
+};
+
+window.txGoToDeposit = function () {
+    closeChangeBrokerWizard();
+    if (typeof navigateToProfileRoute === "function") {
+        navigateToProfileRoute("src/pages/wallet.html#deposit");
+    } else {
+        window.location.href = "./wallet.html#deposit";
+    }
+};
+

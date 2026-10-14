@@ -633,8 +633,9 @@ def approve_withdrawal(withdrawal_id):
     # or grace period, so approval must not be blocked by the final restriction.
     req_currency = str(withdrawal.get("currency") or "INR").upper()
     unit_sym = "₹" if req_currency == "INR" else "$"
+    target_wallet_user_id = str(withdrawal.get("sub_account_id") or withdrawal.get("source_user_id") or user_id)
     wallet_result = complete_main_locked_withdrawal(
-        user_id=user_id,
+        user_id=target_wallet_user_id,
         amount=locked_amount,
         reference_id=withdrawal_id,
         description=f"Admin approved withdrawal {withdrawal.get('withdrawal_reference')}. Locked amount {unit_sym}{locked_amount:g} {req_currency} finalized; no extra debit.",
@@ -762,8 +763,9 @@ def reject_withdrawal(withdrawal_id):
 
     req_currency = str(withdrawal.get("currency") or "INR").upper()
     unit_sym = "₹" if req_currency == "INR" else "$"
+    target_wallet_user_id = str(withdrawal.get("sub_account_id") or withdrawal.get("source_user_id") or user_id)
     release_result = release_main_locked_amount(
-        user_id=user_id,
+        user_id=target_wallet_user_id,
         amount=locked_amount,
         transaction_type="inr_withdrawal_reject_refund" if req_currency == "INR" else "crypto_withdrawal_reject_refund",
         reference_id=withdrawal_id,

@@ -4,7 +4,14 @@ from models.user_model import find_user_by_id
 from utils.jwt_helper import verify_token
 from utils.security import get_bearer_token
 from middleware.auth_middleware import auth_required, auth_required_allow_restricted
-from services.user_service import change_user_password, get_user_profile, update_user_profile, request_two_factor_toggle, verify_two_factor_toggle
+from services.user_service import (
+    change_user_password,
+    get_user_profile,
+    update_user_profile,
+    request_two_factor_toggle,
+    verify_two_factor_toggle,
+    permanently_delete_user_account,
+)
 from services.user_status_service import build_user_account_status_payload
 from services.notification_service import get_user_notifications, mark_notifications_read
 from utils.response import success_response, error_response
@@ -209,20 +216,38 @@ def get_sub_accounts():
         "is_inr_trading_account": {"$ne": True}
     }))
     
+    all_uids = [parent_user_id] + [str(s["_id"]) for s in sub_users]
+    wallets_cursor = db.wallets.find({"user_id": {"$in": all_uids}})
+    wallet_map = {str(w.get("user_id")): format_wallet(w) for w in wallets_cursor}
+
+    # Fast position check: only compute live pnl if account actually has open positions
+    open_pos_uids = set(db.positions.distinct("user_id", {"user_id": {"$in": all_uids}, "status": "open"}))
+    open_opt_uids = set(db.options_orders.distinct("user_id", {"user_id": {"$in": all_uids}, "status": "open"})) if hasattr(db, "options_orders") else set()
+
     from services.trading_service import get_user_open_positions, format_position_with_live_pnl
     from services.options_service import get_option_positions
 
     def _calc_acc_positions_and_pnl(uid):
+        if uid not in open_pos_uids and uid not in open_opt_uids:
+            return {"unrealized_pnl": 0.0, "total_margin": 0.0, "positions": []}
         try:
-            f_positions = get_user_open_positions(uid)
-            formatted_f = [format_position_with_live_pnl(p) for p in f_positions]
-            f_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in formatted_f)
-            f_margin = sum(float(p.get("margin_amount") or p.get("margin") or 0.0) for p in formatted_f)
+            formatted_f = []
+            f_unrealized = 0.0
+            f_margin = 0.0
+            if uid in open_pos_uids:
+                f_positions = get_user_open_positions(uid)
+                formatted_f = [format_position_with_live_pnl(p) for p in f_positions]
+                f_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in formatted_f)
+                f_margin = sum(float(p.get("margin_amount") or p.get("margin") or 0.0) for p in formatted_f)
 
-            opt_res = get_option_positions(uid)
-            opt_positions = (opt_res.get("data") or {}).get("positions", [])
-            opt_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in opt_positions)
-            opt_margin = sum(float(p.get("investment") or p.get("premium") or 0.0) for p in opt_positions)
+            opt_positions = []
+            opt_unrealized = 0.0
+            opt_margin = 0.0
+            if uid in open_opt_uids:
+                opt_res = get_option_positions(uid)
+                opt_positions = (opt_res.get("data") or {}).get("positions", [])
+                opt_unrealized = sum(float(p.get("unrealized_pnl") or 0.0) for p in opt_positions)
+                opt_margin = sum(float(p.get("investment") or p.get("premium") or 0.0) for p in opt_positions)
 
             all_pos = formatted_f + opt_positions
             return {
@@ -238,8 +263,7 @@ def get_sub_accounts():
     # Add parent account info as a special entry
     parent_user = db.users.find_one({"_id": ObjectId(parent_user_id)})
     if parent_user:
-        parent_wallet = find_wallet_by_user_id(parent_user_id)
-        formatted_parent_wallet = format_wallet(parent_wallet) if parent_wallet else None
+        formatted_parent_wallet = wallet_map.get(parent_user_id)
         parent_pnl_data = _calc_acc_positions_and_pnl(parent_user_id)
         sub_accounts_data.append({
             "id": parent_user_id,
@@ -260,8 +284,7 @@ def get_sub_accounts():
         sub_id = str(sub["_id"])
         if sub_id == parent_user_id:
             continue
-        wallet = find_wallet_by_user_id(sub_id)
-        formatted_wallet = format_wallet(wallet) if wallet else None
+        formatted_wallet = wallet_map.get(sub_id)
         sub_pnl_data = _calc_acc_positions_and_pnl(sub_id)
         plan_key = str(sub.get("plan") or "basic").lower()
         is_demo = bool(sub.get("is_demo") or sub.get("account_mode") == "demo")
@@ -269,6 +292,7 @@ def get_sub_accounts():
             "basic": ("Basic", "cyan"),
             "standard": ("Standard", "emerald"),
             "advanced": ("Advanced", "purple"),
+            "cent": ("Cent", "amber"),
             "demo": ("Demo", "amber"),
         }
         plan_info = plan_names.get(plan_key, ("Demo" if is_demo else "Basic", "amber" if is_demo else "cyan"))
@@ -282,6 +306,12 @@ def get_sub_accounts():
             "plan_color": plan_info[1],
             "account_mode": "demo" if is_demo else "real",
             "is_demo": is_demo,
+            "selected_platform": sub.get("selected_platform") or "traidiumx",
+            "selected_platform_name": sub.get("selected_platform_name") or ("MetaTrader 5" if sub.get("selected_platform") == "mt5" else "TraidiumX"),
+            "mt5_server": sub.get("mt5_server"),
+            "mt5_login_id": sub.get("mt5_login_id"),
+            "mt5_password": sub.get("mt5_password"),
+            "mt5_investor_password": sub.get("mt5_investor_password"),
             "wallet": formatted_wallet,
             "unrealized_pnl": sub_pnl_data["unrealized_pnl"],
             "total_margin": sub_pnl_data["total_margin"],
@@ -304,6 +334,8 @@ def create_sub_account_endpoint():
     from bson import ObjectId
     from datetime import datetime
     import uuid
+    import secrets
+    import string
 
     data = request.get_json(silent=True) or {}
     name = str(data.get("name") or "").strip()
@@ -322,35 +354,35 @@ def create_sub_account_endpoint():
             "basic": "Basic",
             "standard": "Standard",
             "advanced": "Advanced",
+            "cent": "Cent",
         }
         if plan_key not in plan_names:
             plan_key = "basic"
         plan_name = plan_names[plan_key]
 
-    token = get_bearer_token(request)
-    token_result = verify_token(token)
-    token_user_id = token_result["data"].get("user_id")
-
     db = get_database()
-    token_user = db.users.find_one({"_id": ObjectId(token_user_id)})
+    token_user = getattr(g, "current_user", None)
+    if not token_user:
+        token = get_bearer_token(request)
+        token_result = verify_token(token)
+        token_user_id = token_result["data"].get("user_id")
+        token_user = db.users.find_one({"_id": ObjectId(token_user_id)})
     if not token_user:
         return error_response(message="User not found.", status_code=404)
 
-    actual_parent_id = token_user.get("parent_user_id") or str(token_user["_id"])
-    parent_user = db.users.find_one({"_id": ObjectId(actual_parent_id)}) or token_user
+    actual_parent_id = str(token_user.get("parent_user_id") or token_user["_id"])
+    parent_user = token_user if str(token_user["_id"]) == actual_parent_id else (db.users.find_one({"_id": ObjectId(actual_parent_id)}) or token_user)
 
-    count = db.users.count_documents({"parent_user_id": str(actual_parent_id)})
+    existing_subs = list(db.users.find({"parent_user_id": actual_parent_id}, {"is_demo": 1, "account_mode": 1, "plan": 1}))
+    count = len(existing_subs)
     sub_index = count + 1
 
     if count >= 10:
         return error_response(message="Maximum of 10 sub accounts exceeded.", status_code=400)
 
     if is_demo:
-        existing_demo = db.users.find_one({
-            "parent_user_id": str(actual_parent_id),
-            "$or": [{"is_demo": True}, {"account_mode": "demo"}, {"plan": "demo"}]
-        })
-        if existing_demo:
+        has_demo = any(s.get("is_demo") or s.get("account_mode") == "demo" or s.get("plan") == "demo" for s in existing_subs)
+        if has_demo:
             return error_response(
                 message="You can only create one Demo account. A Demo account already exists for your profile.",
                 status_code=400
@@ -360,13 +392,20 @@ def create_sub_account_endpoint():
     suffix = uuid.uuid4().hex[:6].upper()
     email = f"{parent_client_id}_sub_{sub_index}_{suffix}@traidiumx.local".lower()
     mobile = f"SUB_{parent_client_id}_{sub_index}_{suffix}"
+    sub_client_id = str(secrets.randbelow(900000) + 100000)
+
+    platform_key = str(data.get("platform") or "traidiumx").strip().lower()
+    if platform_key in ["mt5", "metatrader5", "metatrader_5"] or plan_key == "cent":
+        platform_key = "mt5"
+    platform_name = "MetaTrader 5" if platform_key == "mt5" else "TraidiumX"
 
     user_data = {
         "name": name,
         "email": email,
         "mobile": mobile,
+        "client_id": sub_client_id,
         "password_hash": "",
-        "parent_user_id": str(actual_parent_id),
+        "parent_user_id": actual_parent_id,
         "role": "sub_account",
         "email_verified": True,
         "mobile_verified": True,
@@ -379,12 +418,37 @@ def create_sub_account_endpoint():
         "preferred_plan_name": plan_name,
         "active_plan": plan_key,
         "active_plan_name": plan_name,
-        "selected_platform": "traidiumx",
-        "selected_platform_name": "TraidiumX",
+        "selected_platform": platform_key,
+        "selected_platform_name": platform_name,
     }
 
+    mt5_credentials = None
+    if platform_key == "mt5":
+        mt5_login = str(data.get("mt5_login_id") or (secrets.randbelow(9000000) + 1000000)).strip()
+        chars = string.ascii_letters + string.digits
+        mt5_pass = str(data.get("mt5_password") or f"Tx#{''.join(secrets.choice(chars) for _ in range(8))}").strip()
+        mt5_inv_pass = str(data.get("mt5_investor_password") or f"Inv#{''.join(secrets.choice(chars) for _ in range(6))}").strip()
+        mt5_server = str(data.get("mt5_server") or ("TraidiumX-Demo" if is_demo else "TraidiumX-Live")).strip()
+
+        user_data["mt5_server"] = mt5_server
+        user_data["mt5_login_id"] = mt5_login
+        user_data["mt5_password"] = mt5_pass
+        user_data["mt5_investor_password"] = mt5_inv_pass
+
+        mt5_credentials = {
+            "server": mt5_server,
+            "login_id": mt5_login,
+            "password": mt5_pass,
+            "investor_password": mt5_inv_pass,
+            "platform_name": "MetaTrader 5",
+            "account_name": name,
+            "plan_name": plan_name,
+            "account_mode": "demo" if is_demo else "real",
+            "is_demo": is_demo
+        }
+
     sub_id = create_user(user_data)
-    create_default_wallet(sub_id)
+    create_default_wallet(sub_id, fast_mode=True)
 
     if is_demo:
         # Pre-fund demo Trading Wallet directly with initial $10,000 Demo USDT
@@ -417,6 +481,33 @@ def create_sub_account_endpoint():
             upsert=True
         )
 
+    # Automatically send MT5 Credentials Email to the user's email address
+    if platform_key == "mt5" and mt5_credentials:
+        try:
+            import threading
+            from services.email_service import send_mt5_account_auto_provisioned_email
+            parent_email = str(parent_user.get("email") or "").strip()
+            parent_name = str(parent_user.get("name") or "Trader").strip()
+            if parent_email and "@" in parent_email:
+                threading.Thread(
+                    target=send_mt5_account_auto_provisioned_email,
+                    kwargs={
+                        "to_email": parent_email,
+                        "user_name": parent_name,
+                        "account_name": name,
+                        "plan_name": plan_name,
+                        "login_id": mt5_credentials["login_id"],
+                        "master_password": mt5_credentials["password"],
+                        "investor_password": mt5_credentials["investor_password"],
+                        "server": mt5_credentials["server"],
+                        "is_demo": is_demo
+                    },
+                    daemon=True
+                ).start()
+        except Exception as mail_err:
+            import logging
+            logging.getLogger("user_api").warning(f"Could not dispatch MT5 email: {mail_err}")
+
     return success_response(
         message="Demo sub account created successfully." if is_demo else "Sub account created successfully.",
         data={
@@ -426,7 +517,10 @@ def create_sub_account_endpoint():
             "plan": plan_key,
             "plan_name": plan_name,
             "account_mode": "demo" if is_demo else "real",
-            "is_demo": is_demo
+            "is_demo": is_demo,
+            "selected_platform": platform_key,
+            "selected_platform_name": platform_name,
+            "mt5_credentials": mt5_credentials
         },
         status_code=201
     )
@@ -541,6 +635,155 @@ def demo_deposit_endpoint(sub_id):
     )
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Delete Sub-Account Endpoint
+# ──────────────────────────────────────────────────────────────────────────────
+
+@user_api.route("/sub-accounts/<sub_id>", methods=["DELETE", "POST"])
+@auth_required
+def delete_sub_account_endpoint(sub_id):
+    from config.database import get_database
+    from bson import ObjectId
+
+    token = get_bearer_token(request)
+    token_result = verify_token(token)
+    token_user_id = token_result["data"].get("user_id")
+
+    db = get_database()
+    token_user = db.users.find_one({"_id": ObjectId(token_user_id)})
+    if not token_user:
+        return error_response(message="User not found.", status_code=404)
+
+    actual_parent_id = str(token_user.get("parent_user_id") or token_user["_id"])
+    sub_id_str = str(sub_id).strip()
+
+    # Disallow deleting parent account via sub-account delete route
+    if sub_id_str in ("main", actual_parent_id):
+        return error_response(message="Primary trading account cannot be deleted from here.", status_code=400)
+
+    # 1. Search sub-account flexibly by ObjectId, client_id, or string prefix
+    sub_user = None
+    if ObjectId.is_valid(sub_id_str):
+        sub_user = db.users.find_one({"_id": ObjectId(sub_id_str), "parent_user_id": actual_parent_id})
+
+    if not sub_user:
+        candidate_client_id = sub_id_str.split("_")[-1] if "_" in sub_id_str else sub_id_str
+        sub_user = db.users.find_one({
+            "parent_user_id": actual_parent_id,
+            "$or": [
+                {"client_id": candidate_client_id},
+                {"client_id": sub_id_str},
+                {"name": sub_id_str}
+            ]
+        })
+
+    # If not found in DB (e.g. phantom/mock account like acc5_230381 or already purged),
+    # return success so frontend can cleanly drop it from browser localStorage cache!
+    from utils.date_helper import now_utc
+    if not sub_user:
+        try:
+            candidate_id = sub_id_str.split("_")[-1] if "_" in sub_id_str else sub_id_str
+            db.deleted_account_logs.insert_one({
+                "account_type": "sub",
+                "account_id": sub_id_str,
+                "client_id": candidate_id,
+                "name": f"Sub-Account ({candidate_id})" if candidate_id != sub_id_str else sub_id_str,
+                "email": token_user.get("email"),
+                "parent_user_id": actual_parent_id,
+                "parent_name": token_user.get("name") or "Main Account",
+                "parent_client_id": token_user.get("client_id"),
+                "deleted_by": "user",
+                "deleted_by_name": token_user.get("name") or "Parent User",
+                "refund_summary": "Removed from cache / Closed",
+                "deleted_at": now_utc()
+            })
+        except Exception as log_err:
+            print(f"Warning: Failed to log phantom account deletion: {log_err}")
+
+        return success_response(
+            message="Trading account removed successfully.",
+            data={"deleted_sub_id": sub_id_str}
+        )
+
+    actual_sub_id = str(sub_user["_id"])
+
+    # 2. Check open positions
+    open_positions = list(db.positions.find({"user_id": actual_sub_id, "status": "open"}))
+    open_option_positions = list(db.option_positions.find({"user_id": actual_sub_id, "status": "open"})) if "option_positions" in db.list_collection_names() else []
+    if open_positions or open_option_positions:
+        return error_response(
+            message="Cannot delete account with open positions. Please close all active trades first.",
+            status_code=400
+        )
+
+    # 3. Check & transfer any real balance back to parent account
+    is_demo = bool(sub_user.get("is_demo") or sub_user.get("account_mode") == "demo" or sub_user.get("plan") == "demo")
+    sub_wallet = db.wallets.find_one({"user_id": actual_sub_id})
+    refunded_msg = ""
+    if not is_demo and sub_wallet:
+        usdt_avail = float((sub_wallet.get("trading_wallet_usdt") or {}).get("available_balance", 0.0) or sub_wallet.get("available_balance", 0.0) or 0.0)
+        inr_avail = float((sub_wallet.get("trading_wallet_inr") or {}).get("available_balance", 0.0) or 0.0)
+
+        if usdt_avail > 0.000001 or inr_avail > 0.01:
+            inc_updates = {}
+            if usdt_avail > 0.000001:
+                inc_updates["trading_wallet_usdt.available_balance"] = usdt_avail
+                inc_updates["available_balance"] = usdt_avail
+                refunded_msg += f"{usdt_avail:.2f} USDT"
+            if inr_avail > 0.01:
+                inc_updates["trading_wallet_inr.available_balance"] = inr_avail
+                refunded_msg += (", " if refunded_msg else "") + f"{inr_avail:.2f} INR"
+
+            db.wallets.update_one(
+                {"user_id": actual_parent_id},
+                {"$inc": inc_updates}
+            )
+
+    # Log sub-account deletion in deleted_account_logs
+    try:
+        db.deleted_account_logs.insert_one({
+            "account_type": "sub",
+            "account_id": actual_sub_id,
+            "client_id": sub_user.get("client_id") or sub_id_str,
+            "name": sub_user.get("name") or "Sub-Account",
+            "email": sub_user.get("email") or token_user.get("email"),
+            "parent_user_id": actual_parent_id,
+            "parent_name": token_user.get("name") or "Main Account",
+            "parent_client_id": token_user.get("client_id"),
+            "deleted_by": "user",
+            "deleted_by_name": token_user.get("name") or "Parent User",
+            "refund_summary": f"Refunded to Main: {refunded_msg}" if refunded_msg else "Zero Balance",
+            "deleted_at": now_utc()
+        })
+    except Exception as log_err:
+        print(f"Warning: Failed to log sub-account deletion: {log_err}")
+
+    # 4. Clean up sub-account data
+    db.orders.delete_many({"user_id": actual_sub_id})
+    db.positions.delete_many({"user_id": actual_sub_id})
+    db.position_price_snapshots.delete_many({"user_id": actual_sub_id})
+    db.trades.delete_many({"user_id": actual_sub_id})
+    if "option_orders" in db.list_collection_names():
+        db.option_orders.delete_many({"user_id": actual_sub_id})
+    if "option_positions" in db.list_collection_names():
+        db.option_positions.delete_many({"user_id": actual_sub_id})
+    if "option_fills" in db.list_collection_names():
+        db.option_fills.delete_many({"user_id": actual_sub_id})
+    db.futures_recent_symbols.delete_many({"user_id": actual_sub_id})
+    db.mt5_accounts.delete_many({"user_id": actual_sub_id})
+    db.user_deposit_addresses.delete_many({"user_id": actual_sub_id})
+    db.wallets.delete_many({"user_id": actual_sub_id})
+    db.wallet_ledger.delete_many({"user_id": actual_sub_id})
+    db.users.delete_one({"_id": sub_user["_id"]})
+
+    msg = f"Trading account '{sub_user.get('name')}' deleted successfully."
+    if refunded_msg:
+        msg += f" Remaining balance ({refunded_msg}) transferred to Main Account."
+
+    return success_response(
+        message=msg,
+        data={"deleted_sub_id": actual_sub_id}
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -645,7 +888,7 @@ def get_user_portfolio_summary():
     from services.system_settings_service import get_usdt_inr_rate
     from models.deposit_model import get_deposits_collection
     from models.withdrawal_model import get_withdrawals_collection
-    from models.ledger_model import get_user_ledger
+    from models.ledger_model import get_user_ledger, format_ledger_items
 
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
 
@@ -679,7 +922,8 @@ def get_user_portfolio_summary():
     total_withdrawals_usdt = sum(float(w.get("amount") or 0.0) for w in wd_docs)
 
     # Ledger history
-    ledger = get_user_ledger(user_id, limit=15)
+    ledger_raw = get_user_ledger(user_id, limit=50)
+    ledger = format_ledger_items(ledger_raw)
 
     # Totals calculation
     main_wallet = wallet_data.get("main_wallet") or {}
@@ -760,15 +1004,6 @@ def get_user_portfolio_summary():
                 "wallet": swallet_fmt
             })
 
-    if len(sub_accounts_summary) <= 1:
-        sub_accounts_summary = [
-            {"id": user_id, "name": "Trading Account 1 (Default)", "usd_balance": 2375.44, "inr_balance": 2180.77, "is_main": True},
-            {"id": "scalping_405125", "name": "Scalping (405125)", "usd_balance": 3.54, "inr_balance": 1.01, "is_main": False},
-            {"id": "dddad_178310", "name": "dddad (178310)", "usd_balance": 100.00, "inr_balance": 1.13, "is_main": False},
-            {"id": "ssdd_565303", "name": "ssdd (565303)", "usd_balance": 0.0, "inr_balance": 0.0, "is_main": False},
-            {"id": "acc5_230381", "name": "acc5 (230381)", "usd_balance": 0.0, "inr_balance": 0.0, "is_main": False},
-        ]
-
     portfolio_summary = {
         "user": {
             "name": g.current_user.get("name") or g.current_user.get("email"),
@@ -813,7 +1048,7 @@ def get_user_portfolio_summary():
             "open_positions_count": len(futures_positions) + len(options_positions),
             "open_orders_count": len(futures_open_orders) + len(options_open_orders),
         },
-        "ledger": ledger[:10]
+        "ledger": ledger
     }
 
     def _make_json_safe(obj):
@@ -829,5 +1064,22 @@ def get_user_portfolio_summary():
     return success_response(
         message="Portfolio summary retrieved successfully.",
         data=_make_json_safe(portfolio_summary)
+    )
+
+
+@user_api.route("/account", methods=["DELETE", "POST"])
+@user_api.route("/close-account", methods=["DELETE", "POST"])
+@auth_required_allow_restricted
+def delete_user_account():
+    user = getattr(g, "token_user", None) or g.current_user
+    result = permanently_delete_user_account(user)
+    if result.get("success"):
+        return success_response(
+            message=result["message"],
+            status_code=result.get("status_code", 200)
+        )
+    return error_response(
+        message=result.get("message", "Failed to delete account."),
+        status_code=result.get("status_code", 400)
     )
 

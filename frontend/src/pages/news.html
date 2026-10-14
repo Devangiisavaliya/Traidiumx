@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Market News | TraidiumX</title>
+
+    <script>
+        document.documentElement.classList.add("tx-motion-ready");
+        (function() {
+            const lang = localStorage.getItem("tx_language") || "English";
+            if (lang !== "English") {
+                document.documentElement.classList.add("tx-translating");
+                setTimeout(function() {
+                    document.documentElement.classList.remove("tx-translating");
+                }, 850);
+            }
+        })();
+    </script>
+
+    <!-- Tailwind Output CSS -->
+    <link rel="stylesheet" href="../../dist/output.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/custom.css?v=60" />
+    <link rel="stylesheet" href="../css/animations.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .tx-portal-container {
+            padding-top: 140px !important;
+            padding-bottom: 6rem;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 640px) {
+            .tx-portal-container {
+                padding-top: 115px !important;
+            }
+        }
+
+        .tx-subnav-link {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #94a3b8;
+            padding: 0.55rem 1.25rem;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .tx-subnav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tx-subnav-link.active {
+            color: #ffffff;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tx-pill-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            border-radius: 0.625rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: #94a3b8;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tx-pill-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .tx-pill-btn.active {
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Large Spacious Grid Page Layout */
+        .tx-page-wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+            width: 100%;
+        }
+
+        @media (min-width: 1536px) {
+            .tx-page-wrap {
+                max-width: 1360px;
+            }
+        }
+
+        /* Centered 2-Column Reader Layout */
+        .tx-reader-container {
+            max-width: 1080px;
+            margin: 0 auto;
+            width: 100%;
+            margin-top: 0.25rem;
+        }
+
+        .tx-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .tx-back-link:hover {
+            color: #ffffff;
+        }
+
+        .tx-reader-columns {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .tx-reader-columns {
+                flex-direction: row;
+                gap: 2.25rem;
+                align-items: flex-start;
+            }
+        }
+
+        .tx-reader-main-col {
+            flex: 1 1 0%;
+            min-width: 0;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .tx-reader-sidebar-col {
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 1024px) {
+            .tx-reader-sidebar-col {
+                width: 320px;
+                position: sticky;
+                top: 6.5rem;
+            }
+        }
+
+        .tx-reader-title {
+            font-size: 1.85rem;
+            line-height: 1.25;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .tx-reader-title {
+                font-size: 1.35rem;
+            }
+        }
+
+        .tx-reader-meta {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+
+        .tx-reader-img-wrap {
+            width: 100%;
+            height: 350px;
+            border-radius: 1rem;
+            overflow: hidden;
+            background-color: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 640px) {
+            .tx-reader-img-wrap {
+                height: 220px;
+            }
+        }
+
+        .tx-reader-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .tx-reader-body-text {
+            font-size: 0.875rem;
+            line-height: 1.65;
+            color: #cbd5e1;
+            margin-bottom: 1.25rem;
+        }
+
+        .tx-reader-publisher-foot {
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+
+        .tx-reader-publisher-foot strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .tx-read-article-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.75rem;
+            background-color: #22d3ee;
+            color: #020617;
+            font-size: 0.8125rem;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 10px 20px -3px rgba(34, 211, 238, 0.35);
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .tx-read-article-btn:hover {
+            background-color: #67e8f9;
+            box-shadow: 0 12px 24px -3px rgba(34, 211, 238, 0.5);
+            transform: translateY(-1px);
+            color: #020617;
+        }
+
+        /* Sidebar Box */
+        .tx-sidebar-box {
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background-color: #111827;
+            padding: 1rem 1.25rem;
+        }
+
+        .tx-sidebar-heading {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.875rem;
+        }
+
+        .tx-sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.4rem 0;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+            text-decoration: none;
+        }
+
+        .tx-sidebar-item:hover {
+            opacity: 0.8;
+        }
+
+        .tx-sidebar-thumb {
+            width: 48px;
+            height: 40px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: #1e293b;
+            flex-shrink: 0;
+        }
+
+        .tx-sidebar-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .tx-sidebar-info {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
+
+        .tx-sidebar-title {
+            font-size: 0.725rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.25;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin: 0;
+        }
+
+        .tx-sidebar-meta {
+            font-size: 0.625rem;
+            color: #94a3b8;
+            margin-top: 0.2rem;
+        }
+    </style>
+</head>
+
+<body class="bg-[#020617] text-white min-h-screen flex flex-col selection:bg-purple-500 selection:text-white" data-page="wallet">
+
+    <!-- Reusable Navbar -->
+    <div data-component="navbar"></div>
+
+    <!-- ================= MAIN START ================= -->
+    <main class="flex-1 tx-portal-container">
+        
+        <!-- Background Ambient Glow -->
+        <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+            <div class="absolute left-1/4 top-20 h-96 w-96 rounded-full bg-cyan-600/10 blur-[150px]"></div>
+            <div class="absolute right-1/4 top-60 h-96 w-96 rounded-full bg-purple-600/10 blur-[150px]"></div>
+        </div>
+
+        <div class="tx-page-wrap">
+
+            <!-- Subnav Navigation Row (Visible on Grid View, hidden on Reader View) -->
+            <div id="txNewsSubnavRow" class="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-none">
+                <a href="./wallet.html" class="tx-subnav-link">Overview</a>
+                <a href="./markets.html" class="tx-subnav-link">Markets</a>
+                <a href="./research.html" class="tx-subnav-link">Research</a>
+                <a href="./news.html" class="tx-subnav-link active">News</a>
+            </div>
+
+            <!-- ================= VIEW 1: 4-COLUMN GRID VIEW (Spacious & Prominent) ================= -->
+            <div id="txNewsGridView" class="rounded-3xl border border-white/10 bg-[#07111f]/90 p-5 sm:p-7 lg:p-9 backdrop-blur-2xl shadow-2xl transition-all duration-300">
+
+                <!-- Filter Controls Header (8 Category Pills + Live Search) -->
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 border-b border-white/10">
+                    
+                    <!-- Left: Category Pills -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" id="txNewsCategoryPills">
+                        <button class="tx-pill-btn active" data-cat="all">All</button>
+                        <button class="tx-pill-btn" data-cat="Business">Business</button>
+                        <button class="tx-pill-btn" data-cat="Crypto">Crypto</button>
+                        <button class="tx-pill-btn" data-cat="Finance">Finance</button>
+                        <button class="tx-pill-btn" data-cat="Markets">Markets</button>
+                        <button class="tx-pill-btn" data-cat="Opinion">Opinion</button>
+                        <button class="tx-pill-btn" data-cat="Policy">Policy</button>
+                        <button class="tx-pill-btn" data-cat="Tech">Tech</button>
+                    </div>
+
+                </div>
+
+                <!-- Live Results Count & Refresh -->
+                <div class="flex items-center justify-between py-4 text-xs text-slate-400 font-semibold">
+                    <div id="txNewsCount">Showing 0 articles</div>
+                    <button id="txRefreshNewsBtn" class="flex items-center gap-1.5 hover:text-cyan-400 transition text-slate-400 font-medium cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Refresh feeds</span>
+                    </button>
+                </div>
+
+                <!-- 4-Column Responsive Grid -->
+                <div id="txNewsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Cards injected dynamically via news.js -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="txNewsEmpty" class="hidden py-20 text-center">
+                    <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-slate-400 text-2xl">📰</div>
+                    <h4 class="text-base font-bold text-white mb-1">No market news found</h4>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto">Try selecting another news category or clearing your search filter.</p>
+                </div>
+
+                <!-- Load More Button -->
+                <div id="txLoadMoreNewsWrap" class="mt-8 text-center hidden">
+                    <button id="txLoadMoreNewsBtn" class="px-7 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition hover:border-cyan-400/40 shadow-lg cursor-pointer">
+                        Load more news
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ================= VIEW 2: DEDICATED 2-COLUMN NEWS READER ================= -->
+            <div id="txNewsReaderView" class="tx-reader-container hidden">
+                
+                <!-- Back Link (Exact 1:1 match with NEXUS Exchange) -->
+                <div>
+                    <a href="javascript:void(0)" id="txNewsBackToGridBtn" class="tx-back-link">
+                        <span>← Back</span>
+                    </a>
+                </div>
+
+                <!-- 2-Column Layout (Exact 1:1 match with NEXUS Exchange) -->
+                <div class="tx-reader-columns">
+                    
+                    <!-- Left Column: News Details -->
+                    <article class="tx-reader-main-col">
+                        
+                        <!-- Headline Title -->
+                        <h1 id="txNewsReaderTitle" class="tx-reader-title">
+                            News Title
+                        </h1>
+
+                        <!-- Metadata Row (Date | Category) -->
+                        <div class="tx-reader-meta">
+                            <span id="txNewsReaderDate">Today</span> | <span id="txNewsReaderCategory">Crypto</span>
+                        </div>
+
+                        <!-- Hero Featured Image -->
+                        <div class="tx-reader-img-wrap">
+                            <img id="txNewsReaderImage" src="" alt="Market News Featured" onerror="this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&auto=format&fit=crop&q=80';">
+                        </div>
+
+                        <!-- Story Body Paragraph -->
+                        <p id="txNewsReaderBody" class="tx-reader-body-text"></p>
+
+                        <!-- Publisher Note -->
+                        <p class="tx-reader-publisher-foot">
+                            This story was first published by <strong id="txNewsReaderPublisherFoot">CoinDesk</strong>. Continue reading for the full report, quotes and market details.
+                        </p>
+
+                        <!-- Primary CTA Button -->
+                        <div>
+                            <a id="txNewsReaderCtaBtn" href="#" target="_blank" rel="noopener noreferrer" class="tx-read-article-btn">
+                                <span>Read full article</span>
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+
+                    </article>
+
+                    <!-- Right Column: "More news" Sidebar -->
+                    <aside class="tx-reader-sidebar-col">
+                        <div class="tx-sidebar-box">
+                            <div class="tx-sidebar-heading">More news</div>
+                            <div id="txNewsSidebarList" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+                    </aside>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+    <!-- ================= MAIN END ================= -->
+
+    <!-- Reusable Footer -->
+    <div data-component="footer"></div>
+
+    <!-- Scripts -->
+    <script src="../js/components-loader.js"></script>
+    <script src="../js/api-config.js"></script>
+    <script src="../js/auth-state.js?v=79"></script>
+    <script src="../js/responsive.js"></script>
+    <script src="../js/news.js?v=15"></script>
+</body>
+</html>

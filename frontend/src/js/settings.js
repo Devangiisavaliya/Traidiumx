@@ -1024,7 +1024,7 @@ function bindButtonListeners(user) {
             <div class="space-y-4 p-5 text-sm text-center">
                 <p class="text-red-400 font-bold">Warning: This action is permanent and cannot be undone.</p>
                 <p class="text-slate-400">Your trading assets, order history, and account profile will be permanently deleted.</p>
-                <button type="button" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="confirmDeleteAccount()">Permanently Delete Account</button>
+                <button type="button" id="confirmPermanentDeleteBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="confirmDeleteAccount()">Permanently Delete Account</button>
                 <button type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="closeSettingsModal()">Cancel</button>
             </div>
         `);
@@ -1409,13 +1409,38 @@ window.setFeeDeduction = function (val) {
 };
 
 
-window.confirmDeleteAccount = function () {
-    showToast("Account deletion request submitted!", "success");
-    closeSettingsModal();
-    setTimeout(() => {
-        clearAuthData();
-        window.location.href = "/";
-    }, 1500);
+window.confirmDeleteAccount = async function () {
+    const btn = document.getElementById("confirmPermanentDeleteBtn");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Deleting Account...";
+    }
+
+    try {
+        const response = await apiRequest("/user/account", {
+            method: "DELETE"
+        });
+
+        showToast(response?.message || "Account permanently deleted.", "success");
+        closeSettingsModal();
+        setTimeout(() => {
+            clearAuthData();
+            try {
+                localStorage.removeItem("traidiumx_active_user_id");
+                localStorage.removeItem("traidiumx_active_user_name");
+                localStorage.removeItem("tx_cached_sub_accounts");
+                sessionStorage.clear();
+            } catch (_) {}
+            window.location.href = "/";
+        }, 1500);
+    } catch (error) {
+        console.error("Account deletion failed:", error);
+        showToast(showApiError(error, "Failed to delete account. Please try again."), "error");
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Permanently Delete Account";
+        }
+    }
 };
 
 function escapeSettingsHtml(value) {

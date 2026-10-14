@@ -54,7 +54,7 @@
                     <h2 class="mt-3 text-4xl font-black tracking-tight text-white">Welcome back.</h2>
                     <p class="mt-3 text-sm leading-6 text-slate-400">Use your admin credentials. Use the seeded admin account or your MongoDB admin credentials.</p>
                 </div>
-                <form id="adminLoginForm" class="mt-9 space-y-5 tx-fade-up tx-delay-2" autocomplete="off" novalidate>
+                <form id="adminLoginForm" action="javascript:void(0);" method="POST" class="mt-9 space-y-5 tx-fade-up tx-delay-2" autocomplete="off" novalidate>
                     <input type="text" name="tx_admin_autofill_user" autocomplete="username" tabindex="-1" aria-hidden="true" class="tx-autofill-trap" />
                     <input type="password" name="tx_admin_autofill_pass" autocomplete="current-password" tabindex="-1" aria-hidden="true" class="tx-autofill-trap" />
                     <div id="loginError" class="hidden rounded-2xl border border-rose-400/25 bg-rose-400/10 p-3 text-sm font-bold text-rose-200"></div>
@@ -82,9 +82,9 @@
             </div>
         </section>
     </main>
-    <script src="/admin/static/js/admin-config.js"></script>
-<script src="/admin/static/js/admin-api.js"></script>
-    <script src="/admin/static/js/admin-auth.js"></script>
+    <script src="/admin/static/js/admin-config.js?v=20261008"></script>
+    <script src="/admin/static/js/admin-api.js?v=20261008"></script>
+    <script src="/admin/static/js/admin-auth.js?v=20261008"></script>
     <script>
         document.querySelectorAll('.tx-auto-year').forEach(el => el.textContent = new Date().getFullYear());
         (() => {

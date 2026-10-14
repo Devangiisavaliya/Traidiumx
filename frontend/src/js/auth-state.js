@@ -786,14 +786,6 @@ function initPrimeXbtNavbarControls() {
                 return;
             }
 
-            if (depositType === "money") {
-                localStorage.setItem("tx_navbar_currency", "INR");
-                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "INR" } }));
-            } else {
-                localStorage.setItem("tx_navbar_currency", "USDT");
-                window.dispatchEvent(new CustomEvent("traidiumx:currency-change", { detail: { currency: "USDT" } }));
-            }
-
             if (window.location.pathname.includes("wallet")) {
                 e.preventDefault();
                 if (typeof txActivateDepositTab === "function") {
@@ -1008,12 +1000,40 @@ document.addEventListener("click", function(e) {
 async function loadNavbarWalletBalance() {
     const balEl = document.getElementById("txNavbarWalletBalanceText");
     if (!balEl) return;
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id") || "main";
     const activeCurrency = (localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
-    const cachedNavBal = localStorage.getItem("tx_cached_navbar_balance_" + activeCurrency)
-        || (activeCurrency === "INR" ? "₹0.00" : (localStorage.getItem("tx_cached_navbar_balance") || "0.00 USD"));
-    if (cachedNavBal && (!balEl.textContent || balEl.textContent.trim() === "0.00 USD" || balEl.textContent.trim() === "₹0.00" || balEl.textContent.trim() === "0.00 USDT")) {
-        balEl.textContent = cachedNavBal;
+
+    // 0ms instant display from local active account cache
+    let renderedInstant = false;
+    try {
+        const cachedSubs = JSON.parse(localStorage.getItem("tx_cached_sub_accounts") || "[]");
+        let activeSub = null;
+        if (activeSubId === "main") {
+            activeSub = cachedSubs.find(s => s.is_parent);
+        } else {
+            activeSub = cachedSubs.find(s => String(s.id) === String(activeSubId));
+        }
+        if (activeSub && activeSub.wallet) {
+            const w = activeSub.wallet;
+            let inrVal = Number(w.main_wallet_inr?.available_balance ?? (w.main_wallet?.currency === "INR" ? w.main_wallet.available_balance : 0) ?? 0);
+            let usdtVal = Number(w.main_wallet_usdt?.available_balance ?? (w.main_wallet?.currency !== "INR" ? w.main_wallet?.available_balance : 0) ?? w.available_balance ?? 0);
+            const instantFormatted = activeCurrency === "INR"
+                ? `₹${inrVal.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : `${usdtVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
+            balEl.textContent = instantFormatted;
+            renderedInstant = true;
+        }
+    } catch (_) {}
+
+    if (!renderedInstant) {
+        const cachedNavBal = localStorage.getItem(`tx_cached_navbar_balance_${activeSubId}_` + activeCurrency)
+            || localStorage.getItem("tx_cached_navbar_balance_" + activeCurrency)
+            || (activeCurrency === "INR" ? "₹0.00" : (localStorage.getItem("tx_cached_navbar_balance") || "0.00 USDT"));
+        if (cachedNavBal && (!balEl.textContent || balEl.textContent.trim() === "0.00 USD" || balEl.textContent.trim() === "₹0.00" || balEl.textContent.trim() === "0.00 USDT")) {
+            balEl.textContent = cachedNavBal;
+        }
     }
+
     try {
         if (typeof apiRequest !== "function") return;
         const res = await apiRequest("/wallet/balance");
@@ -1026,18 +1046,16 @@ async function loadNavbarWalletBalance() {
 
             if (w) {
                 // Compute INR Available
-                if (w.main_wallet_inr && (typeof w.main_wallet_inr.available_balance === "number" || w.main_wallet_inr.available_balance)) {
+                if (w.main_wallet_inr && (typeof w.main_wallet_inr.available_balance === "number" || w.main_wallet_inr.available_balance !== undefined)) {
                     inrAvail = Number(w.main_wallet_inr.available_balance);
-                } else if (w.main_wallet && w.main_wallet.currency === "INR" && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
+                } else if (w.main_wallet && w.main_wallet.currency === "INR" && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance !== undefined)) {
                     inrAvail = Number(w.main_wallet.available_balance);
                 }
 
                 // Compute USDT / USD Available
-                if (w.main_wallet_usdt && (typeof w.main_wallet_usdt.available_balance === "number" || w.main_wallet_usdt.available_balance)) {
+                if (w.main_wallet_usdt && (typeof w.main_wallet_usdt.available_balance === "number" || w.main_wallet_usdt.available_balance !== undefined)) {
                     usdtAvail = Number(w.main_wallet_usdt.available_balance);
-                } else if (w.main_wallet && (w.main_wallet.currency === "USDT" || w.main_wallet.currency === "USD") && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
-                    usdtAvail = Number(w.main_wallet.available_balance);
-                } else if (w.main_wallet && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance)) {
+                } else if (w.main_wallet && (w.main_wallet.currency === "USDT" || w.main_wallet.currency === "USD" || !w.main_wallet.currency) && (typeof w.main_wallet.available_balance === "number" || w.main_wallet.available_balance !== undefined)) {
                     usdtAvail = Number(w.main_wallet.available_balance);
                 } else {
                     usdtAvail = Number(w.available_balance || 0);
@@ -1050,6 +1068,8 @@ async function loadNavbarWalletBalance() {
             const formattedUsdt = `${usdtAvail.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
 
             try {
+                localStorage.setItem(`tx_cached_navbar_balance_${activeSubId}_INR`, formattedInr);
+                localStorage.setItem(`tx_cached_navbar_balance_${activeSubId}_USDT`, formattedUsdt);
                 localStorage.setItem("tx_cached_navbar_balance_INR", formattedInr);
                 localStorage.setItem("tx_cached_navbar_balance_USDT", formattedUsdt);
                 localStorage.setItem("tx_cached_navbar_balance", curActiveCurrency === "INR" ? formattedInr : formattedUsdt);
@@ -1071,7 +1091,11 @@ async function loadNavbarWalletBalance() {
 }
 window.loadNavbarWalletBalance = loadNavbarWalletBalance;
 
-window.addEventListener("traidiumx:currency-change", () => {
+window.addEventListener("traidiumx:currency-change", (e) => {
+    const cur = (e.detail?.currency || localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
+    if (typeof updateNavbarToggleUI === "function") {
+        updateNavbarToggleUI(cur);
+    }
     loadNavbarWalletBalance();
 });
 window.addEventListener("traidiumx:wallet-sync", () => {
@@ -1910,7 +1934,39 @@ function bindNavbarDropdown(user) {
         });
     }
 
-function navigateToProfileRoute(route) {
+    if (copyBtn && user.client_id) {
+        copyBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            navigator.clipboard.writeText(user.client_id).then(() => {
+                if (copyFeedback) {
+                    copyFeedback.classList.remove("hidden");
+                    setTimeout(() => {
+                        copyFeedback.classList.add("hidden");
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error("Failed to copy ID: ", err);
+            });
+        });
+    }
+
+    if (createSubLink) {
+        createSubLink.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (dropdown) dropdown.classList.add("hidden");
+            if (window.location.pathname.includes("wallet.html") && typeof window.txOpenSubAccountCreationModal === "function") {
+                window.txOpenSubAccountCreationModal("real");
+            } else if (typeof window.txOpenSubAccountCreationModal === "function") {
+                window.txOpenSubAccountCreationModal("real");
+            } else {
+                window.navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
+            }
+        });
+    }
+}
+
+window.navigateToProfileRoute = function (route) {
     if (!route || route === "#") return;
     
     let path = route;
@@ -1940,7 +1996,9 @@ function navigateToProfileRoute(route) {
         const cleanRoute = path.startsWith("/") ? path.substring(1) : path;
         const pageFileName = cleanRoute.substring(cleanRoute.lastIndexOf("/") + 1);
         
-        if (isPages) {
+        if (typeof resolveAppPath === "function") {
+            targetUrl = resolveAppPath(cleanRoute) + hash;
+        } else if (isPages) {
             targetUrl = "./" + pageFileName + hash;
         } else {
             targetUrl = "./" + cleanRoute + hash;
@@ -1948,41 +2006,12 @@ function navigateToProfileRoute(route) {
     }
     
     window.location.href = targetUrl;
+};
+function navigateToProfileRoute(route) {
+    return window.navigateToProfileRoute(route);
 }
 
-    if (copyBtn && user.client_id) {
-        copyBtn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            navigator.clipboard.writeText(user.client_id).then(() => {
-                if (copyFeedback) {
-                    copyFeedback.classList.remove("hidden");
-                    setTimeout(() => {
-                        copyFeedback.classList.add("hidden");
-                    }, 2000);
-                }
-            }).catch(err => {
-                console.error("Failed to copy ID: ", err);
-            });
-        });
-    }
-
-    if (createSubLink) {
-        createSubLink.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (dropdown) dropdown.classList.add("hidden");
-            if (window.location.pathname.includes("wallet.html") && typeof window.txOpenSubAccountCreationModal === "function") {
-                window.txOpenSubAccountCreationModal("real");
-            } else if (typeof window.txOpenSubAccountCreationModal === "function") {
-                window.txOpenSubAccountCreationModal("real");
-            } else {
-                navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
-            }
-        });
-    }
-}
-
-function openNavbarCreateSubModal() {
+window.openNavbarCreateSubModal = function () {
     if (window.location.pathname.includes("wallet.html") && typeof window.txOpenSubAccountCreationModal === "function") {
         window.txOpenSubAccountCreationModal("real");
         return;
@@ -1991,7 +2020,10 @@ function openNavbarCreateSubModal() {
         window.txOpenSubAccountCreationModal("real");
         return;
     }
-    navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
+    window.navigateToProfileRoute("src/pages/wallet.html#sub-accounts");
+};
+function openNavbarCreateSubModal() {
+    return window.openNavbarCreateSubModal();
 }
 
 window.toggleSiteTheme = function() {

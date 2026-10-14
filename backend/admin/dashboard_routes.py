@@ -212,10 +212,25 @@ def _daily_volume(db):
     return round(total, 8)
 
 
+_DASHBOARD_SUMMARY_CACHE = None
+_DASHBOARD_SUMMARY_CACHE_TIME = 0.0
+import time
+import threading
+_DASHBOARD_SUMMARY_LOCK = threading.Lock()
+
 @admin_dashboard_api.get("/summary")
 @admin_required
 @permission_required("dashboard.view")
 def dashboard_summary():
+    global _DASHBOARD_SUMMARY_CACHE, _DASHBOARD_SUMMARY_CACHE_TIME
+    now = time.time()
+    with _DASHBOARD_SUMMARY_LOCK:
+        if _DASHBOARD_SUMMARY_CACHE is not None and (now - _DASHBOARD_SUMMARY_CACHE_TIME) < 15.0:
+            return success_response(
+                message="Admin dashboard summary fetched successfully.",
+                data=_DASHBOARD_SUMMARY_CACHE
+            )
+
     db = get_database()
 
     total_users = db.users.count_documents({})
@@ -234,32 +249,38 @@ def dashboard_summary():
     open_positions = db.positions.count_documents({"status": "open"})
     closed_positions = db.positions.count_documents({"status": {"$ne": "open"}})
 
+    summary_data = {
+        "users": {
+            "total": total_users,
+            "active": active_users,
+            "blocked": blocked_users,
+        },
+        "kyc": {
+            "pending": pending_kyc,
+            "approved": approved_kyc,
+        },
+        "wallet": _wallet_totals(db),
+        "withdrawals": {
+            "pending": pending_withdrawals,
+            "approved": approved_withdrawals,
+            "rejected": rejected_withdrawals,
+        },
+        "trading": {
+            "open_orders": open_orders,
+            "open_positions": open_positions,
+            "closed_positions": closed_positions,
+            "daily_volume": _daily_volume(db),
+            "risk_alerts": _risk_alert_count(db),
+        },
+    }
+
+    with _DASHBOARD_SUMMARY_LOCK:
+        _DASHBOARD_SUMMARY_CACHE = summary_data
+        _DASHBOARD_SUMMARY_CACHE_TIME = time.time()
+
     return success_response(
         message="Admin dashboard summary fetched successfully.",
-        data={
-            "users": {
-                "total": total_users,
-                "active": active_users,
-                "blocked": blocked_users,
-            },
-            "kyc": {
-                "pending": pending_kyc,
-                "approved": approved_kyc,
-            },
-            "wallet": _wallet_totals(db),
-            "withdrawals": {
-                "pending": pending_withdrawals,
-                "approved": approved_withdrawals,
-                "rejected": rejected_withdrawals,
-            },
-            "trading": {
-                "open_orders": open_orders,
-                "open_positions": open_positions,
-                "closed_positions": closed_positions,
-                "daily_volume": _daily_volume(db),
-                "risk_alerts": _risk_alert_count(db),
-            },
-        },
+        data=summary_data,
     )
 
 

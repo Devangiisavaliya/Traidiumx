@@ -292,7 +292,8 @@ def overview_stats():
     from bson import ObjectId
     db = get_database()
     
-    parent_id = getattr(g, "token_user_id", None) or str(g.current_user["_id"])
+    actual_parent_id = g.current_user.get("parent_user_id") or getattr(g, "token_user_id", None) or str(g.current_user["_id"])
+    parent_id = str(actual_parent_id)
     target_user_id = str(g.current_user["_id"])
     sub_account_id = request.args.get("sub_account_id") or request.args.get("sub_user_id")
 
@@ -307,17 +308,41 @@ def overview_stats():
             if sub_user:
                 target_user_id = str(sub_user["_id"])
     
-    # 1. Calculate 30d Trading Volume
+    # Date parsing helper for robust date comparisons across string/datetime types
+    def _parse_ts(v):
+        if isinstance(v, datetime):
+            return v
+        if isinstance(v, str) and v.strip():
+            try:
+                clean_v = v.strip().replace("Z", "+00:00")
+                if "+" in clean_v:
+                    return datetime.fromisoformat(clean_v.split("+")[0][:19])
+                return datetime.fromisoformat(clean_v[:19])
+            except Exception:
+                pass
+        return None
+
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
-    trades = list(db.trades.find({
-        "user_id": target_user_id,
-        "created_at": {"$gte": thirty_days_ago}
-    }))
     
+    # Profile-wide user IDs (parent + all subaccounts) for global VIP volume
+    all_profile_user_ids = [parent_id]
+    try:
+        sub_docs = list(db.users.find({"parent_user_id": parent_id}, {"_id": 1}))
+        all_profile_user_ids.extend([str(s["_id"]) for s in sub_docs])
+    except Exception:
+        pass
+
+    # 1. Profile-wide 30d Trading Volume & VIP Tier
+    profile_trades = list(db.trades.find({"user_id": {"$in": all_profile_user_ids}}))
+    recent_profile_trades = [t for t in profile_trades if (_parse_ts(t.get("created_at")) or datetime.min) >= thirty_days_ago]
     total_volume = sum(
         float(t.get("amount") or (float(t.get("quantity", 0)) * float(t.get("price", 0))))
-        for t in trades
+        for t in recent_profile_trades
     )
+
+    # Account-specific trades for Realized P&L
+    all_user_trades = list(db.trades.find({"user_id": target_user_id}))
+    recent_trades = [t for t in all_user_trades if (_parse_ts(t.get("created_at")) or datetime.min) >= thirty_days_ago]
     
     # Determine VIP tier
     if total_volume >= 250000:
@@ -344,12 +369,41 @@ def overview_stats():
     volume_progress = min(100.0, round((total_volume / max(tier_target, 1)) * 100, 1))
     saved_fees = round(total_volume * 0.0002, 2)
     
-    # 2. Calculate User Tasks & Rewards
+    # 2. Calculate 30d Realized P&L and Closed Trades Count
+    closed_trades = [
+        t for t in recent_trades
+        if t.get("trade_type") == "close" or t.get("realized_pnl") is not None or t.get("net_realized_pnl") is not None
+    ]
+    
+    # Also check closed positions in db.positions
+    user_closed_positions = list(db.positions.find({"user_id": target_user_id, "status": "closed"}))
+    recent_closed_positions = [
+        p for p in user_closed_positions
+        if (_parse_ts(p.get("closed_at") or p.get("updated_at") or p.get("created_at")) or datetime.min) >= thirty_days_ago
+    ]
+
+    # Combine realized PnL
+    if closed_trades:
+        total_realized_pnl = sum(
+            float(t.get("net_realized_pnl") if t.get("net_realized_pnl") is not None else (t.get("realized_pnl") or 0.0))
+            for t in closed_trades
+        )
+        trades_closed_count = len(closed_trades)
+    else:
+        total_realized_pnl = sum(
+            float(p.get("net_realized_pnl") if p.get("net_realized_pnl") is not None else (p.get("realized_pnl") or 0.0))
+            for p in recent_closed_positions
+        )
+        trades_closed_count = len(recent_closed_positions)
+
+    total_realized_pnl = round(total_realized_pnl, 2)
+
+    # 3. Calculate User Tasks & Rewards
     user_doc = db.users.find_one({"_id": ObjectId(target_user_id)}) or {}
     email_done = bool(user_doc.get("is_email_verified") or user_doc.get("status") == "active")
     kyc_done = bool(user_doc.get("kyc_status") == "approved")
     deposit_done = db.deposits.count_documents({"user_id": target_user_id, "status": "completed"}) > 0
-    trade_done = (len(trades) > 0) or (db.trades.count_documents({"user_id": target_user_id}) > 0) or (db.trading_positions.count_documents({"user_id": target_user_id}) > 0)
+    trade_done = (len(all_user_trades) > 0) or (db.trades.count_documents({"user_id": target_user_id}) > 0) or (db.trading_positions.count_documents({"user_id": target_user_id}) > 0)
     security_done = bool(user_doc.get("two_factor_enabled") or user_doc.get("phone"))
     
     tasks = [
@@ -363,12 +417,13 @@ def overview_stats():
     total_rewards_earned = sum(t["reward"] for t in tasks if t["completed"])
     rewards_progress = round((completed_tasks_count / 5) * 100, 1)
     
-    # 3. Calculate Referral Stats
+    # 4. Calculate Referral Stats (profile-wide)
     from services.referral_service import ensure_referral_profile
-    ref_profile = ensure_referral_profile(g.current_user)
+    parent_user_doc = db.users.find_one({"_id": ObjectId(parent_id)}) if ObjectId.is_valid(parent_id) else g.current_user
+    ref_profile = ensure_referral_profile(parent_user_doc or g.current_user)
     users_invited = int(ref_profile.get("total_invites", 0)) if ref_profile else 0
     referral_earnings = float(ref_profile.get("total_rewards", 0.0)) if ref_profile else 0.0
-    referral_code = str(ref_profile.get("referral_code") or user_doc.get("referral_code") or "")
+    referral_code = str(ref_profile.get("referral_code") or (parent_user_doc or user_doc).get("referral_code") or "")
     referral_progress = min(100.0, round((users_invited / 10.0) * 100, 1))
 
     return success_response(
@@ -381,6 +436,11 @@ def overview_stats():
                 "next_tier": next_vip,
                 "tier_name": tier_name,
                 "progress_pct": volume_progress,
+            },
+            "realized_pnl_30d": {
+                "amount": total_realized_pnl,
+                "currency": "USD",
+                "trades_closed": trades_closed_count,
             },
             "rewards": {
                 "total_rewards": round(total_rewards_earned, 2),
@@ -550,13 +610,19 @@ def transfer_sub():
 
     # Target account validation
     db = get_database()
+    target_user = None
     if sub_user_id in ("main", str(main_user_id)):
         target_user = db.users.find_one({"_id": ObjectId(main_user_id)})
         is_sub = False
     else:
-        target_user = db.users.find_one({"_id": ObjectId(sub_user_id), "parent_user_id": str(main_user_id)})
+        if ObjectId.is_valid(sub_user_id):
+            target_user = db.users.find_one({"_id": ObjectId(sub_user_id), "parent_user_id": str(main_user_id)})
+            if not target_user:
+                target_user = db.users.find_one({"_id": ObjectId(sub_user_id)})
         if not target_user:
-            target_user = db.users.find_one({"_id": ObjectId(sub_user_id)})
+            target_user = db.users.find_one({"client_id": sub_user_id, "parent_user_id": str(main_user_id)})
+            if not target_user:
+                target_user = db.users.find_one({"client_id": sub_user_id})
         is_sub = True
 
     if not target_user:
@@ -564,6 +630,19 @@ def transfer_sub():
 
     target_sub_id = str(target_user["_id"])
     is_demo_account = bool(target_user.get("is_demo") or target_user.get("account_mode") == "demo" or target_user.get("plan") == "demo")
+    is_target_mt5 = bool(target_user.get("selected_platform") == "mt5" or target_user.get("platform") == "mt5" or "cent" in str(target_user.get("plan", "")).lower())
+    is_cent_account = bool(target_user.get("plan") == "cent" or "cent" in str(target_user.get("plan", "")).lower())
+
+    requested_currency = str(data.get("currency") or "").strip().upper()
+    if is_target_mt5 and requested_currency == "INR":
+        return error_response(message="MetaTrader 5 accounts only support USDT/USC transfers.", status_code=422)
+
+    # Convert requested USC transfer amount into base USDT
+    is_usc_transfer = requested_currency == "USC" or (is_cent_account and bool(data.get("is_usc")))
+    if is_usc_transfer:
+        amount = round(amount / 100.0, 8)
+        if amount <= 0:
+            return error_response(message="Transfer amount too small.", status_code=422)
 
     # Fetch wallets
     main_wallet_doc = db.wallets.find_one({"user_id": str(main_user_id)})
@@ -576,11 +655,10 @@ def transfer_sub():
         return error_response(message="Target trading wallet not found.", status_code=404)
     target_wallet_doc = normalize_wallet_currency(target_wallet_doc)
 
-    requested_currency = str(data.get("currency") or "").strip().upper()
-    if requested_currency:
+    if requested_currency and requested_currency != "USC":
         primary_currency = requested_currency
     else:
-        primary_currency = "USDT" if is_demo_account else str(main_wallet_doc.get("primary_currency") or "USDT").upper()
+        primary_currency = "USDT" if (is_demo_account or is_target_mt5) else str(main_wallet_doc.get("primary_currency") or "USDT").upper()
 
     bucket_prefix = "main_wallet_inr" if primary_currency == "INR" else "main_wallet_usdt"
     usdt_rate = float(get_usdt_inr_rate() or 88.50)
@@ -670,6 +748,8 @@ def transfer_sub():
                 inc_main = {
                     "main_wallet_usdt.available_balance": -amount,
                     "main_wallet_usdt.total_balance": -amount,
+                    "main_wallet.available_balance": -amount,
+                    "main_wallet.total_balance": -amount,
                 }
                 inc_target = {
                     "trading_wallet_usdt.available_balance": amount,
@@ -819,6 +899,8 @@ def transfer_sub():
                 inc_main = {
                     "main_wallet_usdt.available_balance": amount,
                     "main_wallet_usdt.total_balance": amount,
+                    "main_wallet.available_balance": amount,
+                    "main_wallet.total_balance": amount,
                 }
                 main_desc = f"Received ${amount:g} USDT in Main Wallet <- Transferred ${amount:g} USDT from {target_user.get('name')}'s Trading Wallet."
                 target_desc = f"Transferred ${amount:g} USDT from Trading Wallet -> Sent ${amount:g} USDT to Main Wallet."
@@ -869,7 +951,8 @@ def transfer_sub():
             return success_response(
                 message="Sub-account transfer completed successfully.",
                 data={
-                    "wallet": format_wallet(res_target if is_sub else res_main),
+                    "wallet": format_wallet(res_main),
+                    "target_wallet": format_wallet(res_target),
                     "reference_id": reference_id
                 }
             )

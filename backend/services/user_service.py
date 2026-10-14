@@ -285,3 +285,122 @@ def verify_two_factor_toggle(user, data):
         },
         "status_code": 200
     }
+
+
+def permanently_delete_user_account(user):
+    """
+    Permanently delete a user account and all associated resources,
+    including wallets, orders, positions, trades, KYC data, and sub-accounts.
+    """
+    from bson import ObjectId
+    from config.database import get_database
+
+    if not user or not user.get("_id"):
+        return {
+            "success": False,
+            "message": "User not found or invalid user session.",
+            "status_code": 404
+        }
+
+    db = get_database()
+
+    # Determine primary user id
+    parent_id = user.get("parent_user_id")
+    primary_user_id = str(parent_id) if parent_id else str(user["_id"])
+
+    primary_user = db.users.find_one({"_id": ObjectId(primary_user_id)}) or user
+    email = str(primary_user.get("email") or "").strip().lower()
+    mobile = str(primary_user.get("mobile") or "").strip()
+
+    # Find all sub-accounts under this primary account
+    sub_users = list(db.users.find({"parent_user_id": primary_user_id}))
+    all_user_ids = [primary_user_id] + [str(s["_id"]) for s in sub_users]
+    all_user_object_ids = [ObjectId(uid) for uid in all_user_ids if ObjectId.is_valid(uid)]
+
+    from utils.date_helper import now_utc
+    deletion_time = now_utc()
+
+    # Log deletion in deleted_account_logs for Admin inspection
+    try:
+        db.deleted_account_logs.insert_one({
+            "account_type": "main",
+            "account_id": primary_user_id,
+            "client_id": primary_user.get("client_id") or "N/A",
+            "name": primary_user.get("name") or "Main User",
+            "email": email or primary_user.get("email"),
+            "mobile": mobile or primary_user.get("mobile"),
+            "deleted_by": "user",
+            "deleted_by_name": primary_user.get("name") or email,
+            "sub_accounts_count": len(sub_users),
+            "refund_summary": "All data permanently wiped upon user request",
+            "deleted_at": deletion_time
+        })
+        for sdoc in sub_users:
+            db.deleted_account_logs.insert_one({
+                "account_type": "sub",
+                "account_id": str(sdoc["_id"]),
+                "client_id": sdoc.get("client_id") or "N/A",
+                "name": sdoc.get("name") or "Sub-Account",
+                "email": sdoc.get("email") or email,
+                "parent_user_id": primary_user_id,
+                "parent_name": primary_user.get("name") or "Main Account",
+                "parent_client_id": primary_user.get("client_id"),
+                "deleted_by": "user",
+                "deleted_by_name": f"{primary_user.get('name')} (Closed with Main)",
+                "refund_summary": "Cascade closed with Main Account",
+                "deleted_at": deletion_time
+            })
+    except Exception as log_err:
+        print(f"Warning: Failed to write deleted account log: {log_err}")
+
+    # 1. Trading & Account Collections
+    db.orders.delete_many({"user_id": {"$in": all_user_ids}})
+    db.positions.delete_many({"user_id": {"$in": all_user_ids}})
+    db.position_price_snapshots.delete_many({"user_id": {"$in": all_user_ids}})
+    db.trades.delete_many({"user_id": {"$in": all_user_ids}})
+    db.option_orders.delete_many({"user_id": {"$in": all_user_ids}})
+    db.option_positions.delete_many({"user_id": {"$in": all_user_ids}})
+    db.option_fills.delete_many({"user_id": {"$in": all_user_ids}})
+    db.deposits.delete_many({"user_id": {"$in": all_user_ids}})
+    db.withdrawals.delete_many({"user_id": {"$in": all_user_ids}})
+    db.wallet_ledger.delete_many({"user_id": {"$in": all_user_ids}})
+    db.wallets.delete_many({"user_id": {"$in": all_user_ids}})
+    db.kyc_requests.delete_many({"user_id": {"$in": all_user_ids}})
+    db.kyc_short_codes.delete_many({"user_id": {"$in": all_user_ids}})
+    db.futures_recent_symbols.delete_many({"user_id": {"$in": all_user_ids}})
+    db.mt5_accounts.delete_many({"user_id": {"$in": all_user_ids}})
+    if "mt5_ledger" in db.list_collection_names():
+        db.mt5_ledger.delete_many({"user_id": {"$in": all_user_ids}})
+    db.custody_deposit_addresses.delete_many({"user_id": {"$in": all_user_ids}})
+    db.user_deposit_addresses.delete_many({"user_id": {"$in": all_user_ids}})
+    db.currency_switch_requests.delete_many({"user_id": {"$in": all_user_ids}})
+    db.support_tickets.delete_many({"user_id": {"$in": all_user_ids}})
+    db.custody_hot_wallet_logs.delete_many({"user_id": {"$in": all_user_ids}})
+
+    # 2. Notifications & Referrals
+    db.user_notifications.delete_many({"recipient_user_id": {"$in": all_user_ids}})
+    db.notifications.delete_many({"user_id": {"$in": all_user_ids}})
+    db.referral_profiles.delete_many({"user_id": {"$in": all_user_ids}})
+    db.referral_relationships.delete_many({
+        "$or": [
+            {"referrer_user_id": {"$in": all_user_ids}},
+            {"referred_user_id": {"$in": all_user_ids}}
+        ]
+    })
+
+    # 3. Security tokens
+    if email:
+        db.password_reset_tokens.delete_many({"email": email})
+        db.email_verification_codes.delete_many({"email": email})
+    if mobile:
+        db.email_verification_codes.delete_many({"mobile": mobile})
+
+    # 4. Delete user documents
+    db.users.delete_many({"_id": {"$in": all_user_object_ids}})
+    db.users.delete_many({"parent_user_id": primary_user_id})
+
+    return {
+        "success": True,
+        "message": "Account and all associated records have been permanently deleted.",
+        "status_code": 200
+    }

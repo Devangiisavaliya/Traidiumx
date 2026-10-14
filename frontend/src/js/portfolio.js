@@ -1109,31 +1109,63 @@ function renderActivityTable(ledger, page = 1) {
 
     tbody.innerHTML = paginatedItems.map((item) => {
         const type = escapeHtml(item.transaction_type || "transfer");
-        const dir = (item.direction || "credit").toLowerCase();
-        const dirBadge = dir === "credit"
-            ? `<span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">+ CREDIT</span>`
-            : `<span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full bg-red-500/10 text-red-400 border border-red-500/20">- DEBIT</span>`;
+        const dirRaw = String(item.direction || "").toLowerCase().trim();
+        const typeLower = String(item.transaction_type || "").toLowerCase().trim();
+        const descLower = String(item.description || "").toLowerCase().trim();
+        const before = parseFloat(item.balance_before ?? 0);
+        const after = parseFloat(item.balance_after ?? 0);
+
+        let isCredit = false;
+        if (dirRaw === "credit") {
+            isCredit = true;
+        } else if (dirRaw === "debit") {
+            isCredit = false;
+        } else if (typeLower.includes("credit") || typeLower.includes("deposit") || typeLower.includes("refund") || typeLower.includes("commission") || typeLower.includes("profit")) {
+            isCredit = true;
+        } else if (typeLower.includes("debit") || typeLower.includes("withdrawal") || typeLower.includes("fee") || typeLower.includes("lock")) {
+            isCredit = false;
+        } else if (descLower.includes("received") || descLower.includes("credited")) {
+            isCredit = true;
+        } else if (after > before) {
+            isCredit = true;
+        } else if (after < before) {
+            isCredit = false;
+        } else {
+            isCredit = dirRaw !== "debit";
+        }
+
+        const badgeText = isCredit ? "+ CREDIT" : "- DEBIT";
+        const badgeClass = isCredit
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            : "bg-red-500/10 text-red-400 border-red-500/20";
+        const dirBadge = `<span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full border ${badgeClass}">${badgeText}</span>`;
+
+        const isINRItem = String(item.currency || "").toUpperCase() === "INR";
+        const sym = isINRItem ? "₹" : "$";
+        const amountNum = Math.abs(parseFloat(item.amount || 0));
+        const formattedAmount = `${isCredit ? "+" : "-"}${sym}${formatNumber(amountNum, 2)}`;
+        const amountClass = isCredit ? "text-emerald-400 font-extrabold" : "text-red-400 font-extrabold";
 
         return `
             <tr>
-                <td class="pf-desktop-only font-mono text-xs text-slate-400">${escapeHtml(item.reference_id || item._id || "--")}</td>
+                <td class="pf-desktop-only font-mono text-xs text-slate-400">${escapeHtml(item.reference_id || item._id || item.id || "--")}</td>
                 <td class="pf-desktop-only font-bold text-white capitalize">${type.replace(/_/g, " ")}</td>
-                <td class="pf-desktop-only font-mono ${dir === "credit" ? "text-emerald-400 font-extrabold" : "text-red-400 font-extrabold"}">
-                    ${dir === "credit" ? "+" : "-"}$${formatNumber(item.amount || 0, 2)}
+                <td class="pf-desktop-only font-mono ${amountClass}">
+                    ${formattedAmount}
                 </td>
                 <td class="pf-desktop-only">${dirBadge}</td>
-                <td class="pf-desktop-only font-mono text-slate-300">$${formatNumber(item.balance_after || 0, 2)}</td>
+                <td class="pf-desktop-only font-mono text-slate-300">${sym}${formatNumber(item.balance_after || 0, 2)}</td>
                 <td class="pf-desktop-only text-right text-xs text-slate-400">${formatDate(item.created_at)}</td>
 
                 <td class="pf-mobile-only rt-mobile-card-cell" colspan="6">
                     <div class="rt-mobile-position-card w-full box-border overflow-hidden py-1">
                         <div class="flex items-center justify-between gap-2 mb-1">
                             <span class="text-xs font-black text-white capitalize truncate max-w-[60%]">${type.replace(/_/g, " ")}</span>
-                            <span class="text-xs font-black ${dir === "credit" ? "text-emerald-400" : "text-red-400"}">${dir === "credit" ? "+" : "-"}$${formatNumber(item.amount || 0, 2)}</span>
+                            <span class="text-xs font-black ${amountClass}">${formattedAmount}</span>
                         </div>
                         <div class="flex items-center justify-between text-[10px] text-slate-400 font-bold">
-                            <span class="font-mono text-[10px] text-slate-500 truncate max-w-[45%]">${escapeHtml(item.reference_id || item._id || "--")}</span>
-                            <span>Bal: <strong class="font-mono text-slate-300">$${formatNumber(item.balance_after || 0, 2)}</strong> • ${formatDate(item.created_at)}</span>
+                            <span class="font-mono text-[10px] text-slate-500 truncate max-w-[45%]">${escapeHtml(item.reference_id || item._id || item.id || "--")}</span>
+                            <span>Bal: <strong class="font-mono text-slate-300">${sym}${formatNumber(item.balance_after || 0, 2)}</strong> • ${formatDate(item.created_at)}</span>
                         </div>
                     </div>
                 </td>
@@ -1256,19 +1288,35 @@ function formatNumber(val, decimals = 2) {
 function formatDate(dateStr) {
     if (!dateStr) return "--";
     try {
-        let parseable = dateStr;
-        if (typeof dateStr === "string") {
-            const valTrim = dateStr.trim();
-            if (valTrim && !valTrim.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(valTrim)) {
-                parseable = valTrim.replace(" ", "T") + "Z";
+        let d = null;
+        if (dateStr instanceof Date) {
+            d = dateStr;
+        } else if (typeof dateStr === "number") {
+            d = new Date(dateStr);
+        } else {
+            const raw = String(dateStr).trim();
+            d = new Date(raw);
+            if (isNaN(d.getTime())) {
+                let cleaned = raw;
+                if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}/.test(cleaned)) {
+                    cleaned = cleaned.replace(/\s+/, "T");
+                    if (!cleaned.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(cleaned)) {
+                        cleaned += "Z";
+                    }
+                }
+                d = new Date(cleaned);
             }
         }
-        const d = new Date(parseable);
-        return d.toLocaleDateString("en-US", {
+        if (!d || isNaN(d.getTime())) {
+            return String(dateStr);
+        }
+        return d.toLocaleString("en-US", {
             month: "short",
             day: "numeric",
+            year: "numeric",
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
+            hour12: true
         });
     } catch (e) {
         return String(dateStr);

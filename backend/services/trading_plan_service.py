@@ -5,14 +5,15 @@ from models.wallet_model import find_wallet_by_user_id, normalize_wallet_currenc
 from services.system_settings_service import get_runtime_system_settings
 from utils.date_helper import now_utc
 
-PLAN_ORDER = {"basic": 0, "standard": 1, "advanced": 2}
-PLAN_NAMES = {"basic": "Basic", "standard": "Standard", "advanced": "Advanced"}
+PLAN_ORDER = {"cent": 0, "basic": 1, "standard": 2, "advanced": 3}
+PLAN_NAMES = {"cent": "Cent", "basic": "Basic", "standard": "Standard", "advanced": "Advanced"}
 PLATFORM_NAMES = {"traidiumx": "TraidiumX", "mt5": "MetaTrader 5"}
 
 DEFAULT_PLAN_SETTINGS = {
+    "cent": {"spread_type": "fixed", "spread_value": 18.0, "minimum_balance": 10.0},
     "basic": {"spread_type": "fixed", "spread_value": 18.0, "minimum_balance": 0.0},
-    "standard": {"spread_type": "fixed", "spread_value": 12.0, "minimum_balance": 2000.0},
-    "advanced": {"spread_type": "fixed", "spread_value": 5.0, "minimum_balance": 5000.0},
+    "standard": {"spread_type": "fixed", "spread_value": 12.0, "minimum_balance": 5000.0},
+    "advanced": {"spread_type": "fixed", "spread_value": 5.0, "minimum_balance": 600000.0},
 }
 
 
@@ -79,16 +80,8 @@ def get_onboarding_settings():
 
 def get_trading_balance(user_id, platform="traidiumx"):
     platform = normalize_platform(platform)
-    if platform == "mt5":
-        from models.mt5_account_model import find_mt5_account_by_user_id
-        mt5_acc = find_mt5_account_by_user_id(user_id)
-        if mt5_acc and mt5_acc.get("status") in {"active", "connected"}:
-            return round(_number(mt5_acc.get("balance", 0.0)), 8)
-        return 0.0
-
     wallet = normalize_wallet_currency(find_wallet_by_user_id(user_id)) or {}
-    
-    # Check plan eligibility based on the user's active currency mode
+
     from flask import has_request_context, request
     currency = "USDT"
     if has_request_context():
@@ -108,40 +101,55 @@ def get_trading_balance(user_id, platform="traidiumx"):
     if usdt_inr_rate <= 0:
         usdt_inr_rate = 88.50
 
+    if platform == "mt5":
+        from models.mt5_account_model import find_mt5_account_by_user_id
+        mt5_acc = find_mt5_account_by_user_id(user_id)
+        if mt5_acc and mt5_acc.get("status") in {"active", "connected"} and _number(mt5_acc.get("balance", 0.0)) > 0:
+            return round(_number(mt5_acc.get("balance", 0.0)), 8)
+        
+        # Check MT5 Main Wallet (USDT only)
+        mt5_w = wallet.get("main_wallet_mt5_usdt") or wallet.get("main_wallet_usdt") or {}
+        bal = _number(mt5_w.get("total_balance") if mt5_w.get("total_balance") not in (None, "") else _number(mt5_w.get("available_balance")) + _number(mt5_w.get("locked_balance")))
+        return round(bal, 8)
+
+    # TraidiumX Web Platform
     if currency == "INR":
-        # Check ONLY Main INR wallet. Value returned in USDT equivalent for plan matching.
-        inr_w = wallet.get("main_wallet_inr") or {}
-        inr_bal = inr_w.get("total_balance")
+        tx_w = wallet.get("main_wallet_traidiumx_inr") or wallet.get("main_wallet_inr") or {}
+        inr_bal = tx_w.get("total_balance")
         if inr_bal in (None, ""):
-            inr_bal = _number(inr_w.get("available_balance")) + _number(inr_w.get("locked_balance"))
+            inr_bal = _number(tx_w.get("available_balance")) + _number(tx_w.get("locked_balance"))
         balance = _number(inr_bal) / usdt_inr_rate
     else:
-        # Check ONLY Main USDT wallet.
-        usdt_w = wallet.get("main_wallet_usdt") or {}
-        usdt_bal = usdt_w.get("total_balance")
+        tx_w = wallet.get("main_wallet_traidiumx_usdt") or wallet.get("main_wallet_usdt") or {}
+        usdt_bal = tx_w.get("total_balance")
         if usdt_bal in (None, ""):
-            usdt_bal = _number(usdt_w.get("available_balance")) + _number(usdt_w.get("locked_balance"))
+            usdt_bal = _number(tx_w.get("available_balance")) + _number(tx_w.get("locked_balance"))
         balance = _number(usdt_bal)
 
     return round(_number(balance), 8)
 
 
 def calculate_active_plan(preferred_plan, balance, plans=None, auto_restore=True):
-    plans = plans or get_plan_settings()
+    is_custom_plans = plans is not None
+    raw_plans = plans if is_custom_plans else get_plan_settings()
     preferred_plan = normalize_plan(preferred_plan) or "basic"
     balance = _number(balance)
-    preferred_rank = PLAN_ORDER[preferred_plan]
+    preferred_rank = PLAN_ORDER.get(preferred_plan, 1)
+
+    if is_custom_plans:
+        available_plan_keys = [p for p in ("cent", "basic", "standard", "advanced") if p in raw_plans]
+    else:
+        available_plan_keys = [p for p in ("cent", "basic", "standard", "advanced") if (p in raw_plans) or (p in DEFAULT_PLAN_SETTINGS)]
 
     eligible = [
-        plan for plan in ("basic", "standard", "advanced")
-        if PLAN_ORDER[plan] <= preferred_rank and balance >= _number(plans[plan]["minimum_balance"])
+        plan for plan in available_plan_keys
+        if PLAN_ORDER.get(plan, 0) <= preferred_rank and balance >= _number((raw_plans.get(plan) or DEFAULT_PLAN_SETTINGS.get(plan, {})).get("minimum_balance", 0))
     ]
     if eligible:
-        return max(eligible, key=lambda item: PLAN_ORDER[item]), False
+        return max(eligible, key=lambda item: PLAN_ORDER.get(item, 0)), False
 
-    # Basic remains the safe fallback label, but funding_required prevents trading
-    # until the configured Basic minimum is reached.
-    return "basic", True
+    lowest_available = min(available_plan_keys, key=lambda item: PLAN_ORDER.get(item, 0)) if available_plan_keys else "basic"
+    return lowest_available, True
 
 
 def _safe_user_id(user_id):

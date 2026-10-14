@@ -182,10 +182,30 @@
                                         </label>
                                     </div>
 
-                                    <div class="mt-5 grid gap-4 xl:grid-cols-3">
+                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                        <section class="rounded-3xl border border-amber-400/20 bg-amber-400/[0.05] p-5">
+                                            <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Cent</h4><span class="rounded-full bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">Micro Lots</span></div>
+                                            <div class="mt-4 space-y-3">
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
+                                                    <select id="centPlanSpreadType" class="admin-input">
+                                                        <option value="fixed">Fixed Spread</option>
+                                                        <option value="percentage">Percentage (%)</option>
+                                                    </select>
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Spread Value</span>
+                                                    <input id="centPlanSpreadValue" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                                <label class="block">
+                                                    <span class="mb-2 block text-sm font-bold text-slate-300">Minimum Balance (USDT)</span>
+                                                    <input id="centPlanMinimumBalance" type="number" min="0" step="0.01" class="admin-input" />
+                                                </label>
+                                            </div>
+                                        </section>
                                         <section class="rounded-3xl border border-cyan-400/20 bg-cyan-400/[0.05] p-5">
                                             <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Basic</h4><span class="rounded-full bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-300">Fallback</span></div>
-                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                            <div class="mt-4 space-y-3">
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="basicPlanSpreadType" class="admin-input">
@@ -205,7 +225,7 @@
                                         </section>
                                         <section class="rounded-3xl border border-violet-400/20 bg-violet-400/[0.05] p-5">
                                             <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Standard</h4><span class="rounded-full bg-violet-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-violet-300">Balanced</span></div>
-                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                            <div class="mt-4 space-y-3">
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="standardPlanSpreadType" class="admin-input">
@@ -225,7 +245,7 @@
                                         </section>
                                         <section class="rounded-3xl border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
                                             <div class="flex items-center justify-between gap-3"><h4 class="text-lg font-black text-white">Advanced</h4><span class="rounded-full bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">Lowest Spread</span></div>
-                                            <div class="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                                            <div class="mt-4 space-y-3">
                                                 <label class="block">
                                                     <span class="mb-2 block text-sm font-bold text-slate-300">Spread Type</span>
                                                     <select id="advancedPlanSpreadType" class="admin-input">
@@ -694,11 +714,11 @@
     </section>
 </div>
 
-<script src="/admin/static/js/admin-config.js"></script>
-<script src="/admin/static/js/admin-api.js"></script>
-<script src="/admin/static/js/admin-data.js"></script>
-<script src="/admin/static/js/admin-layout.js"></script>
-<script src="/admin/static/js/admin-settings.js?v=2"></script>
+<script src="/admin/static/js/admin-config.js?v=20261008"></script>
+<script src="/admin/static/js/admin-api.js?v=20261008"></script>
+<script src="/admin/static/js/admin-data.js?v=20261008"></script>
+<script src="/admin/static/js/admin-layout.js?v=20261008"></script>
+<script src="/admin/static/js/admin-settings.js?v=20261008"></script>
 <script>
     // Tab switching logic
     document.querySelectorAll(".tx-settings-tab-btn").forEach((btn) => {

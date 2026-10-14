@@ -1,6 +1,6 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initDashboardPage() {
     const ui = window.TXAdmin;
     const api = window.TXAdminApi;
     if (!ui || !api || !api.requireAuth()) return;
@@ -281,4 +281,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             refreshDashboard();
         }
     }, 10000);
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initDashboardPage);
+} else {
+    initDashboardPage();
+}

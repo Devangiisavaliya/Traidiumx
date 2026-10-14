@@ -1421,8 +1421,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     if (body) {
-        await loadSummary();
-        await loadUsers();
+        await Promise.all([loadSummary(), loadUsers()]);
     }
 
     if (detail) {

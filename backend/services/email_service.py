@@ -1204,6 +1204,64 @@ def send_mt5_credentials_assigned_email(to_email, user_name, login_id, password,
     )
 
 
+def send_mt5_account_auto_provisioned_email(to_email, user_name, account_name, plan_name, login_id, master_password, investor_password, server, is_demo=False):
+    mode_label = "Demo" if is_demo else "Live"
+    subject = f"Your MetaTrader 5 ({mode_label}) Account is Ready - TraidiumX"
+    title = f"MT5 {mode_label} Account Created"
+
+    lines = [
+        f"Hello {user_name or 'Trader'},",
+        f"Your new MetaTrader 5 ({mode_label}) account '{account_name}' has been created successfully.",
+        f"Plan: {plan_name}",
+        f"Broker Server: {server}",
+        f"Login ID / Account ID: {login_id}",
+        f"Master Trading Password: {master_password}",
+        f"Investor Read-Only Password: {investor_password}",
+        "",
+        "Use these credentials inside the official MetaTrader 5 terminal on PC, Android, iOS, or WebTrader."
+    ]
+
+    custom_html = f'''
+        <p style="margin:0 0 12px;color:#cbd5e1;font-size:14px;line-height:1.65;">Hello <strong style="color:#ffffff;">{html.escape(user_name or 'Trader', quote=True)}</strong>,</p>
+        <p style="margin:0 0 16px;color:#cbd5e1;font-size:14px;line-height:1.65;">Your new <strong>MetaTrader 5 ({html.escape(mode_label, quote=True)})</strong> account <strong style="color:#22d3ee;">{html.escape(account_name, quote=True)}</strong> ({html.escape(plan_name, quote=True)} Plan) has been successfully created and configured.</p>
+        
+        <div style="background:#090e1c;border:1px solid #1e293b;border-radius:16px;padding:20px;margin:18px 0;">
+            <div style="margin-bottom:14px;border-bottom:1px solid #1e293b;padding-bottom:12px;">
+                <span style="color:#94a3b8;font-size:11px;text-transform:uppercase;font-weight:bold;letter-spacing:0.06em;display:block;margin-bottom:4px;">Broker Server</span>
+                <strong style="color:#34d399;font-size:16px;font-family:monospace;">{html.escape(str(server), quote=True)}</strong>
+            </div>
+            <div style="margin-bottom:14px;border-bottom:1px solid #1e293b;padding-bottom:12px;">
+                <span style="color:#94a3b8;font-size:11px;text-transform:uppercase;font-weight:bold;letter-spacing:0.06em;display:block;margin-bottom:4px;">Login ID / Account Number</span>
+                <strong style="color:#22d3ee;font-size:18px;font-family:monospace;letter-spacing:0.03em;">{html.escape(str(login_id), quote=True)}</strong>
+            </div>
+            <div style="margin-bottom:14px;border-bottom:1px solid #1e293b;padding-bottom:12px;">
+                <span style="color:#94a3b8;font-size:11px;text-transform:uppercase;font-weight:bold;letter-spacing:0.06em;display:block;margin-bottom:4px;">Master Trading Password (Trade Access)</span>
+                <strong style="color:#ffffff;font-size:16px;font-family:monospace;">{html.escape(str(master_password), quote=True)}</strong>
+            </div>
+            <div>
+                <span style="color:#94a3b8;font-size:11px;text-transform:uppercase;font-weight:bold;letter-spacing:0.06em;display:block;margin-bottom:4px;">Investor Password (Read-Only)</span>
+                <strong style="color:#d8b4fe;font-size:16px;font-family:monospace;">{html.escape(str(investor_password), quote=True)}</strong>
+            </div>
+        </div>
+
+        <p style="margin:16px 0 10px;color:#94a3b8;font-size:13px;line-height:1.65;">
+            You can enter these credentials directly into the <strong>MetaTrader 5 terminal</strong> on PC, mobile apps (Android/iOS), or use <strong>MetaTrader 5 WebTrader</strong>.
+        </p>
+    '''
+
+    return _send_simple_transactional_email(
+        to_email=to_email,
+        subject=subject,
+        title=title,
+        lines=lines,
+        email_type="mt5-account-provisioned",
+        action_url="https://trade.mql5.com/trade",
+        action_label="Open MT5 WebTrader",
+        custom_html=custom_html
+    )
+
+
+
 def send_welcome_email(to_email, user_name=""):
     """Send a premium welcome email to a newly registered user."""
     if not is_email_delivery_configured():

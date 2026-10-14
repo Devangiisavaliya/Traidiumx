@@ -16,7 +16,13 @@ def connect_database():
 
     client = MongoClient(
         settings.MONGO_URI,
-        serverSelectionTimeoutMS=5000
+        serverSelectionTimeoutMS=20000,
+        connectTimeoutMS=20000,
+        socketTimeoutMS=30000,
+        maxPoolSize=50,
+        minPoolSize=0,
+        maxIdleTimeMS=45000,
+        retryWrites=True,
     )
 
     db = client[settings.MONGO_DB_NAME]

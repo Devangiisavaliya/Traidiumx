@@ -1007,10 +1007,20 @@ def _build_pdf(sections):
 
 
 
+_USERS_SUMMARY_CACHE = {"data": None, "timestamp": 0}
+
 @admin_user_api.get("/summary")
 @admin_required
 @permission_required("users.view")
 def users_summary():
+    import time
+    now_ts = time.time()
+    if _USERS_SUMMARY_CACHE["data"] and (now_ts - _USERS_SUMMARY_CACHE["timestamp"]) < 10:
+        return success_response(
+            message="Users summary fetched successfully.",
+            data=_USERS_SUMMARY_CACHE["data"]
+        )
+
     db = get_database()
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -1044,22 +1054,27 @@ def users_summary():
     main_total = _number(wallet.get("main_total"))
     trading_total = _number(wallet.get("trading_total"))
 
+    summary_data = {
+        "total": total,
+        "active": active,
+        "blocked": blocked,
+        "suspended": suspended,
+        "restricted": restricted,
+        "new_today": new_today,
+        "pending_kyc": pending_kyc,
+        "wallet": {
+            "available_balance": round(trading_avail, 8),
+            "locked_balance": round(trading_lock, 8),
+            "total_balance": round(main_total + trading_total, 8),
+        },
+    }
+
+    _USERS_SUMMARY_CACHE["data"] = summary_data
+    _USERS_SUMMARY_CACHE["timestamp"] = now_ts
+
     return success_response(
         message="Users summary fetched successfully.",
-        data={
-            "total": total,
-            "active": active,
-            "blocked": blocked,
-            "suspended": suspended,
-            "restricted": restricted,
-            "new_today": new_today,
-            "pending_kyc": pending_kyc,
-            "wallet": {
-                "available_balance": round(trading_avail, 8),
-                "locked_balance": round(trading_lock, 8),
-                "total_balance": round(main_total + trading_total, 8),
-            },
-        },
+        data=summary_data,
     )
 
 
@@ -1651,5 +1666,94 @@ def send_user_reminder(user_id):
     return success_response(
         message="Reminder email and notification sent successfully.",
         data={"email_sent": True}
+    )
+
+
+@admin_user_api.get("/deleted-accounts")
+@admin_required
+@permission_required("users.view")
+def list_deleted_accounts():
+    db = get_database()
+    
+    try:
+        page = max(1, int(request.args.get("page") or 1))
+    except (TypeError, ValueError):
+        page = 1
+
+    try:
+        limit = min(100, max(1, int(request.args.get("limit") or 20)))
+    except (TypeError, ValueError):
+        limit = 20
+
+    skip = (page - 1) * limit
+    
+    search = str(request.args.get("search") or "").strip()
+    account_type = str(request.args.get("type") or "").strip().lower()
+    
+    query = {}
+    if account_type in ["main", "sub"]:
+        query["account_type"] = account_type
+        
+    if search:
+        import re
+        regex = re.compile(re.escape(search), re.IGNORECASE)
+        query["$or"] = [
+            {"name": regex},
+            {"client_id": regex},
+            {"email": regex},
+            {"parent_name": regex},
+            {"parent_client_id": regex},
+            {"account_id": regex}
+        ]
+        
+    total_count = db.deleted_account_logs.count_documents(query)
+    cursor = db.deleted_account_logs.find(query).sort("deleted_at", -1).skip(skip).limit(limit)
+    
+    records = []
+    for doc in cursor:
+        records.append({
+            "id": str(doc["_id"]),
+            "account_type": doc.get("account_type", "sub"),
+            "account_id": str(doc.get("account_id") or ""),
+            "client_id": str(doc.get("client_id") or "N/A"),
+            "name": doc.get("name") or "Account",
+            "email": doc.get("email") or "",
+            "mobile": doc.get("mobile") or "",
+            "parent_user_id": str(doc.get("parent_user_id") or ""),
+            "parent_name": doc.get("parent_name") or "",
+            "parent_client_id": str(doc.get("parent_client_id") or ""),
+            "deleted_by": doc.get("deleted_by", "user"),
+            "deleted_by_name": doc.get("deleted_by_name", "User (Self)"),
+            "refund_summary": doc.get("refund_summary") or "Zero Balance",
+            "sub_accounts_count": doc.get("sub_accounts_count", 0),
+            "deleted_at": doc.get("deleted_at").isoformat() if doc.get("deleted_at") else None
+        })
+        
+    from datetime import datetime, timezone
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start_naive = today_start.replace(tzinfo=None)
+    
+    stats = {
+        "total_deleted": db.deleted_account_logs.count_documents({}),
+        "main_deleted": db.deleted_account_logs.count_documents({"account_type": "main"}),
+        "sub_deleted": db.deleted_account_logs.count_documents({"account_type": "sub"}),
+        "today_deleted": db.deleted_account_logs.count_documents({
+            "$or": [
+                {"deleted_at": {"$gte": today_start}},
+                {"deleted_at": {"$gte": today_start_naive}}
+            ]
+        })
+    }
+    
+    return success_response(
+        message="Deleted accounts retrieved successfully.",
+        data={
+            "records": records,
+            "total": total_count,
+            "page": page,
+            "limit": limit,
+            "pages": max(1, (total_count + limit - 1) // limit),
+            "stats": stats
+        }
     )
 

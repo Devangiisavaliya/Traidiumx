@@ -768,6 +768,71 @@
         #contentTradingAccounts .rounded-3xl {
             padding: 1.5rem !important; /* More breathing room */
         }
+
+        /* 2-Compartment Side-by-Side Hero Layout */
+        .tx-hero-compartments-grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 1.25rem !important;
+            align-items: stretch !important;
+            width: 100% !important;
+        }
+        @media (min-width: 768px) {
+            .tx-hero-compartments-grid {
+                grid-template-columns: 1.25fr 1fr !important;
+                gap: 1.5rem !important;
+            }
+        }
+
+        .tx-compartment-card {
+            position: relative;
+            border-radius: 1.5rem !important;
+            padding: 1.5rem !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5) !important;
+            min-height: 220px;
+        }
+
+        /* Left Card: Dark Teal Slate (#133246 to #122e43) */
+        .tx-compartment-card-left {
+            border: 1px solid rgba(34, 211, 238, 0.15) !important;
+            background: linear-gradient(180deg, #133246 0%, #122e43 100%) !important;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(34, 211, 238, 0.15) !important;
+        }
+
+        /* Right Card: Dark Slate Indigo Blue (#122545 to #1a2c49) */
+        .tx-compartment-card-right {
+            border: 1px solid rgba(99, 102, 241, 0.15) !important;
+            background: linear-gradient(180deg, #122545 0%, #1a2c49 100%) !important;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(129, 140, 248, 0.12) !important;
+        }
+
+        .tx-getting-started-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 0.85rem !important;
+            background: rgba(255, 255, 255, 0.035) !important;
+            border: 1px solid rgba(255, 255, 255, 0.06) !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            font-size: 0.92rem !important;
+            font-weight: 700 !important;
+        }
+        .tx-getting-started-link:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.18) !important;
+            transform: translateX(2px) !important;
+        }
+
+        .tx-vip-row-active {
+            background: rgba(8, 51, 68, 0.40) !important;
+            border: 1px solid rgba(34, 211, 238, 0.50) !important;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.15) !important;
+        }
     </style>
 </head>
 
@@ -834,96 +899,881 @@
             </div>
 
             <!-- Tab Content: Overview (Active by Default) -->
-            <div id="contentOverview" class="space-y-8 sm:space-y-10">
+            <div id="contentOverview" class="space-y-6 sm:space-y-8">
 
-                <!-- Top Row: Total funds Card -->
-                <div class="relative rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-xl flex flex-col justify-between z-10">
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                                <span id="txPrimeTotalFundsLabel" class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">Total Funds</span>
-                                <span id="txPrimeActiveAccountBadge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Main Account</span>
-                                <button id="txPrimeTogglePrivacyBtn" type="button" class="text-slate-400 hover:text-cyan-400 transition p-1 rounded-md cursor-pointer" title="Hide/Show Balance">
-                                    <svg id="txPrimeEyeOpenIcon" class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    <svg id="txPrimeEyeClosedIcon" class="w-4.5 h-4.5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A9.954 9.954 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-6.155-1.41a3 3 0 104.243-4.243M3 3l18 18"/></svg>
-                                </button>
+                <!-- 2. Spotlight Section (PrimeXBT Style) -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-end">
+                        <button id="txPrimeHideSpotlightBtn" type="button" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-400 hover:text-white transition cursor-pointer">
+                            <span id="txPrimeSpotlightToggleText">Hide Spotlight</span>
+                            <span id="txPrimeSpotlightToggleIcon" class="text-xs sm:text-sm">✕</span>
+                        </button>
+                    </div>
+                    <div id="txPrimeSpotlightCards" class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                        <!-- Spotlight Card 1 -->
+                        <a href="/src/pages/learn.html" onclick="window.location.href='/src/pages/learn.html';" class="group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:bg-white/[0.04] hover:border-cyan-500/30 transition shadow-xl cursor-pointer">
+                            <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 text-cyan-400 group-hover:scale-110 transition shadow-inner">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
                             </div>
-                            <span class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">USD</span>
+                            <div>
+                                <div class="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition tracking-tight leading-snug">New to trading?</div>
+                                <div class="text-xs sm:text-sm text-slate-300 font-medium mt-1">Visit our Learning Center</div>
+                            </div>
+                        </a>
+                        <!-- Spotlight Card 2 -->
+                        <a href="/src/pages/how-to-deposit.html" onclick="window.location.href='/src/pages/how-to-deposit.html';" class="text-left group flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:bg-white/[0.04] hover:border-emerald-500/30 transition shadow-xl cursor-pointer">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 text-emerald-400 group-hover:scale-110 transition shadow-inner">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-base sm:text-lg font-black text-white group-hover:text-emerald-300 transition tracking-tight leading-snug">How to deposit funds?</div>
+                                <div class="text-xs sm:text-sm text-slate-300 font-medium mt-1">100% free and safe</div>
+                            </div>
+                        </a>
+                        <!-- Spotlight Card 3: What is demo trading? -->
+                        <a href="/src/pages/what-is-demo-trading.html" onclick="window.location.href='/src/pages/what-is-demo-trading.html';" class="group flex items-center justify-between gap-4 p-5 rounded-2xl border border-white/10 bg-[#07111f]/85 hover:bg-white/[0.04] hover:border-cyan-500/30 transition shadow-xl cursor-pointer">
+                            <div>
+                                <div class="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition tracking-tight leading-snug">What is demo trading?</div>
+                                <div class="text-xs sm:text-sm text-slate-300 font-medium mt-1">Practice with virtual funds</div>
+                            </div>
+                            <div class="w-14 h-14 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-300 group-hover:scale-110 transition shadow-inner">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                                </svg>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. Hero Main Grid: Total Funds (Main Balance) + Getting Started (2-Compartment Side-by-Side) -->
+                <div class="tx-hero-compartments-grid">
+                    <!-- Left Compartment: Total funds Card (Original Main Balance Section) -->
+                    <div class="tx-compartment-card tx-compartment-card-left z-10">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                                    <span id="txPrimeTotalFundsLabel" class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">Total Funds</span>
+                                    <span id="txPrimeActiveAccountBadge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Main Account</span>
+                                    <button id="txPrimeTogglePrivacyBtn" type="button" class="text-slate-400 hover:text-cyan-400 transition p-1 rounded-md cursor-pointer" title="Hide/Show Balance">
+                                        <svg id="txPrimeEyeOpenIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <svg id="txPrimeEyeClosedIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A9.954 9.954 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m-6.155-1.41a3 3 0 104.243-4.243M3 3l18 18"/></svg>
+                                    </button>
+                                </div>
+                                <span class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">USD</span>
+                            </div>
+
+                            <div class="mt-3 sm:mt-4">
+                                <h2 id="txPrimeTotalFundsVal" class="text-3xl sm:text-4xl lg:text-5xl font-black text-white font-mono tracking-tight">$ 0.00</h2>
+                                <p id="txPrimeTotalFundsInr" class="text-xs sm:text-sm text-slate-400 font-bold mt-1">≈ ₹0.00 INR</p>
+                            </div>
                         </div>
 
-                        <div class="mt-4">
-                            <h2 id="txPrimeTotalFundsVal" class="text-4xl sm:text-5xl font-black text-white font-mono tracking-tight">$ 0.00</h2>
-                            <p id="txPrimeTotalFundsInr" class="text-sm sm:text-base text-slate-400 font-bold mt-1.5">≈ ₹0.00 INR</p>
+                        <!-- Action Buttons Bar -->
+                        <div class="mt-5 pt-4 border-t border-white/5 flex flex-wrap items-center gap-2 sm:gap-2.5 relative z-20">
+                            <a href="/src/pages/futures.html" class="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-cyan-400/20 transition hover:scale-105 active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                Trade
+                            </a>
+                            <button id="txPrimeDepositBtn" onclick="if(typeof window.txOpenDepositChoiceModal==='function'){window.txOpenDepositChoiceModal();}else if(typeof window.txActivateDepositTab==='function'){window.txActivateDepositTab('crypto');}" class="inline-flex items-center gap-1 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
+                                <span class="text-cyan-400 font-black">+</span> Deposit
+                            </button>
+                            <button id="txPrimeWithdrawBtn" class="inline-flex items-center gap-1 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
+                                <span class="text-emerald-400 font-black">↑</span> Withdraw
+                            </button>
+                            <button id="txPrimeTransferBtn" class="inline-flex items-center gap-1 px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
+                                <span class="text-purple-400 font-black">⇄</span> Transfer
+                            </button>
+                            
+                            <!-- More Dropdown -->
+                            <div class="relative inline-block text-left z-40">
+                                <button id="txPrimeMoreMenuBtn" type="button" class="w-10 h-10 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-black text-sm border border-white/10 flex items-center justify-center transition cursor-pointer hover:border-white/20 active:scale-95" title="More options">
+                                    <svg class="w-4.5 h-4.5 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                    </svg>
+                                </button>
+                                <div id="txPrimeMoreMenuDropdown" class="hidden absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[#0d1522] border border-white/10 shadow-2xl shadow-black/95 p-1.5 z-50 text-xs sm:text-sm font-bold space-y-1">
+                                    <button id="txPrimeMenuExchange" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                        <span class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/25 group-hover:scale-105 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <div class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition">Exchange</div>
+                                            <div class="text-[10px] text-slate-400 font-normal">Swap &amp; convert assets</div>
+                                        </div>
+                                    </button>
+                                    <button id="txPrimeMenuInternal" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                        <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-500/25 group-hover:scale-105 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <div class="text-xs sm:text-sm font-black text-white group-hover:text-amber-300 transition">Internal Transfer</div>
+                                            <div class="text-[10px] text-slate-400 font-normal">Move funds between accounts</div>
+                                        </div>
+                                    </button>
+                                    <button type="button" onclick="txActivateHistoryTab()" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
+                                        <span class="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/25 group-hover:scale-105 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <div class="text-xs sm:text-sm font-black text-white group-hover:text-indigo-300 transition">Reports &amp; History</div>
+                                            <div class="text-[10px] text-slate-400 font-normal">View ledger, deposits &amp; transfers</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons Bar -->
-                    <div class="mt-6 pt-5 border-t border-white/5 flex flex-wrap items-center gap-3 relative z-20">
-                        <a href="/src/pages/futures.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-cyan-400/20 transition hover:scale-105 active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                            Trade
-                        </a>
-                        <button id="txPrimeDepositBtn" onclick="if(typeof window.txOpenDepositChoiceModal==='function'){window.txOpenDepositChoiceModal();}else if(typeof window.txActivateDepositTab==='function'){window.txActivateDepositTab('crypto');}" class="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
-                            <span class="text-cyan-400 font-black">+</span> Deposit
-                        </button>
-                        <button id="txPrimeWithdrawBtn" class="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
-                            <span class="text-emerald-400 font-black">↑</span> Withdraw
-                        </button>
-                        <button id="txPrimeTransferBtn" class="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/10 transition cursor-pointer hover:scale-105 active:scale-95">
-                            <span class="text-purple-400 font-black">⇄</span> Transfer
-                        </button>
-                        
-                        <!-- More Dropdown -->
-                        <div class="relative inline-block text-left z-40">
-                            <button id="txPrimeMoreMenuBtn" type="button" class="w-11 h-11 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-black text-base border border-white/10 flex items-center justify-center transition cursor-pointer hover:border-white/20 active:scale-95" title="More options">
-                                <svg class="w-5 h-5 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                                </svg>
+                    <!-- Right Compartment: Getting Started Card (PrimeXBT Style) -->
+                    <div class="tx-compartment-card tx-compartment-card-right">
+                        <div class="flex items-center justify-between border-b border-white/5 pb-3 mb-2.5">
+                            <h3 class="text-base sm:text-lg font-black text-white">Getting started</h3>
+                            <a href="./contact.html" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-cyan-400 transition flex items-center gap-1">
+                                Support 24/7 <span class="text-sm font-bold">›</span>
+                            </a>
+                        </div>
+                        <div class="space-y-2 flex-1 flex flex-col justify-center">
+                            <a href="/src/pages/how-to-verify.html" class="tx-getting-started-link group">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-slate-400 group-hover:text-cyan-400 transition shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </span>
+                                    <span class="text-sm sm:text-base font-bold text-slate-100 group-hover:text-white transition truncate">How to verify my account?</span>
+                                </div>
+                                <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-sm sm:text-base font-bold ml-2 shrink-0">›</span>
+                            </a>
+                            <a href="/src/pages/how-to-deposit.html" class="tx-getting-started-link group cursor-pointer text-left">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-slate-400 group-hover:text-emerald-400 transition shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </span>
+                                    <span class="text-sm sm:text-base font-bold text-slate-100 group-hover:text-white transition truncate">How to deposit funds?</span>
+                                </div>
+                                <span class="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition text-sm sm:text-base font-bold ml-2 shrink-0">›</span>
+                            </a>
+                            <a href="/src/pages/futures-basics.html" class="tx-getting-started-link group">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-slate-400 group-hover:text-purple-400 transition shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </span>
+                                    <span class="text-sm sm:text-base font-bold text-slate-100 group-hover:text-white transition truncate">Futures trading basics</span>
+                                </div>
+                                <span class="text-slate-500 group-hover:text-purple-400 group-hover:translate-x-0.5 transition text-sm sm:text-base font-bold ml-2 shrink-0">›</span>
+                            </a>
+                            <a href="/src/pages/why-traidiumx.html" class="tx-getting-started-link group">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-slate-400 group-hover:text-cyan-400 transition shrink-0">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </span>
+                                    <span class="text-sm sm:text-base font-bold text-slate-100 group-hover:text-white transition truncate">Why TraidiumX?</span>
+                                </div>
+                                <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-sm sm:text-base font-bold ml-2 shrink-0">›</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 3-Card Stat Row (30d Volume | Your Rewards | Invite & Earn) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1: 30d Trading Volume -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-400">30d trading volume</span>
+                                <span id="txPrimeTierBadge" onclick="txOpenVipTiersModal()" class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1 cursor-pointer hover:bg-amber-500/25 transition">
+                                    <span id="txPrimeTierName">Regular</span> <span>›</span>
+                                </span>
+                            </div>
+                            <div class="mt-3">
+                                <div id="txPrimeVolumeVal" class="text-2xl sm:text-3xl font-black text-white font-mono">0.00 USD</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-white/5 space-y-2">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                                <span>Volume</span>
+                                <span id="txPrimeVolumeTier" class="text-cyan-400 font-mono">VIP 1</span>
+                            </div>
+                            <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div id="txPrimeVolumeBar" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 font-semibold pt-1">
+                                <span id="txPrimeSavedFees">Saved on fees: 0.00 USD</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: 30d Realized P&L -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs sm:text-sm font-semibold tracking-wide text-slate-400">30d realized P&amp;L</span>
+                                <a href="./portfolio.html" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-cyan-400 transition flex items-center gap-1">
+                                    Go <span class="text-xs sm:text-sm">›</span>
+                                </a>
+                            </div>
+                            <div class="mt-3">
+                                <div id="txPrimeRealizedPnlVal" class="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">0.00 USD</div>
+                            </div>
+                            <div class="mt-4 flex items-center gap-2">
+                                <span class="text-xs sm:text-sm font-bold text-slate-300">Trades closed</span>
+                                <span id="txPrimeTradesClosedBadge" class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-black bg-[#3b2a54] text-[#c084fc] border border-purple-500/30">0</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3.5 border-t border-white/5 flex items-center justify-between">
+                            <a href="./portfolio.html" class="text-xs sm:text-sm text-slate-400 hover:text-cyan-400 transition font-medium">
+                                Open the portfolio for full history
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Invite & Earn -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-300">Invite &amp; Earn</span>
+                                <a href="./refer-earn.html" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-cyan-400 transition flex items-center gap-1">
+                                    Go <span class="text-xs sm:text-sm">›</span>
+                                </a>
+                            </div>
+                            <div class="mt-3.5 grid grid-cols-2 gap-3">
+                                <div>
+                                    <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Available to withdraw</div>
+                                    <div id="txPrimeReferralVal" class="text-2xl sm:text-3xl font-black text-white font-mono mt-1">$ 0.00</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Users invited</div>
+                                    <div id="txPrimeInvitedCount" class="text-2xl sm:text-3xl font-black text-cyan-300 font-mono mt-1">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3.5 border-t border-white/5 flex items-center justify-between">
+                            <span id="txPrimeTotalEarned" class="text-xs sm:text-sm text-slate-300 font-bold">Total earned: $0.00 USD</span>
+                            <button id="txPrimeCopyReferralBtn" type="button" class="text-xs sm:text-sm font-bold text-cyan-400 hover:text-cyan-300 transition flex items-center gap-1.5 cursor-pointer">
+                                <span>Copy link</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                             </button>
-                            <div id="txPrimeMoreMenuDropdown" class="hidden absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[#0d1522] border border-white/10 shadow-2xl shadow-black/95 p-1.5 z-50 text-xs sm:text-sm font-bold space-y-1">
-                                <button id="txPrimeMenuExchange" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
-                                    <span class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/25 group-hover:scale-105 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition">Exchange</div>
-                                        <div class="text-[10px] text-slate-400 font-normal">Swap &amp; convert assets</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Hot Trade Ideas & Upcoming Events Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Hot Trade Ideas Card -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-xl flex flex-col justify-between" id="txHotTradeIdeasBox">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                                <h3 class="text-base sm:text-lg font-black text-white">Smart Signals</h3>
+                                <div class="flex items-center gap-1.5" id="txTradeIdeasFilterGroup">
+                                    <button type="button" data-filter="bearish" onclick="txFilterTradeIdeas('bearish')" class="tx-idea-filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 transition cursor-pointer">Bearish</button>
+                                    <button type="button" data-filter="bullish" onclick="txFilterTradeIdeas('bullish')" class="tx-idea-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-emerald-950/70 text-emerald-400 border border-emerald-500/40 shadow-sm transition cursor-pointer">Bullish</button>
+                                    <a href="/src/pages/futures.html" class="text-xs font-bold text-slate-400 hover:text-cyan-400 transition ml-1 flex items-center gap-0.5 cursor-pointer" title="View all Futures markets">
+                                        All <span class="text-xs">›</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 2 Column Grid of Trade Ideas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="txTradeIdeasContainer">
+                                <!-- 1. BTC/USD (Bullish) -->
+                                <div id="txIdeaCard_BTCUSDT" data-symbol="BTCUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">BTC/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center font-black text-amber-400 text-xs shadow-sm">₿</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">BTC/USD</div>
+                                                <span id="txIdeaTag_BTCUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </button>
-                                <button id="txPrimeMenuInternal" type="button" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
-                                    <span class="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-500/25 group-hover:scale-105 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-amber-300 transition">Internal Transfer</div>
-                                        <div class="text-[10px] text-slate-400 font-normal">Move funds between accounts</div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_BTCUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>2.84%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_BTCUSDT" class="font-mono text-slate-200 font-bold">88,433</span></div>
                                     </div>
-                                </button>
-                                <button type="button" onclick="txActivateHistoryTab()" class="w-full text-left px-3 py-2.5 rounded-xl text-slate-200 hover:text-white hover:bg-white/10 transition flex items-center gap-3 cursor-pointer group">
-                                    <span class="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/25 group-hover:scale-105 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                    </span>
-                                    <div>
-                                        <div class="text-xs sm:text-sm font-black text-white group-hover:text-indigo-300 transition">Reports &amp; History</div>
-                                        <div class="text-[10px] text-slate-400 font-normal">View ledger, deposits &amp; transfers</div>
+                                </div>
+
+                                <!-- 2. ETH/USD (Bullish) -->
+                                <div id="txIdeaCard_ETHUSDT" data-symbol="ETHUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">ETH/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center font-black text-purple-400 text-xs shadow-sm">Ξ</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">ETH/USD</div>
+                                                <span id="txIdeaTag_ETHUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_ETHUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>3.42%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_ETHUSDT" class="font-mono text-slate-200 font-bold">2,750</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. SOL/USD (Bullish) -->
+                                <div id="txIdeaCard_SOLUSDT" data-symbol="SOLUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">SOL/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center font-black text-teal-300 text-[10px] shadow-sm font-mono">SOL</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">SOL/USD</div>
+                                                <span id="txIdeaTag_SOLUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_SOLUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>5.20%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_SOLUSDT" class="font-mono text-slate-200 font-bold">116.50</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. DOGE/USD (Bullish) -->
+                                <div id="txIdeaCard_DOGEUSDT" data-symbol="DOGEUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">DOGE/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center font-black text-amber-400 text-xs shadow-sm">Ð</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">DOGE/USD</div>
+                                                <span id="txIdeaTag_DOGEUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_DOGEUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>4.18%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_DOGEUSDT" class="font-mono text-slate-200 font-bold">0.2650</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 5. XAU/USD (Bullish) -->
+                                <div id="txIdeaCard_XAUUSDT" data-symbol="XAUUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">XAU/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center font-black text-amber-300 text-[10px] shadow-sm font-mono">XAU</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">XAU/USD</div>
+                                                <span id="txIdeaTag_XAUUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_XAUUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>1.71%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_XAUUSDT" class="font-mono text-slate-200 font-bold">4,195</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 6. ADA/USD (Bullish) -->
+                                <div id="txIdeaCard_ADAUSDT" data-symbol="ADAUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">ADA/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center font-black text-blue-400 text-[10px] shadow-sm font-mono">ADA</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">ADA/USD</div>
+                                                <span id="txIdeaTag_ADAUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_ADAUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>3.85%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_ADAUSDT" class="font-mono text-slate-200 font-bold">0.2840</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 7. AVAX/USD (Bullish) -->
+                                <div id="txIdeaCard_AVAXUSDT" data-symbol="AVAXUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">AVAX/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center font-black text-rose-400 text-[10px] shadow-sm font-mono">AVX</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">AVAX/USD</div>
+                                                <span id="txIdeaTag_AVAXUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_AVAXUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>4.62%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_AVAXUSDT" class="font-mono text-slate-200 font-bold">12.50</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 8. SUI/USD (Bullish) -->
+                                <div id="txIdeaCard_SUIUSDT" data-symbol="SUIUSDT" data-sentiment="bullish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">SUI/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center font-black text-cyan-300 text-[10px] shadow-sm font-mono">SUI</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">SUI/USD</div>
+                                                <span id="txIdeaTag_SUIUSDT" class="text-[9px] font-black text-emerald-400 uppercase">Bullish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_SUIUSDT" class="text-xs sm:text-sm font-mono font-black text-emerald-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↑</span> <span>6.18%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_SUIUSDT" class="font-mono text-slate-200 font-bold">1.25</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 9. XRP/USD (Bearish) -->
+                                <div id="txIdeaCard_XRPUSDT" data-symbol="XRPUSDT" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">XRP/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-slate-700/50 border border-slate-600/50 flex items-center justify-center font-black text-slate-200 text-xs shadow-sm">✕</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">XRP/USD</div>
+                                                <span id="txIdeaTag_XRPUSDT" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_XRPUSDT" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>2.45%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_XRPUSDT" class="font-mono text-slate-200 font-bold">1.38</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 10. BNB/USD (Bearish) -->
+                                <div id="txIdeaCard_BNBUSDT" data-symbol="BNBUSDT" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">BNB/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-yellow-500/15 border border-yellow-500/30 flex items-center justify-center font-black text-yellow-400 text-xs shadow-sm">❖</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">BNB/USD</div>
+                                                <span id="txIdeaTag_BNBUSDT" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_BNBUSDT" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>3.14%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_BNBUSDT" class="font-mono text-slate-200 font-bold">740.00</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 11. EUR/USD (Bearish) -->
+                                <div id="txIdeaCard_EURUSD" data-symbol="EURUSD" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">EUR/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center font-black text-blue-400 text-xs shadow-sm">€</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">EUR/USD</div>
+                                                <span id="txIdeaTag_EURUSD" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_EURUSD" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>2.22%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_EURUSD" class="font-mono text-slate-200 font-bold">1.0760</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 12. GBP/USD (Bearish) -->
+                                <div id="txIdeaCard_GBPUSD" data-symbol="GBPUSD" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">GBP/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center font-black text-indigo-400 text-xs shadow-sm">£</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">GBP/USD</div>
+                                                <span id="txIdeaTag_GBPUSD" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_GBPUSD" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>1.48%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_GBPUSD" class="font-mono text-slate-200 font-bold">1.2840</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 13. DOT/USD (Bearish) -->
+                                <div id="txIdeaCard_DOTUSDT" data-symbol="DOTUSDT" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">DOT/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center font-black text-pink-400 text-[10px] shadow-sm font-mono">DOT</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">DOT/USD</div>
+                                                <span id="txIdeaTag_DOTUSDT" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_DOTUSDT" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>2.80%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_DOTUSDT" class="font-mono text-slate-200 font-bold">4.80</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 14. LINK/USD (Bearish) -->
+                                <div id="txIdeaCard_LINKUSDT" data-symbol="LINKUSDT" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">LINK/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center font-black text-blue-400 text-[10px] shadow-sm font-mono">LNK</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">LINK/USD</div>
+                                                <span id="txIdeaTag_LINKUSDT" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_LINKUSDT" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>1.95%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_LINKUSDT" class="font-mono text-slate-200 font-bold">11.20</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 15. NEAR/USD (Bearish) -->
+                                <div id="txIdeaCard_NEARUSDT" data-symbol="NEARUSDT" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">NEAR/USD</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center font-black text-emerald-400 text-[10px] shadow-sm font-mono">NEAR</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">NEAR/USD</div>
+                                                <span id="txIdeaTag_NEARUSDT" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_NEARUSDT" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>3.25%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_NEARUSDT" class="font-mono text-slate-200 font-bold">4.10</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- 16. USD/JPY (Bearish) -->
+                                <div id="txIdeaCard_USDJPY" data-symbol="USDJPY" data-sentiment="bearish" class="tx-trade-idea-card p-3.5 rounded-2xl bg-white/[0.025] hover:bg-white/[0.05] border border-white/5 transition flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="tx-idea-locked-view flex items-center gap-2">
+                                            <a href="/src/pages/kyc.html" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold backdrop-blur-md transition shadow-sm">
+                                                <svg class="w-3.5 h-3.5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                                <span>Unlock</span>
+                                            </a>
+                                            <span class="text-xs font-bold text-slate-400 filter blur-[4px] select-none opacity-40">USD/JPY</span>
+                                        </div>
+                                        <div class="tx-idea-unlocked-view hidden items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center font-black text-red-400 text-xs shadow-sm">¥</div>
+                                            <div>
+                                                <div class="text-xs font-black text-white">USD/JPY</div>
+                                                <span id="txIdeaTag_USDJPY" class="text-[9px] font-black text-rose-400 uppercase">Bearish</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <div id="txIdeaChange_USDJPY" class="text-xs sm:text-sm font-mono font-black text-rose-400 flex items-center justify-end gap-0.5">
+                                            <span class="tx-idea-arrow">↓</span> <span>0.85%</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">Target <span id="txIdeaTarget_USDJPY" class="font-mono text-slate-200 font-bold">151.20</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Signals Footer Bar matching Upcoming Events Footer -->
+                        <div id="txSignalsPaginationWrapper" class="mt-3.5 pt-3 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>8 Live Setups</span>
+                            </span>
+                            <span class="text-xs text-slate-500 font-mono">Binance &bull; Forex Streams</span>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Events Card -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+                                <h3 class="text-base sm:text-lg font-black text-white">Upcoming events</h3>
+                                <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener" class="text-xs font-bold text-slate-400 hover:text-cyan-400 transition flex items-center gap-1">
+                                    Calendar <span class="text-xs">›</span>
+                                </a>
+                            </div>
+
+                            <!-- Filter Pills -->
+                            <div class="flex items-center gap-2 mb-4" id="txEventsFilterGroup">
+                                <button type="button" data-event-filter="all" onclick="txFilterUpcomingEvents('all')" class="tx-event-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-white border border-white/20 transition cursor-pointer shadow-sm">All</button>
+                                <button type="button" data-event-filter="high" onclick="txFilterUpcomingEvents('high')" class="tx-event-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-white/5 hover:bg-white/10 text-rose-400 border border-white/5 transition cursor-pointer flex items-center gap-1.5">
+                                    <span class="inline-flex items-end gap-[2.5px] h-3 flex-shrink-0">
+                                        <span class="w-[3px] h-[5px] rounded-xs bg-rose-500"></span>
+                                        <span class="w-[3px] h-[8.5px] rounded-xs bg-rose-500"></span>
+                                        <span class="w-[3px] h-[12px] rounded-xs bg-rose-500"></span>
+                                    </span>
+                                    <span>High</span>
                                 </button>
+                                <button type="button" data-event-filter="medium" onclick="txFilterUpcomingEvents('medium')" class="tx-event-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-white/5 hover:bg-white/10 text-amber-400 border border-white/5 transition cursor-pointer flex items-center gap-1.5">
+                                    <span class="inline-flex items-end gap-[2.5px] h-3 flex-shrink-0">
+                                        <span class="w-[3px] h-[5px] rounded-xs bg-amber-400"></span>
+                                        <span class="w-[3px] h-[8.5px] rounded-xs bg-amber-400"></span>
+                                        <span class="w-[3px] h-[12px] rounded-xs bg-slate-700/60"></span>
+                                    </span>
+                                    <span>Medium</span>
+                                </button>
+                                <button type="button" data-event-filter="low" onclick="txFilterUpcomingEvents('low')" class="tx-event-filter-btn px-3 py-1 rounded-lg text-xs font-bold bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5 transition cursor-pointer flex items-center gap-1.5">
+                                    <span class="inline-flex items-end gap-[2.5px] h-3 flex-shrink-0">
+                                        <span class="w-[3px] h-[5px] rounded-xs bg-slate-400"></span>
+                                        <span class="w-[3px] h-[8.5px] rounded-xs bg-slate-700/60"></span>
+                                        <span class="w-[3px] h-[12px] rounded-xs bg-slate-700/60"></span>
+                                    </span>
+                                    <span>Low</span>
+                                </button>
+                            </div>
+
+                            <!-- Events Table -->
+                            <div class="overflow-x-auto min-h-[245px]">
+                                <table class="w-full text-left table-fixed">
+                                    <thead>
+                                        <tr class="text-[11px] font-semibold text-slate-400 border-b border-white/5 pb-2">
+                                            <th class="pb-2.5 font-medium w-24">Time</th>
+                                            <th class="pb-2.5 font-medium pl-2">Event</th>
+                                            <th class="pb-2.5 font-medium text-right w-24 pr-1">Impact</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="txEventsTableBody" class="divide-y divide-white/5 text-xs">
+                                        <!-- Row 1: Ivey PMI -->
+                                        <tr class="tx-event-row group hover:bg-white/[0.02] transition h-[53px]" data-impact="medium">
+                                            <td class="py-2.5 whitespace-nowrap">
+                                                <div class="font-bold text-slate-200 text-xs">Oct 6</div>
+                                                <div class="text-[11px] font-mono text-slate-400">19:30</div>
+                                            </td>
+                                            <td class="py-2.5 pl-2">
+                                                <div class="flex items-center gap-2.5">
+                                                    <span class="w-5 h-5 rounded-full overflow-hidden inline-flex items-center justify-center flex-shrink-0 border border-white/10 shadow-sm">
+                                                        <svg viewBox="0 0 512 512" class="w-full h-full"><path fill="#f0f0f0" d="M0 0h512v512H0z"/><path fill="#d80027" d="M0 0h128v512H0zm384 0h128v512H384z"/><path fill="#d80027" d="M256 128l18 56 46-24-18 54 44 14-38 36 28 44-54-12-16 52-16-52-54 12 28-44-38-36 44-14-18-54 46 24z"/></svg>
+                                                    </span>
+                                                    <span class="font-bold text-white group-hover:text-cyan-300 transition text-xs sm:text-sm line-clamp-1">Ivey PMI</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 text-right whitespace-nowrap pr-1">
+                                                <div class="inline-flex items-end justify-end gap-[2px] h-3">
+                                                    <span style="width:3px;height:5px;border-radius:1px;background-color:#fbbf24;display:inline-block;"></span>
+                                                    <span style="width:3px;height:8.5px;border-radius:1px;background-color:#fbbf24;display:inline-block;"></span>
+                                                    <span style="width:3px;height:12px;border-radius:1px;background-color:rgba(51,65,85,0.6);display:inline-block;"></span>
+                                                </div>
+                                                <div class="text-[10px] font-bold text-amber-400 text-right mt-0.5">Medium</div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Row 2: FOMC Meeting Minutes -->
+                                        <tr class="tx-event-row group hover:bg-white/[0.02] transition h-[53px]" data-impact="high">
+                                            <td class="py-2.5 whitespace-nowrap">
+                                                <div class="font-bold text-slate-200 text-xs">Today</div>
+                                                <div class="text-[11px] font-mono text-slate-400">23:30</div>
+                                            </td>
+                                            <td class="py-2.5 pl-2">
+                                                <div class="flex items-center gap-2.5">
+                                                    <span class="w-5 h-5 rounded-full overflow-hidden inline-flex items-center justify-center flex-shrink-0 border border-white/10 shadow-sm">
+                                                        <svg viewBox="0 0 512 512" class="w-full h-full"><path fill="#f0f0f0" d="M0 0h512v512H0z"/><path stroke="#d80027" stroke-width="40" d="M0 60h512M0 140h512M0 220h512M0 300h512M0 380h512M0 460h512"/><path fill="#0052b4" d="M0 0h240v280H0z"/><circle cx="60" cy="60" r="16" fill="#fff"/><circle cx="120" cy="60" r="16" fill="#fff"/><circle cx="180" cy="60" r="16" fill="#fff"/><circle cx="60" cy="140" r="16" fill="#fff"/><circle cx="120" cy="140" r="16" fill="#fff"/><circle cx="180" cy="140" r="16" fill="#fff"/><circle cx="60" cy="220" r="16" fill="#fff"/><circle cx="120" cy="220" r="16" fill="#fff"/><circle cx="180" cy="220" r="16" fill="#fff"/></svg>
+                                                    </span>
+                                                    <span class="font-bold text-white group-hover:text-cyan-300 transition text-xs sm:text-sm line-clamp-1">FOMC Meeting Minutes</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 text-right whitespace-nowrap pr-1">
+                                                <div class="inline-flex items-end justify-end gap-[2px] h-3">
+                                                    <span style="width:3px;height:5px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                    <span style="width:3px;height:8.5px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                    <span style="width:3px;height:12px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                </div>
+                                                <div class="text-[10px] font-bold text-rose-500 text-right mt-0.5">High</div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Row 3: FOMC Member Waller Speaks -->
+                                        <tr class="tx-event-row group hover:bg-white/[0.02] transition h-[53px]" data-impact="medium">
+                                            <td class="py-2.5 whitespace-nowrap">
+                                                <div class="font-bold text-slate-200 text-xs">Oct 8</div>
+                                                <div class="text-[11px] font-mono text-slate-400">14:00</div>
+                                            </td>
+                                            <td class="py-2.5 pl-2">
+                                                <div class="flex items-center gap-2.5">
+                                                    <span class="w-5 h-5 rounded-full overflow-hidden inline-flex items-center justify-center flex-shrink-0 border border-white/10 shadow-sm">
+                                                        <svg viewBox="0 0 512 512" class="w-full h-full"><path fill="#f0f0f0" d="M0 0h512v512H0z"/><path stroke="#d80027" stroke-width="40" d="M0 60h512M0 140h512M0 220h512M0 300h512M0 380h512M0 460h512"/><path fill="#0052b4" d="M0 0h240v280H0z"/><circle cx="60" cy="60" r="16" fill="#fff"/><circle cx="120" cy="60" r="16" fill="#fff"/><circle cx="180" cy="60" r="16" fill="#fff"/><circle cx="60" cy="140" r="16" fill="#fff"/><circle cx="120" cy="140" r="16" fill="#fff"/><circle cx="180" cy="140" r="16" fill="#fff"/><circle cx="60" cy="220" r="16" fill="#fff"/><circle cx="120" cy="220" r="16" fill="#fff"/><circle cx="180" cy="220" r="16" fill="#fff"/></svg>
+                                                    </span>
+                                                    <span class="font-bold text-white group-hover:text-cyan-300 transition text-xs sm:text-sm line-clamp-1">FOMC Member Waller Speaks</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 text-right whitespace-nowrap pr-1">
+                                                <div class="inline-flex items-end justify-end gap-[2px] h-3">
+                                                    <span style="width:3px;height:5px;border-radius:1px;background-color:#fbbf24;display:inline-block;"></span>
+                                                    <span style="width:3px;height:8.5px;border-radius:1px;background-color:#fbbf24;display:inline-block;"></span>
+                                                    <span style="width:3px;height:12px;border-radius:1px;background-color:rgba(51,65,85,0.6);display:inline-block;"></span>
+                                                </div>
+                                                <div class="text-[10px] font-bold text-amber-400 text-right mt-0.5">Medium</div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Row 4: BOE Gov Bailey Speaks -->
+                                        <tr class="tx-event-row group hover:bg-white/[0.02] transition h-[53px]" data-impact="high">
+                                            <td class="py-2.5 whitespace-nowrap">
+                                                <div class="font-bold text-slate-200 text-xs">Oct 8</div>
+                                                <div class="text-[11px] font-mono text-slate-400">17:45</div>
+                                            </td>
+                                            <td class="py-2.5 pl-2">
+                                                <div class="flex items-center gap-2.5">
+                                                    <span class="w-5 h-5 rounded-full overflow-hidden inline-flex items-center justify-center flex-shrink-0 border border-white/10 shadow-sm">
+                                                        <svg viewBox="0 0 512 512" class="w-full h-full"><path fill="#0052b4" d="M0 0h512v512H0z"/><path stroke="#fff" stroke-width="60" d="M0 0l512 512M512 0L0 512"/><path stroke="#d80027" stroke-width="36" d="M0 0l512 512M512 0L0 512"/><path stroke="#fff" stroke-width="100" d="M256 0v512M0 256h512"/><path stroke="#d80027" stroke-width="60" d="M256 0v512M0 256h512"/></svg>
+                                                    </span>
+                                                    <span class="font-bold text-white group-hover:text-cyan-300 transition text-xs sm:text-sm line-clamp-1">BOE Gov Bailey Speaks</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2.5 text-right whitespace-nowrap pr-1">
+                                                <div class="inline-flex items-end justify-end gap-[2px] h-3">
+                                                    <span style="width:3px;height:5px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                    <span style="width:3px;height:8.5px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                    <span style="width:3px;height:12px;border-radius:1px;background-color:#f43f5e;display:inline-block;"></span>
+                                                </div>
+                                                <div class="text-[10px] font-bold text-rose-500 text-right mt-0.5">High</div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination Bar (Idea 2: ‹ Prev | Next ›) -->
+                            <div id="txEventsPaginationWrapper" class="mt-3.5 pt-3 border-t border-white/5 flex items-center justify-between">
+                                <span id="txEventsPageIndicator" class="text-xs text-slate-400 font-semibold font-mono">Page 1 of 1</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" id="txEventsPrevBtn" onclick="txChangeEventsPage(-1)" class="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 text-xs font-bold text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer">
+                                        ‹ Prev
+                                    </button>
+                                    <button type="button" id="txEventsNextBtn" onclick="txChangeEventsPage(1)" class="px-3 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 text-xs font-bold text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer">
+                                        Next ›
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-
-
-
-
-                <!-- 6. Today's Popular Markets Table -->
+                <!-- 6. Today's Popular Markets Table (Original Untouched) -->
                 <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-lg mt-8">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 border-b border-white/5 pb-4">
                         <div>
@@ -961,44 +1811,183 @@
                     </div>
                 </div>
 
-                <!-- 7. Market Research & News -->
-                <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-lg mt-8">
-                    <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                <!-- 7. Market Research & News (PrimeXBT Style 2-Column Section) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                    <!-- Left: Market Research -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-lg flex flex-col justify-between">
                         <div>
-                            <h3 class="text-lg sm:text-xl font-black text-white">Market Research & Insights</h3>
-                            <p class="text-xs sm:text-sm text-slate-400 mt-1">Macroeconomic updates, technical patterns & trading sentiment</p>
+                            <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                                <div>
+                                    <h3 class="text-lg sm:text-xl font-black text-white">Market research</h3>
+                                </div>
+                                <a href="./research.html" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-cyan-300 transition flex items-center gap-1">
+                                    More <span class="text-xs">›</span>
+                                </a>
+                            </div>
+
+                            <div class="space-y-3.5" id="txMarketResearchList">
+                                <!-- Article 1: Japanese Yen -->
+                                <a href="./research.html?id=753d57b3bb6e4e60" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=200&auto=format&fit=crop&q=80" alt="Japanese Yen" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-red-950/80 via-slate-900 to-slate-950 absolute inset-0 flex items-center justify-center text-red-400 font-bold text-lg -z-10">¥</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-slate-300 font-bold">Fundamental</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition line-clamp-1 leading-snug">Japanese Yen nears 158.00: Two analysts agree it's bullish, and disagree on how far t...</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">The Japanese Yen (JPY) is drifting near 158.00 against the US Dollar (USD) ahead of a busy week of J...</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+
+                                <!-- Article 2: Gold News -->
+                                <a href="./research.html?id=gold-yields-bounces" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1610375461246-83df859d849d?w=200&auto=format&fit=crop&q=80" alt="Gold News" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-amber-950/80 via-yellow-900/40 to-slate-950 absolute inset-0 flex items-center justify-center text-amber-300 font-bold text-lg -z-10">🥇</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-slate-300 font-bold">Price Prediction</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition line-clamp-1 leading-snug">Gold News: Yields Still Control as XAUUSD Bounces From $4,103.52 Low</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">Spot gold bounced from $4,103.52 as long-term yields eased, but the 10-year near 5.27% and Decem...</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+
+                                <!-- Article 3: Crypto Market Retreat -->
+                                <a href="./research.html?id=crypto-market-retreated" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=200&auto=format&fit=crop&q=80" alt="Crypto Market" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-teal-950/80 via-cyan-900/40 to-slate-950 absolute inset-0 flex items-center justify-center text-cyan-300 font-bold text-lg -z-10">🌐</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-slate-300 font-bold">Price Prediction</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition line-clamp-1 leading-snug">The Crypto Market Has Retreated Further Within the Range</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">The crypto market retreated by 0.7% to $2.91T amid a strong US dollar and a bond sell-off. Bitcoin is t...</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+
+                                <!-- Article 4: Dogecoin -->
+                                <a href="./research.html?id=doge-price-risks-20" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=200&auto=format&fit=crop&q=80" alt="Dogecoin" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-amber-950/80 via-teal-950/60 to-slate-950 absolute inset-0 flex items-center justify-center text-amber-400 font-black text-lg -z-10">Ð</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-slate-300 font-bold">Price Prediction</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition line-clamp-1 leading-snug">Dogecoin Price Risks 20% Dip as Memecoin Dominance Hits Record Low</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">Dogecoin price risks a 20% drop toward $0.076 as a bearish broadening wedge emerges and meme...</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+                            </div>
+
                         </div>
-                        <a href="https://t.me/traidiumx" target="_blank" rel="noopener" class="text-xs sm:text-sm font-bold text-cyan-400 hover:text-cyan-300 transition">
-                            More news ›
-                        </a>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="p-5 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition">
-                            <div class="flex items-center gap-2 mb-2.5">
-                                <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">Crypto</span>
-                                <span class="text-xs text-slate-500 font-semibold">2 hours ago</span>
+                    <!-- Right: News -->
+                    <div class="rounded-3xl border border-white/10 bg-[#07111f]/85 p-6 sm:p-7 backdrop-blur-xl shadow-lg flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                                <div>
+                                    <h3 class="text-lg sm:text-xl font-black text-white">News</h3>
+                                </div>
+                                <a href="./news.html" class="text-xs sm:text-sm font-bold text-slate-400 hover:text-cyan-300 transition flex items-center gap-1">
+                                    More <span class="text-xs">›</span>
+                                </a>
                             </div>
-                            <h4 class="text-sm sm:text-base font-black text-white line-clamp-2 leading-snug">Bitcoin Consolidates Around Key Resistance Level Ahead of Global Macro Data</h4>
-                            <p class="text-xs sm:text-sm text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">BTC continues steady accumulation phase as volume stabilizes across major spot and perpetual exchanges.</p>
-                        </div>
 
-                        <div class="p-5 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition">
-                            <div class="flex items-center gap-2 mb-2.5">
-                                <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Forex</span>
-                                <span class="text-xs text-slate-500 font-semibold">4 hours ago</span>
-                            </div>
-                            <h4 class="text-sm sm:text-base font-black text-white line-clamp-2 leading-snug">US Dollar Index (DXY) Holds Strong Support as Central Bank Signals Emerge</h4>
-                            <p class="text-xs sm:text-sm text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">EUR/USD and GBP/USD trade within tight ranges as institutional traders position ahead of rate announcements.</p>
-                        </div>
+                            <div id="txPrimeNewsList" class="space-y-3.5">
+                                <!-- Populated dynamically by wallet.js -->
+                                <!-- News 1: World -->
+                                <a href="https://t.me/traidiumx" target="_blank" rel="noopener" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&auto=format&fit=crop&q=80" alt="World News" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-cyan-950/80 via-slate-900 to-slate-950 border border-cyan-500/30 absolute inset-0 flex items-center justify-center text-cyan-400 font-bold -z-10">🌐</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-cyan-400 font-bold uppercase">World</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-cyan-300 transition line-clamp-1 leading-snug">Middle East Geopolitical Tensions Ease as Maritime Shipping Corridor Resumes</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">Regional maritime authorities report stabilizing crude transit routes following diplomatic coordination.</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
 
-                        <div class="p-5 rounded-3xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition">
-                            <div class="flex items-center gap-2 mb-2.5">
-                                <span class="text-xs font-black uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Commodities</span>
-                                <span class="text-xs text-slate-500 font-semibold">6 hours ago</span>
+                                <!-- News 2: Forex -->
+                                <a href="https://t.me/traidiumx" target="_blank" rel="noopener" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=400&auto=format&fit=crop&q=80" alt="Forex News" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-blue-950/80 via-slate-900 to-slate-950 border border-blue-500/30 absolute inset-0 flex items-center justify-center text-blue-400 font-bold -z-10">💱</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-blue-400 font-bold uppercase">Forex</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-blue-300 transition line-clamp-1 leading-snug">US Dollar Index Holds Near Monthly Highs as Benchmark Treasury Yields Advance</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">The greenback remains firmly bid across G10 pairs as interest rate expectations remain anchored.</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+
+                                <!-- News 3: Shares -->
+                                <a href="https://t.me/traidiumx" target="_blank" rel="noopener" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80" alt="Shares News" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-950 border border-amber-500/30 absolute inset-0 flex items-center justify-center text-amber-400 font-bold -z-10">📈</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-amber-400 font-bold uppercase">Shares</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-amber-300 transition line-clamp-1 leading-snug">Tech Equities Rebound as Semiconductor and AI Hardware Demand Accelerates</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">Major large-cap technology stocks posted solid gains following upgraded quarterly guidance figures.</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
+
+                                <!-- News 4: Indices -->
+                                <a href="https://t.me/traidiumx" target="_blank" rel="noopener" class="flex items-start gap-3.5 p-3 rounded-2xl bg-white/[0.025] hover:bg-white/[0.06] border border-white/5 transition group">
+                                    <div class="w-20 sm:w-24 h-14 sm:h-16 rounded-xl overflow-hidden shrink-0 border border-white/10 bg-slate-900 shadow-sm relative flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&auto=format&fit=crop&q=80" alt="Indices News" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/30 absolute inset-0 flex items-center justify-center text-emerald-400 font-bold -z-10">📊</div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                            <span class="text-emerald-400 font-bold uppercase">Indices</span>
+                                            <span>|</span>
+                                            <span class="text-slate-400 font-mono">Oct 8, 2026</span>
+                                        </div>
+                                        <h4 class="text-xs sm:text-sm font-black text-white group-hover:text-emerald-300 transition line-clamp-1 leading-snug">S&P 500 and Nasdaq Test Resistance Ahead of Federal Reserve Minutes Release</h4>
+                                        <p class="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-relaxed opacity-85">Equities trade within tightly bounded ranges as traders position for monetary policy insights.</p>
+                                    </div>
+                                    <span class="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition text-xs font-bold shrink-0 self-center">›</span>
+                                </a>
                             </div>
-                            <h4 class="text-sm sm:text-base font-black text-white line-clamp-2 leading-snug">Gold (XAU/USD) Rebounds Toward Highs as Safe-Haven Inflows Accelerate</h4>
-                            <p class="text-xs sm:text-sm text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">Bullion demand strengthens across global spot desks with technical indicators signaling bullish momentum.</p>
                         </div>
                     </div>
                 </div>
@@ -1740,17 +2729,45 @@
                                     <div id="txWithdrawMoneyStepper" class="mt-8 space-y-8 tx-nexus-stepper">
                                         <div class="tx-nexus-stepper-line"></div>
 
-                                        <!-- MONEY WITHDRAW STEP 1: Withdraw from: Wallet -->
+                                        <!-- MONEY WITHDRAW STEP 1: Withdraw from: Wallet (Interactive Account Selector) -->
                                         <div class="relative z-30" id="txWithMoneyStep1Container">
                                             <div id="txWithMoneyStep1Dot" class="tx-nexus-step-dot completed">✓</div>
                                             <div>
                                                 <div class="flex items-center justify-between mb-2.5">
                                                     <label id="txWithMoneyStep1Label" class="text-sm font-bold text-white flex items-center gap-1.5">
-                                                        Withdraw from: <span id="txWithMoneySelectedAccountName" class="text-white font-black">Wallet</span> <span class="text-slate-500 text-xs" title="Withdrawals are processed from your Main Funding Wallet">ⓘ</span>
+                                                        Withdraw from <span class="text-slate-500 text-xs" title="Select the source wallet or trading account for your withdrawal">ⓘ</span>
                                                     </label>
                                                     <button type="button" onclick="openWalletActionModal('transfer')" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
                                                         Transfer
                                                     </button>
+                                                </div>
+
+                                                <!-- Floating "From" Select Box -->
+                                                <div id="txWithMoneyStep1Body" class="relative">
+                                                    <button type="button" id="txWithMoneyAccountSelectBtn" class="tx-nexus-to-box w-full">
+                                                        <span class="tx-nexus-to-box-label">From</span>
+                                                        <div class="flex items-center gap-3">
+                                                            <span id="txWithMoneySelectedAccountName" class="text-sm text-white font-bold">Wallet</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span id="txWithMoneySourceBalance" class="text-xs font-mono font-bold text-slate-300"></span>
+                                                            <svg id="txWithMoneyAccountChevron" class="w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                                        </div>
+                                                    </button>
+
+                                                    <!-- Account Selection Dropdown Menu -->
+                                                    <div id="txWithMoneyAccountDropdownMenu" class="hidden tx-nexus-account-dropdown">
+                                                        <div class="px-2 pb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-white/5">
+                                                            <span>Wallet</span>
+                                                        </div>
+                                                        <div id="txWithMoneyAccountOptionsList" class="py-2 space-y-1"></div>
+                                                        <div class="pt-3 mt-1 border-t border-white/5 text-xs text-left">
+                                                            <p class="text-slate-400 font-medium">Can't find an account in this currency?</p>
+                                                            <button type="button" onclick="if(typeof txOpenSubAccountCreationModal === 'function') txOpenSubAccountCreationModal('real')" class="mt-1 text-cyan-400 hover:text-cyan-300 font-bold hover:underline cursor-pointer">
+                                                                Create new account
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1964,17 +2981,45 @@
                                     <div id="txWithdrawCryptoStepper" class="hidden mt-8 space-y-8 tx-nexus-stepper">
                                         <div class="tx-nexus-stepper-line"></div>
 
-                                        <!-- CRYPTO WITHDRAW STEP 1: Withdraw from: Wallet -->
+                                        <!-- CRYPTO WITHDRAW STEP 1: Withdraw from: Wallet (Interactive Account Selector) -->
                                         <div class="relative z-30" id="txWithCryptoStep1Container">
                                             <div id="txWithCryptoStep1Dot" class="tx-nexus-step-dot completed">✓</div>
                                             <div>
                                                 <div class="flex items-center justify-between mb-2.5">
                                                     <label id="txWithCryptoStep1Label" class="text-sm font-bold text-white flex items-center gap-1.5">
-                                                        Withdraw from: <span class="text-white font-black">Wallet</span> <span class="text-slate-500 text-xs" title="Withdrawals are processed from your Main Funding Wallet">ⓘ</span>
+                                                        Withdraw from <span class="text-slate-500 text-xs" title="Select the source wallet or trading account for your withdrawal">ⓘ</span>
                                                     </label>
                                                     <button type="button" onclick="openWalletActionModal('transfer')" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 transition cursor-pointer">
                                                         Transfer
                                                     </button>
+                                                </div>
+
+                                                <!-- Floating "From" Select Box -->
+                                                <div id="txWithCryptoStep1Body" class="relative">
+                                                    <button type="button" id="txWithCryptoAccountSelectBtn" class="tx-nexus-to-box w-full">
+                                                        <span class="tx-nexus-to-box-label">From</span>
+                                                        <div class="flex items-center gap-3">
+                                                            <span id="txWithCryptoSelectedAccountName" class="text-sm text-white font-bold">Wallet</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span id="txWithCryptoSourceBalance" class="text-xs font-mono font-bold text-slate-300"></span>
+                                                            <svg id="txWithCryptoAccountChevron" class="w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                                                        </div>
+                                                    </button>
+
+                                                    <!-- Account Selection Dropdown Menu -->
+                                                    <div id="txWithCryptoAccountDropdownMenu" class="hidden tx-nexus-account-dropdown">
+                                                        <div class="px-2 pb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-white/5">
+                                                            <span>Wallet</span>
+                                                        </div>
+                                                        <div id="txWithCryptoAccountOptionsList" class="py-2 space-y-1"></div>
+                                                        <div class="pt-3 mt-1 border-t border-white/5 text-xs text-left">
+                                                            <p class="text-slate-400 font-medium">Can't find an account in this currency?</p>
+                                                            <button type="button" onclick="if(typeof txOpenSubAccountCreationModal === 'function') txOpenSubAccountCreationModal('real')" class="mt-1 text-cyan-400 hover:text-cyan-300 font-bold hover:underline cursor-pointer">
+                                                                Create new account
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -3476,7 +4521,7 @@
 
     <!-- Sub-Account Creation & Management Modal (Modern Compact Refined Design from Image 2) -->
     <div id="subAccountModal" data-lenis-prevent class="fixed inset-0 z-[9998] hidden items-center justify-center bg-black/85 px-3 sm:px-4 py-4 backdrop-blur-md">
-        <div data-lenis-prevent class="tx-sub-modal-box w-full max-w-[860px] max-h-[90vh] flex flex-col rounded-3xl border border-slate-700/80 bg-[#0c1220] text-slate-100 shadow-2xl shadow-black/90 overflow-hidden" onclick="event.stopPropagation();">
+        <div data-lenis-prevent class="tx-sub-modal-box w-full max-w-[1040px] max-h-[90vh] flex flex-col rounded-3xl border border-slate-700/80 bg-[#0c1220] text-slate-100 shadow-2xl shadow-black/90 overflow-hidden" onclick="event.stopPropagation();">
             
             <!-- Modal Header -->
             <div class="tx-sub-modal-header flex items-center justify-between border-b border-white/10 px-6 py-4 bg-[#080d1a] shrink-0">
@@ -3557,7 +4602,7 @@
                     </div>
                 </div>
 
-                <!-- 3. Real Mode: Account Name + 3 Plan Cards -->
+                <!-- 3. Real Mode: Account Name + 4 Plan Cards -->
                 <div id="subModalRealPlanSection" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Name</label>
@@ -3569,22 +4614,23 @@
                             3. Select account type
                         </div>
 
-                        <!-- 3 Plan Cards Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                        <!-- Plan Cards Grid (3 cards for TraidiumX 2.0, 4 cards for MT5) -->
+                        <div id="subPlanCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                             
-                            <!-- Basic Plan Card -->
+                            <!-- 1. Basic Plan Card -->
                             <div data-plan="basic" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border-2 border-cyan-400 bg-[#081526] p-4 transition cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.12)]">
                                 <div class="space-y-3">
                                     <div class="flex items-start justify-between gap-2">
-                                        <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                             <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                             </div>
-                                            <div class="min-w-0">
-                                                <h4 class="text-sm font-black text-white">Basic</h4>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-sm font-black text-white truncate">Basic</h4>
+                                                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Standard</span>
                                             </div>
                                         </div>
-                                        <div class="tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border-2 border-cyan-400 bg-cyan-400 flex items-center justify-center p-0.5 shrink-0 mt-0.5">
                                             <div class="w-1.5 h-1.5 rounded-full bg-slate-950"></div>
                                         </div>
                                     </div>
@@ -3619,22 +4665,20 @@
                                 </div>
                             </div>
 
-                            <!-- Standard Plan Card -->
+                            <!-- 2. Standard Plan Card -->
                             <div data-plan="standard" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
                                 <div class="space-y-3">
                                     <div class="flex items-start justify-between gap-2">
-                                        <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                             <div class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9l4-6z"/></svg>
                                             </div>
-                                            <div class="min-w-0">
-                                                <div class="flex items-center gap-1.5">
-                                                    <h4 class="text-sm font-black text-white">Standard</h4>
-                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30">Popular</span>
-                                                </div>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-sm font-black text-white truncate">Standard</h4>
+                                                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">Popular</span>
                                             </div>
                                         </div>
-                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0 mt-0.5">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
@@ -3664,27 +4708,25 @@
 
                                 <div class="mt-4 pt-3 border-t border-white/5">
                                     <div id="subPlanStandardMinPill" class="w-full py-1.5 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/40 text-xs font-black text-center tracking-wide">
-                                        MIN $2,000.00
+                                        MIN $5,000.00
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Advanced Plan Card -->
+                            <!-- 3. Advanced Plan Card -->
                             <div data-plan="advanced" class="tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
                                 <div class="space-y-3">
                                     <div class="flex items-start justify-between gap-2">
-                                        <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
                                             <div class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 18h18M4 14l3-8 5 5 5-5 3 8H4z"/></svg>
                                             </div>
-                                            <div class="min-w-0">
-                                                <div class="flex items-center gap-1.5">
-                                                    <h4 class="text-sm font-black text-white">Advanced</h4>
-                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Pro</span>
-                                                </div>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-sm font-black text-white truncate">Advanced</h4>
+                                                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">VIP Pro</span>
                                             </div>
                                         </div>
-                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0">
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0 mt-0.5">
                                             <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
                                         </div>
                                     </div>
@@ -3714,7 +4756,55 @@
 
                                 <div class="mt-4 pt-3 border-t border-white/5">
                                     <div id="subPlanAdvancedMinPill" class="w-full py-1.5 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-black text-center tracking-wide">
-                                        MIN $5,000.00
+                                        MIN $600,000.00
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Cent Plan Card (MT5 Exclusive - Hidden by default for TraidiumX) -->
+                            <div id="subPlanCentCard" data-plan="cent" class="hidden tx-sub-plan-card relative flex flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-4 transition cursor-pointer hover:border-slate-700">
+                                <div class="space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                            <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-sm font-black text-white truncate">Cent</h4>
+                                                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">MT5 Cent</span>
+                                            </div>
+                                        </div>
+                                        <div class="tx-plan-radio w-4 h-4 rounded-full border border-slate-600 bg-transparent flex items-center justify-center p-0.5 shrink-0 mt-0.5">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-transparent"></div>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] leading-tight text-slate-400">Micro lot trading (1 USC = $0.01) with ultra low risk, ideal for bot &amp; EA testing.</p>
+                                    
+                                    <!-- Key Metrics Box (Real Live Data) -->
+                                    <div class="rounded-xl bg-[#050914] border border-slate-800/80 p-2.5 space-y-1.5 text-[11px]">
+                                        <div class="flex items-center justify-between text-slate-300">
+                                            <span class="text-slate-400 font-medium">Crypto Spread</span>
+                                            <span id="subPlanCentSpread" class="font-bold text-amber-400">Fixed 18 USC</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-slate-300 pt-1.5 border-t border-slate-800/60">
+                                            <span class="text-slate-400 font-medium">Account Currency</span>
+                                            <span class="font-bold text-white">USC (Cents)</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Features list -->
+                                    <div class="space-y-1 text-[10.5px] text-slate-300 pt-1">
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-amber-400 font-bold">✔</span> 1 USD = 100 USC balance</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-amber-400 font-bold">✔</span> 0.01 micro lot sizes</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-amber-400 font-bold">✔</span> Perfect for EA / Bot testing</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-amber-400 font-bold">✔</span> Low risk real trading</div>
+                                        <div class="flex items-center gap-1.5 text-slate-300"><span class="text-amber-400 font-bold">✔</span> 24/7 Market access</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-t border-white/5">
+                                    <div id="subPlanCentMinPill" class="w-full py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black text-center tracking-wide">
+                                        MIN $10.00 (1,000 USC)
                                     </div>
                                 </div>
                             </div>
@@ -3725,6 +4815,7 @@
                             <option value="basic" selected>Basic</option>
                             <option value="standard">Standard</option>
                             <option value="advanced">Advanced</option>
+                            <option id="subPlanCentOption" value="cent" class="hidden">Cent</option>
                         </select>
                     </div>
                 </div>
@@ -3798,6 +4889,153 @@
                         <span>›</span>
                     </button>
                 </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MetaTrader 5 (MT5) Auto-Generated Credentials & Download Modal (PrimeXBT / Bybit Premium Flow) -->
+    <div id="txMt5CredentialsModal" onclick="if(event.target === this) txCloseMt5CredentialsModal()" class="fixed inset-0 z-[9999999] hidden items-center justify-center p-3 sm:p-4" style="background-color: rgba(3, 7, 18, 0.88) !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;">
+        <div data-lenis-prevent="true" class="w-full max-w-lg flex flex-col rounded-3xl text-slate-100 overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200" style="background-color: #0c1425 !important; background: #0c1425 !important; border: 1px solid #1e293b !important; box-shadow: 0 25px 80px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06) !important;" onclick="event.stopPropagation();">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 shrink-0" style="background-color: #080d1a !important; background: #080d1a !important; border-bottom: 1px solid #1e293b !important;">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-300 shrink-0 shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="txMt5ModalTitle" class="text-base sm:text-lg font-black text-white tracking-tight">Trading Account</h3>
+                            <span id="txMt5ModalBadge" class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">Standard</span>
+                        </div>
+                        <p id="txMt5ModalSubtitle" class="text-xs text-slate-400">Standard Plan · MT5 Login Credentials</p>
+                    </div>
+                </div>
+                <button type="button" onclick="txCloseMt5CredentialsModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 border border-slate-700/60" title="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar" style="background-color: #0c1425 !important; background: #0c1425 !important;">
+                
+                <!-- Notice Banner -->
+                <div class="p-3.5 rounded-2xl border border-cyan-500/30 flex items-start gap-3 text-xs text-cyan-200/90 leading-relaxed" style="background-color: #08162b !important; background: #08162b !important;">
+                    <svg class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>Use these login credentials inside the official <strong>MetaTrader 5 terminal</strong> on PC, mobile apps, or WebTrader.</span>
+                </div>
+
+                <!-- 4 Sleek Solid Input-Style Credential Boxes -->
+                <div class="space-y-3.5">
+                    
+                    <!-- 1. Broker Server -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Broker Server</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-2xl px-4 py-3 transition group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <span id="txMt5ServerVal" class="font-mono text-xs sm:text-sm font-bold text-emerald-400 select-all truncate">TraidiumX-Live</span>
+                            <button type="button" onclick="txCopyMt5Field('txMt5ServerVal', 'Server copied!')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-400 hover:text-slate-950 text-xs font-bold text-cyan-300 border border-cyan-500/30 transition cursor-pointer flex items-center gap-1.5 shrink-0 ml-2 shadow-sm active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Login ID -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Login ID / Account Number</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-2xl px-4 py-3 transition group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <span id="txMt5LoginVal" class="font-mono text-sm sm:text-base font-bold text-cyan-300 select-all truncate">9389504</span>
+                            <button type="button" onclick="txCopyMt5Field('txMt5LoginVal', 'Login ID copied!')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-400 hover:text-slate-950 text-xs font-bold text-cyan-300 border border-cyan-500/30 transition cursor-pointer flex items-center gap-1.5 shrink-0 ml-2 shadow-sm active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Master Trading Password -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Master Password (Trade Access)</span>
+                            <span class="text-[10px] text-slate-500 font-medium">Full trading permissions</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-2xl px-4 py-3 transition group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <span id="txMt5PasswordVal" class="font-mono text-xs sm:text-sm font-bold text-slate-100 tracking-wider select-all truncate">Tx#8xK2v9!</span>
+                            <div class="flex items-center gap-2 shrink-0 ml-2">
+                                <button type="button" onclick="txToggleMt5PasswordVisibility()" class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border border-slate-700/80" title="Show / Hide Password">
+                                    <svg id="txMt5PassEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button type="button" onclick="txCopyMt5Field('txMt5PasswordVal', 'Master password copied!')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-400 hover:text-slate-950 text-xs font-bold text-cyan-300 border border-cyan-500/30 transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    <span>Copy</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Investor Password -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Investor Password (Read-Only)</span>
+                            <span class="text-[10px] text-slate-500 font-medium">Read-only view access</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-2xl px-4 py-3 transition group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <span id="txMt5InvPasswordVal" class="font-mono text-xs sm:text-sm font-bold text-purple-300 tracking-wider select-all truncate">Inv#3qP9xL</span>
+                            <div class="flex items-center gap-2 shrink-0 ml-2">
+                                <button type="button" onclick="txToggleMt5InvPasswordVisibility()" class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border border-slate-700/80" title="Show / Hide Password">
+                                    <svg id="txMt5InvPassEyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button type="button" onclick="txCopyMt5Field('txMt5InvPasswordVal', 'Investor password copied!')" class="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-400 hover:text-slate-950 text-xs font-bold text-cyan-300 border border-cyan-500/30 transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    <span>Copy</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Download Platforms -->
+                <div class="pt-2">
+                    <span class="text-[11px] font-bold text-slate-400 block mb-2.5">Download MetaTrader 5 or Open WebTrader:</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs font-bold">
+                        <a href="https://trade.mql5.com/trade" target="_blank" rel="noopener" class="p-3 rounded-2xl hover:bg-cyan-500/10 text-cyan-300 transition flex flex-col items-center gap-1.5 shadow-sm group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <svg class="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            <span class="text-[11px] text-white">Web Trader</span>
+                        </a>
+                        <a href="https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe" target="_blank" rel="noopener" class="p-3 rounded-2xl hover:bg-slate-800 text-slate-300 hover:text-white transition flex flex-col items-center gap-1.5 shadow-sm group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <svg class="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                            <span class="text-[11px] text-white">Windows</span>
+                        </a>
+                        <a href="https://download.mql5.com/cdn/mobile/mt5/android" target="_blank" rel="noopener" class="p-3 rounded-2xl hover:bg-slate-800 text-slate-300 hover:text-white transition flex flex-col items-center gap-1.5 shadow-sm group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <svg class="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.551 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.411 13.8533 8.084 12 8.084s-3.5902.327-5.1368.8657L4.8409 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/></svg>
+                            <span class="text-[11px] text-white">Android</span>
+                        </a>
+                        <a href="https://download.mql5.com/cdn/mobile/mt5/ios" target="_blank" rel="noopener" class="p-3 rounded-2xl hover:bg-slate-800 text-slate-300 hover:text-white transition flex flex-col items-center gap-1.5 shadow-sm group" style="background-color: #060b16 !important; background: #060b16 !important; border: 1px solid #1e293b !important;">
+                            <svg class="w-5 h-5 text-white group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.58.67-1.08 1.75-.95 2.78 1 .08 2.04-.53 2.66-1.28"/></svg>
+                            <span class="text-[11px] text-white">iOS</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-between px-6 py-4 shrink-0" style="background-color: #080d1a !important; background: #080d1a !important; border-top: 1px solid #1e293b !important;">
+                <button type="button" onclick="txCopyAllMt5Credentials()" class="px-4 py-2.5 rounded-xl border border-slate-700/80 hover:border-cyan-500/50 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95">
+                    <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>Copy All Details</span>
+                </button>
+                <button type="button" onclick="txCloseMt5CredentialsModal()" class="px-8 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-xs sm:text-sm font-black text-slate-950 transition cursor-pointer shadow-lg shadow-cyan-400/25 active:scale-95">
+                    Done
+                </button>
             </div>
 
         </div>
@@ -3890,14 +5128,110 @@
         </div>
     </div>
 
+    <!-- VIP Tiers Modal (Exact Binance / Bybit Design from Reference) -->
+    <div id="txVipTiersModal" onclick="if(event.target === this) txCloseVipTiersModal()" class="tx-vip-modal-overlay fixed inset-0 z-[9999999] hidden items-center justify-center p-4" style="background-color: rgba(2, 6, 23, 0.88) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;">
+        <div data-lenis-prevent="true" class="relative w-full max-w-md rounded-3xl p-6 sm:p-7 overflow-hidden text-white animate-in fade-in zoom-in-95 duration-200" style="background-color: #0b1426 !important; background: linear-gradient(180deg, #0d1a2d 0%, #081220 100%) !important; border: 1.5px solid #22d3ee !important; box-shadow: 0 30px 90px rgba(0,0,0,0.95), 0 0 35px rgba(34, 211, 238, 0.25) !important;">
+            
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                        <span>VIP Tiers</span>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-400/15 text-cyan-300 border border-cyan-400/30">Volume Benefits</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Your tier is based on your trading volume over the last 30 days.</p>
+                </div>
+                <button type="button" onclick="txCloseVipTiersModal()" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer text-sm font-bold shrink-0 ml-2 border border-white/10 hover:border-cyan-400/40" title="Close (Esc)">
+                    ✕
+                </button>
+            </div>
+
+            <!-- 30d Volume Highlight Box -->
+            <div class="mt-5 rounded-2xl bg-[#0a1526] p-4 sm:p-5 border border-cyan-500/20 shadow-inner">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-400">Your 30d volume</span>
+                    <span id="txVipModalCurrentBadge" class="px-3 py-0.5 rounded-full text-xs font-black uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-400/30">Regular</span>
+                </div>
+                <div class="mt-2">
+                    <div id="txVipModalVolumeVal" class="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">0.00 USD</div>
+                </div>
+                <div class="mt-3">
+                    <div class="h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-white/5">
+                        <div id="txVipModalProgressBar" class="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(34,211,238,0.5)]" style="width: 35%;"></div>
+                    </div>
+                </div>
+                <div class="mt-2.5 text-xs text-slate-300 font-medium">
+                    <span id="txVipModalMoreNeeded">50,000.00 USD more to reach VIP 1</span>
+                </div>
+            </div>
+
+            <!-- Tier Requirements List -->
+            <div class="mt-5 space-y-2">
+                <!-- Regular (Current) Row -->
+                <div id="txVipRow_regular" class="flex items-center justify-between p-3 rounded-xl bg-cyan-950/30 border border-cyan-400/40 text-xs sm:text-sm font-bold transition">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_regular" class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+                        <span id="txVipLabel_regular" class="text-white">Regular <span class="text-cyan-400 font-semibold text-xs">(current)</span></span>
+                    </div>
+                    <span class="text-slate-300 font-mono text-xs">No minimum</span>
+                </div>
+
+                <!-- VIP 1 -->
+                <div id="txVipRow_vip1" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] text-xs sm:text-sm font-semibold transition border border-transparent">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_vip1" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                        <span id="txVipLabel_vip1" class="text-slate-300">VIP 1</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">≥ 50,000.00 USD</span>
+                </div>
+
+                <!-- VIP 2 -->
+                <div id="txVipRow_vip2" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] text-xs sm:text-sm font-semibold transition border border-transparent">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_vip2" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                        <span id="txVipLabel_vip2" class="text-slate-300">VIP 2</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">≥ 250,000.00 USD</span>
+                </div>
+
+                <!-- VIP 3 -->
+                <div id="txVipRow_vip3" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] text-xs sm:text-sm font-semibold transition border border-transparent">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_vip3" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                        <span id="txVipLabel_vip3" class="text-slate-300">VIP 3</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">≥ 1,000,000.00 USD</span>
+                </div>
+
+                <!-- VIP 4 -->
+                <div id="txVipRow_vip4" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] text-xs sm:text-sm font-semibold transition border border-transparent">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_vip4" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                        <span id="txVipLabel_vip4" class="text-slate-300">VIP 4</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">≥ 5,000,000.00 USD</span>
+                </div>
+
+                <!-- VIP 5 -->
+                <div id="txVipRow_vip5" class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.03] text-xs sm:text-sm font-semibold transition border border-transparent">
+                    <div class="flex items-center gap-2.5">
+                        <span id="txVipDot_vip5" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                        <span id="txVipLabel_vip5" class="text-slate-300">VIP 5</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-xs">≥ 20,000,000.00 USD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div data-component="footer"></div>
 
     <script src="../js/lenis.min.js"></script>
     <script src="../js/components-loader.js"></script>
     <script src="../js/api-config.js?v=21"></script>
-    <script src="../js/auth-state.js?v=87"></script>
+    <script src="../js/auth-state.js?v=88"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="../js/wallet.js?v=150"></script>
+    <script src="../js/wallet.js?v=217"></script>
     <script src="../js/responsive.js"></script>
 
     <script>

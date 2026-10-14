@@ -68,6 +68,7 @@ def account_mode() -> str:
 
 def plan_group(plan_key: str) -> str:
     groups = {
+        "cent": getattr(settings, "METAAPI_MT5_CENT_GROUP", "") or getattr(settings, "METAAPI_MT5_BASIC_GROUP", "cent"),
         "basic": settings.METAAPI_MT5_BASIC_GROUP,
         "standard": settings.METAAPI_MT5_STANDARD_GROUP,
         "advanced": settings.METAAPI_MT5_ADVANCED_GROUP,

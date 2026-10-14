@@ -60,7 +60,7 @@ def run_futures_engine_cycle():
 
 
 def _engine_loop():
-    interval = max(0.25, float(getattr(settings, "FUTURES_ENGINE_INTERVAL_SECONDS", 0.75)))
+    interval = max(2.0, float(getattr(settings, "FUTURES_ENGINE_INTERVAL_SECONDS", 2.0)))
 
     while not _ENGINE_STOP_EVENT.is_set():
         started_at = time.monotonic()
@@ -71,7 +71,7 @@ def _engine_loop():
             print(f"Futures engine cycle failed: {error}")
 
         elapsed = time.monotonic() - started_at
-        _ENGINE_STOP_EVENT.wait(max(0.05, interval - elapsed))
+        _ENGINE_STOP_EVENT.wait(max(0.5, interval - elapsed))
 
 
 def start_futures_engine():

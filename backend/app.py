@@ -58,7 +58,7 @@ def create_app():
                     "http://localhost:5500"
                 ],
                 "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization"],
+                "allow_headers": ["Content-Type", "Authorization", "X-Navbar-Currency", "X-Active-User-Id", "*"],
             }
         },
         supports_credentials=True,
@@ -129,6 +129,11 @@ def create_app():
     @app.get("/admin/users/reminders")
     def admin_user_reminders_page():
         return serve_admin_page("users/reminders.html")
+
+    @app.get("/admin/deleted-accounts")
+    @app.get("/admin/users/deleted")
+    def admin_deleted_accounts_page():
+        return serve_admin_page("users/deleted-accounts.html")
 
     @app.get("/admin/kyc")
     def admin_kyc_page():
@@ -222,6 +227,20 @@ def create_app():
     @app.get("/portfolio")
     def frontend_portfolio():
         return redirect("/src/pages/portfolio.html")
+
+    # Frontend Market Research Reader Page
+    @app.get("/research")
+    @app.get("/research/")
+    @app.get("/research/<path:article_id>")
+    def frontend_research(article_id=None):
+        return send_from_directory(os.path.join(FRONTEND_DIR, "src", "pages"), "research.html")
+
+    # Frontend Market News Page
+    @app.get("/news")
+    @app.get("/news/")
+    @app.get("/news/<path:article_id>")
+    def frontend_news(article_id=None):
+        return send_from_directory(os.path.join(FRONTEND_DIR, "src", "pages"), "news.html")
 
     # Backend Health API
     @app.get("/api/health")
@@ -322,6 +341,16 @@ def create_app():
                 "hint": "Please check the URL."
             },
             status_code=404
+        )
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return error_response(
+            message="Method not allowed.",
+            errors={
+                "hint": "The requested HTTP method is not allowed for this URL."
+            },
+            status_code=405
         )
 
     @app.errorhandler(500)

@@ -9,6 +9,7 @@
         ]},
         { label: "Operations", items: [
             { id: "users", title: "Users", icon: "👥", href: "/admin/users" },
+            { id: "deleted-accounts", title: "Deleted Accounts", icon: "🗑", href: "/admin/deleted-accounts" },
             { id: "kyc", title: "KYC Review", icon: "🪪", href: "/admin/kyc" },
             { id: "support", title: "Support Tickets", icon: "🎫", href: "/admin/support" },
             { id: "reminders", title: "User Reminders", icon: "🔔", href: "/admin/users/reminders" },
@@ -207,7 +208,7 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function initLayout() {
         applyAdminTheme(getAdminTheme());
         if (!api()?.requireAuth?.()) return;
         renderSidebar();
@@ -215,7 +216,13 @@
         bindLayoutActions();
         setupModal();
         document.querySelectorAll(".tx-auto-year").forEach(el => el.textContent = new Date().getFullYear());
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initLayout);
+    } else {
+        initLayout();
+    }
 
     window.TXAdmin = { statusClass, money, compact, initials, toast, applyAdminTheme, setAdminTheme, toggleAdminTheme, getAdminTheme };
 })();

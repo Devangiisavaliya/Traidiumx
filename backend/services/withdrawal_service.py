@@ -19,6 +19,7 @@ from services.wallet_service import (
     ensure_user_wallet,
     lock_main_wallet_amount,
     release_main_locked_amount,
+    transfer_between_user_wallets,
 )
 from models.wallet_model import format_wallet
 from utils.date_helper import now_utc
@@ -146,7 +147,29 @@ def check_kyc_for_withdrawal(user_id):
 
 def create_withdrawal_request(user_id, data):
     admin_settings = get_admin_withdrawal_settings()
-    wallet = ensure_user_wallet(user_id)
+
+    sub_account_id = clean_string(data.get("sub_account_id") or data.get("account_id") or data.get("from_account") or "")
+    target_user_id = str(user_id)
+    account_name = "Wallet"
+
+    if sub_account_id and sub_account_id != "main" and sub_account_id != str(user_id):
+        from bson import ObjectId
+        db = get_database()
+        try:
+            sub_user = db.users.find_one({
+                "_id": ObjectId(sub_account_id),
+                "$or": [
+                    {"parent_user_id": str(user_id)},
+                    {"parent_user_id": ObjectId(user_id)}
+                ]
+            })
+            if sub_user:
+                target_user_id = str(sub_user["_id"])
+                account_name = sub_user.get("name") or "Trading Account"
+        except Exception:
+            pass
+
+    wallet = ensure_user_wallet(target_user_id)
 
     amount = data.get("amount")
     withdrawal_method = clean_string(data.get("withdrawal_method") or "crypto_withdrawal").lower()
@@ -159,6 +182,12 @@ def create_withdrawal_request(user_id, data):
         withdrawal_method = "inr_withdrawal"
         crypto_asset = "INR"
         crypto_network = "UPI/BANK"
+
+        from bson import ObjectId
+        db = get_database()
+        target_doc = db.users.find_one({"_id": ObjectId(target_user_id)}) if ObjectId.is_valid(target_user_id) else None
+        if target_doc and (target_doc.get("selected_platform") == "mt5" or target_doc.get("platform") == "mt5" or "cent" in str(target_doc.get("plan", "")).lower()):
+            errors["account"] = "MetaTrader 5 accounts only support USDT withdrawals. Please withdraw via Crypto USDT or transfer funds to your TraidiumX Wallet."
 
     errors = {}
 
@@ -210,8 +239,22 @@ def create_withdrawal_request(user_id, data):
         main_bucket = wallet.get("main_wallet_inr") if is_inr else wallet.get(f"main_wallet_{crypto_asset.lower()}")
         main_bucket = main_bucket or {}
         available_balance = float(main_bucket.get("available_balance", 0.0))
+
+        # Check trading bucket if funds are in trading wallet of the account
+        trading_bucket = wallet.get("trading_wallet_inr") if is_inr else (wallet.get(f"trading_wallet_{crypto_asset.lower()}") or wallet.get("trading_wallet"))
+        trading_bucket = trading_bucket or {}
+        trading_available = float(trading_bucket.get("available_balance", wallet.get("available_balance", 0.0) or 0.0))
+
+        if available_balance < total_lock_amount and trading_available >= total_lock_amount:
+            transfer_between_user_wallets(target_user_id, total_lock_amount, "trading_to_main", currency="INR" if is_inr else crypto_asset)
+            wallet = ensure_user_wallet(target_user_id)
+            main_bucket = wallet.get("main_wallet_inr") if is_inr else wallet.get(f"main_wallet_{crypto_asset.lower()}")
+            main_bucket = main_bucket or {}
+            available_balance = float(main_bucket.get("available_balance", 0.0))
+
         if available_balance < total_lock_amount:
-            errors["wallet"] = f"Insufficient Main Wallet balance for withdrawal amount of {amount} {crypto_asset}."
+            acc_label = f"{account_name} balance" if target_user_id != str(user_id) else "Main Wallet balance"
+            errors["wallet"] = f"Insufficient {acc_label} for withdrawal amount of {amount} {crypto_asset}."
         else:
             from admin.settings_routes import get_final_settings
             system_settings = get_final_settings()
@@ -219,7 +262,7 @@ def create_withdrawal_request(user_id, data):
             raw_min_balance = float(system_settings.get("min_main_wallet_balance", 0.0) or 0.0)
             is_inr = (withdrawal_method == "inr_withdrawal")
 
-            if raw_min_balance > 0:
+            if raw_min_balance > 0 and target_user_id == str(user_id):
                 min_required = raw_min_balance * usdt_rate if is_inr else raw_min_balance
                 if available_balance - total_lock_amount < min_required:
                     unit_label = f"₹{min_required:g} INR" if is_inr else f"${raw_min_balance:g} USDT"
@@ -238,6 +281,9 @@ def create_withdrawal_request(user_id, data):
     withdrawal_id = create_withdrawal(
         {
             "user_id": str(user_id),
+            "sub_account_id": target_user_id,
+            "source_user_id": target_user_id,
+            "account_name": account_name,
             "withdrawal_reference": withdrawal_reference,
             "amount": round(float(amount), 8),
             "currency": req_currency,
@@ -255,7 +301,7 @@ def create_withdrawal_request(user_id, data):
             "fees_deducted_from_amount": True,
             "status": "pending_admin_approval",
             "processing_mode": processing_mode,
-            "remark": "Withdrawal request created. Requested amount is locked; fees are deducted from that amount and payout happens only after admin approval or rejection/cancellation.",
+            "remark": f"Withdrawal request created from {account_name}. Requested amount is locked; fees are deducted from that amount and payout happens only after admin approval or rejection/cancellation.",
             "payout_reference": "",
             "tx_hash": "",
             "explorer_url": "",
@@ -264,11 +310,11 @@ def create_withdrawal_request(user_id, data):
     )
 
     lock_result = lock_main_wallet_amount(
-        user_id=user_id,
+        user_id=target_user_id,
         amount=total_lock_amount,
         transaction_type=req_tx_type,
         reference_id=str(withdrawal_id),
-        description=f"{req_currency} withdrawal request locked for reference {withdrawal_reference}. Payout {unit_sym}{payout_amount:g} {req_currency} after fee {unit_sym}{total_fee:g} {req_currency}.",
+        description=f"{req_currency} withdrawal request locked from {account_name} for reference {withdrawal_reference}. Payout {unit_sym}{payout_amount:g} {req_currency} after fee {unit_sym}{total_fee:g} {req_currency}.",
         currency=req_currency,
     )
 
@@ -300,13 +346,14 @@ def cancel_withdrawal_request(user_id, withdrawal_id):
             "status_code": 400,
         }
 
+    target_user_id = str(withdrawal.get("sub_account_id") or withdrawal.get("source_user_id") or user_id)
     locked_amount = float(withdrawal.get("locked_amount", withdrawal.get("amount", 0.0)))
     req_currency = str(withdrawal.get("currency") or "INR").upper()
     is_inr = (req_currency == "INR" or withdrawal.get("withdrawal_method") == "inr_withdrawal")
     req_tx_type = "inr_withdrawal_cancelled" if is_inr else "crypto_withdrawal_cancelled"
 
     release_result = release_main_locked_amount(
-        user_id=user_id,
+        user_id=target_user_id,
         amount=locked_amount,
         transaction_type=req_tx_type,
         reference_id=withdrawal_id,
@@ -360,10 +407,11 @@ def complete_withdrawal_for_development(user_id, withdrawal_id):
     if withdrawal.get("status") not in ["pending", "pending_payout", "pending_admin_approval", "queued"]:
         return {"success": False, "message": "Withdrawal cannot be completed.", "errors": {"status": withdrawal.get("status")}, "status_code": 400}
 
+    target_user_id = str(withdrawal.get("sub_account_id") or withdrawal.get("source_user_id") or user_id)
     locked_amount = float(withdrawal.get("locked_amount", withdrawal.get("amount", 0.0)))
     req_currency = str(withdrawal.get("currency") or "USDT").upper()
     wallet_result = complete_main_locked_withdrawal(
-        user_id=user_id,
+        user_id=target_user_id,
         amount=locked_amount,
         reference_id=withdrawal_id,
         description=f"{req_currency} withdrawal completed for reference {withdrawal.get('withdrawal_reference')}. Locked amount finalized; no extra debit.",

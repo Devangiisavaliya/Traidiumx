@@ -174,7 +174,32 @@ def _verify_evm_deposit(network, tx_hash, expected_to_address, expected_amount):
     expected_contract = get_usdt_contract(network).lower()
     expected_to_address = clean_string(expected_to_address).lower()
 
+    valid_destinations = [expected_to_address]
+    company_addr = clean_string(get_crypto_network_address(network)).lower()
+    if company_addr and company_addr not in valid_destinations:
+        valid_destinations.append(company_addr)
+
+    try:
+        from services.hd_wallet_service import find_user_by_deposit_address
+        hd_rec = find_user_by_deposit_address(expected_to_address, network)
+        if hd_rec and hd_rec.get("user_id"):
+            from config.database import get_database
+            from bson import ObjectId
+            db = get_database()
+            u_id = str(hd_rec["user_id"])
+            u_doc = db.users.find_one({"_id": ObjectId(u_id)}) if ObjectId.is_valid(u_id) else None
+            if u_doc:
+                p_id = str(u_doc.get("parent_user_id") or u_id)
+                all_u_ids = [p_id] + [str(s["_id"]) for s in db.users.find({"parent_user_id": p_id}, {"_id": 1})]
+                for item in db.user_deposit_addresses.find({"user_id": {"$in": all_u_ids}, "network": network}):
+                    a = clean_string(item.get("address", "")).lower()
+                    if a and a not in valid_destinations:
+                        valid_destinations.append(a)
+    except Exception:
+        pass
+
     matched_amount = 0.0
+    verified_destination = expected_to_address
     for log in receipt.get("logs", []):
         topics = [clean_string(topic).lower() for topic in log.get("topics", [])]
         contract_address = clean_string(log.get("address", "")).lower()
@@ -183,8 +208,9 @@ def _verify_evm_deposit(network, tx_hash, expected_to_address, expected_amount):
         if len(topics) < 3 or topics[0] != TRANSFER_TOPIC:
             continue
         to_address = _topic_to_evm_address(topics[2])
-        if not _same_evm_address(to_address, expected_to_address):
+        if not any(_same_evm_address(to_address, vd) for vd in valid_destinations):
             continue
+        verified_destination = to_address
         matched_amount += _hex_to_amount(log.get("data", "0x0"), network=network)
 
     if matched_amount <= 0:
@@ -210,7 +236,7 @@ def _verify_evm_deposit(network, tx_hash, expected_to_address, expected_amount):
         "message": "USDT blockchain transfer verified successfully.",
         "confirmations": 1,
         "verified_amount": round(matched_amount, 8),
-        "verified_to_address": expected_to_address,
+        "verified_to_address": verified_destination or expected_to_address,
     }
 
 
