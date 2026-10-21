@@ -275,14 +275,116 @@ def apply_account_platform_fee_if_due(user_id, trigger="wallet_access"):
     }
 
 
+_BINANCE_DEMO_BALANCE_CACHE = {}
+_BINANCE_DEMO_BALANCE_CACHE_TIME = 0
+
+
+def sync_demo_wallet_with_binance(user_id, wallet=None):
+    """Sync Binance Futures Demo balance to a TraidiumX Demo sub-account.
+    
+    STRICT SECURITY GUARD:
+    This function ONLY applies to sub-accounts explicitly flagged as demo (account_mode='demo'
+    or is_demo=True) with parent_user_id set.
+    Main/Real user accounts (where real funds reside) are NEVER touched and return immediately.
+    """
+    if not user_id:
+        return wallet
+    try:
+        from bson import ObjectId
+        from config.database import get_database
+        from config.settings import settings
+        db = get_database()
+
+        user_doc = db.users.find_one({"_id": ObjectId(user_id)})
+        if not user_doc:
+            return wallet
+
+        # Strict guard: MUST be a sub-account AND explicitly a demo account
+        is_sub = bool(user_doc.get("parent_user_id"))
+        is_demo = bool(
+            user_doc.get("is_demo") is True
+            or user_doc.get("account_mode") == "demo"
+            or user_doc.get("plan") == "demo"
+            or "demo" in str(user_doc.get("name") or "").lower()
+        )
+
+        if not (is_sub and is_demo):
+            # Real accounts are left completely untouched!
+            return wallet
+
+        if not settings.BINANCE_API_KEY:
+            return wallet
+
+        global _BINANCE_DEMO_BALANCE_CACHE, _BINANCE_DEMO_BALANCE_CACHE_TIME
+        import time
+        now = time.time()
+        b_data = None
+        if now - _BINANCE_DEMO_BALANCE_CACHE_TIME < 2.0 and _BINANCE_DEMO_BALANCE_CACHE:
+            b_data = _BINANCE_DEMO_BALANCE_CACHE
+        else:
+            from services.binance_service import _send_signed_request
+            b_res = _send_signed_request("GET", "/fapi/v2/account")
+            if b_res.get("success"):
+                b_data = b_res.get("data", {})
+                _BINANCE_DEMO_BALANCE_CACHE = b_data
+                _BINANCE_DEMO_BALANCE_CACHE_TIME = now
+
+        if not b_data:
+            return wallet
+
+        avail_bal = float(b_data.get("availableBalance", 0.0) or 0.0)
+        wallet_bal = float(b_data.get("totalWalletBalance", 0.0) or 0.0)
+        unrealized = float(b_data.get("totalUnrealizedProfit", 0.0) or 0.0)
+
+        avail_rounded = round(avail_bal, 2)
+        total_rounded = round(wallet_bal, 2)
+        unrealized_rounded = round(unrealized, 2)
+
+        # Update Demo sub-account wallet in MongoDB
+        db.wallets.update_one(
+            {"user_id": str(user_id)},
+            {
+                "$set": {
+                    "available_balance": avail_rounded,
+                    "trading_wallet.available_balance": avail_rounded,
+                    "trading_wallet.balance": total_rounded,
+                    "trading_wallet.unrealized_pnl": unrealized_rounded,
+                    "trading_wallet_usdt.available_balance": avail_rounded,
+                    "trading_wallet_usdt.balance": total_rounded,
+                    "trading_wallet_usdt.unrealized_pnl": unrealized_rounded,
+                    "binance_synced": True,
+                    "binance_synced_at": now_utc(),
+                }
+            }
+        )
+
+        if wallet:
+            wallet["available_balance"] = avail_rounded
+            if "trading_wallet" in wallet and isinstance(wallet["trading_wallet"], dict):
+                wallet["trading_wallet"]["available_balance"] = avail_rounded
+                wallet["trading_wallet"]["balance"] = total_rounded
+                wallet["trading_wallet"]["unrealized_pnl"] = unrealized_rounded
+            if "trading_wallet_usdt" in wallet and isinstance(wallet["trading_wallet_usdt"], dict):
+                wallet["trading_wallet_usdt"]["available_balance"] = avail_rounded
+                wallet["trading_wallet_usdt"]["balance"] = total_rounded
+                wallet["trading_wallet_usdt"]["unrealized_pnl"] = unrealized_rounded
+
+        return wallet
+    except Exception as e:
+        print(f"Notice: Demo balance sync exception: {e}")
+        return wallet
+
+
 def ensure_user_wallet(user_id):
     wallet = find_wallet_by_user_id(user_id)
 
     if wallet:
-        return normalize_wallet_currency(wallet)
+        wallet = normalize_wallet_currency(wallet)
+    else:
+        create_default_wallet(user_id)
+        wallet = find_wallet_by_user_id(user_id)
 
-    create_default_wallet(user_id)
-    return find_wallet_by_user_id(user_id)
+    return sync_demo_wallet_with_binance(user_id, wallet)
 
 
 def get_wallet_balance(user_id):

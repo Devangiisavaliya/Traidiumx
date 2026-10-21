@@ -401,6 +401,10 @@ def approve_kyc(kyc_id):
             "_id": {"$ne": to_object_id(user_id)},
             "aadhaar_number": aadhaar_num,
             "kyc_status": "approved"
+        }) or db.kyc_requests.find_one({
+            "user_id": {"$ne": str(user_id)},
+            "status": "approved",
+            "$or": [{"aadhaar_number": aadhaar_num}, {"document_number": aadhaar_num}]
         })
         if duplicate_aadhaar:
             return error_response(
@@ -413,6 +417,10 @@ def approve_kyc(kyc_id):
             "_id": {"$ne": to_object_id(user_id)},
             "pan_number": pan_num,
             "kyc_status": "approved"
+        }) or db.kyc_requests.find_one({
+            "user_id": {"$ne": str(user_id)},
+            "status": "approved",
+            "$or": [{"pan_number": pan_num}, {"document_number": pan_num}]
         })
         if duplicate_pan:
             return error_response(

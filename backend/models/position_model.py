@@ -120,6 +120,7 @@ def format_position(position):
     return {
         "id": str(position["_id"]),
         "user_id": position.get("user_id"),
+        "sub_account_id": position.get("sub_account_id") or position.get("user_id"),
         "symbol": position.get("symbol"),
         "position_side": position.get("position_side"),
         "quantity": position.get("quantity", 0.0),

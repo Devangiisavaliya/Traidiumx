@@ -1141,6 +1141,15 @@ function escapeHtml(value) {
         try {
             const response = await apiRequest("/user/account-status");
             latestStatusData = response.data || {};
+            const st = String(latestStatusData?.account_status || "").toLowerCase();
+            if (st === "closed" || st === "deleted") {
+                removeAccountStatusBanner();
+                clearAuthData();
+                sessionStorage.clear();
+                const loginPath = window.location.pathname.includes("/src/pages/") ? "./login.html" : "/src/pages/login.html";
+                window.location.href = `${loginPath}?notice=account_closed`;
+                return;
+            }
             renderAccountStatusBanner(latestStatusData);
             loadNavbarWalletBalance();
         } catch (error) {
@@ -1153,6 +1162,15 @@ function escapeHtml(value) {
         const pending = data && data.pending_action;
         const status = String(data?.account_status || "active").toLowerCase();
 
+        if (status === "closed" || status === "deleted") {
+            removeAccountStatusBanner();
+            clearAuthData();
+            sessionStorage.clear();
+            const loginPath = window.location.pathname.includes("/src/pages/") ? "./login.html" : "/src/pages/login.html";
+            window.location.href = `${loginPath}?notice=account_closed`;
+            return;
+        }
+
         if (!pending && status === "active") {
             removeAccountStatusBanner();
             return;
@@ -1161,19 +1179,25 @@ function escapeHtml(value) {
         const banner = ensureAccountStatusBanner();
         const reason = escapeStatusHtml(data?.reason || pending?.reason || "Admin account notice.");
         const action = String(pending?.action || status || "restricted").toLowerCase();
-        const title = pending
-            ? action === "blocked"
-                ? "Account Block Warning"
-                : "Account Suspend Warning"
-            : status === "blocked"
-                ? "Account Blocked"
-                : status === "suspended"
-                    ? "Account Suspended"
-                    : "Account Restricted";
+        const isDeletion = status === "pending_deletion";
 
-        const message = pending
-            ? pending.message || `Your account will be ${action}. Please complete any trade action before the timer ends.`
-            : data?.message || "Your account is restricted. Please contact support.";
+        const title = isDeletion
+            ? "Account Deletion Pending Review"
+            : pending
+                ? action === "blocked"
+                    ? "Account Block Warning"
+                    : "Account Suspend Warning"
+                : status === "blocked"
+                    ? "Account Blocked"
+                    : status === "suspended"
+                        ? "Account Suspended"
+                        : "Account Restricted";
+
+        const message = isDeletion
+            ? "Your request to permanently delete this account is under admin review. Trades and balances are frozen."
+            : pending
+                ? pending.message || `Your account will be ${action}. Please complete any trade action before the timer ends.`
+                : data?.message || "Your account is restricted. Please contact support.";
 
         const timerHtml = pending
             ? `<div class="tx-account-status-timer" data-account-status-countdown>${formatStatusDuration(pending.remaining_seconds || 0)}</div>`
@@ -1181,19 +1205,23 @@ function escapeHtml(value) {
                 ? `<div class="tx-account-status-timer" data-account-status-countdown>${formatStatusDuration(data.suspended_remaining_seconds || 0)}</div>`
                 : "";
 
+        const sideActionHtml = isDeletion
+            ? `<button type="button" onclick="cancelAccountDeletion()" style="background: linear-gradient(135deg, #06b6d4, #0284c7); color: #fff; font-weight: 800; font-size: 11px; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(34, 211, 238, 0.4); cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);">Cancel Request</button>`
+            : timerHtml;
+
         banner.innerHTML = `
             <div class="tx-account-status-card">
                 <div class="tx-account-status-glow"></div>
                 <div class="tx-account-status-main">
                     <div>
-                        <div class="tx-account-status-eyebrow">TraidiumX Account Notice</div>
+                        <div class="tx-account-status-eyebrow">${isDeletion ? "Deletion Request Notice" : "TraidiumX Account Notice"}</div>
                         <h3>${escapeStatusHtml(title)}</h3>
                         <p>${escapeStatusHtml(message)}</p>
                         <div class="tx-account-status-reason"><b>Reason:</b> ${reason}</div>
                     </div>
                     <div class="tx-account-status-side">
-                        ${timerHtml}
-                        <span class="tx-account-status-pill">${pending ? "Grace Time" : escapeStatusHtml(status)}</span>
+                        ${sideActionHtml}
+                        <span class="tx-account-status-pill">${isDeletion ? "Pending Deletion" : (pending ? "Grace Time" : escapeStatusHtml(status))}</span>
                     </div>
                 </div>
                 ${pending ? `<p class="tx-account-status-help">You can buy, sell, or close trades until this timer ends. After that the restriction will apply automatically.</p>` : ""}
@@ -1269,7 +1297,7 @@ function escapeHtml(value) {
         const style = document.createElement("style");
         style.id = "txAccountStatusStyles";
         style.textContent = `
-            .tx-account-status-banner{position:fixed;left:50%;top:86px;z-index:9999;width:min(920px,calc(100vw - 28px));transform:translateX(-50%);pointer-events:none;}
+            .tx-account-status-banner{position:fixed;left:50%;top:112px;z-index:9999;width:min(920px,calc(100vw - 28px));transform:translateX(-50%);pointer-events:none;}
             .tx-account-status-card{position:relative;overflow:hidden;border:1px solid rgba(251,191,36,.32);border-radius:24px;background:linear-gradient(135deg,rgba(15,23,42,.98),rgba(30,41,59,.96));box-shadow:0 24px 70px rgba(0,0,0,.38);padding:18px;pointer-events:auto;color:#fff;backdrop-filter:blur(18px);}
             .tx-account-status-glow{position:absolute;inset:-60px auto auto -60px;width:180px;height:180px;border-radius:999px;background:rgba(251,191,36,.22);filter:blur(34px);}
             .tx-account-status-main{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;}
@@ -1378,8 +1406,36 @@ function escapeHtml(value) {
     }
 
     function showToastsForNewUnreadNotifications() {
-        // User-side notifications are intentionally shown only inside the bell modal.
-        // This prevents auto side popups from covering wallet/trading screens.
+        if (!Array.isArray(latestNotifications)) return;
+        const criticalUnread = latestNotifications.filter(n => n && !n.read_at && n.type === "account_status");
+        criticalUnread.forEach(notice => {
+            const toastKey = "tx_notice_shown_" + notice.id;
+            if (sessionStorage.getItem(toastKey)) return;
+            sessionStorage.setItem(toastKey, "1");
+
+            const toast = document.createElement("div");
+            toast.className = "tx-status-notice-toast animate-fadeIn";
+            toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; z-index: 99999; max-width: 380px; background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: 18px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); backdrop-filter: blur(16px); color: #fff; font-family: sans-serif;";
+            toast.innerHTML = `
+                <div style="display: flex; align-items: start; justify-content: space-between; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 16px;">⚠️</span>
+                        <strong style="color: #fb7185; font-size: 13px; font-weight: 800;">${escapeNotificationHtml(notice.title || "Account Notice")}</strong>
+                    </div>
+                    <button type="button" style="background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; line-height: 1;" onclick="this.closest('.tx-status-notice-toast').remove()">×</button>
+                </div>
+                <p style="margin: 8px 0 0 0; color: #cbd5e1; font-size: 12px; line-height: 1.5; font-weight: 600;">${escapeNotificationHtml(notice.message || "")}</p>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                if (toast.isConnected) {
+                    toast.style.transition = "opacity 0.4s, transform 0.4s";
+                    toast.style.opacity = "0";
+                    toast.style.transform = "translateY(10px)";
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 8000);
+        });
     }
 
     function getNotificationFocusReturnTarget() {
@@ -1489,6 +1545,7 @@ function escapeHtml(value) {
         });
 
         renderNotificationModalList(latestNotifications);
+        showToastsForNewUnreadNotifications();
     }
 
     function updateBadge(root, unreadCount) {

@@ -1019,13 +1019,89 @@ function bindButtonListeners(user) {
     });
 
     // Delete/Close Account
-    document.getElementById("closeAccountBtn")?.addEventListener("click", () => {
-        showModal("Delete Account", `
-            <div class="space-y-4 p-5 text-sm text-center">
-                <p class="text-red-400 font-bold">Warning: This action is permanent and cannot be undone.</p>
-                <p class="text-slate-400">Your trading assets, order history, and account profile will be permanently deleted.</p>
-                <button type="button" id="confirmPermanentDeleteBtn" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="confirmDeleteAccount()">Permanently Delete Account</button>
-                <button type="button" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition" onclick="closeSettingsModal()">Cancel</button>
+    document.getElementById("closeAccountBtn")?.addEventListener("click", async () => {
+        let data = {};
+        try {
+            const statusRes = await apiRequest("/user/deletion-request", { method: "GET" });
+            data = statusRes?.data || {};
+
+            if (data.has_pending_request) {
+                showModal("Account Deletion Pending", `
+                    <div class="space-y-4 p-5 text-sm text-left">
+                        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24;" class="rounded-2xl p-4 text-xs leading-relaxed">
+                            <span class="font-extrabold flex items-center gap-1.5 mb-1 text-amber-300">
+                                <span>⚠️</span> Deletion Request Pending Review
+                            </span>
+                            Your request to permanently delete this account is currently being reviewed by TraidiumX Admin.
+                        </div>
+                        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);" class="rounded-2xl p-4 text-xs space-y-2">
+                            <p class="text-slate-400">Reason: <span class="text-white font-bold">${escapeSettingsHtml(data.reason || "N/A")}</span></p>
+                            ${data.feedback ? `<p class="text-slate-400">Feedback: <span class="text-white italic">${escapeSettingsHtml(data.feedback)}</span></p>` : ""}
+                            <p class="text-slate-400">Submitted: <span class="text-white font-semibold">${data.requested_at ? new Date(data.requested_at).toLocaleString() : "Recently"}</span></p>
+                            <p class="text-slate-400">Status: <span style="color: #fbbf24; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;">Pending Admin Approval</span></p>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">Changed your mind? You can cancel your deletion request at any time before admin approval.</p>
+                        <div class="space-y-2 pt-1">
+                            <button type="button" id="cancelDelReqBtn" style="background: linear-gradient(135deg, #06b6d4, #0284c7); color: #ffffff; font-weight: 800; border: 1px solid rgba(34, 211, 238, 0.4); box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);" class="w-full py-3 rounded-xl text-xs transition cursor-pointer hover:opacity-90 active:scale-[0.98]" onclick="cancelAccountDeletion()">Cancel Deletion Request</button>
+                            <button type="button" style="background: #1e293b; color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1);" class="w-full py-2.5 rounded-xl text-xs font-bold transition cursor-pointer hover:bg-slate-700" onclick="closeSettingsModal()">Close</button>
+                        </div>
+                    </div>
+                `);
+                return;
+            }
+        } catch (_) {}
+
+        const rejectedHtml = data?.last_rejected_request ? `
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fef3c7;" class="rounded-2xl p-4 text-xs space-y-2">
+                <div style="color: #fbbf24; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                    <span>⚠️</span> Previous Deletion Request Rejected
+                </div>
+                <div style="color: #cbd5e1; line-height: 1.5;">
+                    Your previous request to delete this account was <strong style="color: #fb7185;">rejected</strong> by Admin.
+                </div>
+                <div style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 12px; border-radius: 12px; margin-top: 6px;">
+                    <span style="color: #fbbf24; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px;">Admin Reason:</span>
+                    <span style="color: #f1f5f9; font-weight: 600;">${escapeSettingsHtml(data.last_rejected_request.reject_reason || "Rejected by Admin")}</span>
+                </div>
+            </div>
+        ` : '';
+
+        showModal("Request Account Deletion", `
+            <div class="space-y-4 p-5 text-sm text-left">
+                ${rejectedHtml}
+                <div style="background: rgba(225, 29, 72, 0.1); border: 1px solid rgba(225, 29, 72, 0.3); color: #fda4af;" class="rounded-2xl p-4 text-xs leading-relaxed">
+                    <strong style="color: #fb7185; font-weight: 800;">Notice:</strong> Account deletion requires Admin review to verify all balances and pending trades. After approval, your account and trading records will be permanently removed.
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Reason for Deletion <span style="color: #fb7185;">*</span></label>
+                    <select id="delReasonSelect" style="background: #091124; border: 1px solid rgba(255, 255, 255, 0.14); color: #ffffff;" class="w-full rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-cyan-400">
+                        <option value="Taking a temporary break">Taking a temporary break from trading</option>
+                        <option value="Found another platform">Found another trading platform</option>
+                        <option value="Trading fees or slippage too high">Trading fees or slippage too high</option>
+                        <option value="Technical or support issues">Technical or customer support issues</option>
+                        <option value="Personal financial reasons">Personal financial reasons</option>
+                        <option value="Other">Other (specify below)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Additional Feedback (Optional)</label>
+                    <textarea id="delFeedbackText" rows="2" style="background: #091124; border: 1px solid rgba(255, 255, 255, 0.14); color: #ffffff;" class="w-full rounded-xl p-3 text-xs outline-none focus:border-cyan-400 placeholder:text-slate-600" placeholder="Help us improve. What could we have done better?"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Account Password <span style="color: #fb7185;">*</span></label>
+                    <input type="password" id="delConfirmPassword" style="background: #091124; border: 1px solid rgba(255, 255, 255, 0.14); color: #ffffff;" class="w-full rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-cyan-400 placeholder:text-slate-600" placeholder="Enter password to confirm request" />
+                </div>
+
+                <div class="pt-2 space-y-2">
+                    <button type="button" id="confirmPermanentDeleteBtn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; border: 1px solid rgba(244, 63, 94, 0.45); box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); font-weight: 800;" class="w-full py-3 px-4 rounded-xl text-xs transition cursor-pointer hover:opacity-95 active:scale-[0.98] flex items-center justify-center gap-2" onclick="submitAccountDeletion()">
+                        <svg style="width: 15px; height: 15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Submit Deletion Request</span>
+                    </button>
+                    <button type="button" style="background: #1e293b; color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.1);" class="w-full py-2.5 rounded-xl text-xs font-bold transition cursor-pointer hover:bg-slate-700" onclick="closeSettingsModal()">Cancel</button>
+                </div>
             </div>
         `);
     });
@@ -1409,39 +1485,72 @@ window.setFeeDeduction = function (val) {
 };
 
 
-window.confirmDeleteAccount = async function () {
+window.submitAccountDeletion = async function () {
     const btn = document.getElementById("confirmPermanentDeleteBtn");
+    const reason = document.getElementById("delReasonSelect")?.value || "Other";
+    const feedback = document.getElementById("delFeedbackText")?.value || "";
+    const password = document.getElementById("delConfirmPassword")?.value || "";
+
+    if (!password) {
+        showToast("Please enter your account password to confirm deletion request.", "error");
+        return;
+    }
+
     if (btn) {
         btn.disabled = true;
-        btn.innerText = "Deleting Account...";
+        btn.innerText = "Submitting Request...";
     }
 
     try {
-        const response = await apiRequest("/user/account", {
-            method: "DELETE"
+        const response = await apiRequest("/user/deletion-request", {
+            method: "POST",
+            body: JSON.stringify({ reason, feedback, password })
         });
 
-        showToast(response?.message || "Account permanently deleted.", "success");
+        showToast(response?.message || "Deletion request submitted for admin review.", "success");
         closeSettingsModal();
         setTimeout(() => {
-            clearAuthData();
-            try {
-                localStorage.removeItem("traidiumx_active_user_id");
-                localStorage.removeItem("traidiumx_active_user_name");
-                localStorage.removeItem("tx_cached_sub_accounts");
-                sessionStorage.clear();
-            } catch (_) {}
-            window.location.href = "/";
+            window.location.reload();
         }, 1500);
     } catch (error) {
-        console.error("Account deletion failed:", error);
-        showToast(showApiError(error, "Failed to delete account. Please try again."), "error");
+        console.error("Account deletion request failed:", error);
+        showToast(showApiError(error, "Failed to submit deletion request."), "error");
         if (btn) {
             btn.disabled = false;
-            btn.innerText = "Permanently Delete Account";
+            btn.innerText = "Submit Deletion Request";
         }
     }
 };
+
+window.cancelAccountDeletion = async function () {
+    const btn = document.getElementById("cancelDelReqBtn");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Cancelling...";
+    }
+
+    try {
+        const response = await apiRequest("/user/cancel-deletion-request", {
+            method: "POST"
+        });
+
+        showToast(response?.message || "Deletion request cancelled.", "success");
+        closeSettingsModal();
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    } catch (error) {
+        console.error("Failed to cancel deletion request:", error);
+        showToast(showApiError(error, "Failed to cancel deletion request."), "error");
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Cancel Deletion Request";
+        }
+    }
+};
+
+window.confirmDeleteAccount = window.submitAccountDeletion;
+
 
 function escapeSettingsHtml(value) {
     return String(value ?? "")

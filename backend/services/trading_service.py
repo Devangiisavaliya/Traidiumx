@@ -1,5 +1,6 @@
 import uuid
 
+from config.database import get_database
 from config.settings import settings
 from models.order_model import (
     claim_order_for_action,
@@ -430,66 +431,318 @@ def get_execution_price(order, user_id=None):
 
 
 def create_or_update_position_from_order(user_id, order, execution_price):
-    """Create a separate futures lot for every filled order.
-
-    TraidiumX UI must show separate lots in Positions. We intentionally do not
-    average/merge same-symbol same-side orders into an existing position.
     """
+    Handle position creation and updates.
+    - If platform == 'traidiumx': Uses One-Way Netting / Averaging mode (Binance standard).
+      Same-symbol same-side orders are merged and weighted-averaged into the existing position.
+      Opposite-side orders reduce or close the existing position.
+    - If platform == 'mt5': Uses Hedging mode. Every order creates a separate position lot.
+    """
+    db = get_database()
+    platform = str(order.get("platform") or "traidiumx").lower().strip()
     position_side = "long" if order.get("side") == "buy" else "short"
-    quantity = float(order.get("quantity", 0.0))
-    margin_amount = float(order.get("margin_amount", 0.0))
-    notional_value = quantity * float(execution_price)
-
+    quantity = float(order.get("quantity", 0.0) or 0.0)
+    margin_amount = float(order.get("margin_amount", 0.0) or 0.0)
+    exec_price = float(execution_price)
+    base_exec_price = float(order.get("base_execution_price", execution_price))
     margin_mode = order.get("margin_mode", "isolated")
+    leverage = order.get("leverage", 1)
+    symbol = order.get("symbol")
+    order_id = str(order.get("_id") or order.get("id"))
+
     wallet = ensure_user_wallet(user_id)
     trading_wallet = wallet.get("trading_wallet") if isinstance(wallet.get("trading_wallet"), dict) else {}
     available_balance = float(trading_wallet.get("available_balance", wallet.get("available_balance", 0.0)) or 0.0)
     locked_balance = float(trading_wallet.get("locked_balance", wallet.get("locked_balance", 0.0)) or 0.0)
     total_balance = available_balance + locked_balance
 
-    liquidation_price = calculate_liquidation_price(
-        position_side=position_side,
-        entry_price=execution_price,
-        leverage=order.get("leverage", 1),
-        margin_mode=margin_mode,
-        wallet_balance=total_balance,
-        quantity=quantity
-    )
+    # 1. MT5 Platform: Standard Hedging mode (create a separate lot position every time)
+    if platform == "mt5":
+        notional_value = quantity * exec_price
+        liq_price = calculate_liquidation_price(
+            position_side=position_side,
+            entry_price=exec_price,
+            leverage=leverage,
+            margin_mode=margin_mode,
+            wallet_balance=total_balance,
+            quantity=quantity
+        )
+        pos_id = create_position({
+            "user_id": str(user_id),
+            "symbol": symbol,
+            "order_id": order_id,
+            "position_side": position_side,
+            "display_side": "BUY" if position_side == "long" else "SELL",
+            "quantity": quantity,
+            "entry_price": exec_price,
+            "base_entry_price": base_exec_price,
+            "platform": "mt5",
+            "plan": order.get("plan", "basic"),
+            "plan_name": order.get("plan_name", "Basic"),
+            "spread_type": order.get("spread_type", "fixed"),
+            "spread_pips": order.get("spread_pips", 0.0),
+            "pip_size": order.get("pip_size", 0.0),
+            "spread_price": order.get("spread_price", 0.0),
+            "exit_price": 0.0,
+            "leverage": leverage,
+            "notional_value": round(notional_value, 8),
+            "margin_amount": margin_amount,
+            "margin_mode": margin_mode,
+            "liquidation_price": liq_price,
+            "take_profit": order.get("take_profit"),
+            "stop_loss": order.get("stop_loss"),
+            "tp_enabled": bool(order.get("take_profit")),
+            "sl_enabled": bool(order.get("stop_loss")),
+            "trigger_price_type": "mark_price",
+            "realized_pnl": 0.0,
+            "unrealized_pnl": 0.0,
+            "currency": order.get("currency", "USDT"),
+            "status": "open"
+        })
+        return find_position_by_id(str(pos_id)), None
 
-    position_id = create_position({
+    # 2. TraidiumX Platform: One-Way Netting / Averaging mode
+    existing = db.positions.find_one({
         "user_id": str(user_id),
-        "symbol": order.get("symbol"),
-        "order_id": str(order.get("_id")),
-        "position_side": position_side,
-        "display_side": "BUY" if position_side == "long" else "SELL",
-        "quantity": quantity,
-        "entry_price": float(execution_price),
-        "base_entry_price": float(order.get("base_execution_price", execution_price)),
-        "platform": order.get("platform", "traidiumx"),
-        "plan": order.get("plan", "basic"),
-        "plan_name": order.get("plan_name", "Basic"),
-        "spread_type": order.get("spread_type", "fixed"),
-        "spread_pips": order.get("spread_pips", 0.0),
-        "pip_size": order.get("pip_size", 0.0),
-        "spread_price": order.get("spread_price", 0.0),
-        "exit_price": 0.0,
-        "leverage": order.get("leverage", 1),
-        "notional_value": round(notional_value, 8),
-        "margin_amount": margin_amount,
-        "margin_mode": margin_mode,
-        "liquidation_price": liquidation_price,
-        "take_profit": order.get("take_profit"),
-        "stop_loss": order.get("stop_loss"),
-        "tp_enabled": bool(order.get("take_profit")),
-        "sl_enabled": bool(order.get("stop_loss")),
-        "trigger_price_type": "mark_price",
-        "realized_pnl": 0.0,
-        "unrealized_pnl": 0.0,
-        "currency": order.get("currency", "USDT"),
-        "status": "open"
+        "symbol": symbol,
+        "status": "open",
+        "platform": "traidiumx"
     })
 
-    return find_position_by_id(str(position_id))
+    # Case A: No existing open position -> Open initial position
+    if not existing:
+        notional_value = quantity * exec_price
+        liq_price = calculate_liquidation_price(
+            position_side=position_side,
+            entry_price=exec_price,
+            leverage=leverage,
+            margin_mode=margin_mode,
+            wallet_balance=total_balance,
+            quantity=quantity
+        )
+        pos_id = create_position({
+            "user_id": str(user_id),
+            "symbol": symbol,
+            "order_id": order_id,
+            "position_side": position_side,
+            "display_side": "BUY" if position_side == "long" else "SELL",
+            "quantity": quantity,
+            "entry_price": exec_price,
+            "base_entry_price": base_exec_price,
+            "platform": "traidiumx",
+            "plan": order.get("plan", "basic"),
+            "plan_name": order.get("plan_name", "Basic"),
+            "spread_type": order.get("spread_type", "fixed"),
+            "spread_pips": order.get("spread_pips", 0.0),
+            "pip_size": order.get("pip_size", 0.0),
+            "spread_price": order.get("spread_price", 0.0),
+            "exit_price": 0.0,
+            "leverage": leverage,
+            "notional_value": round(notional_value, 8),
+            "margin_amount": margin_amount,
+            "margin_mode": margin_mode,
+            "liquidation_price": liq_price,
+            "take_profit": order.get("take_profit"),
+            "stop_loss": order.get("stop_loss"),
+            "tp_enabled": bool(order.get("take_profit")),
+            "sl_enabled": bool(order.get("stop_loss")),
+            "trigger_price_type": "mark_price",
+            "realized_pnl": 0.0,
+            "unrealized_pnl": 0.0,
+            "currency": order.get("currency", "USDT"),
+            "status": "open"
+        })
+        return find_position_by_id(str(pos_id)), None
+
+    existing_side = existing.get("position_side")
+
+    # Case B: Same direction -> Weighted Averaging!
+    if existing_side == position_side:
+        old_qty = float(existing.get("quantity", 0.0) or 0.0)
+        total_qty = round(old_qty + quantity, 8)
+        old_entry = float(existing.get("entry_price", 0.0) or 0.0)
+        new_avg_entry = round(((old_qty * old_entry) + (quantity * exec_price)) / total_qty, 8)
+
+        old_base = float(existing.get("base_entry_price", old_entry) or old_entry)
+        new_avg_base = round(((old_qty * old_base) + (quantity * base_exec_price)) / total_qty, 8)
+
+        old_margin = float(existing.get("margin_amount", 0.0) or 0.0)
+        total_margin = round(old_margin + margin_amount, 8)
+        total_notional = round(total_qty * new_avg_entry, 8)
+
+        new_liq_price = calculate_liquidation_price(
+            position_side=position_side,
+            entry_price=new_avg_entry,
+            leverage=leverage,
+            margin_mode=margin_mode,
+            wallet_balance=total_balance,
+            quantity=total_qty
+        )
+
+        update_fields = {
+            "quantity": total_qty,
+            "entry_price": new_avg_entry,
+            "base_entry_price": new_avg_base,
+            "margin_amount": total_margin,
+            "notional_value": total_notional,
+            "liquidation_price": new_liq_price,
+            "updated_at": now_utc(),
+            "last_order_id": order_id
+        }
+        if order.get("take_profit"):
+            update_fields["take_profit"] = order.get("take_profit")
+            update_fields["tp_enabled"] = True
+        if order.get("stop_loss"):
+            update_fields["stop_loss"] = order.get("stop_loss")
+            update_fields["sl_enabled"] = True
+
+        db.positions.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+        return find_position_by_id(str(existing["_id"])), None
+
+    # Case C: Opposite direction -> Reduce / Close / Flip!
+    existing_qty = float(existing.get("quantity", 0.0) or 0.0)
+    existing_entry = float(existing.get("entry_price", 0.0) or 0.0)
+    existing_margin = float(existing.get("margin_amount", 0.0) or 0.0)
+    pos_currency = str(existing.get("currency") or "USDT").strip().upper()
+    usdt_inr_rate = float(wallet.get("usdt_inr_rate", 88.50) or 88.50)
+
+    # Sub-case C1: Partial reduction (quantity < existing_qty)
+    if quantity < existing_qty:
+        close_qty = quantity
+        rem_qty = round(existing_qty - close_qty, 8)
+
+        # Realized PnL on closed quantity
+        if existing_side == "long":
+            gross_pnl = (exec_price - existing_entry) * close_qty
+        else:
+            gross_pnl = (existing_entry - exec_price) * close_qty
+
+        close_notional = round(close_qty * exec_price, 8)
+        _, exit_fee = _calculate_trading_fee(close_notional, "futures")
+        net_pnl = round(gross_pnl - exit_fee, 8)
+
+        # Proportional margin to release
+        rel_margin = round(existing_margin * (close_qty / existing_qty), 8)
+        rem_margin = round(existing_margin - rel_margin, 8)
+
+        settle_margin = round(rel_margin * usdt_inr_rate, 2) if pos_currency == "INR" else rel_margin
+        settle_pnl = round(net_pnl * usdt_inr_rate, 2) if pos_currency == "INR" else net_pnl
+        settle_fee = round(exit_fee * usdt_inr_rate, 2) if pos_currency == "INR" else exit_fee
+
+        settle_position_margin(
+            user_id=user_id,
+            margin_amount=settle_margin,
+            realized_pnl=settle_pnl,
+            reference_id=str(existing["_id"]),
+            description=f"Partial close {close_qty} {symbol} ({existing_side})",
+            exit_trading_fee=settle_fee,
+            currency=pos_currency
+        )
+
+        wallet_after = ensure_user_wallet(user_id)
+        trading_wallet_after = wallet_after.get("trading_wallet") if isinstance(wallet_after.get("trading_wallet"), dict) else {}
+        avail_after = float(trading_wallet_after.get("available_balance", wallet_after.get("available_balance", 0.0)) or 0.0)
+        lock_after = float(trading_wallet_after.get("locked_balance", wallet_after.get("locked_balance", 0.0)) or 0.0)
+        tot_bal_after = avail_after + lock_after
+
+        rem_liq_price = calculate_liquidation_price(
+            position_side=existing_side,
+            entry_price=existing_entry,
+            leverage=existing.get("leverage", leverage),
+            margin_mode=existing.get("margin_mode", margin_mode),
+            wallet_balance=tot_bal_after,
+            quantity=rem_qty
+        )
+
+        update_fields = {
+            "quantity": rem_qty,
+            "margin_amount": rem_margin,
+            "notional_value": round(rem_qty * existing_entry, 8),
+            "realized_pnl": round(float(existing.get("realized_pnl", 0.0) or 0.0) + net_pnl, 8),
+            "liquidation_price": rem_liq_price,
+            "updated_at": now_utc(),
+            "last_order_id": order_id
+        }
+        db.positions.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+
+        trade_ref = f"TXT-{uuid.uuid4().hex[:12].upper()}"
+        trade_id = create_trade({
+            "trade_reference": trade_ref,
+            "user_id": str(user_id),
+            "order_id": order_id,
+            "position_id": str(existing["_id"]),
+            "symbol": symbol,
+            "side": order.get("side"),
+            "position_side": existing_side,
+            "trade_type": "close",
+            "quantity": close_qty,
+            "price": exec_price,
+            "notional_value": close_notional,
+            "fee_amount": exit_fee,
+            "fee_type": "trading_fee" if exit_fee > 0 else "none",
+            "realized_pnl": net_pnl,
+            "currency": pos_currency
+        })
+        return find_position_by_id(str(existing["_id"])), find_trade_by_id(str(trade_id))
+
+    # Sub-case C2: Full close (quantity == existing_qty)
+    elif quantity == existing_qty:
+        close_res = close_trading_position(user_id, str(existing["_id"]), close_reason="market_order")
+        closed_trade = db.trades.find_one({"position_id": str(existing["_id"]), "trade_type": "close"})
+        return find_position_by_id(str(existing["_id"])), closed_trade
+
+    # Sub-case C3: Position flip (quantity > existing_qty)
+    else:
+        # Step 1: Fully close existing position
+        close_trading_position(user_id, str(existing["_id"]), close_reason="position_flip")
+        # Step 2: Open new opposite position with excess quantity
+        excess_qty = round(quantity - existing_qty, 8)
+        ratio = excess_qty / quantity
+        excess_margin = round(margin_amount * ratio, 8)
+        excess_notional = round(excess_qty * exec_price, 8)
+
+        new_liq_price = calculate_liquidation_price(
+            position_side=position_side,
+            entry_price=exec_price,
+            leverage=leverage,
+            margin_mode=margin_mode,
+            wallet_balance=total_balance,
+            quantity=excess_qty
+        )
+
+        pos_id = create_position({
+            "user_id": str(user_id),
+            "symbol": symbol,
+            "order_id": order_id,
+            "position_side": position_side,
+            "display_side": "BUY" if position_side == "long" else "SELL",
+            "quantity": excess_qty,
+            "entry_price": exec_price,
+            "base_entry_price": base_exec_price,
+            "platform": "traidiumx",
+            "plan": order.get("plan", "basic"),
+            "plan_name": order.get("plan_name", "Basic"),
+            "spread_type": order.get("spread_type", "fixed"),
+            "spread_pips": order.get("spread_pips", 0.0),
+            "pip_size": order.get("pip_size", 0.0),
+            "spread_price": order.get("spread_price", 0.0),
+            "exit_price": 0.0,
+            "leverage": leverage,
+            "notional_value": excess_notional,
+            "margin_amount": excess_margin,
+            "margin_mode": margin_mode,
+            "liquidation_price": new_liq_price,
+            "take_profit": order.get("take_profit"),
+            "stop_loss": order.get("stop_loss"),
+            "tp_enabled": bool(order.get("take_profit")),
+            "sl_enabled": bool(order.get("stop_loss")),
+            "trigger_price_type": "mark_price",
+            "realized_pnl": 0.0,
+            "unrealized_pnl": 0.0,
+            "currency": order.get("currency", "USDT"),
+            "status": "open"
+        })
+        return find_position_by_id(str(pos_id)), None
 
 
 def create_open_trade(user_id, order, position, execution_price):
@@ -586,7 +839,7 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
 
     execution_price = price_result["price"]
     spread_snapshot = {
-        "platform": "traidiumx",
+        "platform": order.get("platform", "traidiumx"),
         "plan": price_result.get("plan") or order.get("plan", "basic"),
         "plan_name": price_result.get("plan_name") or order.get("plan_name", "Basic"),
         "spread_pips": price_result.get("spread_pips", order.get("spread_pips", 0.0)),
@@ -676,21 +929,29 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
         order["platform_fee_config"] = platform_charge
         order["trading_fee_config"] = platform_charge
 
-    position = create_or_update_position_from_order(
+    position_res = create_or_update_position_from_order(
         user_id=user_id,
         order=order,
         execution_price=execution_price
     )
 
-    trade = create_open_trade(
-        user_id=user_id,
-        order=order,
-        position=position,
-        execution_price=execution_price
-    )
+    if isinstance(position_res, tuple):
+        position, trade = position_res
+    else:
+        position, trade = position_res, None
 
-    # Mirror to Binance asynchronously (non-blocking)
-    if settings.BINANCE_API_KEY and not order.get("binance_order_id"):
+    if not trade and position:
+        trade = create_open_trade(
+            user_id=user_id,
+            order=order,
+            position=position,
+            execution_price=execution_price
+        )
+
+    # Mirror to Binance asynchronously (non-blocking) ONLY for TraidiumX Exchange platform orders
+    order_platform = str(order.get("platform") or "traidiumx").lower().strip()
+    is_test_order = bool(order.get("is_test") or str(user_id).startswith("test_") or "test" in str(order.get("order_reference", "")).lower())
+    if order_platform == "traidiumx" and settings.BINANCE_API_KEY and not order.get("binance_order_id") and not is_test_order:
         import threading
         def _async_mirror_execution(ord_data, pos_id, exec_prc):
             try:
@@ -739,6 +1000,10 @@ def execute_order_internal(user_id, order_id, remark="Order executed by backend 
             args=(dict(order), str(position["_id"]), execution_price),
             daemon=True
         ).start()
+    elif order_platform == "mt5":
+        update_order(str(order.get("_id") or order.get("id")), {
+            "remark": "MT5 account order. Binance mirroring skipped (MT5 only)."
+        })
 
     # Update local order to filled status immediately for instant client response
     updated_order = update_order(
@@ -963,7 +1228,9 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
     binance_close_status = None
     binance_close_remark = ""
 
-    if settings.BINANCE_API_KEY:
+    position_platform = str(position.get("platform") or "traidiumx").lower().strip()
+    is_test_pos = bool(position.get("is_test") or str(user_id).startswith("test_") or close_reason == "test")
+    if position_platform == "traidiumx" and settings.BINANCE_API_KEY and not is_test_pos:
         try:
             from services.binance_service import close_binance_futures_position
             binance_res = close_binance_futures_position(
@@ -985,6 +1252,8 @@ def close_trading_position(user_id, position_id, close_reason="manual"):
                 binance_close_remark = f" Binance Close Failed: {binance_res.get('message')}"
         except Exception as b_close_err:
             print(f"Exception closing Binance position: {b_close_err}")
+    elif position_platform == "mt5":
+        binance_close_remark = " (MT5 position closed, Binance close skipped)"
 
     pnl_data = calculate_position_pnl(position, close_price)
     gross_realized_pnl = _to_float(pnl_data.get("unrealized_pnl"), 0.0)
@@ -1282,20 +1551,22 @@ def update_position_protection(user_id, position_id, data):
         "trigger_price_type": "mark_price",
     })
 
-    # Mirror updated TP/SL to Binance
-    try:
-        from services.binance_service import _get_binance_credentials, update_binance_tp_sl
-        api_key, _, _ = _get_binance_credentials()
-        if api_key:
-            update_binance_tp_sl(
-                symbol=position.get("symbol"),
-                position_side=position.get("position_side"),
-                quantity=position.get("quantity"),
-                take_profit=take_profit,
-                stop_loss=stop_loss
-            )
-    except Exception as tp_sl_err:
-        print(f"Error mirroring updated TP/SL to Binance: {tp_sl_err}")
+    # Mirror updated TP/SL to Binance only for TraidiumX Exchange platform
+    position_platform = str(position.get("platform") or "traidiumx").lower().strip()
+    if position_platform == "traidiumx":
+        try:
+            from services.binance_service import _get_binance_credentials, update_binance_tp_sl
+            api_key, _, _ = _get_binance_credentials()
+            if api_key:
+                update_binance_tp_sl(
+                    symbol=position.get("symbol"),
+                    position_side=position.get("position_side"),
+                    quantity=position.get("quantity"),
+                    take_profit=take_profit,
+                    stop_loss=stop_loss
+                )
+        except Exception as tp_sl_err:
+            print(f"Error mirroring updated TP/SL to Binance: {tp_sl_err}")
 
     return {
         "success": True,

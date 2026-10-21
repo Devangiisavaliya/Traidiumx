@@ -12,6 +12,8 @@ RESTRICTED_ACCOUNT_STATUSES = {
     "disabled",
     "deactivated",
     "banned",
+    "closed",
+    "deleted",
 }
 ALLOWED_ADMIN_STATUSES = {"active", "blocked", "suspended"}
 SCHEDULED_ACTIONS = {"blocked", "suspended"}
@@ -83,11 +85,17 @@ def is_user_active(user):
 def get_account_restriction_message(status):
     status = str(status or "").strip().lower()
 
+    if status in {"closed", "deleted"}:
+        return "Your account has been closed. Please contact support if you need assistance."
+
     if status == "suspended":
         return "Your account is suspended. Please contact support."
 
     if status == "blocked":
         return "Your account is blocked. Please contact support."
+
+    if status == "pending_deletion":
+        return "Your request to permanently close this account is currently being reviewed by Admin."
 
     if status in {"disabled", "deactivated", "banned"}:
         return "Your account is restricted. Please contact support."
@@ -228,6 +236,15 @@ def build_user_account_status_payload(user):
     status = normalize_account_status(user)
     pending = get_pending_account_action(user)
     reason = str(user.get("account_status_reason") or user.get("suspend_reason") or user.get("blocked_reason") or "").strip() if user else ""
+    if status == "pending_deletion" and user:
+        try:
+            db = get_database()
+            req = db.account_deletion_requests.find_one({"user_id": str(user["_id"]), "status": "pending"})
+            if req and req.get("reason"):
+                reason = req.get("reason")
+        except Exception:
+            pass
+
     suspended_until = _to_datetime(user.get("suspended_until")) if user else None
 
     payload = {

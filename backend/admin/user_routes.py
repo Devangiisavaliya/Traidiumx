@@ -27,7 +27,7 @@ admin_user_api = Blueprint("admin_user_api", __name__, url_prefix="/users")
 ACTIVE_STATUSES = ["active", "ACTIVE"]
 BLOCKED_STATUSES = ["blocked", "BLOCKED"]
 SUSPENDED_STATUSES = ["suspended", "SUSPENDED"]
-RESTRICTED_STATUSES = ["blocked", "suspended", "disabled", "deactivated", "banned", "BLOCKED", "SUSPENDED", "DISABLED", "DEACTIVATED", "BANNED"]
+RESTRICTED_STATUSES = ["blocked", "suspended", "disabled", "deactivated", "banned", "closed", "deleted", "BLOCKED", "SUSPENDED", "DISABLED", "DEACTIVATED", "BANNED", "CLOSED", "DELETED"]
 
 
 def _as_object_id(value):
@@ -101,8 +101,10 @@ def _user_identity_terms(search):
         {"full_name": rx},
         {"username": rx},
         {"email": rx},
+        {"archived_email": rx},
         {"phone": rx},
         {"mobile": rx},
+        {"archived_mobile": rx},
         {"country": rx},
         {"uid": rx},
         {"user_uid": rx},
@@ -151,6 +153,14 @@ def _build_user_query():
 
     # Hide sub-accounts from the main user management dashboard list
     query["parent_user_id"] = {"$exists": False}
+
+    # Hide closed / deleted accounts from the main user management list
+    # (Closed accounts belong exclusively in /admin/deleted-accounts)
+    query["account_closed"] = {"$ne": True}
+    query["is_deleted"] = {"$ne": True}
+    if not (status and status in ["closed", "CLOSED", "deleted", "DELETED"]):
+        if "account_status" not in query:
+            query["account_status"] = {"$nin": ["closed", "CLOSED", "deleted", "DELETED"]}
 
     return query
 
@@ -554,6 +564,10 @@ def _load_user_export_data(db, user_id):
         return None
 
     user.pop("password_hash", None)
+    if user.get("archived_email") and "__closed_" in str(user.get("email") or ""):
+        user["email"] = user["archived_email"]
+    if user.get("archived_mobile") and "__closed_" in str(user.get("mobile") or ""):
+        user["mobile"] = user["archived_mobile"]
     wallet = _find_user_wallet(db, user_id) or {}
     kyc = db.kyc_requests.find_one({"user_id": {"$in": _user_base_match(user_id)}}) or {}
     recent_orders = _recent_user_docs(db, "orders", user_id, 100)
@@ -1024,13 +1038,19 @@ def users_summary():
     db = get_database()
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
-    total = db.users.count_documents({})
-    active = db.users.count_documents({"account_status": {"$in": ACTIVE_STATUSES}})
-    blocked = db.users.count_documents({"account_status": {"$in": BLOCKED_STATUSES}})
-    suspended = db.users.count_documents({"account_status": {"$in": SUSPENDED_STATUSES}})
-    restricted = db.users.count_documents({"account_status": {"$in": RESTRICTED_STATUSES}})
-    new_today = db.users.count_documents({"created_at": {"$gte": today}})
-    pending_kyc = db.users.count_documents({"kyc_status": {"$in": ["pending", "PENDING", "review", "REVIEW", "under_review", "UNDER_REVIEW"]}})
+    main_filter = {
+        "parent_user_id": {"$exists": False},
+        "account_status": {"$nin": ["closed", "CLOSED", "deleted", "DELETED"]},
+        "account_closed": {"$ne": True},
+        "is_deleted": {"$ne": True}
+    }
+    total = db.users.count_documents(main_filter)
+    active = db.users.count_documents({**main_filter, "account_status": {"$in": ACTIVE_STATUSES}})
+    blocked = db.users.count_documents({**main_filter, "account_status": {"$in": BLOCKED_STATUSES}})
+    suspended = db.users.count_documents({**main_filter, "account_status": {"$in": SUSPENDED_STATUSES}})
+    restricted = db.users.count_documents({**main_filter, "account_status": {"$in": RESTRICTED_STATUSES}})
+    new_today = db.users.count_documents({**main_filter, "created_at": {"$gte": today}})
+    pending_kyc = db.users.count_documents({**main_filter, "kyc_status": {"$in": ["pending", "PENDING", "review", "REVIEW", "under_review", "UNDER_REVIEW"]}})
 
     wallet_pipeline = list(db.wallets.aggregate([
         {
@@ -1227,7 +1247,35 @@ def user_detail(user_id):
     user = find_user_by_id(user_id)
 
     if not user:
-        return error_response(message="User not found.", errors={"user_id": "Invalid user ID."}, status_code=404)
+        # Check deleted_account_logs archive fallback
+        del_log = db.deleted_account_logs.find_one({
+            "$or": [
+                {"account_id": str(user_id)},
+                {"client_id": str(user_id)},
+                {"_id": _as_object_id(user_id)}
+            ]
+        })
+        if del_log:
+            user = {
+                "_id": str(del_log.get("account_id") or del_log.get("_id")),
+                "name": del_log.get("name") or "Archived Account",
+                "email": del_log.get("email") or "",
+                "mobile": del_log.get("mobile") or "",
+                "client_id": del_log.get("client_id") or "N/A",
+                "account_status": "closed",
+                "is_closed": True,
+                "is_deleted": True,
+                "created_at": del_log.get("deleted_at"),
+                "deleted_at": del_log.get("deleted_at"),
+                "closed_reason": del_log.get("refund_summary") or "Closed / Archived Account",
+                "deleted_by": del_log.get("deleted_by_name") or del_log.get("deleted_by"),
+                "parent_user_id": del_log.get("parent_user_id"),
+                "parent_name": del_log.get("parent_name"),
+                "parent_client_id": del_log.get("parent_client_id"),
+                "account_type": del_log.get("account_type", "main")
+            }
+        else:
+            return error_response(message="User not found.", errors={"user_id": "Invalid user ID."}, status_code=404)
 
     user.pop("password_hash", None)
 
@@ -1755,5 +1803,252 @@ def list_deleted_accounts():
             "pages": max(1, (total_count + limit - 1) // limit),
             "stats": stats
         }
+    )
+
+
+@admin_user_api.get("/deletion-requests")
+@admin_required
+@permission_required("users.view")
+def list_deletion_requests():
+    db = get_database()
+    page = parse_int(request.args.get("page"), default=1, minimum=1, maximum=100000)
+    limit = parse_int(request.args.get("limit"), default=20, minimum=1, maximum=100)
+    skip = (page - 1) * limit
+
+    search = str(request.args.get("search") or "").strip()
+    status_filter = str(request.args.get("status") or "pending").strip().lower()
+
+    query = {}
+    if status_filter and status_filter != "all":
+        query["status"] = status_filter
+
+    if search:
+        rx = re.compile(re.escape(search), re.IGNORECASE)
+        query["$or"] = [
+            {"name": rx},
+            {"email": rx},
+            {"mobile": rx},
+            {"client_id": rx},
+            {"reason": rx},
+        ]
+
+    total_count = db.account_deletion_requests.count_documents(query)
+    cursor = db.account_deletion_requests.find(query).sort("created_at", -1).skip(skip).limit(limit)
+
+    requests_list = []
+    for doc in cursor:
+        requests_list.append({
+            "id": str(doc["_id"]),
+            "user_id": str(doc.get("user_id") or ""),
+            "client_id": doc.get("client_id") or "N/A",
+            "name": doc.get("name") or "User",
+            "email": doc.get("email") or "",
+            "mobile": doc.get("mobile") or "",
+            "reason": doc.get("reason") or "Other",
+            "feedback": doc.get("feedback") or "",
+            "wallet_balances": doc.get("wallet_balances") or {},
+            "status": doc.get("status", "pending"),
+            "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None,
+            "processed_at": doc.get("processed_at").isoformat() if doc.get("processed_at") else None,
+            "processed_by": doc.get("processed_by") or "",
+            "reject_reason": doc.get("reject_reason") or "",
+        })
+
+    stats = {
+        "pending": db.account_deletion_requests.count_documents({"status": "pending"}),
+        "approved": db.account_deletion_requests.count_documents({"status": "approved"}),
+        "rejected": db.account_deletion_requests.count_documents({"status": "rejected"}),
+        "total": db.account_deletion_requests.count_documents({}),
+    }
+
+    return success_response(
+        message="Deletion requests fetched successfully.",
+        data={
+            "requests": requests_list,
+            "total": total_count,
+            "page": page,
+            "limit": limit,
+            "pages": max(1, (total_count + limit - 1) // limit),
+            "stats": stats,
+        },
+    )
+
+
+@admin_user_api.post("/deletion-requests/<request_id>/approve")
+@admin_required
+@permission_required("users.edit")
+def approve_deletion_request(request_id):
+    from services.user_service import permanently_delete_user_account
+    db = get_database()
+    req_oid = _as_object_id(request_id)
+    if not req_oid:
+        return error_response(message="Invalid request ID.", status_code=400)
+
+    req_doc = db.account_deletion_requests.find_one({"_id": req_oid})
+    if not req_doc:
+        return error_response(message="Deletion request not found.", status_code=404)
+
+    if req_doc.get("status") != "pending":
+        return error_response(
+            message=f"Request is already {req_doc.get('status')}.",
+            status_code=400,
+        )
+
+    user_id = str(req_doc.get("user_id"))
+    user_oid = _as_object_id(user_id)
+    target_user = db.users.find_one({"_id": user_oid}) if user_oid else None
+
+    admin_email = getattr(g, "current_admin_email", "admin")
+    now = now_utc()
+
+    # Soft delete / close user (preserves all orders, trades, and wallet records in database)
+    if target_user:
+        delete_res = permanently_delete_user_account(
+            target_user,
+            reason=req_doc.get("reason"),
+            admin_email=admin_email
+        )
+        if not delete_res.get("success"):
+            return error_response(message=delete_res.get("message", "Failed to close user account."), status_code=400)
+
+    # Mark request as approved
+    db.account_deletion_requests.update_one(
+        {"_id": req_oid},
+        {
+            "$set": {
+                "status": "approved",
+                "processed_by": admin_email,
+                "processed_at": now,
+                "updated_at": now,
+            }
+        },
+    )
+
+    create_admin_audit_log(
+        admin_id=getattr(g, "current_admin_id", "admin"),
+        admin_email=admin_email,
+        action="user.account_deletion.approved",
+        resource_type="user",
+        resource_id=user_id,
+        message=f"Admin approved account deletion for user {req_doc.get('name')} ({req_doc.get('email')}). Reason: {req_doc.get('reason')}",
+    )
+
+    return success_response(
+        message=f"Account for {req_doc.get('name')} has been successfully closed and archived. All historical trading & wallet records remain safely preserved.",
+        data={"request_id": str(request_id), "status": "approved"},
+    )
+
+
+@admin_user_api.post("/deletion-requests/<request_id>/reject")
+@admin_required
+@permission_required("users.edit")
+def reject_deletion_request(request_id):
+    db = get_database()
+    req_oid = _as_object_id(request_id)
+    if not req_oid:
+        return error_response(message="Invalid request ID.", status_code=400)
+
+    req_doc = db.account_deletion_requests.find_one({"_id": req_oid})
+    if not req_doc:
+        return error_response(message="Deletion request not found.", status_code=404)
+
+    if req_doc.get("status") != "pending":
+        return error_response(
+            message=f"Request is already {req_doc.get('status')}.",
+            status_code=400,
+        )
+
+    data = request.get_json(silent=True) or request.form or {}
+    reject_reason = str(data.get("reason") or data.get("reject_reason") or "Rejected by Admin").strip()
+
+    user_id = str(req_doc.get("user_id"))
+    user_oid = _as_object_id(user_id)
+    admin_email = getattr(g, "current_admin_email", "admin")
+    now = now_utc()
+
+    target_user = db.users.find_one({"_id": user_oid}) if user_oid else None
+
+    # Restore user to active
+    if user_oid:
+        db.users.update_one(
+            {"_id": user_oid},
+            {
+                "$set": {"account_status": "active", "updated_at": now},
+                "$unset": {"deletion_requested_at": "", "deletion_request_id": ""},
+            },
+        )
+
+    # Mark request as rejected
+    db.account_deletion_requests.update_one(
+        {"_id": req_oid},
+        {
+            "$set": {
+                "status": "rejected",
+                "reject_reason": reject_reason,
+                "processed_by": admin_email,
+                "processed_at": now,
+                "updated_at": now,
+            }
+        },
+    )
+
+    # Send in-app notification to user
+    if target_user:
+        create_user_notification(
+            user=target_user,
+            title="Account Deletion Request Rejected",
+            message=f"Your account deletion request has been reviewed and rejected by Admin. Reason: {reject_reason}",
+            notice_type="account_status",
+            severity="warning",
+            metadata={
+                "reject_reason": reject_reason,
+                "request_id": str(request_id),
+                "action": "deletion_rejected",
+            },
+            admin_id=getattr(g, "current_admin_id", "admin"),
+            admin_email=admin_email,
+        )
+
+        user_email = str(target_user.get("email") or req_doc.get("email") or "").strip()
+        if user_email:
+            send_user_account_status_email(
+                to_email=user_email,
+                user_name=target_user.get("name") or req_doc.get("name") or "Trader",
+                title="Account Deletion Request Rejected",
+                message_text="Your request to permanently close your TraidiumX account was reviewed and rejected by Admin.",
+                reason=reject_reason,
+            )
+
+    create_admin_audit_log(
+        admin_id=getattr(g, "current_admin_id", "admin"),
+        admin_email=admin_email,
+        action="user.account_deletion.rejected",
+        resource_type="user",
+        resource_id=user_id,
+        message=f"Admin rejected account deletion for user {req_doc.get('name')}. Reason: {reject_reason}",
+    )
+
+    return success_response(
+        message=f"Account deletion request has been rejected. User restored to active status.",
+        data={"request_id": str(request_id), "status": "rejected", "reject_reason": reject_reason},
+    )
+
+@admin_user_api.post("/deletion-requests/<request_id>/restore")
+@admin_required
+@permission_required("users.edit")
+def restore_deletion_request(request_id):
+    return error_response(
+        message="Account restoration is disabled. Once deleted, accounts are permanently closed.",
+        status_code=403
+    )
+
+
+@admin_user_api.post("/<user_id>/restore-account")
+@admin_required
+@permission_required("users.edit")
+def restore_user_by_id(user_id):
+    return error_response(
+        message="Account restoration is disabled. Once deleted, accounts are permanently closed.",
+        status_code=403
     )
 

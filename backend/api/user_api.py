@@ -11,6 +11,9 @@ from services.user_service import (
     request_two_factor_toggle,
     verify_two_factor_toggle,
     permanently_delete_user_account,
+    request_account_deletion,
+    cancel_account_deletion_request,
+    get_user_deletion_request_status,
 )
 from services.user_status_service import build_user_account_status_payload
 from services.notification_service import get_user_notifications, mark_notifications_read
@@ -213,7 +216,10 @@ def get_sub_accounts():
 
     sub_users = list(db.users.find({
         "parent_user_id": parent_user_id,
-        "is_inr_trading_account": {"$ne": True}
+        "is_inr_trading_account": {"$ne": True},
+        "account_status": {"$nin": ["closed", "deleted"]},
+        "is_closed": {"$ne": True},
+        "is_deleted": {"$ne": True}
     }))
     
     all_uids = [parent_user_id] + [str(s["_id"]) for s in sub_users]
@@ -373,7 +379,12 @@ def create_sub_account_endpoint():
     actual_parent_id = str(token_user.get("parent_user_id") or token_user["_id"])
     parent_user = token_user if str(token_user["_id"]) == actual_parent_id else (db.users.find_one({"_id": ObjectId(actual_parent_id)}) or token_user)
 
-    existing_subs = list(db.users.find({"parent_user_id": actual_parent_id}, {"is_demo": 1, "account_mode": 1, "plan": 1}))
+    existing_subs = list(db.users.find({
+        "parent_user_id": actual_parent_id,
+        "account_status": {"$nin": ["closed", "deleted"]},
+        "is_closed": {"$ne": True},
+        "is_deleted": {"$ne": True}
+    }, {"is_demo": 1, "account_mode": 1, "plan": 1}))
     count = len(existing_subs)
     sub_index = count + 1
 
@@ -642,6 +653,14 @@ def demo_deposit_endpoint(sub_id):
 @user_api.route("/sub-accounts/<sub_id>", methods=["DELETE", "POST"])
 @auth_required
 def delete_sub_account_endpoint(sub_id):
+    # Sub-account deletion is temporarily disabled as requested
+    SUB_ACCOUNT_DELETION_ENABLED = False
+    if not SUB_ACCOUNT_DELETION_ENABLED:
+        return error_response(
+            message="Trading account deletion is currently disabled. Please contact support or administrator.",
+            status_code=403
+        )
+
     from config.database import get_database
     from bson import ObjectId
 
@@ -758,23 +777,22 @@ def delete_sub_account_endpoint(sub_id):
     except Exception as log_err:
         print(f"Warning: Failed to log sub-account deletion: {log_err}")
 
-    # 4. Clean up sub-account data
-    db.orders.delete_many({"user_id": actual_sub_id})
-    db.positions.delete_many({"user_id": actual_sub_id})
-    db.position_price_snapshots.delete_many({"user_id": actual_sub_id})
-    db.trades.delete_many({"user_id": actual_sub_id})
-    if "option_orders" in db.list_collection_names():
-        db.option_orders.delete_many({"user_id": actual_sub_id})
-    if "option_positions" in db.list_collection_names():
-        db.option_positions.delete_many({"user_id": actual_sub_id})
-    if "option_fills" in db.list_collection_names():
-        db.option_fills.delete_many({"user_id": actual_sub_id})
-    db.futures_recent_symbols.delete_many({"user_id": actual_sub_id})
-    db.mt5_accounts.delete_many({"user_id": actual_sub_id})
-    db.user_deposit_addresses.delete_many({"user_id": actual_sub_id})
-    db.wallets.delete_many({"user_id": actual_sub_id})
-    db.wallet_ledger.delete_many({"user_id": actual_sub_id})
-    db.users.delete_one({"_id": sub_user["_id"]})
+    # 4. Soft-delete / Close sub-account (preserve all orders, trades, and wallet ledger in database)
+    now_sub_del = now_utc()
+    db.users.update_one(
+        {"_id": sub_user["_id"]},
+        {
+            "$set": {
+                "account_status": "closed",
+                "is_closed": True,
+                "is_deleted": True,
+                "closed_at": now_sub_del,
+                "closed_reason": "Sub-account deleted by parent user",
+                "updated_at": now_sub_del,
+            },
+            "$inc": {"token_version": 1}
+        }
+    )
 
     msg = f"Trading account '{sub_user.get('name')}' deleted successfully."
     if refunded_msg:
@@ -1067,19 +1085,56 @@ def get_user_portfolio_summary():
     )
 
 
+@user_api.post("/deletion-request")
 @user_api.route("/account", methods=["DELETE", "POST"])
 @user_api.route("/close-account", methods=["DELETE", "POST"])
 @auth_required_allow_restricted
-def delete_user_account():
+def handle_account_deletion_request():
     user = getattr(g, "token_user", None) or g.current_user
-    result = permanently_delete_user_account(user)
+    data = request.get_json(silent=True) or request.form or {}
+    reason = data.get("reason") or "Other"
+    feedback = data.get("feedback") or ""
+    password = data.get("password") or ""
+
+    result = request_account_deletion(user, reason=reason, feedback=feedback, password=password)
     if result.get("success"):
         return success_response(
             message=result["message"],
-            status_code=result.get("status_code", 200)
+            data=result.get("data", {}),
+            status_code=result.get("status_code", 201)
         )
     return error_response(
-        message=result.get("message", "Failed to delete account."),
+        message=result.get("message", "Failed to submit deletion request."),
+        errors=result.get("errors", {}),
         status_code=result.get("status_code", 400)
     )
+
+
+@user_api.get("/deletion-request")
+@auth_required_allow_restricted
+def get_deletion_request_status():
+    user = getattr(g, "token_user", None) or g.current_user
+    result = get_user_deletion_request_status(user)
+    return success_response(
+        message="Deletion request status fetched.",
+        data=result.get("data", {}),
+        status_code=200
+    )
+
+
+@user_api.post("/cancel-deletion-request")
+@auth_required_allow_restricted
+def cancel_deletion_request():
+    user = getattr(g, "token_user", None) or g.current_user
+    result = cancel_account_deletion_request(user)
+    if result.get("success"):
+        return success_response(
+            message=result["message"],
+            status_code=200
+        )
+    return error_response(
+        message=result.get("message", "Failed to cancel deletion request."),
+        status_code=result.get("status_code", 400)
+    )
+
 

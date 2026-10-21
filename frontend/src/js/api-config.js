@@ -150,6 +150,16 @@ async function apiRequest(endpoint, options = {}) {
     }
 
     if (!response.ok || !contentType.includes("application/json")) {
+        const accStatus = String(data?.errors?.account_status || data?.account_status || "").toLowerCase();
+        const msg = String(data?.message || "").toLowerCase();
+        if (accStatus === "closed" || accStatus === "deleted" || msg.includes("account has been closed")) {
+            clearAuthData();
+            sessionStorage.clear();
+            const loginPath = window.location.pathname.includes("/src/pages/") ? "./login.html" : "/src/pages/login.html";
+            window.location.href = `${loginPath}?notice=account_closed`;
+            throw data;
+        }
+
         if (isAuthExpiredResponse(response, data)) {
             handleAuthExpired(data);
         }

@@ -87,7 +87,28 @@ def order():
     try:
         data = request.get_json(silent=True) or {}
 
-        result = place_trading_order(g.current_user_id, data)
+        # Detect platform from sub_account or user settings if not explicitly provided
+        sub_id = data.get("sub_account_id") or request.headers.get("X-Sub-Account-Id")
+        from models.user_model import find_user_by_id
+        target_user = None
+        if sub_id and str(sub_id) != "main":
+            sub_user = find_user_by_id(sub_id)
+            if sub_user and (str(sub_user.get("parent_user_id")) == str(g.current_user_id) or str(sub_user.get("_id")) == str(g.current_user_id)):
+                target_user = sub_user
+                data["sub_account_id"] = str(sub_user["_id"])
+        
+        if not target_user:
+            target_user = find_user_by_id(g.current_user_id)
+
+        if not data.get("platform") and target_user:
+            t_plat = str(target_user.get("selected_platform") or target_user.get("platform") or "").lower()
+            if "mt5" in t_plat or target_user.get("is_mt5"):
+                data["platform"] = "mt5"
+            else:
+                data["platform"] = "traidiumx"
+
+        effective_user_id = str(target_user["_id"]) if target_user else g.current_user_id
+        result = place_trading_order(effective_user_id, data)
 
         if result.get("success"):
             return success_response(

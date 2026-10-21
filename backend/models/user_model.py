@@ -48,9 +48,16 @@ def find_user_by_google_sub(google_sub):
 
 
 def find_user_by_id(user_id):
-    return get_users_collection().find_one({
-        "_id": ObjectId(user_id)
-    })
+    try:
+        if ObjectId.is_valid(str(user_id)):
+            return get_users_collection().find_one({
+                "_id": ObjectId(user_id)
+            })
+        return get_users_collection().find_one({
+            "$or": [{"client_id": str(user_id)}, {"name": str(user_id)}]
+        })
+    except Exception:
+        return None
 
 
 def create_user(user_data):

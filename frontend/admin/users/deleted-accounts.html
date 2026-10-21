@@ -12,9 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/admin/static/css/admin-base.css" />
     <link rel="icon" type="image/png" href="../../assets/logo.png" />
-    <title>Deleted Accounts | TraidiumX Admin</title>
+    <title>Account Deletions | TraidiumX Admin</title>
 </head>
-<body data-admin-page="deleted-accounts" data-page-title="Deleted Accounts" data-page-subtitle="Audit log and permanent history of deleted main profiles and sub-trading accounts.">
+<body data-admin-page="deleted-accounts" data-page-title="Account Deletions" data-page-subtitle="Review user deletion requests, approve or reject closures, and view permanent audit history.">
     <div class="admin-shell">
         <aside id="adminSidebar" class="admin-sidebar"></aside>
         <div id="adminBackdrop" class="admin-backdrop"></div>
@@ -22,93 +22,255 @@
             <header id="adminTopbar" class="admin-topbar"></header>
             <main class="admin-content">
 
-<section class="space-y-5">
+<section class="space-y-6">
     <!-- Quick Stats Cards -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="admin-card p-5 tx-fade-up">
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Total Deleted</p>
-            <h2 id="statTotalDeleted" class="mt-2 text-3xl font-black text-white">0</h2>
-            <p class="mt-1 text-xs font-bold text-slate-500">Accounts closed in total</p>
+        <div class="admin-card p-5 tx-fade-up border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-transparent">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-black uppercase tracking-[0.22em] text-rose-300">Pending Requests</p>
+                <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-400 animate-pulse"></span>
+            </div>
+            <h2 id="statPendingRequests" class="mt-2 text-3xl font-black text-rose-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-400">Awaiting admin review</p>
         </div>
         <div class="admin-card p-5 tx-fade-up tx-delay-1">
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Main Accounts</p>
-            <h2 id="statMainDeleted" class="mt-2 text-3xl font-black text-rose-400">0</h2>
-            <p class="mt-1 text-xs font-bold text-slate-500">Full profiles wiped</p>
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Approved Deletions</p>
+            <h2 id="statApprovedRequests" class="mt-2 text-3xl font-black text-emerald-400">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Approved & closed</p>
         </div>
         <div class="admin-card p-5 tx-fade-up tx-delay-2">
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Sub-Accounts</p>
-            <h2 id="statSubDeleted" class="mt-2 text-3xl font-black text-amber-300">0</h2>
-            <p class="mt-1 text-xs font-bold text-slate-500">Trading accounts deleted</p>
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Rejected Requests</p>
+            <h2 id="statRejectedRequests" class="mt-2 text-3xl font-black text-amber-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Restored to active</p>
         </div>
         <div class="admin-card p-5 tx-fade-up tx-delay-3">
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Closed Today</p>
-            <h2 id="statTodayDeleted" class="mt-2 text-3xl font-black text-cyan-300">0</h2>
-            <p class="mt-1 text-xs font-bold text-slate-500">Deletions in last 24h</p>
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Permanent Archive</p>
+            <h2 id="statTotalDeleted" class="mt-2 text-3xl font-black text-cyan-300">0</h2>
+            <p class="mt-1 text-xs font-bold text-slate-500">Total historical logs</p>
         </div>
     </div>
 
-    <!-- Filters & Search Toolbar -->
-    <div class="admin-card p-5 tx-fade-up">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h2 class="text-xl font-black text-white">Account Deletion History</h2>
-                <p class="mt-1 text-sm text-slate-400">Search and audit who deleted their account, refund details, and deletion timestamps.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <select id="deletedTypeFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
-                    <option value="">All Account Types</option>
-                    <option value="main">Main Accounts Only</option>
-                    <option value="sub">Sub-Accounts Only</option>
-                </select>
-                <div class="relative">
-                    <input id="deletedSearch" type="search" placeholder="Search name, client ID, email..." class="w-72 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-2 border-b border-white/10 pb-1">
+        <button id="tabBtnRequests" type="button" class="relative flex items-center gap-2 px-5 py-3 text-sm font-black transition rounded-2xl bg-white/10 text-white shadow-sm">
+            <span>Review Deletion Requests</span>
+            <span id="pendingBadge" class="hidden rounded-full bg-rose-500/25 border border-rose-500/40 px-2 py-0.5 text-[11px] font-black text-rose-300">0</span>
+        </button>
+        <button id="tabBtnHistory" type="button" class="relative flex items-center gap-2 px-5 py-3 text-sm font-black transition rounded-2xl text-slate-400 hover:text-white hover:bg-white/5">
+            <span>Permanent Archive & History</span>
+        </button>
+    </div>
+
+    <!-- TAB 1: PENDING & PROCESSED DELETION REQUESTS -->
+    <div id="sectionRequests" class="space-y-5">
+        <!-- Toolbar -->
+        <div class="admin-card p-5 tx-fade-up">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-black text-white">Account Deletion Requests</h2>
+                    <p class="mt-1 text-sm text-slate-400">Review requests submitted by users, inspect reason & balances, then approve or reject.</p>
                 </div>
-                <button id="refreshBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="requestStatusFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                        <option value="pending" selected>Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="all">All Statuses</option>
+                    </select>
+                    <div class="relative">
+                        <input id="requestSearch" type="search" placeholder="Search user, client ID, reason..." class="w-72 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+                    </div>
+                    <button id="refreshRequestsBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <div class="overflow-x-auto rounded-3xl border border-white/10">
+                <table class="admin-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="w-[24%]">User Details</th>
+                            <th class="w-[26%]">Reason & Feedback</th>
+                            <th class="w-[16%]">Wallet Balances</th>
+                            <th class="w-[12%]">Requested At</th>
+                            <th class="w-[10%]">Status</th>
+                            <th class="w-[12%] text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody">
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-500 font-bold">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Requests Pagination -->
+            <div class="flex items-center justify-between pt-5 text-xs font-bold text-slate-400">
+                <div id="requestsPageInfo">Showing 0 to 0 of 0 requests</div>
+                <div class="flex items-center gap-2">
+                    <button id="requestsPrevBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>← Previous</button>
+                    <button id="requestsNextBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>Next →</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Deleted Accounts Table -->
-    <div class="admin-card p-5 tx-fade-up tx-delay-1">
-        <div class="overflow-x-auto rounded-3xl border border-white/10">
-            <table class="admin-table w-full">
-                <thead>
-                    <tr>
-                        <th class="w-[22%]">Account Details</th>
-                        <th class="w-[12%]">Type</th>
-                        <th class="w-[20%]">Parent Account</th>
-                        <th class="w-[18%]">Closing / Refund Status</th>
-                        <th class="w-[14%]">Deleted By</th>
-                        <th class="w-[14%] text-right">Deleted At</th>
-                    </tr>
-                </thead>
-                <tbody id="deletedTableBody">
-                    <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-500 font-bold">Loading deleted account logs...</td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- TAB 2: DELETED ACCOUNTS HISTORY (ARCHIVE) -->
+    <div id="sectionHistory" class="space-y-5 hidden">
+        <!-- Toolbar -->
+        <div class="admin-card p-5 tx-fade-up">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-black text-white">Permanent Deletion History</h2>
+                    <p class="mt-1 text-sm text-slate-400">Permanent audit log of closed main accounts and sub-trading accounts.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="deletedTypeFilter" class="rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-black text-white outline-none focus:border-cyan-400">
+                        <option value="">All Account Types</option>
+                        <option value="main">Main Accounts Only</option>
+                        <option value="sub">Sub-Accounts Only</option>
+                    </select>
+                    <div class="relative">
+                        <input id="deletedSearch" type="search" placeholder="Search name, client ID, email..." class="w-72 rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400" />
+                    </div>
+                    <button id="refreshHistoryBtn" type="button" class="admin-btn admin-btn-primary">Refresh</button>
+                </div>
+            </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="flex items-center justify-between pt-5 text-xs font-bold text-slate-400">
-            <div id="pageInfo">Showing 0 to 0 of 0 logs</div>
-            <div class="flex items-center gap-2">
-                <button id="prevBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>← Previous</button>
-                <button id="nextBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>Next →</button>
+        <!-- History Table -->
+        <div class="admin-card p-5 tx-fade-up tx-delay-1">
+            <div class="overflow-x-auto rounded-3xl border border-white/10">
+                <table class="admin-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="w-[22%]">Account Details</th>
+                            <th class="w-[12%]">Type</th>
+                            <th class="w-[20%]">Parent Account</th>
+                            <th class="w-[18%]">Closing / Refund Status</th>
+                            <th class="w-[14%]">Deleted By</th>
+                            <th class="w-[14%] text-right">Deleted At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deletedTableBody">
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-slate-500 font-bold">Loading deleted account logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- History Pagination -->
+            <div class="flex items-center justify-between pt-5 text-xs font-bold text-slate-400">
+                <div id="pageInfo">Showing 0 to 0 of 0 logs</div>
+                <div class="flex items-center gap-2">
+                    <button id="prevBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>← Previous</button>
+                    <button id="nextBtn" type="button" class="admin-btn admin-btn-ghost px-4 py-2" disabled>Next →</button>
+                </div>
             </div>
         </div>
     </div>
 </section>
+
+<!-- MODAL: APPROVE DELETION -->
+<div id="approveModal" class="admin-modal" aria-hidden="true">
+    <div class="admin-modal-panel p-6 max-w-lg">
+        <div class="mb-4 flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-white">Approve Account Closure</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Soft-close account & preserve all audit history</p>
+                </div>
+            </div>
+            <button type="button" class="admin-btn py-1 px-3 text-slate-400 hover:text-white" data-modal-close>×</button>
+        </div>
+
+        <div class="my-4 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400 font-bold">Target Account:</span>
+                <span id="approveModalTargetUser" class="font-black text-white">User Name (#ID)</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400 font-bold">Reason:</span>
+                <span id="approveModalReason" class="font-black text-rose-300">User reason</span>
+            </div>
+            <div class="flex items-center justify-between text-xs border-t border-rose-500/15 pt-2">
+                <span class="text-slate-400 font-bold">Wallet Snapshot:</span>
+                <span id="approveModalWallet" class="font-mono font-bold text-slate-300">₹0.00 | $0.00</span>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-3.5 text-xs font-semibold leading-relaxed text-emerald-200">
+            🛡️ <strong>SAFE DATA RETENTION:</strong> Approving this request will close the user's account and revoke active sessions. All database records (Orders, Trades, Positions, KYC, Wallets & Ledger) remain <strong>completely safe and preserved</strong> in MongoDB. You can reactivate or restore the account at any time.
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" class="admin-btn" data-modal-close>Cancel</button>
+            <button type="button" id="confirmApproveBtn" class="admin-btn bg-rose-600 hover:bg-rose-500 text-white font-black border-rose-500/30">
+                Confirm & Close Account
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: REJECT DELETION -->
+<div id="rejectModal" class="admin-modal" aria-hidden="true">
+    <div class="admin-modal-panel p-6 max-w-lg">
+        <div class="mb-4 flex items-start justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-white">Reject Deletion Request</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Restore account to active status</p>
+                </div>
+            </div>
+            <button type="button" class="admin-btn py-1 px-3 text-slate-400 hover:text-white" data-modal-close>×</button>
+        </div>
+
+        <div class="my-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 text-xs space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400 font-bold">Target Account:</span>
+                <span id="rejectModalTargetUser" class="font-black text-white">User Name (#ID)</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-slate-400 font-bold">Requested Reason:</span>
+                <span id="rejectModalReason" class="font-bold text-slate-300">User reason</span>
+            </div>
+        </div>
+
+        <label class="mb-2 block text-xs font-black uppercase tracking-wide text-slate-400">Rejection Reason / Message to User</label>
+        <textarea id="rejectReasonInput" class="admin-textarea min-h-[100px] w-full" placeholder="Specify why the account deletion request is being rejected (e.g. pending balance settlement, active contract)..."></textarea>
+        <p class="mt-1 text-[11px] text-slate-500">The user's account will be restored to <strong>active</strong> status and this reason will be recorded.</p>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" class="admin-btn" data-modal-close>Cancel</button>
+            <button type="button" id="confirmRejectBtn" class="admin-btn admin-btn-primary">
+                Confirm & Reject Request
+            </button>
+        </div>
+    </div>
+</div>
 
             </main>
         </section>
     </div>
 
     <!-- Scripts -->
-    <script src="/admin/static/js/admin-config.js?v=20261013"></script>
-    <script src="/admin/static/js/admin-api.js?v=20261013"></script>
-    <script src="/admin/static/js/admin-layout.js?v=20261013"></script>
-    <script src="/admin/static/js/admin-deleted-accounts.js?v=20261013_4"></script>
+    <script src="/admin/static/js/admin-config.js?v=20261019"></script>
+    <script src="/admin/static/js/admin-api.js?v=20261019"></script>
+    <script src="/admin/static/js/admin-layout.js?v=20261019"></script>
+    <script src="/admin/static/js/admin-deleted-accounts.js?v=20261021_3"></script>
 </body>
 </html>

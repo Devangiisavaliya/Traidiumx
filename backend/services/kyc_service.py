@@ -196,15 +196,27 @@ def _duplicate_offline_ekyc_reference(user_id, reference_id):
     reference_id = clean_string(reference_id)
     if not reference_id:
         return False
-    existing = find_kyc_by_user_id(user_id)
-    db_query = {
-        "user_id": {"$ne": str(user_id)},
-        "offline_ekyc_reference_id": reference_id,
-        "status": "approved",
-    }
     from config.database import get_database
     db = get_database()
-    return bool(db.kyc_requests.find_one(db_query))
+    db_query = {
+        "user_id": {"$ne": str(user_id)},
+        "status": "approved",
+        "$or": [
+            {"offline_ekyc_reference_id": reference_id},
+            {"document_number": reference_id},
+            {"aadhaar_number": reference_id}
+        ]
+    }
+    found_kyc = bool(db.kyc_requests.find_one(db_query))
+    found_users = bool(db.users.find_one({
+        "_id": {"$ne": _user_object_id(user_id)},
+        "kyc_status": "approved",
+        "$or": [
+            {"aadhaar_number": reference_id},
+            {"pan_number": reference_id}
+        ]
+    }))
+    return found_kyc or found_users
 
 
 
@@ -862,17 +874,36 @@ def save_kyc_aadhaar_number(user_id, aadhaar_number, document_type="aadhaar_card
         doc_label_field = "Aadhaar"
 
     from config.database import get_database
+    db = get_database()
 
-    duplicate = get_database().kyc_requests.find_one({
-        "document_number": validated_number,
+    # Check for duplicate document number across ALL approved KYC accounts (including closed accounts):
+    # Rule: If an account was APPROVED with this document, block reuse permanently.
+    # If it was REJECTED previously, allow the user to submit again with clear/proper documents.
+    duplicate_kyc = db.kyc_requests.find_one({
+        "$or": [
+            {"document_number": validated_number},
+            {"aadhaar_number": validated_number},
+            {"pan_number": validated_number},
+            {"offline_ekyc_reference_id": validated_number}
+        ],
         "status": "approved",
         "user_id": {"$ne": str(user_id)},
     })
-    if duplicate:
+    if not duplicate_kyc:
+        duplicate_kyc = db.users.find_one({
+            "$or": [
+                {"aadhaar_number": validated_number},
+                {"pan_number": validated_number}
+            ],
+            "kyc_status": "approved",
+            "_id": {"$ne": user_object_id}
+        })
+
+    if duplicate_kyc:
         return {
             "success": False,
-            "message": f"This {doc_label} number is already verified on another account.",
-            "errors": {"aadhaar_number": f"{doc_label} number is already in use."},
+            "message": f"This {doc_label} number is already approved on another account. Approved KYC documents cannot be reused.",
+            "errors": {"aadhaar_number": f"{doc_label} number is already approved on another account."},
             "status_code": 422,
         }
 

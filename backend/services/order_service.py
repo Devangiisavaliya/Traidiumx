@@ -128,6 +128,11 @@ def validate_order_payload(data):
     if currency not in ("INR", "USDT"):
         currency = None
 
+    platform = clean_string(data.get("platform", "")).lower()
+    if platform not in ("traidiumx", "mt5"):
+        platform = "traidiumx"
+    sub_account_id = clean_string(data.get("sub_account_id")) or None
+
     if errors:
         return {
             "valid": False,
@@ -152,6 +157,8 @@ def validate_order_payload(data):
             "reduce_only": reduce_only,
             "margin_mode": margin_mode,
             "currency": currency,
+            "platform": platform,
+            "sub_account_id": sub_account_id,
             "symbol_meta": {
                 "market_type": stored_symbol.get("market_type", "futures") if stored_symbol else "futures",
                 "quote_asset": stored_symbol.get("quote_asset", "USDT") if stored_symbol else "USDT",
@@ -455,6 +462,32 @@ def place_order(user_id, data):
         platform_fee_to_charge = platform_fee
         required_available = round(margin_amount_to_lock + platform_fee, 8)
 
+    order_platform = str(clean_data.get("platform") or "traidiumx").lower().strip()
+    # In TraidiumX One-Way Netting mode: an opposite-direction order reduces/closes the open position
+    # and releases margin back to wallet rather than locking new margin.
+    if order_platform == "traidiumx":
+        from models.position_model import get_positions_collection
+        existing_pos = get_positions_collection().find_one({
+            "user_id": str(user_id),
+            "symbol": clean_data["symbol"],
+            "status": "open",
+            "platform": "traidiumx"
+        })
+        if existing_pos:
+            existing_side = existing_pos.get("position_side")
+            incoming_side = "long" if clean_data["side"] == "buy" else "short"
+            if existing_side != incoming_side:
+                existing_qty = float(existing_pos.get("quantity", 0.0) or 0.0)
+                order_qty = float(clean_data["quantity"])
+                if order_qty <= existing_qty:
+                    margin_amount_to_lock = 0.0
+                    required_available = platform_fee_to_charge
+                else:
+                    excess_qty = order_qty - existing_qty
+                    ratio = excess_qty / order_qty
+                    margin_amount_to_lock = round(margin_amount_to_lock * ratio, 2 if active_currency == "INR" else 8)
+                    required_available = round(margin_amount_to_lock + platform_fee_to_charge, 2 if active_currency == "INR" else 8)
+
     if available_balance < required_available:
         curr_symbol = "₹" if active_currency == "INR" else "$"
         return {
@@ -506,7 +539,8 @@ def place_order(user_id, data):
         "stop_loss": clean_data.get("stop_loss"),
         "estimated_price": estimated_price,
         "base_estimated_price": base_estimated_price,
-        "platform": "traidiumx",
+        "platform": clean_data.get("platform", "traidiumx"),
+        "sub_account_id": clean_data.get("sub_account_id"),
         "plan": spread_result.get("plan"),
         "plan_name": spread_result.get("plan_name"),
         "spread_type": spread_result.get("spread_type"),
@@ -532,14 +566,26 @@ def place_order(user_id, data):
         "remark": "Order placed. Margin locked from available balance."
     })
 
-    lock_result = lock_wallet_amount(
-        user_id=user_id,
-        amount=margin_amount_to_lock,
-        transaction_type="order_margin_lock",
-        reference_id=str(order_id),
-        description=f"Margin locked for order {order_reference}",
-        currency=active_currency
-    )
+    if margin_amount_to_lock > 0:
+        lock_result = lock_wallet_amount(
+            user_id=user_id,
+            amount=margin_amount_to_lock,
+            transaction_type="order_margin_lock",
+            reference_id=str(order_id),
+            description=f"Margin locked for order {order_reference}",
+            currency=active_currency
+        )
+    else:
+        wallet_obj = ensure_user_wallet(user_id)
+        tw = wallet_obj.get("trading_wallet") if isinstance(wallet_obj.get("trading_wallet"), dict) else {}
+        lock_result = {
+            "success": True,
+            "wallet": {
+                "available_balance": float(tw.get("available_balance", wallet_obj.get("available_balance", 0.0)) or 0.0),
+                "locked_balance": float(tw.get("locked_balance", wallet_obj.get("locked_balance", 0.0)) or 0.0),
+                "total_balance": float(tw.get("total_balance", wallet_obj.get("total_balance", 0.0)) or 0.0)
+            }
+        }
 
     if not lock_result["success"]:
         update_order(
@@ -559,9 +605,10 @@ def place_order(user_id, data):
             "status_code": 422
         }
 
-    # Mirror LIMIT order to Binance asynchronously (non-blocking)
+    # Mirror LIMIT order to Binance asynchronously (non-blocking) only for TraidiumX Exchange platform
     from config.settings import settings
-    if status == "open" and clean_data["order_type"] == "limit" and settings.BINANCE_API_KEY:
+    order_platform = str(clean_data.get("platform") or "traidiumx").lower().strip()
+    if order_platform == "traidiumx" and status == "open" and clean_data["order_type"] == "limit" and settings.BINANCE_API_KEY:
         import threading
         def _async_mirror_limit(oid, cdata):
             try:
@@ -600,9 +647,9 @@ def place_order(user_id, data):
         "data": {
             "order": format_order(order),
             "wallet": {
-                "available_balance": lock_result["wallet"].get("available_balance", 0.0),
-                "locked_balance": lock_result["wallet"].get("locked_balance", 0.0),
-                "total_balance": lock_result["wallet"].get("total_balance", 0.0)
+                "available_balance": (lock_result.get("wallet") or {}).get("available_balance", 0.0),
+                "locked_balance": (lock_result.get("wallet") or {}).get("locked_balance", 0.0),
+                "total_balance": (lock_result.get("wallet") or {}).get("total_balance", 0.0)
             },
             "risk": risk_data["risk"],
             "platform_fee": platform_fee,

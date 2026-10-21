@@ -9553,12 +9553,7 @@ function txRenderTradingAccounts() {
                                     ` : `
                                         <span class="text-emerald-400 font-bold text-xs flex items-center gap-1">✓ Current Active Account</span>
                                     `}
-                                    ${!acc.isParent ? `
-                                        <button onclick="txConfirmDeleteTradingAccount('${acc.id}')" type="button" class="px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 hover:text-red-300 font-bold text-xs border border-red-500/30 transition cursor-pointer flex items-center gap-1.5" title="Delete this trading account">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Delete Account</span>
-                                        </button>
-                                    ` : ''}
+                                    <!-- Sub-account Delete button temporarily hidden as requested. Can be re-enabled anytime. -->
                                 </div>
                             </div>
                         </div>
@@ -9691,12 +9686,12 @@ window.txConfirmDeleteTradingAccount = function(accId) {
                     <p class="text-slate-300">• Any open positions must be closed before deletion.</p>
                     <p class="text-slate-300">• Any remaining available balance will be transferred to your <strong>Main Account</strong>.</p>
                 </div>
-                <div id="txDeleteSubAccountError" class="hidden mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-semibold text-left"></div>
-                <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('txDeleteSubAccountModal')?.remove()" class="w-1/2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+                <div id="txDeleteSubAccountError" class="hidden mb-3 p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-semibold text-left"></div>
+                <div style="display: flex; gap: 12px; margin-top: 18px;">
+                    <button type="button" onclick="document.getElementById('txDeleteSubAccountModal')?.remove()" style="flex: 1; padding: 12px 16px; border-radius: 14px; background: #1e293b; color: #cbd5e1; font-weight: 700; font-size: 12px; border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">
                         Cancel
                     </button>
-                    <button type="button" id="txConfirmDeleteSubBtn" onclick="txExecuteDeleteTradingAccount('${accId}')" class="w-1/2 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-red-600/30">
+                    <button type="button" id="txConfirmDeleteSubBtn" onclick="txExecuteDeleteTradingAccount('${accId}')" style="flex: 1; padding: 12px 16px; border-radius: 14px; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; font-weight: 800; font-size: 12px; border: 1px solid rgba(244, 63, 94, 0.45); box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.92'" onmouseout="this.style.opacity='1'">
                         Delete Account
                     </button>
                 </div>

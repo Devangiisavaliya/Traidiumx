@@ -342,6 +342,8 @@ function showAuthExpiredNoticeIfNeeded() {
 
     if (params.get("expired") === "1") {
         showAuthMessage("Your session expired. Please login again to continue.", "error", 6000);
+    } else if (params.get("notice") === "account_closed") {
+        showAuthMessage("This account has been closed. You have been logged out.", "error", 7000);
     }
 }
 

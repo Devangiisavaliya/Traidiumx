@@ -378,16 +378,28 @@ function syncLeverageOptions(symbol = state.currentSymbol) {
 
     const maxLeverage = getMaxLeverageForPair(symbol);
     const allowedValues = [1, 2, 3, 5, 10, 20, 25, 50, 75, 100, 125, 150, 200, 250, 500, 1000].filter((value) => value <= maxLeverage);
-    const savedLeverage = Number(localStorage.getItem("tx_futures_leverage") || 500);
-    const currentValue = Number(elements.leverageSelect.value || savedLeverage || 500);
+    
+    let saved = localStorage.getItem("tx_futures_leverage_v2");
+    if (!saved) {
+        saved = localStorage.getItem("tx_futures_leverage");
+        if (!saved || saved === "500") {
+            saved = "100";
+        }
+        try {
+            localStorage.setItem("tx_futures_leverage_v2", saved);
+            localStorage.setItem("tx_futures_leverage", saved);
+        } catch (_) {}
+    }
+    const savedLeverage = Number(saved || 100);
+    const currentValue = Number(elements.leverageSelect.value || savedLeverage || 100);
 
     elements.leverageSelect.innerHTML = allowedValues.map((value) => {
         return `<option value="${value}">${value}x</option>`;
     }).join("");
 
-    let selectedValue = allowedValues.includes(currentValue) ? currentValue : 500;
+    let selectedValue = allowedValues.includes(currentValue) ? currentValue : 100;
     if (!allowedValues.includes(selectedValue)) {
-        selectedValue = allowedValues[allowedValues.length - 1];
+        selectedValue = allowedValues.includes(100) ? 100 : allowedValues[allowedValues.length - 1];
     }
 
     elements.leverageSelect.value = String(selectedValue);
@@ -3367,11 +3379,11 @@ function getQuantity() {
 }
 
 function getLeverage() {
-    const selectedLeverage = Number(elements.leverageSelect?.value || 500);
+    const selectedLeverage = Number(elements.leverageSelect?.value || 100);
     const maxLeverage = getMaxLeverageForPair();
 
     if (!Number.isFinite(selectedLeverage) || selectedLeverage < 1) {
-        return 500;
+        return 100;
     }
 
     return Math.min(selectedLeverage, maxLeverage);
@@ -4319,7 +4331,7 @@ function txUpdateEstimatedMargin() {
     const quantity = Number(elements.quantityInput ? elements.quantityInput.value : 0);
 
     // Get leverage
-    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 500);
+    const leverage = Number(elements.leverageSelect ? elements.leverageSelect.value : 100);
 
     // Calculate estimated margin
     let estMargin = 0;
@@ -4474,6 +4486,7 @@ function initEvents() {
         elements.leverageSelect.addEventListener("change", () => {
             try {
                 localStorage.setItem("tx_futures_leverage", elements.leverageSelect.value);
+                localStorage.setItem("tx_futures_leverage_v2", elements.leverageSelect.value);
             } catch (_) {}
             txUpdateEstimatedMargin();
         });
@@ -8176,6 +8189,12 @@ function placeOrderPayload() {
     const livePrice = Number(state.currentPrice || elements.markPrice?.textContent?.replace(/[^0-9.]/g, "") || 0);
     const activeCurrency = String(localStorage.getItem("tx_navbar_currency") || "USDT").toUpperCase();
 
+    const activeSubId = localStorage.getItem("traidiumx_active_user_id");
+    const subAccounts = TX_BACKEND_FUTURES.subAccounts || [];
+    const currentSub = (subAccounts || []).find(a => String(a.id) === String(activeSubId));
+    const isMt5 = Boolean(currentSub && (currentSub.selected_platform === "mt5" || currentSub.platform === "mt5" || currentSub.is_mt5 || currentSub.mt5_login_id || (currentSub.plan && String(currentSub.plan).toLowerCase().includes("cent"))));
+    const detectedPlatform = isMt5 ? "mt5" : "traidiumx";
+
     const payload = {
         symbol: state.currentSymbol,
         side: String(state.side || "BUY").toLowerCase(),
@@ -8184,6 +8203,8 @@ function placeOrderPayload() {
         leverage: leverage,
         margin_mode: state.marginMode || "isolated",
         currency: activeCurrency === "INR" ? "INR" : "USDT",
+        platform: detectedPlatform,
+        sub_account_id: activeSubId && activeSubId !== "main" ? activeSubId : undefined,
         reduce_only: false,
         has_tp_sl: tpSlEnabled,
         current_price: livePrice > 0 ? livePrice : undefined
@@ -8248,7 +8269,7 @@ function txRestoreFuturesState(snapshot) {
 
 function txBeginOptimisticAction() {
     TX_BACKEND_FUTURES.optimisticActionCount = txToNumber(TX_BACKEND_FUTURES.optimisticActionCount, 0) + 1;
-    TX_BACKEND_FUTURES.suppressAutoRefreshUntil = Date.now() + 4500;
+    TX_BACKEND_FUTURES.suppressAutoRefreshUntil = Date.now() + 10000;
     TX_BACKEND_FUTURES.lastDataLoadAt = Date.now();
 }
 
@@ -8746,31 +8767,234 @@ function txApplyOptimisticOrder(payload = {}) {
     const isMarket = String(payload.order_type || "").toLowerCase() === "market";
 
     txBeginOptimisticAction();
-    txApplyOptimisticWalletOpen(payload, order);
+
+    // Check if TraidiumX platform (One-Way Netting / Averaging mode)
+    const isTraidiumX = !payload.platform || String(payload.platform).toLowerCase() === "traidiumx";
+
+    let existingPos = null;
+    let existingIndex = -1;
+    let isSameSideMerge = false;
+    let isOppositeReduce = false;
+    let isOppositeClose = false;
+    let isOppositeFlip = false;
+    let optPos = null;
+
+    if (isMarket && isTraidiumX) {
+        const normSym = (s) => String(s || "").toUpperCase().replace(/[-_/.]/g, "").replace(/PERP/g, "").replace(/P$/, "");
+        const currentOrderSym = normSym(payload.symbol || state.currentSymbol);
+
+        existingIndex = (TX_BACKEND_FUTURES.positions || []).findIndex((p) => {
+            if (String(p.status || "open").toLowerCase() !== "open") return false;
+            if (normSym(p.symbol) !== currentOrderSym) return false;
+            return true;
+        });
+
+        if (existingIndex !== -1) {
+            existingPos = TX_BACKEND_FUTURES.positions[existingIndex];
+            const posSide = String(existingPos.position_side || existingPos.side || "buy").toLowerCase();
+            const existingIsBuy = posSide.includes("buy") || posSide.includes("long");
+            const orderSide = String(payload.side || state.side || "buy").toLowerCase();
+            const orderIsBuy = orderSide.includes("buy") || orderSide.includes("long");
+
+            optPos = txBuildOptimisticPosition(payload, order);
+
+            if (existingIsBuy === orderIsBuy) {
+                isSameSideMerge = true;
+            } else {
+                const existingQty = txToNumber(existingPos.quantity ?? existingPos.qty, 0);
+                const incomingQty = txToNumber(payload.quantity ?? order?.quantity, 0);
+                if (incomingQty < existingQty) {
+                    isOppositeReduce = true;
+                } else if (incomingQty === existingQty) {
+                    isOppositeClose = true;
+                } else {
+                    isOppositeFlip = true;
+                }
+            }
+        }
+    }
+
+    if (isOppositeReduce || isOppositeClose) {
+        // When reducing/closing existing position, margin is released, not locked
+        const existingQty = txToNumber(existingPos.quantity ?? existingPos.qty, 0);
+        const incomingQty = txToNumber(payload.quantity ?? order?.quantity, 0);
+        const closeQty = Math.min(existingQty, incomingQty);
+        const existingMargin = txToNumber(existingPos.margin_amount ?? existingPos.margin, 0);
+        const releaseMargin = existingQty > 0 ? (existingMargin * (closeQty / existingQty)) : 0;
+
+        const wallet = getWallet();
+        TX_BACKEND_FUTURES.wallet = TX_BACKEND_FUTURES.wallet
+            ? { ...TX_BACKEND_FUTURES.wallet }
+            : {
+                available_balance: wallet.available,
+                locked_balance: wallet.usedMargin,
+                total_balance: wallet.total,
+                realized_pnl: wallet.realizedPnl
+            };
+        const nextLocked = Math.max(0, txToNumber(wallet.usedMargin, 0) - releaseMargin);
+        const nextAvailable = txToNumber(wallet.available, 0) + releaseMargin;
+        const nextTotal = nextAvailable + nextLocked;
+        txSyncTradingWalletMirrorFields(TX_BACKEND_FUTURES.wallet, nextAvailable, nextLocked, nextTotal);
+        TX_BACKEND_FUTURES.walletLoaded = true;
+    } else {
+        txApplyOptimisticWalletOpen(payload, order);
+    }
+
     TX_BACKEND_FUTURES.orders = txUpsertCacheItem(TX_BACKEND_FUTURES.orders || [], order);
 
     let position = null;
+    let targetPositionId = "";
+
     if (isMarket) {
-        position = txTrackPositionTpSl(txBuildOptimisticPosition(payload, order), payload);
-        TX_BACKEND_FUTURES.positions = txUpsertCacheItem(TX_BACKEND_FUTURES.positions || [], position);
-        txSetActiveBottomTab("positions", false);
+        if (isSameSideMerge && existingPos) {
+            targetPositionId = txGetId(existingPos);
+            const oldQty = txToNumber(existingPos.quantity ?? existingPos.qty, 0);
+            const addQty = txToNumber(payload.quantity ?? order?.quantity, 0);
+            const totalQty = Number((oldQty + addQty).toFixed(8));
+
+            const execPrice = txToNumber(optPos?.entry_price, txToNumber(payload.current_price || state.currentPrice, 0));
+            const oldEntry = txToNumber(existingPos.entry_price ?? existingPos.entryPrice, 0);
+            const avgEntry = totalQty > 0
+                ? Number((((oldQty * oldEntry) + (addQty * execPrice)) / totalQty).toFixed(execPrice >= 1 ? 2 : 6))
+                : execPrice;
+
+            const oldMargin = txToNumber(existingPos.margin_amount ?? existingPos.margin, 0);
+            const addMargin = txToNumber(optPos?.margin_amount ?? optPos?.margin, 0);
+            const totalMargin = Number((oldMargin + addMargin).toFixed(2));
+
+            const lev = existingPos.leverage || payload.leverage || 1;
+            const newLiq = txEstimateLiquidationPrice(avgEntry, existingPos.position_side || existingPos.side, lev);
+
+            const updatedPos = {
+                ...existingPos,
+                quantity: totalQty,
+                qty: totalQty,
+                entry_price: avgEntry,
+                entryPrice: avgEntry,
+                margin_amount: totalMargin,
+                margin: totalMargin,
+                liquidation_price: newLiq,
+                liquidationPrice: newLiq,
+                liq_price: newLiq,
+                updated_at: new Date().toISOString()
+            };
+            if (payload.take_profit) {
+                updatedPos.take_profit = payload.take_profit;
+                updatedPos.takeProfit = payload.take_profit;
+            }
+            if (payload.stop_loss) {
+                updatedPos.stop_loss = payload.stop_loss;
+                updatedPos.stopLoss = payload.stop_loss;
+            }
+
+            TX_BACKEND_FUTURES.positions[existingIndex] = updatedPos;
+            txReplacePositionRowImmediately(targetPositionId, updatedPos);
+            txSetActiveBottomTab("positions", false);
+            txUpdateActiveTableWithoutFlicker(false);
+
+            return {
+                snapshot,
+                orderId: txGetId(order),
+                positionId: targetPositionId,
+                isMerged: true,
+                isMarket: true
+            };
+        } else if (isOppositeReduce && existingPos) {
+            targetPositionId = txGetId(existingPos);
+            const existingQty = txToNumber(existingPos.quantity ?? existingPos.qty, 0);
+            const incomingQty = txToNumber(payload.quantity ?? order?.quantity, 0);
+            const remQty = Number(Math.max(0, existingQty - incomingQty).toFixed(8));
+            const oldMargin = txToNumber(existingPos.margin_amount ?? existingPos.margin, 0);
+            const remMargin = Number((oldMargin * (remQty / existingQty)).toFixed(2));
+
+            const updatedPos = {
+                ...existingPos,
+                quantity: remQty,
+                qty: remQty,
+                margin_amount: remMargin,
+                margin: remMargin,
+                updated_at: new Date().toISOString()
+            };
+
+            TX_BACKEND_FUTURES.positions[existingIndex] = updatedPos;
+            txReplacePositionRowImmediately(targetPositionId, updatedPos);
+            txSetActiveBottomTab("positions", false);
+            txUpdateActiveTableWithoutFlicker(false);
+
+            return {
+                snapshot,
+                orderId: txGetId(order),
+                positionId: targetPositionId,
+                isReduced: true,
+                isMarket: true
+            };
+        } else if (isOppositeClose && existingPos) {
+            targetPositionId = txGetId(existingPos);
+            TX_BACKEND_FUTURES.positions = txRemoveCacheItem(TX_BACKEND_FUTURES.positions || [], targetPositionId);
+            txRemovePositionRowImmediately(targetPositionId);
+            txSetActiveBottomTab("positions", false);
+            txUpdateActiveTableWithoutFlicker(false);
+
+            return {
+                snapshot,
+                orderId: txGetId(order),
+                positionId: targetPositionId,
+                isClosed: true,
+                isMarket: true
+            };
+        } else if (isOppositeFlip && existingPos) {
+            targetPositionId = txGetId(existingPos);
+            TX_BACKEND_FUTURES.positions = txRemoveCacheItem(TX_BACKEND_FUTURES.positions || [], targetPositionId);
+            txRemovePositionRowImmediately(targetPositionId);
+
+            const existingQty = txToNumber(existingPos.quantity ?? existingPos.qty, 0);
+            const incomingQty = txToNumber(payload.quantity ?? order?.quantity, 0);
+            const excessQty = Number((incomingQty - existingQty).toFixed(8));
+
+            const flipPayload = { ...payload, quantity: excessQty };
+            position = txTrackPositionTpSl(txBuildOptimisticPosition(flipPayload, order), flipPayload);
+            TX_BACKEND_FUTURES.positions = txUpsertCacheItem(TX_BACKEND_FUTURES.positions || [], position);
+            txSetActiveBottomTab("positions", false);
+
+            txInsertPositionRowImmediately(position);
+            txUpdateActiveTableWithoutFlicker(false);
+
+            return {
+                snapshot,
+                orderId: txGetId(order),
+                positionId: txGetId(position),
+                isMarket: true
+            };
+        } else {
+            // New position (either initial TraidiumX position or MT5 hedging lot)
+            position = txTrackPositionTpSl(optPos || txBuildOptimisticPosition(payload, order), payload);
+            TX_BACKEND_FUTURES.positions = txUpsertCacheItem(TX_BACKEND_FUTURES.positions || [], position);
+            txSetActiveBottomTab("positions", false);
+
+            const rowInserted = Boolean(position && txInsertPositionRowImmediately(position));
+            if (rowInserted) {
+                txUpdateActiveTableWithoutFlicker(false);
+            } else {
+                txRenderActiveTableFast();
+            }
+            return {
+                snapshot,
+                orderId: txGetId(order),
+                positionId: position ? txGetId(position) : "",
+                isMarket: true
+            };
+        }
     } else {
         TX_BACKEND_FUTURES.openOrders = txUpsertCacheItem(TX_BACKEND_FUTURES.openOrders || [], order);
         txSetActiveBottomTab("openOrders", false);
-    }
-
-    const rowInserted = Boolean(isMarket && position && txInsertPositionRowImmediately(position));
-    if (rowInserted) {
-        txUpdateActiveTableWithoutFlicker(false);
-    } else {
         txRenderActiveTableFast();
+        return {
+            snapshot,
+            orderId: txGetId(order),
+            positionId: "",
+            isMarket: false
+        };
     }
-    return {
-        snapshot,
-        orderId: txGetId(order),
-        positionId: position ? txGetId(position) : "",
-        isMarket
-    };
 }
 
 function txResolveOptimisticOrder(response, payload = {}, optimistic = {}) {
@@ -8784,7 +9008,9 @@ function txResolveOptimisticOrder(response, payload = {}, optimistic = {}) {
 
     TX_BACKEND_FUTURES.orders = txRemoveCacheItem(TX_BACKEND_FUTURES.orders || [], optimistic.orderId);
     TX_BACKEND_FUTURES.openOrders = txRemoveCacheItem(TX_BACKEND_FUTURES.openOrders || [], optimistic.orderId);
-    if (optimistic.positionId) {
+
+    // Only remove optimistic position from cache if it was a temporary LOCAL-POS-...
+    if (optimistic.positionId && !optimistic.isMerged && !optimistic.isReduced && !optimistic.isClosed) {
         TX_BACKEND_FUTURES.positions = txRemoveCacheItem(TX_BACKEND_FUTURES.positions || [], optimistic.positionId);
     }
 
@@ -8802,21 +9028,35 @@ function txResolveOptimisticOrder(response, payload = {}, optimistic = {}) {
     }
 
     if (response?.data?.position) {
-        response.data.position = txEnrichPositionWithTpSl(response.data.position, payload, optimistic.positionId);
-        if (backendPositionId) {
-            if (!TX_BACKEND_FUTURES.recentPositions) TX_BACKEND_FUTURES.recentPositions = {};
-            TX_BACKEND_FUTURES.recentPositions[backendPositionId] = {
-                position: response.data.position,
-                timestamp: Date.now()
-            };
+        const posStatus = String(response.data.position.status || "open").toLowerCase();
+        if (posStatus === "closed") {
+            if (TX_BACKEND_FUTURES.recentPositions && TX_BACKEND_FUTURES.recentPositions[backendPositionId]) {
+                delete TX_BACKEND_FUTURES.recentPositions[backendPositionId];
+            }
+            TX_BACKEND_FUTURES.positions = txRemoveCacheItem(TX_BACKEND_FUTURES.positions || [], backendPositionId);
+            txRemovePositionRowImmediately(backendPositionId);
+            response.data.position = null;
+        } else {
+            response.data.position = txEnrichPositionWithTpSl(response.data.position, payload, optimistic.positionId);
+            if (backendPositionId) {
+                if (!TX_BACKEND_FUTURES.recentPositions) TX_BACKEND_FUTURES.recentPositions = {};
+                TX_BACKEND_FUTURES.recentPositions[backendPositionId] = {
+                    position: response.data.position,
+                    timestamp: Date.now()
+                };
+            }
         }
     }
 
     txApplyImmediateOrderResponse(response, payload);
 
     const finalPosition = response?.data?.position || null;
-    if (optimistic.positionId && finalPosition) {
-        txReplacePositionRowImmediately(optimistic.positionId, finalPosition);
+    if (backendPositionId && finalPosition) {
+        if (optimistic.isMerged || optimistic.isReduced) {
+            txReplacePositionRowImmediately(backendPositionId, finalPosition);
+        } else if (optimistic.positionId) {
+            txReplacePositionRowImmediately(optimistic.positionId, finalPosition);
+        }
     }
 }
 
